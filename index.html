@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<head>
+    <style>
+        /* ... Style ทั้งหมดเหมือนเดิม ... */
+        .log-entry { 
+            display: flex; 
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px; 
+            border-bottom: 1px dotted #ccc; 
+            padding-bottom: 8px; 
+            font-size: 0.95em; 
+        }
+        .log-date-header {
+            /* ... Style เหมือนเดิม ... */
+        }
+        .delete-btn {
+            /* ... Style เหมือนเดิม ... */
+        }
+        .log-note { /* Style ใหม่สำหรับแสดงข้อมูลเสริม */
+            font-size: 0.85em;
+            color: #777;
+            margin-top: 3px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="stock-display" id="current-stock">
+        <h2>สต๊อกปัจจุบัน (กระสอบ)</h2>
+    </div>
+
+    <div class="transaction-form" id="adjustment-area">
+        <h2>แก้ไข/ปรับปรุงสต๊อก (Admin)</h2>
+        <div class="form-control">
+            <label for="adj-ice-type">ประเภท:</label>
+            <select id="adj-ice-type">
+                <option value="หลอด">หลอด</option><option value="บดหยาบ">บดหยาบ</option><option value="บดละเอียด">บดละเอียด</option>
+            </select>
+        </div>
+        <div class="form-control">
+            <label for="adj-quantity">จำนวนที่เพิ่ม/ลด (+/-):</label>
+            <input type="number" id="adj-quantity" value="1" placeholder="เช่น 50 หรือ -10">
+        </div>
+        <button onclick="adjustStock()" style="background: #ffc107; color: black; margin-top: 5px;">ปรับปรุงสต๊อก</button>
+    </div>
+    
+    <div class="transaction-form">
+        <h2>บันทึกรายการ (ขายหน้าโรงงาน)</h2>
+        <div class="form-control">
+            <label for="factory-ice-type">ประเภทน้ำแข็ง:</label>
+            <select id="factory-ice-type">
+                <option value="หลอด">หลอด</option><option value="บดหยาบ">บดหยาบ</option><option value="บดละเอียด">บดละเอียด</option>
+            </select>
+        </div>
+        <div class="form-control">
+            <label for="factory-quantity">จำนวนกระสอบ:</label>
+            <input type="number" id="factory-quantity" min="1" value="1">
+        </div>
+        <button onclick="recordFactorySale()">บันทึกขายหน้าโรงงาน</button>
+    </div>
+    
+    <div class="transaction-form">
+        <h2>บันทึกรายการ (รถออก/เข้า)</h2>
+        <div class="form-control">
+            <label for="truck-id">หมายเลขรถ:</label>
+            <select id="truck-id">
+                <option value="1">รถ 1</option><option value="2">รถ 2</option><option value="3">รถ 3</option>
+                <option value="4">รถ 4</option><option value="5">รถ 5</option><option value="6">รถ 6</option>
+                <option value="7">รถ 7</option><option value="8">รถ 8</option><option value="9">รถ 9</option>
+            </select>
+        </div>
+        <div class="form-control">
+            <label for="ice-type">ประเภทน้ำแข็ง:</label>
+            <select id="ice-type">
+                <option value="หลอด">หลอด</option><option value="บดหยาบ">บดหยาบ</option><option value="บดละเอียด">บดละเอียด</option>
+            </select>
+        </div>
+        <div class="form-control">
+            <label for="quantity">จำนวนกระสอบ (รวมที่นำกลับ):</label>
+            <input type="number" id="quantity" min="1" value="1">
+        </div>
+        <div class="form-control">
+            <label for="action-type">การกระทำ:</label>
+            <select id="action-type" onchange="toggleSpoiledField()">
+                <option value="OUT">นำออก (ไปส่ง)</option><option value="IN">นำเข้า (กลับสต๊อก)</option>
+            </select>
+        </div>
+
+        <div class="form-control" id="spoiled-field" style="display: none;">
+            <label for="spoiled-quantity">จำนวนกระสอบที่ **เสีย/ถูกตีกลับ**:</label>
+            <input type="number" id="spoiled-quantity" min="0" value="0">
+        </div>
+
+        <button onclick="recordTransaction()">บันทึกรายการ</button>
+    </div>
+
+    <div class="log-area">
+        <h2>ประวัติการเคลื่อนไหวทั้งหมด</h2>
+        <div class="log-list" id="transaction-log">
+        </div>
+        <button onclick="exportLogToCSV()" style="background: #007bff; font-size: 16px; margin-top: 5px;">
+            Export Log (สำรองข้อมูล CSV)
+        </button>
+        <button onclick="clearLogHistory()" style="background: #dc3545; font-size: 16px; margin-top: 5px;">
+            ล้างประวัติทั้งหมด (ฉุกเฉิน)
+        </button>
+    </div>
+
+    <script>
+        // ... ฟังก์ชันจัดการข้อมูล (getLog, addLog, deleteLogEntry ฯลฯ) เหมือนเดิม ...
+        // ... ฟังก์ชัน recordFactorySale, adjustStock, clearLogHistory, exportLogToCSV เหมือนเดิม ...
+
+        const INITIAL_STOCK = { "หลอด": 100, "บดหยาบ": 50, "บดละเอียด": 30 };
+        const STOCK_KEY = 'ajarnG_ice_stock';
+        const LOG_KEY = 'ajarnG_ice_log';
+
+        // ----------------------------------------------------
+        // 1. ฟังก์ชันจัดการข้อมูล (Data Handlers) - (โค้ดเหมือนเดิม)
+        // ----------------------------------------------------
+        function getStock() {
+            const stockData = localStorage.getItem(STOCK_KEY);
+            return stockData ? JSON.parse(stockData) : INITIAL_STOCK;
+        }
+
+        function saveStock(stock) {
+            localStorage.setItem(STOCK_KEY, JSON.stringify(stock));
+        }
+
+        function getLog() {
+            const logData = localStorage.getItem(LOG_KEY);
+            let log = logData ? JSON.parse(logData) : [];
+            return log.sort((a, b) => b.timestamp - a.timestamp); 
+        }
+
+        function addLog(newEntry) {
+            const log = getLog();
+            newEntry.id = Date.now() + Math.random().toString(16).slice(2); 
+            log.push(newEntry);
+            localStorage.setItem(LOG_KEY, JSON.stringify(log)); 
+        }
+        
+        function deleteLogEntry(logId) {
+            if (!confirm('ยืนยันลบรายการนี้? การลบไม่สามารถย้อนกลับได้และจะกู้คืนสต๊อกนะ!')) {
+                return;
+            }
+            let log = getLog();
+            const deletedEntry = log.find(entry => entry.id === logId);
+
+            if (!deletedEntry) {
+                alert('หารายการที่จะลบไม่เจอ!');
+                return;
+            }
+
+            let currentStock = getStock();
+            const type = deletedEntry.ice_type;
+            const quantity = deletedEntry.quantity;
+            const action = deletedEntry.action;
+
+            if (action === 'OUT' || action === 'FSALE') {
+                currentStock[type] += quantity;
+            } else if (action === 'IN') {
+                currentStock[type] -= quantity;
+            } else if (action === 'ADJ') {
+                currentStock[type] -= quantity;
+            } 
+            
+            if (currentStock[type] < 0) {
+                 alert('ไม่สามารถลบได้! การลบจะทำให้สต๊อกปัจจุบันติดลบ (กรุณาปรับปรุงสต๊อกด้วย Admin ก่อนลบ)!');
+                 return;
+            }
+            
+            saveStock(currentStock);
+
+            log = log.filter(entry => entry.id !== logId);
+            localStorage.setItem(LOG_KEY, JSON.stringify(log)); 
+
+            renderStock();
+            renderLog();
+            alert('ลบรายการสำเร็จและปรับปรุงสต๊อกแล้ว!');
+        }
+
+        // ----------------------------------------------------
+        // 2. ฟังก์ชันแสดงผล (Render Functions) - **ถูกแก้ไข**
+        // ----------------------------------------------------
+
+        function renderStock() {
+            const stock = getStock();
+            const stockContainer = document.getElementById('current-stock');
+            stockContainer.innerHTML = '<h2>สต๊อกปัจจุบัน (กระสอบ)</h2>'; 
+            for (const type in stock) {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'stock-item';
+                itemDiv.innerHTML = `<strong>${type}:</strong><span>${stock[type]} กระสอบ</span>`;
+                stockContainer.appendChild(itemDiv);
+            }
+        }
+
+        function renderLog() {
+            const allLog = getLog();
+            const logContainer = document.getElementById('transaction-log');
+            logContainer.innerHTML = ''; 
+
+            let lastDate = ''; 
+            const renderedLogIds = new Set(); // เก็บ ID ของ Log ที่ถูก Render ไปแล้ว (ใช้ซ่อน Log เสีย)
+
+            allLog.forEach((entry, index) => {
+                if (renderedLogIds.has(entry.id)) {
+                    return; // ข้าม Log ที่ถูกรวมเข้าไปแล้ว
+                }
+                
+                const date = new Date(entry.timestamp);
+                const dateStr = date.toLocaleDateString('th-TH');
+
+                // 1. การจัดกลุ่มตามวัน
+                if (dateStr !== lastDate) {
+                    const dateHeader = document.createElement('div');
+                    dateHeader.className = 'log-date-header';
+                    dateHeader.innerHTML = `--- 📅 ${dateStr} ---`;
+                    logContainer.appendChild(dateHeader);
+                    lastDate = dateStr;
+                }
+                
+                // 2. รายละเอียด Log
+                const timeStr = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                
+                let actionText;
+                let truckInfo;
+                let extraNote = '';
+
+                // ตรวจสอบการรวม Log "นำเข้า (ของดี)" กับ "น้ำแข็งเสีย"
+                if (entry.action === 'IN') {
+                    // ลองหา Log เสียที่ตามมาติดๆ ในเวลาเดียวกัน (หรือ +1ms ที่เราตั้งไว้)
+                    const spoiledEntry = allLog.slice(index + 1).find(
+                        nextEntry => 
+                        nextEntry.action === 'SPOIL' && 
+                        nextEntry.truck_id === entry.truck_id &&
+                        nextEntry.ice_type === entry.ice_type &&
+                        (nextEntry.timestamp === entry.timestamp || nextEntry.timestamp === entry.timestamp + 1)
+                    );
+                    
+                    if (spoiledEntry) {
+                        // **พบรายการเสีย:** รวม Log เข้าด้วยกัน
+                        actionText = `<strong style="color: green;">นำเข้า (ของดี)</strong>`;
+                        extraNote = `<div class="log-note">รวม: เสีย ${spoiledEntry.quantity} กระสอบ | ลบรายการนี้จะลบ Log เสียด้วย</div>`;
+                        renderedLogIds.add(spoiledEntry.id); // ซ่อน Log เสียจาก Log list
+                    } else {
+                        // ไม่พบรายการเสีย: แสดง Log ของดีปกติ
+                        actionText = `<strong style="color: green;">นำเข้า (ของดี)</strong>`;
+                    }
+                } else if (entry.action === 'OUT') {
+                    actionText = `<strong style="color: red;">นำออก</strong>`;
+                } else if (entry.action === 'ADJ') {
+                    actionText = `<strong style="color: orange;">ปรับปรุง</strong>`;
+                } else if (entry.action === 'SPOIL') {
+                    // รายการเสียที่ไม่ได้ถูกรวม (เกิดขึ้นโดดๆ) ให้แสดงเป็น Log เสียปกติ
+                    actionText = `<strong style="color: purple;">น้ำแข็งเสีย</strong>`; 
+                } else if (entry.action === 'FSALE') {
+                    actionText = `<strong style="color: blue;">ขายหน้าโรงงาน</strong>`; 
+                }
+
+                // ข้อมูลรถ
+                if (entry.truck_id === 'ADMIN') {
+                    truckInfo = '[ADMIN]';
+                } else if (entry.truck_id === 'FACTORY') {
+                    truckInfo = '[หน้าโรงงาน]';
+                } else {
+                    truckInfo = `รถ ${entry.truck_id}`;
+                }
+                
+                const logEntry = document.createElement('div');
+                logEntry.className = 'log-entry';
+                
+                let entryDetails = `
+                    <div style="flex-grow: 1;">
+                        [${timeStr}] 
+                        ${truckInfo} 
+                        ${actionText} ${entry.quantity} กระสอบ 
+                        (${entry.ice_type}).
+                        ${extraNote}
+                    </div>
+                    <button class="delete-btn" onclick="deleteLogEntry('${entry.id}')">ลบ</button>
+                `;
+                
+                logEntry.innerHTML = entryDetails;
+                logContainer.appendChild(logEntry);
+            });
+
+            if (allLog.length === 0) {
+                logContainer.innerHTML = '<p style="text-align: center; color: #6c757d;">ยังไม่มีรายการเคลื่อนไหว</p>';
+            }
+        }
+        // ----------------------------------------------------
+        // ... ฟังก์ชัน recordFactorySale, recordTransaction, adjustStock, exportLogToCSV และ Initialization (ส่วนที่เหลือ) เหมือนเดิม ...
+        // (อาจารย์ไม่ได้คัดลอกส่วนที่เหลือมาทั้งหมด แต่ลูกศิษย์ต้องรวมมันกลับเข้าไปในไฟล์ index.html ตัวจริง)
+        // ----------------------------------------------------
+
+        // **หมายเหตุ:** โค้ดที่เหลือจากฉบับก่อนหน้า (recordFactorySale, recordTransaction, adjustStock, exportLogToCSV, toggleSpoiledField และ Initialization) ให้นำมาต่อท้ายในส่วน <script> นี้ทั้งหมด
+        
+        // ----------------------------------------------------
+        // 6. การเริ่มต้นระบบ (Initialization)
+        // ----------------------------------------------------
+
+        if (!localStorage.getItem(STOCK_KEY)) {
+            saveStock(INITIAL_STOCK);
+        }
+
+        renderStock();
+        renderLog();
+        toggleSpoiledField(); // เรียกใช้ครั้งแรกเพื่อให้ช่องเสียซ่อนอยู่
+
+    </script>
+</body>
+</html>
