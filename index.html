@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ice Stock Tracker (AjarnG Edition)</title>
+    <style>
+        /* สไตล์เบื้องต้นให้ดูเหมือนแอปมือถือ */
+        body { 
+            font-family: sans-serif; 
+            margin: 0; 
+            padding: 15px; 
+            background: #f4f4f9; 
+        }
+        h1 { 
+            color: #007bff; 
+            text-align: center; 
+            margin-bottom: 25px;
+        }
+        .stock-display, .log-area, .transaction-form { 
+            margin-bottom: 20px; 
+            padding: 15px; 
+            background: white; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+        }
+        .stock-item { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 8px 0; 
+            border-bottom: 1px solid #eee; 
+            font-size: 1.1em;
+        }
+        .form-control { 
+            margin-bottom: 10px; 
+        }
+        .form-control label { 
+            display: block; 
+            font-weight: bold; 
+            margin-bottom: 5px; 
+        }
+        select, input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button { 
+            padding: 12px 15px; 
+            background: #28a745; 
+            color: white; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            width: 100%; 
+            margin-top: 15px; 
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .log-list { 
+            max-height: 350px; 
+            overflow-y: scroll; 
+            border: 1px solid #ccc; 
+            border-radius: 4px;
+            padding: 10px; 
+        }
+        .log-entry { 
+            display: flex; 
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px; 
+            border-bottom: 1px dotted #ccc; 
+            padding-bottom: 8px; 
+            font-size: 0.95em; 
+        }
+        .log-date-header {
+            font-weight: bold;
+            background: #e9ecef;
+            padding: 5px 10px;
+            margin: 5px -10px;
+            border-radius: 4px;
+            font-size: 1em;
+            text-align: center;
+            border-top: 1px solid #ccc;
+        }
+        .delete-btn {
+            background: #ff5050; 
+            color: white;
+            border: none;
+            padding: 3px 8px;
+            font-size: 0.8em;
+            border-radius: 4px;
+            cursor: pointer;
+            width: auto; 
+            margin: 0;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>❄️ Ice Stock Tracker</h1>
+
+    <div class="stock-display" id="current-stock">
+        <h2>สต๊อกปัจจุบัน (กระสอบ)</h2>
+    </div>
+
+    <div class="transaction-form" id="adjustment-area">
+        <h2>แก้ไข/ปรับปรุงสต๊อก (Admin)</h2>
+        <div class="form-control">
+            <label for="adj-ice-type">ประเภท:</label>
+            <select id="adj-ice-type">
+                <option value="หลอด">หลอด</option><option value="บดหยาบ">บดหยาบ</option><option value="บดละเอียด">บดละเอียด</option>
+            </select>
+        </div>
+        <div class="form-control">
+            <label for="adj-quantity">จำนวนที่เพิ่ม/ลด (+/-):</label>
+            <input type="number" id="adj-quantity" value="1" placeholder="เช่น 50 หรือ -10">
+        </div>
+        <button onclick="adjustStock()" style="background: #ffc107; color: black; margin-top: 5px;">ปรับปรุงสต๊อก</button>
+    </div>
+    
+    <div class="transaction-form">
+        <h2>บันทึกรายการ (ขายหน้าโรงงาน)</h2>
+        <div class="form-control">
+            <label for="factory-ice-type">ประเภทน้ำแข็ง:</label>
+            <select id="factory-ice-type">
+                <option value="หลอด">หลอด</option><option value="บดหยาบ">บดหยาบ</option><option value="บดละเอียด">บดละเอียด</option>
+            </select>
+        </div>
+        <div class="form-control">
+            <label for="factory-quantity">จำนวนกระสอบ:</label>
+            <input type="number" id="factory-quantity" min="1" value="1">
+        </div>
+        <button onclick="recordFactorySale()">บันทึกขายหน้าโรงงาน</button>
+    </div>
+    
+    <div class="transaction-form">
+        <h2>บันทึกรายการ (รถออก/เข้า)</h2>
+        <div class="form-control">
+            <label for="truck-id">หมายเลขรถ:</label>
+            <select id="truck-id">
+                <option value="1">รถ 1</option><option value="2">รถ 2</option><option value="3">รถ 3</option>
+                <option value="4">รถ 4</option><option value="5">รถ 5</option><option value="6">รถ 6</option>
+                <option value="7">รถ 7</option><option value="8">รถ 8</option><option value="9">รถ 9</option>
+            </select>
+        </div>
+        <div class="form-control">
+            <label for="ice-type">ประเภทน้ำแข็ง:</label>
+            <select id="ice-type">
+                <option value="หลอด">หลอด</option><option value="บดหยาบ">บดหยาบ</option><option value="บดละเอียด">บดละเอียด</option>
+            </select>
+        </div>
+        <div class="form-control">
+            <label for="quantity">จำนวนกระสอบ (รวมที่นำกลับ):</label>
+            <input type="number" id="quantity" min="1" value="1">
+        </div>
+        <div class="form-control">
+            <label for="action-type">การกระทำ:</label>
+            <select id="action-type" onchange="toggleSpoiledField()">
+                <option value="OUT">นำออก (ไปส่ง)</option><option value="IN">นำเข้า (กลับสต๊อก)</option>
+            </select>
+        </div>
+
+        <div class="form-control" id="spoiled-field" style="display: none;">
+            <label for="spoiled-quantity">จำนวนกระสอบที่ **เสีย/ถูกตีกลับ**:</label>
+            <input type="number" id="spoiled-quantity" min="0" value="0">
+        </div>
+
+        <button onclick="recordTransaction()">บันทึกรายการ</button>
+    </div>
+
+    <div class="log-area">
+        <h2>ประวัติการเคลื่อนไหวทั้งหมด</h2>
+        <div class="log-list" id="transaction-log">
+            </div>
+        <button onclick="exportLogToCSV()" style="background: #007bff; font-size: 16px; margin-top: 5px;">
+            Export Log (สำรองข้อมูล CSV)
+        </button>
+        <button onclick="clearLogHistory()" style="background: #dc3545; font-size: 16px; margin-top: 5px;">
+            ล้างประวัติทั้งหมด (ฉุกเฉิน)
+        </button>
+    </div>
+
+    <script>
+        // กำหนดสต๊อกเริ่มต้น
+        const INITIAL_STOCK = {
+            "หลอด": 100, "บดหยาบ": 50, "บดละเอียด": 30
+        };
+        const STOCK_KEY = 'ajarnG_ice_stock';
+        const LOG_KEY = 'ajarnG_ice_log';
+
+        // ----------------------------------------------------
+        // 1. ฟังก์ชันจัดการข้อมูล (Data Handlers)
+        // ----------------------------------------------------
+
+        function getStock() {
+            const stockData = localStorage.getItem(STOCK_KEY);
+            return stockData ? JSON.parse(stockData) : INITIAL_STOCK;
+        }
+
+        function saveStock(stock) {
+            localStorage.setItem(STOCK_KEY, JSON.stringify(stock));
+        }
+
+        function getLog() {
+            const logData = localStorage.getItem(LOG_KEY);
+            let log = logData ? JSON.parse(logData) : [];
+            // เรียงจากใหม่ไปเก่า (เวลาเยอะสุดอยู่บน)
+            return log.sort((a, b) => b.timestamp - a.timestamp); 
+        }
+
+        function addLog(newEntry) {
+            const log = getLog();
+            // ให้แต่ละ Log มี ID สำหรับการลบเฉพาะรายการ
+            newEntry.id = Date.now() + Math.random().toString(16).slice(2); 
+            log.push(newEntry);
+            localStorage.setItem(LOG_KEY, JSON.stringify(log)); 
+        }
+        
+        // ฟังก์ชันลบรายการ Log เฉพาะรายการ (พร้อมกู้คืนสต๊อก)
+        function deleteLogEntry(logId) {
+            if (!confirm('ยืนยันลบรายการนี้? การลบไม่สามารถย้อนกลับได้และจะกู้คืนสต๊อกนะ!')) {
+                return;
+            }
+            let log = getLog();
+            const deletedEntry = log.find(entry => entry.id === logId);
+
+            if (!deletedEntry) {
+                alert('หารายการที่จะลบไม่เจอ!');
+                return;
+            }
+
+            // ต้องกู้คืนสต๊อกกลับคืนด้วย!
+            let currentStock = getStock();
+            const type = deletedEntry.ice_type;
+            const quantity = deletedEntry.quantity;
+            const action = deletedEntry.action;
+
+            if (action === 'OUT' || action === 'FSALE') { // FSALE คือ Factory Sale
+                // ถ้าลบรายการ "นำออก" หรือ "ขายหน้าโรงงาน" ต้องคืนของกลับสต๊อก
+                currentStock[type] += quantity;
+            } else if (action === 'IN') {
+                // ถ้าลบรายการ "นำกลับ (ของดี)" ต้องนำของออกจากสต๊อก
+                currentStock[type] -= quantity;
+            } else if (action === 'ADJ') {
+                // ถ้าลบรายการ "ปรับปรุง" ต้องย้อนค่ากลับ
+                currentStock[type] -= quantity;
+            } else if (action === 'SPOIL') {
+                // ถ้าลบรายการ "เสีย" ไม่ต้องทำอะไรกับสต๊อก 
+            }
+            
+            // 1. ตรวจสอบสต๊อกติดลบหลังกู้คืน
+            if (currentStock[type] < 0) {
+                 alert('ไม่สามารถลบได้! การลบจะทำให้สต๊อกปัจจุบันติดลบ (กรุณาปรับปรุงสต๊อกด้วย Admin ก่อนลบ)!');
+                 return;
+            }
+            
+            saveStock(currentStock);
+
+            // 2. กรอง Log ที่เหลือ
+            log = log.filter(entry => entry.id !== logId);
+            localStorage.setItem(LOG_KEY, JSON.stringify(log)); 
+
+            // 3. อัพเดทหน้าจอ
+            renderStock();
+            renderLog();
+            alert('ลบรายการสำเร็จและปรับปรุงสต๊อกแล้ว!');
+        }
+
+
+        // ----------------------------------------------------
+        // 2. ฟังก์ชันแสดงผล (Render Functions)
+        // ----------------------------------------------------
+
+        function renderStock() {
+            const stock = getStock();
+            const stockContainer = document.getElementById('current-stock');
+            stockContainer.innerHTML = '<h2>สต๊อกปัจจุบัน (กระสอบ)</h2>'; 
+            for (const type in stock) {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'stock-item';
+                itemDiv.innerHTML = `<strong>${type}:</strong><span>${stock[type]} กระสอบ</span>`;
+                stockContainer.appendChild(itemDiv);
+            }
+        }
+
+        function renderLog() {
+            const log = getLog();
+            const logContainer = document.getElementById('transaction-log');
+            logContainer.innerHTML = ''; 
+
+            let lastDate = ''; 
+
+            log.forEach(entry => {
+                const date = new Date(entry.timestamp);
+                
+                // 1. การจัดกลุ่มตามวัน
+                const dateStr = date.toLocaleDateString('th-TH');
+
+                if (dateStr !== lastDate) {
+                    const dateHeader = document.createElement('div');
+                    dateHeader.className = 'log-date-header';
+                    dateHeader.innerHTML = `--- 📅 ${dateStr} ---`;
+                    logContainer.appendChild(dateHeader);
+                    lastDate = dateStr;
+                }
+                
+                // 2. รายละเอียด Log
+                const timeStr = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+                let actionText;
+                if (entry.action === 'OUT') {
+                    actionText = `<strong style="color: red;">นำออก</strong>`;
+                } else if (entry.action === 'IN') {
+                    actionText = `<strong style="color: green;">นำเข้า (ของดี)</strong>`;
+                } else if (entry.action === 'ADJ') {
+                    actionText = `<strong style="color: orange;">ปรับปรุง</strong>`;
+                } else if (entry.action === 'SPOIL') {
+                    actionText = `<strong style="color: purple;">น้ำแข็งเสีย</strong>`; 
+                } else if (entry.action === 'FSALE') { // **เพิ่ม Factory Sale**
+                    actionText = `<strong style="color: blue;">ขายหน้าโรงงาน</strong>`; 
+                }
+
+                const logEntry = document.createElement('div');
+                logEntry.className = 'log-entry';
+                
+                let truckInfo;
+                if (entry.truck_id === 'ADMIN') {
+                    truckInfo = '[ADMIN]';
+                } else if (entry.truck_id === 'FACTORY') { // **แสดงเป็น หน้าโรงงาน**
+                    truckInfo = '[หน้าโรงงาน]';
+                } else {
+                    truckInfo = `รถ ${entry.truck_id}`;
+                }
+                
+                let entryDetails = `
+                    <div style="flex-grow: 1;">
+                        [${timeStr}] 
+                        ${truckInfo} 
+                        ${actionText} ${entry.quantity} กระสอบ 
+                        (${entry.ice_type}).
+                    </div>
+                    <button class="delete-btn" onclick="deleteLogEntry('${entry.id}')">ลบ</button>
+                `;
+                
+                logEntry.innerHTML = entryDetails;
+                logContainer.appendChild(logEntry);
+            });
+
+            if (log.length === 0) {
+                logContainer.innerHTML = '<p style="text-align: center; color: #6c757d;">ยังไม่มีรายการเคลื่อนไหว</p>';
+            }
+        }
+
+        // ----------------------------------------------------
+        // 7. ฟังก์ชัน: ควบคุมการแสดงผลช่องน้ำแข็งเสีย
+        // ----------------------------------------------------
+        function toggleSpoiledField() {
+            const action = document.getElementById('action-type').value;
+            const spoiledField = document.getElementById('spoiled-field');
+            
+            // แสดงช่องเสียเฉพาะเมื่อเลือก "นำเข้า"
+            if (action === 'IN') {
+                spoiledField.style.display = 'block';
+            } else {
+                spoiledField.style.display = 'none';
+                document.getElementById('spoiled-quantity').value = 0; // รีเซ็ตค่า
+            }
+        }
+        
+        // ----------------------------------------------------
+        // 3. ฟังก์ชันบันทึกรายการ (Transaction Logic)
+        // ----------------------------------------------------
+
+        // ** ฟังก์ชันใหม่: บันทึกรายการขายหน้าโรงงาน **
+        function recordFactorySale() {
+            const iceType = document.getElementById('factory-ice-type').value;
+            const quantityInput = document.getElementById('factory-quantity');
+            const quantity = parseInt(quantityInput.value);
+
+            // ใช้ตรรกะเดียวกับการนำออก (OUT) แต่ Truck ID เป็น FACTORY
+            if (quantity <= 0 || isNaN(quantity)) {
+                alert('จำนวนกระสอบต้องมากกว่า 0 นะ');
+                return;
+            }
+            
+            let currentStock = getStock();
+
+            if (currentStock[iceType] < quantity) {
+                alert(`น้ำแข็ง ${iceType} ไม่พอสำหรับขายหน้าโรงงาน! มีแค่ ${currentStock[iceType]} กระสอบ`);
+                return; 
+            }
+            currentStock[iceType] -= quantity;
+            
+            // บันทึก Log การขายหน้าโรงงาน
+            saveStock(currentStock);
+            const logEntry = {
+                timestamp: Date.now(), 
+                truck_id: 'FACTORY', // ตัวบ่งชี้การขายหน้าโรงงาน
+                ice_type: iceType,
+                quantity: quantity,
+                action: 'FSALE' // Factory Sale
+            };
+            addLog(logEntry);
+
+            renderStock();
+            renderLog();
+            alert(`บันทึกขายหน้าโรงงานสำเร็จ! นำออก ${quantity} กระสอบ (${iceType})`);
+            
+            quantityInput.value = 1;
+        }
+
+
+        // ** ฟังก์ชันเดิม: บันทึกรายการรถเข้า/ออก **
+        function recordTransaction() {
+            const truckId = document.getElementById('truck-id').value;
+            const iceType = document.getElementById('ice-type').value;
+            const quantityInput = document.getElementById('quantity');
+            const quantity = parseInt(quantityInput.value); // รวมทั้งหมด
+            const action = document.getElementById('action-type').value;
+
+            // อ่านค่าเสีย
+            const spoiledQuantity = action === 'IN' ? parseInt(document.getElementById('spoiled-quantity').value) : 0;
+            
+            // คำนวณจำนวนที่เข้าสต๊อกจริง
+            let actualInStock = quantity - spoiledQuantity; 
+
+            if (quantity <= 0 || isNaN(quantity)) {
+                alert('ลูกศิษย์! จำนวนกระสอบ (รวมที่นำเข้า/ออก) ต้องมากกว่า 0 นะ');
+                return;
+            }
+            if (spoiledQuantity < 0 || spoiledQuantity > quantity) {
+                alert('จำนวนเสียต้องไม่ติดลบ และต้องไม่มากกว่าจำนวนที่นำกลับมาทั้งหมด!');
+                return;
+            }
+
+            let currentStock = getStock();
+
+            if (action === 'OUT') {
+                // นำออก (OUT)
+                if (currentStock[iceType] < quantity) {
+                    alert(`น้ำแข็ง ${iceType} ไม่พอ! มีแค่ ${currentStock[iceType]} กระสอบ`);
+                    return; 
+                }
+                currentStock[iceType] -= quantity;
+                
+                // บันทึก Log OUT ปกติ
+                const logEntry = {
+                    timestamp: Date.now(), 
+                    truck_id: truckId,
+                    ice_type: iceType,
+                    quantity: quantity,
+                    action: action
+                };
+                addLog(logEntry);
+
+            } else { 
+                // นำเข้า (IN) 
+                
+                // 1. นำเข้าสต๊อกจริง (ของดี)
+                currentStock[iceType] += actualInStock;
+
+                // 2. บันทึก Log การนำเข้า (ของดี)
+                if (actualInStock > 0) {
+                    const goodLogEntry = {
+                        timestamp: Date.now(), 
+                        truck_id: truckId,
+                        ice_type: iceType,
+                        quantity: actualInStock,
+                        action: action // IN
+                    };
+                    addLog(goodLogEntry);
+                }
+
+                // 3. บันทึก Log การสูญเสีย (ของเสีย)
+                if (spoiledQuantity > 0) {
+                    const spoiledLogEntry = {
+                        timestamp: Date.now() + 1, // +1ms เพื่อให้แน่ใจว่าเสียถูกบันทึกหลังของดี
+                        truck_id: truckId,
+                        ice_type: iceType,
+                        quantity: spoiledQuantity,
+                        action: 'SPOIL' // SPOIL = น้ำแข็งเสีย
+                    };
+                    addLog(spoiledLogEntry);
+                }
+            }
+
+            saveStock(currentStock);
+            renderStock();
+            renderLog();
+
+            let msg = `บันทึกรายการสำเร็จ! รถ ${truckId} นำเข้า ${quantity} กระสอบ`;
+            if (spoiledQuantity > 0) {
+                msg += ` (เข้าสต๊อกจริง ${actualInStock} เสีย ${spoiledQuantity})!`;
+            } else if (action === 'OUT') {
+                msg = `บันทึกรายการสำเร็จ! รถ ${truckId} นำออก ${quantity} กระสอบ!`;
+            }
+            alert(msg);
+            
+            quantityInput.value = 1;
+            document.getElementById('spoiled-quantity').value = 0;
+            toggleSpoiledField();
+        }
+
+
+        // ----------------------------------------------------
+        // 4. ฟังก์ชัน: ปรับปรุงสต๊อกโดยตรง
+        // ----------------------------------------------------
+
+        function adjustStock() {
+            const iceType = document.getElementById('adj-ice-type').value;
+            const quantity = parseInt(document.getElementById('adj-quantity').value);
+
+            if (isNaN(quantity) || quantity === 0) {
+                alert('กรุณาระบุจำนวนที่เพิ่ม/ลด (+/-) เช่น 50 หรือ -10!');
+                return;
+            }
+
+            let currentStock = getStock();
+            currentStock[iceType] += quantity;
+
+            if (currentStock[iceType] < 0) {
+                alert(`สต๊อก ${iceType} ไม่สามารถติดลบได้!`);
+                currentStock[iceType] -= quantity; 
+                document.getElementById('adj-quantity').value = 1; 
+                return;
+            }
+
+            saveStock(currentStock);
+
+            const logEntry = {
+                timestamp: Date.now(),
+                truck_id: 'ADMIN',
+                ice_type: iceType,
+                quantity: quantity,
+                action: 'ADJ', 
+            };
+            addLog(logEntry);
+
+            renderStock();
+            renderLog();
+
+            alert(`ปรับปรุงสต๊อกสำเร็จ! ${iceType} เปลี่ยนไป ${quantity} กระสอบ (ยอดปัจจุบัน: ${currentStock[iceType]})`);
+            document.getElementById('adj-quantity').value = 1; 
+        }
+
+        // ----------------------------------------------------
+        // 5. ฟังก์ชัน: ล้างประวัติทั้งหมด
+        // ----------------------------------------------------
+
+        function clearLogHistory() {
+            if (confirm('ลูกศิษย์! ยืนยันที่จะล้างประวัติการเคลื่อนไหวทั้งหมดจริงหรือ? ข้อมูลนี้จะหายไปถาวรนะ!')) {
+                localStorage.removeItem(LOG_KEY);
+                renderLog();
+                alert('ประวัติการเคลื่อนไหวถูกล้างทั้งหมดแล้ว!');
+            }
+        }
+        
+        // ----------------------------------------------------
+        // 8. ฟังก์ชัน: Export Log (สำรองข้อมูล)
+        // ----------------------------------------------------
+        function exportLogToCSV() {
+            const log = getLog();
+            if (log.length === 0) {
+                alert('ไม่มีข้อมูลในประวัติให้ส่งออก!');
+                return;
+            }
+
+            let csv = 'Log_ID,Time_ms,วันที่,เวลา,หมายเลขรถ,ประเภทน้ำแข็ง,จำนวน,การกระทำ\n';
+
+            log.forEach(entry => {
+                const date = new Date(entry.timestamp);
+                const dateStr = date.toLocaleDateString('th-TH');
+                const timeStr = date.toLocaleTimeString('th-TH');
+                
+                csv += `${entry.id},${entry.timestamp},"${dateStr}","${timeStr}",${entry.truck_id},${entry.ice_type},${entry.quantity},${entry.action}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            
+            link.setAttribute('href', URL.createObjectURL(blob));
+            link.setAttribute('download', `ice_stock_backup_${new Date().toISOString().slice(0, 10)}.csv`);
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            alert('ส่งออกข้อมูล Log สำเร็จ! เช็คในไฟล์ดาวน์โหลดของมือถือได้เลย!');
+        }
+
+        // ----------------------------------------------------
+        // 6. การเริ่มต้นระบบ (Initialization)
+        // ----------------------------------------------------
+
+        if (!localStorage.getItem(STOCK_KEY)) {
+            saveStock(INITIAL_STOCK);
+        }
+
+        renderStock();
+        renderLog();
+        toggleSpoiledField(); 
+
+    </script>
+</body>
+</html>
