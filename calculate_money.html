@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ทะเบียนบท W041-001</title>
+    <style>
+        /* CSS หลัก (คงเดิม) */
+        body { font-family: sans-serif; margin: 0; padding: 10px; background: #f0f2f5; font-size: 14px; color: #333; }
+        
+        .form-container {
+            width: 90%; 
+            max-width: 900px;
+            margin: 10px auto;
+            padding: 20px;
+            background: white;
+            border: 1px solid #ddd;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        /* Main table styles */
+        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        th, td { 
+            border: 1px solid #aaa; 
+            padding: 4px; 
+            text-align: center; 
+            vertical-align: middle; 
+            font-size: 0.8em; 
+            line-height: 1.2;
+        }
+        th { background: #e0e0e0; font-weight: bold; }
+        td.label { text-align: left; font-weight: bold; }
+
+        /* Input specific styles */
+        input[type="number"] {
+            width: 100%;
+            padding: 2px;
+            text-align: right;
+            border: none;
+            box-sizing: border-box;
+            font-size: 0.9em;
+            background: none;
+        }
+        input[type="number"]:focus {
+            outline: 1px solid #007bff;
+            background: #e6f7ff;
+        }
+
+        /* Calculated fields (read-only) */
+        .calculated-field {
+            background: #f0f8ff;
+            font-weight: bold;
+            text-align: right;
+        }
+        .money-field {
+            background: #e6ffe6;
+            font-weight: bold;
+            text-align: right;
+        }
+        .data-input input { background: #f9f9c5; } /* ช่องกรอกยอดเบิก/คืน */
+        .data-input { background: #f9f9c5; } 
+        .sub-total-row td { background: #fffacd; font-weight: bold; }
+        .grand-total-row td { background: #d4edda; font-weight: bold; font-size: 1em; }
+
+        /* Summary sections */
+        .summary-section { margin-top: 20px; border-top: 1px solid #ccc; padding-top: 15px; }
+        .summary-row { display: flex; align-items: center; margin-bottom: 8px; }
+        .summary-label { flex: 0 0 180px; text-align: right; padding-right: 10px; font-weight: bold; }
+        .summary-input { flex: 1; }
+        .summary-value { flex: 1; border-bottom: 1px dashed #777; padding-left: 5px; min-height: 20px; text-align: right; }
+        .red-text { color: red; font-weight: bold; }
+        .blue-text { color: #007bff; font-weight: bold; }
+
+        /* Detail tables (Side Tables) */
+        .detail-tables {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .detail-table-container {
+            width: 48%; 
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    
+    
+    <table>
+        <thead>
+            <tr>
+                <th rowspan="2">รายการ</th>
+                <th colspan="6">ยอดเบิกสินค้า</th>
+                <th rowspan="2">รวมเบิก</th>
+                <th rowspan="2">คืนทั้งสิ้น</th>
+                <th rowspan="2">คงเหลือสุทธิ</th>
+                <th rowspan="2">ยอดที่ขายได้</th>
+                <th rowspan="2">แถมบริการ</th>
+                <th colspan="4">จำนวนเงินขายได้จริง</th>
+                <th rowspan="2">หมายเหตุ</th>
+            </tr>
+            <tr>
+                <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th>
+                <th>ราคา/หน่วย</th>
+                <th>จำนวน</th>
+                <th>จำนวนเงิน</th>
+                <th>(%)</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+            <tr>
+                <td class="label" rowspan="4">หลอดใหญ่</td>
+                <td class="data-input"><input type="number" id="qty_1_hl" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="data-input"><input type="number" id="qty_2_hl" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="data-input"><input type="number" id="qty_3_hl" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="data-input"><input type="number" id="qty_4_hl" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="data-input"><input type="number" id="qty_5_hl" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="data-input"><input type="number" id="qty_6_hl" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="calculated-field" id="total_out_hl">0</td>
+                <td class="data-input"><input type="number" id="returned_hl" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="calculated-field" id="net_remaining_hl">0</td>
+                <td class="calculated-field" id="sold_qty_hl">0</td>
+                <td class="data-input"><input type="number" id="free_qty_hl" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td>30</td>
+                <td class="data-input"><input type="number" id="price_30_hl" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="money-field" id="money_30_hl">0.00</td>
+                <td></td>
+                <td rowspan="4"></td>
+            </tr>
+            <tr>
+                <td colspan="12"></td>
+                <td>35</td>
+                <td class="data-input"><input type="number" id="price_35_hl" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="money-field" id="money_35_hl">0.00</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td colspan="12"></td>
+                <td>100/3</td>
+                <td class="data-input"><input type="number" id="price_100_hl" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="money-field" id="money_100_hl">0.00</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td colspan="12"></td>
+                <td>40</td>
+                <td class="data-input"><input type="number" id="price_40_hl" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="money-field" id="money_40_hl">0.00</td>
+                <td></td>
+            </tr>
+            <tr class="sub-total-row">
+                <td colspan="13" class="label">รวมยอดเงิน หลอดใหญ่</td>
+                <td colspan="2" class="money-field" id="sub_total_money_hl">0.00</td>
+                <td></td>
+            </tr>
+
+            
+            <tr>
+                <td class="label" rowspan="4">บดหยาบ</td>
+                <td class="data-input"><input type="number" id="qty_1_bh" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="data-input"><input type="number" id="qty_2_bh" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="data-input"><input type="number" id="qty_3_bh" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="data-input"><input type="number" id="qty_4_bh" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="data-input"><input type="number" id="qty_5_bh" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="data-input"><input type="number" id="qty_6_bh" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="calculated-field" id="total_out_bh">0</td>
+                <td class="data-input"><input type="number" id="returned_bh" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="calculated-field" id="net_remaining_bh">0</td>
+                <td class="calculated-field" id="sold_qty_bh">0</td>
+                <td><input type="number" id="free_qty_bh" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td>30</td>
+                <td class="data-input"><input type="number" id="price_30_bh" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="money-field" id="money_30_bh">0.00</td>
+                <td></td>
+                <td rowspan="4"></td>
+            </tr>
+            <tr>
+                <td colspan="12"></td>
+                <td>35</td>
+                <td class="data-input"><input type="number" id="price_35_bh" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="money-field" id="money_35_bh">0.00</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td colspan="12"></td>
+                <td>100/3</td>
+                <td class="data-input"><input type="number" id="price_100_bh" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="money-field" id="money_100_bh">0.00</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td colspan="12"></td>
+                <td>40</td>
+                <td class="data-input"><input type="number" id="price_40_bh" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="money-field" id="money_40_bh">0.00</td>
+                <td></td>
+            </tr>
+            <tr class="sub-total-row">
+                <td colspan="13" class="label">รวมยอดเงิน บดหยาบ</td>
+                <td colspan="2" class="money-field" id="sub_total_money_bh">0.00</td>
+                <td></td>
+            </tr>
+
+            
+            <tr>
+                <td class="label" rowspan="4">บดละเอียด</td>
+                <td class="data-input"><input type="number" id="qty_1_bl" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="data-input"><input type="number" id="qty_2_bl" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="data-input"><input type="number" id="qty_3_bl" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="data-input"><input type="number" id="qty_4_bl" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="data-input"><input type="number" id="qty_5_bl" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="data-input"><input type="number" id="qty_6_bl" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="calculated-field" id="total_out_bl">0</td>
+                <td class="data-input"><input type="number" id="returned_bl" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="calculated-field" id="net_remaining_bl">0</td>
+                <td class="calculated-field" id="sold_qty_bl">0</td>
+                <td><input type="number" id="free_qty_bl" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td>30</td>
+                <td class="data-input"><input type="number" id="price_30_bl" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="money-field" id="money_30_bl">0.00</td>
+                <td></td>
+                <td rowspan="4"></td>
+            </tr>
+            <tr>
+                <td colspan="12"></td>
+                <td>35</td>
+                <td class="data-input"><input type="number" id="price_35_bl" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="money-field" id="money_35_bl">0.00</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td colspan="12"></td>
+                <td>100/3</td>
+                <td class="data-input"><input type="number" id="price_100_bl" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="money-field" id="money_100_bl">0.00</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td colspan="12"></td>
+                <td>40</td>
+                <td class="data-input"><input type="number" id="price_40_bl" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric"></td>
+                <td class="money-field" id="money_40_bl">0.00</td>
+                <td></td>
+            </tr>
+            <tr class="sub-total-row">
+                <td colspan="13" class="label">รวมยอดเงิน บดละเอียด</td>
+                <td colspan="2" class="money-field" id="sub_total_money_bl">0.00</td>
+                <td></td>
+            </tr>
+            <tr class="grand-total-row">
+                <td colspan="7" class="label">รวมเบิกทั้งหมด</td>
+                <td class="calculated-field" id="grand_total_out">0</td>
+                <td class="label">คืนทั้งสิ้น</td>
+                <td class="calculated-field" id="total_returned">0</td>
+                <td class="label">คงเหลือสุทธิ</td>
+                <td class="calculated-field" id="grand_net_remaining">0</td>
+                <td class="label" colspan="2">ยอดรวมขาย</td>
+                <td class="money-field" id="grand_total_sales">0.00</td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+
+    
+    <div class="detail-tables">
+        <div class="detail-table-container">
+            <h3>รายการรายละเอียดการนำส่งเงิน</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ชนิด</th>
+                        <th>จำนวน</th>
+                        <th>จำนวนเงิน (บาท)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>1,000</td><td><input type="number" value="0" inputmode="numeric" onfocus="clearZero(this)" onblur="setZero(this)"></td><td class="money-field">0.00</td></tr>
+                    <tr><td>500</td><td><input type="number" value="0" inputmode="numeric" onfocus="clearZero(this)" onblur="setZero(this)"></td><td class="money-field">0.00</td></tr>
+                    <tr><td>100</td><td><input type="number" value="0" inputmode="numeric" onfocus="clearZero(this)" onblur="setZero(this)"></td><td class="money-field">0.00</td></tr>
+                    <tr><td>50</td><td><input type="number" value="0" inputmode="numeric" onfocus="clearZero(this)" onblur="setZero(this)"></td><td class="money-field">0.00</td></tr>
+                    <tr><td>20</td><td><input type="number" value="0" inputmode="numeric" onfocus="clearZero(this)" onblur="setZero(this)"></td><td class="money-field">0.00</td></tr>
+                    <tr><td>10</td><td><input type="number" value="0" inputmode="numeric" onfocus="clearZero(this)" onblur="setZero(this)"></td><td class="money-field">0.00</td></tr>
+                    <tr><td>5</td><td><input type="number" value="0" inputmode="numeric" onfocus="clearZero(this)" onblur="setZero(this)"></td><td class="money-field">0.00</td></tr>
+                    <tr><td>2</td><td><input type="number" value="0" inputmode="numeric" onfocus="clearZero(this)" onblur="setZero(this)"></td><td class="money-field">0.00</td></tr>
+                    <tr><td>1</td><td><input type="number" value="0" inputmode="numeric" onfocus="clearZero(this)" onblur="setZero(this)"></td><td class="money-field">0.00</td></tr>
+                    <tr class="sub-total-row"><td colspan="2">รวม</td><td class="money-field">0.00</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="detail-table-container">
+            <h3>สรุปยอดและส่วนลด (ต่อ)</h3>
+            <div class="cash-box final-calc">
+                <label>ยอดรวมความคุม</label>
+                <span class="money-field" id="summary_grand_total_sales">0.00</span>
+                
+                <label>ยอดหักส่วนลด 4%</label>
+                <span class="final-diff" id="discount_amount">0.00</span>
+
+                <label>ยอดค้างรับ (เงินเครดิต) **หัก**</label>
+                <input type="number" id="debt_in" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric">
+
+                <label>ยอดหักค้าง **หัก**</label>
+                <input type="number" id="debt_out_cash" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric">
+
+                <label>ยอดจ่ายค้าง **บวก**</label>
+                <input type="number" id="debt_out" value="0" oninput="calculate()" onfocus="clearZero(this)" onblur="setZero(this)" inputmode="numeric">
+                
+                <label>ยอดเงินที่ต้องนำส่งสุทธิ (Net Cash Due)</label>
+                <span class="money-field" id="net_cash_due" style="background: #b8daff; font-size: 1.2em;">0.00</span>
+            </div>
+        </div>
+    </div>
+
+
+    </div>
+
+<script>
+    // ชนิดน้ำแข็งและราคา
+    const iceTypes = ['hl', 'bh', 'bl'];
+    const prices = [30, 35, 40];
+    const fractionalPrice = 100 / 3; // สำหรับ 3 กระสอบ 100 บาท (ประมาณ 33.33)
+
+    /** จัดรูปแบบเป็นสกุลเงิน (คอมม่า และ ทศนิยม 2 ตำแหน่ง) */
+    function formatCurrency(amount) {
+        return parseFloat(amount).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    /** ดึงค่าตัวเลขจาก Input โดยให้ค่าเริ่มต้นเป็น 0 */
+    function getInputValue(id) {
+        return parseFloat(document.getElementById(id).value) || 0;
+    }
+
+    /** ล้างค่า '0' ทันทีเมื่อช่องถูกคลิก (Focus) */
+    function clearZero(inputElement) {
+        if (inputElement.value === '0') {
+            inputElement.value = ''; 
+        }
+    }
+
+    /** ใส่ค่า '0' กลับไปเมื่อออกจากช่อง (Blur) หากช่องนั้นว่างเปล่า */
+    function setZero(inputElement) {
+        if (inputElement.value === '') {
+            inputElement.value = '0';
+        }
+        calculate(); 
+    }
+
+    /** ฟังก์ชันหลัก: คำนวณทุกอย่าง */
+    function calculate() {
+        let grandTotalSales = 0;
+        let grandTotalOut = 0; 
+        let grandReturned = 0; 
+        let grandNetRemaining = 0; 
+
+        // --- ส่วนที่ 1: คำนวณสต๊อกและยอดที่ขายได้ ---
+        iceTypes.forEach(type => {
+            // คำนวณรวมเบิก
+            let totalOut = getInputValue(`qty_1_${type}`) + getInputValue(`qty_2_${type}`) + getInputValue(`qty_3_${type}`) + 
+                            getInputValue(`qty_4_${type}`) + getInputValue(`qty_5_${type}`) + getInputValue(`qty_6_${type}`);
+            
+            // คำนวณคืนทั้งสิ้น
+            let returned = getInputValue(`returned_${type}`);
+            
+            // แถมบริการ
+            let freeQty = getInputValue(`free_qty_${type}`);
+
+            // ** LOGIC ถูกแก้ไข: คงเหลือสุทธิ = คืนทั้งสิ้น ** (ตามใบเบิก)
+            let netRemaining = returned; 
+            
+            // ** LOGIC ถูกแก้ไข: ยอดที่ขายได้ = รวมเบิก - คืนทั้งสิ้น - แถมบริการ **
+            let soldQty = totalOut - returned - freeQty; 
+            
+            // อัปเดต UI สต๊อก
+            document.getElementById(`total_out_${type}`).textContent = Math.round(totalOut);
+            document.getElementById(`net_remaining_${type}`).textContent = Math.round(netRemaining);
+            document.getElementById(`sold_qty_${type}`).textContent = Math.round(soldQty);
+
+            // คำนวณยอดรวมใหญ่
+            grandTotalOut += totalOut;
+            grandReturned += returned;
+            grandNetRemaining += netRemaining; 
+        });
+        
+        // อัปเดต UI ยอดรวมสต๊อกที่ส่วนท้ายตาราง
+        document.getElementById('grand_total_out').textContent = Math.round(grandTotalOut);
+        document.getElementById('total_returned').textContent = Math.round(grandReturned);
+        document.getElementById('grand_net_remaining').textContent = Math.round(grandNetRemaining);
+
+
+        // --- ส่วนที่ 2: คำนวณยอดเงิน ---
+        iceTypes.forEach(type => {
+            let subTotalMoney = 0;
+            
+            // ราคา 30, 35, 40 บาท
+            prices.forEach(price => {
+                const qty = getInputValue(`price_${price}_${type}`);
+                const money = qty * price;
+                document.getElementById(`money_${price}_${type}`).textContent = formatCurrency(money);
+                subTotalMoney += money;
+            });
+            
+            // ราคา 100/3 (33.33 บาท)
+            const qty100 = getInputValue(`price_100_${type}`);
+            const money100 = qty100 * fractionalPrice;
+            document.getElementById(`money_100_${type}`).textContent = formatCurrency(money100);
+            subTotalMoney += money100;
+            
+            // อัปเดต UI ยอดรวมเงินของน้ำแข็งชนิดนั้น
+            document.getElementById(`sub_total_money_${type}`).textContent = formatCurrency(subTotalMoney);
+            grandTotalSales += subTotalMoney;
+        });
+
+        // --- ส่วนที่ 3: คำนวณยอดสุทธิ (สรุปยอดเงิน) ---
+        
+        // แสดงยอดรวมเงินทั้งหมด (Total Sales)
+        document.getElementById('grand_total_sales').textContent = formatCurrency(grandTotalSales);
+        document.getElementById('summary_grand_total_sales').textContent = formatCurrency(grandTotalSales); // ยอดรวมความคุม
+        
+        // คำนวณส่วนลด 4% (ส่วนแบ่งของพนักงาน)
+        const discountRate = 0.04;
+        const discountAmount = grandTotalSales * discountRate;
+        document.getElementById('discount_amount').textContent = formatCurrency(-discountAmount); 
+
+        // ยอดค้าง (หนี้)
+        const debtIn = getInputValue('debt_in'); // เงินเครดิต (หัก)
+        const debtOutCash = getInputValue('debt_out_cash'); // ยอดหักค้าง (หัก)
+        const debtOut = getInputValue('debt_out'); // บวก จ่ายค้าง (บวก)
+        
+        // สูตร: ยอดรวม - ส่วนลด - ยอดค้าง (รับ) - ยอดหักค้าง + ยอดจ่ายค้าง
+        const netCashDue = grandTotalSales - discountAmount - debtIn - debtOutCash + debtOut;
+
+        // แสดงยอดเงินที่ต้องนำส่งสุทธิ
+        document.getElementById('net_cash_due').textContent = formatCurrency(netCashDue);
+        
+        // สีของยอดเงินนำส่งสุทธิ (เงินขาด/เกิน)
+        if (netCashDue < 0) {
+             document.getElementById('net_cash_due').classList.add('red-text');
+             document.getElementById('net_cash_due').classList.remove('blue-text');
+        } else {
+             document.getElementById('net_cash_due').classList.add('blue-text');
+             document.getElementById('net_cash_due').classList.remove('red-text');
+        }
+    }
+
+    // เรียกฟังก์ชันคำนวณทันทีที่โหลดหน้าจอ
+    document.addEventListener('DOMContentLoaded', calculate);
+</script>
+</body>
+</html>
