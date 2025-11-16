@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master-Fulfill System V3 (The "Real" One)</title>
+    <style>
+        /* --- CSS Global --- */
+        body { font-family: Tahoma, sans-serif; margin: 0; padding: 10px; background: #f0f2f5; font-size: 14px; color: #333; }
+        .container { 
+            width: 98%; 
+            max-width: 1000px; /* ขยายความกว้างเพื่อรองรับตารางใหม่ */
+            margin: 10px auto; 
+            padding: 15px; 
+            background: white; 
+            border: 2px solid #333; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); 
+            overflow-x: auto; /* เปิดให้เลื่อนซ้าย-ขวาได้ */
+        }
+        
+        /* --- Styles: การซ่อน/โชว์หน้า (Page) --- */
+        .page { display: none; } 
+        .page.active { display: block; }
+
+        /* --- Styles: ทั่วไป --- */
+        table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 0.9em; table-layout: fixed; }
+        th, td { border: 1px solid #000; padding: 4px 2px; text-align: center; vertical-align: middle; height: 30px; }
+        th { background: #dcdcdc; font-weight: bold; position: sticky; top: 0; }
+        
+        input[type="text"], input[type="number"], input[type="date"], select {
+            width: 100%;
+            padding: 5px 2px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            font-size: 1.0em;
+            text-align: center;
+        }
+        button {
+            padding: 10px 15px;
+            font-size: 1.1em;
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        button.nav-btn { background: #6c757d; }
+        button.save-btn { background: #28a745; }
+
+        /* --- Styles: หน้า 1 (Master Order) --- */
+        #page-master-order input[type="number"] { background: #fdfde7; }
+        #page-master-order input[type="text"] { background: #e0f7fa; }
+
+        /* --- Styles: หน้า 2 (Fulfillment) --- */
+        .control-panel { display: flex; gap: 20px; margin-bottom: 10px; }
+        .control-group { flex: 1; }
+
+        /* 🔥 Styles: Header ยอดสั่ง (แบบเดียวกับกระดาษ) 🔥 */
+        #master-order-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 2px solid #333;
+            background: #f5f5f5;
+        }
+        .header-box { font-size: 1.1em; }
+        .header-box label { font-weight: bold; }
+        .header-value { font-weight: 900; color: #004d40; font-size: 1.2em; }
+        
+        /* 🔥 Styles: ตารางเบิกของ V3 (แบบเดียวกับกระดาษ) 🔥 */
+        #fulfillment-matrix { min-width: 900px; } /* บังคับให้มี scroll bar ถ้าจอเล็ก */
+        #fulfillment-matrix input[type="number"] {
+            width: 100%;
+            padding: 4px 0;
+            text-align: center;
+            border: none;
+            font-size: 1.0em;
+            background: #fff8e1; /* สีเหลืองอ่อนๆ ให้กรอก */
+        }
+        /* "รวม" (Readonly) */
+        .sum-col {
+            background: #e0f7fa; /* สีฟ้า */
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        /* "แถวรวมยอดเบิก" (Footer) */
+        #fulfillment-matrix tfoot td {
+            background: #dcedc8; /* สีเขียวอ่อน */
+            font-weight: 900;
+            font-size: 1.1em;
+        }
+        /* "แถวคงเหลือ" (กระทบยอด) */
+        .remaining-row td {
+            background: #fffbe6; /* สีเหลืองนวล */
+            font-weight: 900;
+            font-size: 1.1em;
+        }
+        .remaining-qty { color: #d32f2f; } /* สีแดง (ยังขาด) */
+        .remaining-qty.complete { color: #2e7d32; } /* สีเขียว (ครบ/เกิน) */
+    </style>
+</head>
+<body>
+
+    <div id="page-master-order" class="page active">
+        <div class="container">
+            <h2>หน้า 1: 📋 บันทึก Master Order (บัญชีสั่งของหลัก)</h2>
+            <p style="color: red; font-weight: bold;">⚠️ กรุณากด "บันทึก" ทุกครั้งที่มีการแก้ไขข้อมูลในหน้านี้!</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>W-ID</th>
+                        <th>พนักงานขับ (ชื่อ)</th>
+                        <th>สาย (เส้นทาง)</th>
+                        <th>หลอดใหญ่ (HL)</th>
+                        <th>บดหยาบ (BH)</th>
+                        <th>บดละเอียด (BL)</th>
+                    </tr>
+                </thead>
+                <tbody id="master-order-input-body">
+                    <tr>
+                        <td>W041-001</td>
+                        <td><input type="text" id="master_name_001" value="นายอนันตวี ชูระสุข"></td>
+                        <td><input type="text" id="master_route_001" value="ดอนฉ่ำค้า"></td>
+                        <td><input type="number" id="master_hl_001" value="65"></td>
+                        <td><input type="number" id="master_bh_001" value="41"></td>
+                        <td><input type="number" id="master_bl_001" value="2"></td>
+                    </tr>
+                    <tr><td>W041-002</td><td><input type="text" id="master_name_002" value="นายวรวิชญ์ พรหมชาติ"></td><td><input type="text" id="master_route_002" value="โพนงาม"></td><td><input type="number" id="master_hl_002" value="65"></td><td><input type="number" id="master_bh_002" value="30"></td><td><input type="number" id="master_bl_002" value="13"></td></tr>
+                    <tr><td>W041-003</td><td><input type="text" id="master_name_003" value="นายโพธิ์ ป้องจวงลา"></td><td><input type="text" id="master_route_003" value="บ้านหม้อ"></td><td><input type="number" id="master_hl_003" value="65"></td><td><input type="number" id="master_bh_003" value="35"></td><td><input type="number" id="master_bl_003" value="8"></td></tr>
+                    <tr><td>W041-004</td><td><input type="text" id="master_name_004" value="นายสิทธิชัย โสมาวัตร"></td><td><input type="text" id="master_route_004" value="โคกสว่าง"></td><td><input type="number" id="master_hl_004" value="50"></td><td><input type="number" id="master_bh_004" value="50"></td><td><input type="number" id="master_bl_004" value="8"></td></tr>
+                    <tr><td>W041-005</td><td><input type="text" id="master_name_005" value="นายทรงยศ ยางขั้น"></td><td><input type="text" id="master_route_005" value="หนองเห็บ"></td><td><input type="number" id="master_hl_005" value="70"></td><td><input type="number" id="master_bh_005" value="23"></td><td><input type="number" id="master_bl_005" value="15"></td></tr>
+                    <tr><td>W041-006</td><td><input type="text" id="master_name_006" value="นายอไทพร เมืองกลาง"></td><td><input type="text" id="master_route_006" value="จอมศรี"></td><td><input type="number" id="master_hl_006" value="60"></td><td><input type="number" id="master_bh_006" value="43"></td><td><input type="number" id="master_bl_006" value="5"></td></tr>
+                    <tr><td>W041-007</td><td><input type="text" id="master_name_007" value="นายชัยณรงค์ พลซุ้ย"></td><td><input type="text" id="master_route_007" value="ดงอ้น"></td><td><input type="number" id="master_hl_007" value="70"></td><td><input type="number" id="master_bh_007" value="32"></td><td><input type="number" id="master_bl_007" value="6"></td></tr>
+                    <tr><td>W041-008</td><td><input type="text" id="master_name_008" value="นายณัฐพงศ์ วงษ์ดี"></td><td><input type="text" id="master_route_008" value="หมู่ม่น"></td><td><input type="number" id="master_hl_008" value="70"></td><td><input type="number" id="master_bh_008" value="28"></td><td><input type="number" id="master_bl_008" value="10"></td></tr>
+                    <tr><td>W041-009</td><td><input type="text" id="master_name_009" value="นายธนยศชา แก้วสอนดี"></td><td><input type="text" id="master_route_009" value="ดอนแพง"></td><td><input type="number" id="master_hl_009" value="70"></td><td><input type="number" id="master_bh_009" value="20"></td><td><input type="number" id="master_bl_009" value="8"></td></tr>
+                </tbody>
+            </table>
+            
+            <button id="save-master-list-btn" class="save-btn">💾 บันทึก Master List (ลงในเครื่องนี้)</button>
+            <button id="go-to-fulfillment-btn" class="nav-btn">ไปที่หน้าเบิกของ (หน้า 2) ➡️</button>
+        </div>
+    </div>
+
+    <div id="page-fulfillment" class="page">
+        <div class="container">
+            <h2>หน้า 2: 🚚 บันทึกการเบิกของ (Fulfillment)</h2>
+            <button id="go-to-master-btn" class="nav-btn">⬅️ กลับไปแก้ Master List (หน้า 1)</button>
+            
+            <div class="control-panel">
+                <div class="control-group">
+                    <label for="date_select">เลือกวันที่ 🗓️</label>
+                    <input type="date" id="date_select">
+                </div>
+                <div class="control-group">
+                    <label for="truck_select">เลือกรถ 🚚</label>
+                    <select id="truck_select">
+                        <option value="รถ 1">รถ 1 (W041-001)</option>
+                        <option value="รถ 2">รถ 2 (W041-002)</option>
+                        <option value="รถ 3">รถ 3 (W041-003)</option>
+                        <option value="รถ 4">รถ 4 (W041-004)</option>
+                        <option value="รถ 5">รถ 5 (W041-005)</option>
+                        <option value="รถ 6">รถ 6 (W041-006)</option>
+                        <option value="รถ 7">รถ 7 (W041-007)</option>
+                        <option value="รถ 8">รถ 8 (W041-008)</option>
+                        <option value="รถ 9">รถ 9 (W041-009)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="master-order-header">
+                <div class="header-box">
+                    <label>W-ID:</label> <span id="header_wid" class="header-value">-</span><br>
+                    <label>ชื่อ:</label> <span id="header_name" class="header-value">-</span><br>
+                    <label>สาย:</label> <span id="header_route" class="header-value">-</span>
+                </div>
+                <div class="header-box">
+                    <label>ยอดสั่ง (หลอดใหญ่):</label> <span id="header_hl" class="header-value">0</span>
+                </div>
+                <div class="header-box">
+                    <label>ยอดสั่ง (บดหยาบ):</label> <span id="header_bh" class="header-value">0</span>
+                </div>
+                 <div class="header-box">
+                    <label>ยอดสั่ง (บดละเอียด):</label> <span id="header_bl" class="header-value">0</span>
+                </div>
+            </div>
+
+            <table id="fulfillment-matrix">
+                <thead>
+                    <tr>
+                        <th rowspan="2" style="width: 8%;">รายการ</th>
+                        <th colspan="3">หลอดใหญ่</th>
+                        <th colspan="3">บดหยาบ</th>
+                        <th colspan="3">บดละเอียด</th>
+                    </tr>
+                    <tr>
+                        <th style="width: 7%;">ตู้ 1</th>
+                        <th style="width: 7%;">ตู้ 2</th>
+                        <th style="width: 7%;" class="sum-col">รวม</th>
+                        <th style="width: 7%;">ตู้ 1</th>
+                        <th style="width: 7%;">ตู้ 2</th>
+                        <th style="width: 7%;" class="sum-col">รวม</th>
+                        <th style="width: 7%;">ตู้ 1</th>
+                        <th style="width: 7%;">ตู้ 2</th>
+                        <th style="width: 7%;" class="sum-col">รวม</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="font-weight: bold;">ขาที่ 1</td>
+                        <td><input type="number" id="hl_leg1_t1" value="0"></td>
+                        <td><input type="number" id="hl_leg1_t2" value="0"></td>
+                        <td class="sum-col" id="hl_leg1_sum">0</td>
+                        <td><input type="number" id="bh_leg1_t1" value="0"></td>
+                        <td><input type="number" id="bh_leg1_t2" value="0"></td>
+                        <td class="sum-col" id="bh_leg1_sum">0</td>
+                        <td><input type="number" id="bl_leg1_t1" value="0"></td>
+                        <td><input type="number" id="bl_leg1_t2" value="0"></td>
+                        <td class="sum-col" id="bl_leg1_sum">0</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">ขาที่ 2</td>
+                        <td><input type="number" id="hl_leg2_t1" value="0"></td>
+                        <td><input type="number" id="hl_leg2_t2" value="0"></td>
+                        <td class="sum-col" id="hl_leg2_sum">0</td>
+                        <td><input type="number" id="bh_leg2_t1" value="0"></td>
+                        <td><input type="number" id="bh_leg2_t2" value="0"></td>
+                        <td class="sum-col" id="bh_leg2_sum">0</td>
+                        <td><input type="number" id="bl_leg2_t1" value="0"></td>
+                        <td><input type="number" id="bl_leg2_t2" value="0"></td>
+                        <td class="sum-col" id="bl_leg2_sum">0</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">ขาที่ 3</td>
+                        <td><input type="number" id="hl_leg3_t1" value="0"></td>
+                        <td><input type="number" id="hl_leg3_t2" value="0"></td>
+                        <td class="sum-col" id="hl_leg3_sum">0</td>
+                        <td><input type="number" id="bh_leg3_t1" value="0"></td>
+                        <td><input type="number" id="bh_leg3_t2" value="0"></td>
+                        <td class="sum-col" id="bh_leg3_sum">0</td>
+                        <td><input type="number" id="bl_leg3_t1" value="0"></td>
+                        <td><input type="number" id="bl_leg3_t2" value="0"></td>
+                        <td class="sum-col" id="bl_leg3_sum">0</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">ขาที่ 4</td>
+                        <td><input type="number" id="hl_leg4_t1" value="0"></td>
+                        <td><input type="number" id="hl_leg4_t2" value="0"></td>
+                        <td class="sum-col" id="hl_leg4_sum">0</td>
+                        <td><input type="number" id="bh_leg4_t1" value="0"></td>
+                        <td><input type="number" id="bh_leg4_t2" value="0"></td>
+                        <td class="sum-col" id="bh_leg4_sum">0</td>
+                        <td><input type="number" id="bl_leg4_t1" value="0"></td>
+                        <td><input type="number" id="bl_leg4_t2" value="0"></td>
+                        <td class="sum-col" id="bl_leg4_sum">0</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">ขาที่ 5</td>
+                        <td><input type="number" id="hl_leg5_t1" value="0"></td>
+                        <td><input type="number" id="hl_leg5_t2" value="0"></td>
+                        <td class="sum-col" id="hl_leg5_sum">0</td>
+                        <td><input type="number" id="bh_leg5_t1" value="0"></td>
+                        <td><input type="number" id="bh_leg5_t2" value="0"></td>
+                        <td class="sum-col" id="bh_leg5_sum">0</td>
+                        <td><input type="number" id="bl_leg5_t1" value="0"></td>
+                        <td><input type="number" id="bl_leg5_t2" value="0"></td>
+                        <td class="sum-col" id="bl_leg5_sum">0</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">ขาที่ 6</td>
+                        <td><input type="number" id="hl_leg6_t1" value="0"></td>
+                        <td><input type="number" id="hl_leg6_t2" value="0"></td>
+                        <td class="sum-col" id="hl_leg6_sum">0</td>
+                        <td><input type="number" id="bh_leg6_t1" value="0"></td>
+                        <td><input type="number" id="bh_leg6_t2" value="0"></td>
+                        <td class="sum-col" id="bh_leg6_sum">0</td>
+                        <td><input type="number" id="bl_leg6_t1" value="0"></td>
+                        <td><input type="number" id="bl_leg6_t2" value="0"></td>
+                        <td class="sum-col" id="bl_leg6_sum">0</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td style="font-weight: bold;">ยอดรวมเบิก</td>
+                        <td id="footer_hl_t1">0</td>
+                        <td id="footer_hl_t2">0</td>
+                        <td class="sum-col" id="footer_hl_sum">0</td>
+                        <td id="footer_bh_t1">0</td>
+                        <td id="footer_bh_t2">0</td>
+                        <td class="sum-col" id="footer_bh_sum">0</td>
+                        <td id="footer_bl_t1">0</td>
+                        <td id="footer_bl_t2">0</td>
+                        <td class="sum-col" id="footer_bl_sum">0</td>
+                    </tr>
+                    <tr class="remaining-row">
+                        <td style="font-weight: bold;">คงเหลือ (สั่ง - เบิก)</td>
+                        <td colspan="3" id="remaining_hl" class="remaining-qty">0</td>
+                        <td colspan="3" id="remaining_bh" class="remaining-qty">0</td>
+                        <td colspan="3" id="remaining_bl" class="remaining-qty">0</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+<script>
+    // 🔥 "สมอง" ของแอป V3 (JavaScript) 🔥
+
+    // --- ฐานข้อมูล ID (W-ID <-> ชื่อรถ) ---
+    const TRUCK_MAP = {
+        "รถ 1": "W041-001", "รถ 2": "W041-002", "รถ 3": "W041-003",
+        "รถ 4": "W041-004", "รถ 5": "W041-005", "รถ 6": "W041-006",
+        "รถ 7": "W041-007", "รถ 8": "W041-008", "รถ 9": "W041-009"
+    };
+    const MASTER_TRUCK_IDS = Object.values(TRUCK_MAP); // ["W041-001", ...]
+    const FULFILL_ICE_TYPES = ['hl', 'bh', 'bl'];
+    const FULFILL_LEGS = ['1', '2', '3', '4', '5', '6'];
+    const FULFILL_SOURCES = ['t1', 't2']; // ตู้ 1, ตู้ 2
+
+    // --- รวบรวม ID Inputs ทั้งหมดเพื่อ Save/Load State ---
+    const allMasterInputIds = [];
+    MASTER_TRUCK_IDS.forEach(id => {
+        const numId = id.split('-')[1]; // "001"
+        allMasterInputIds.push(`master_name_${numId}`);
+        allMasterInputIds.push(`master_route_${numId}`);
+        allMasterInputIds.push(`master_hl_${numId}`);
+        allMasterInputIds.push(`master_bh_${numId}`);
+        allMasterInputIds.push(`master_bl_${numId}`);
+    });
+    
+    const allFulfillInputIds = []; // ID ของช่อง "กรอก" เท่านั้น
+    FULFILL_LEGS.forEach(leg => {
+        FULFILL_ICE_TYPES.forEach(type => {
+            FULFILL_SOURCES.forEach(source => {
+                allFulfillInputIds.push(`${type}_leg${leg}_${source}`); // "hl_leg1_t1"
+            });
+        });
+    });
+
+    // --- Utility Functions (เครื่องมือช่วย) ---
+    function getEl(id) { return document.getElementById(id); }
+    function getVal(id) { return getEl(id).value; }
+    function setVal(id, value) { getEl(id).value = value; }
+    function setHTML(id, html) { getEl(id).innerHTML = html; }
+    function getNum(id) { return parseFloat(getVal(id)) || 0; }
+    function getNumFromHTML(id) { return parseFloat(getEl(id).textContent) || 0; }
+
+
+    // --- ระบบนำทาง (Navigation) ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const pageMaster = getEl('page-master-order');
+        const pageFulfill = getEl('page-fulfillment');
+
+        // ปุ่มเปลี่ยนหน้า
+        getEl('go-to-fulfillment-btn').onclick = () => {
+            pageMaster.classList.remove('active');
+            pageFulfill.classList.add('active');
+            switchLog(); 
+        };
+        getEl('go-to-master-btn').onclick = () => {
+            pageFulfill.classList.remove('active');
+            pageMaster.classList.add('active');
+        };
+
+        // --- Setup หน้า 1 (Master) ---
+        getEl('save-master-list-btn').onclick = saveMasterList;
+        // โหลดข้อมูล Master ที่เคยบันทึกไว้ (ถ้ามี)
+        // ถ้าไม่มี... มันจะใช้ค่า "Pre-fill" (จาก HTML)
+        loadMasterList(); 
+
+        // --- Setup หน้า 2 (Fulfillment) ---
+        const dateSelect = getEl('date_select');
+        dateSelect.value = new Date().toISOString().split('T')[0]; // ตั้งค่าวันที่วันนี้
+        
+        // "สวิตช์" หลัก: เมื่อเปลี่ยน วันที่ หรือ รถ
+        dateSelect.onchange = switchLog;
+        getEl('truck_select').onchange = switchLog;
+        
+        // "เครื่องคำนวณ": เมื่อกรอกยอดเบิก
+        allFulfillInputIds.forEach(id => {
+            getEl(id).oninput = calculate;
+        });
+
+        // โหลดครั้งแรก (เผื่อกรณีที่ไม่มี "บันทึก" ในหน้า 1)
+        // เราจะ "บันทึก" ค่าเริ่มต้น (Pre-fill) ลง DB ให้อัตโนมัติ
+        if (!localStorage.getItem('MASTER_ORDERS_DB')) {
+            saveMasterList(true); // true = บันทึกแบบเงียบๆ
+        }
+        switchLog();
+    });
+
+    // --- "ฐานข้อมูล" หน้า 1 (Master Order) ---
+    function saveMasterList(silent = false) {
+        const masterDB = {};
+        MASTER_TRUCK_IDS.forEach(id => {
+            const numId = id.split('-')[1]; // "001"
+            masterDB[id] = {
+                name: getVal(`master_name_${numId}`),
+                route: getVal(`master_route_${numId}`),
+                hl: getNum(`master_hl_${numId}`),
+                bh: getNum(`master_bh_${numId}`),
+                bl: getNum(`master_bl_${numId}`)
+            };
+        });
+        
+        localStorage.setItem('MASTER_ORDERS_DB', JSON.stringify(masterDB));
+        if (!silent) {
+            alert('✅ บันทึก Master List ลงในเครื่องนี้แล้ว!');
+        }
+    }
+
+    function loadMasterList() {
+        const db = localStorage.getItem('MASTER_ORDERS_DB');
+        if (!db) return; 
+        
+        const masterDB = JSON.parse(db);
+        MASTER_TRUCK_IDS.forEach(id => {
+            const order = masterDB[id];
+            if (order) {
+                const numId = id.split('-')[1];
+                setVal(`master_name_${numId}`, order.name);
+                setVal(`master_route_${numId}`, order.route);
+                setVal(`master_hl_${numId}`, order.hl);
+                setVal(`master_bh_${numId}`, order.bh);
+                setVal(`master_bl_${numId}`, order.bl);
+            }
+        });
+    }
+
+    // --- "ฐานข้อมูล" หน้า 2 (Fulfillment) ---
+    function generateLogKey() {
+        const date = getVal('date_select');
+        const truckName = getVal('truck_select');
+        const truckId = TRUCK_MAP[truckName] || "UNKNOWN";
+        return `fulfill_v3_${date}_${truckId}`;
+    }
+
+    function saveFulfillmentState() {
+        const logKey = generateLogKey();
+        const state = {};
+        allFulfillInputIds.forEach(id => {
+            state[id] = getVal(id);
+        });
+        localStorage.setItem(logKey, JSON.stringify(state));
+    }
+
+    function loadFulfillmentState(logKey) {
+        allFulfillInputIds.forEach(id => setVal(id, '0'));
+        const stateJSON = localStorage.getItem(logKey);
+        if (stateJSON) {
+            const state = JSON.parse(stateJSON);
+            allFulfillInputIds.forEach(id => {
+                if (state[id] !== undefined) {
+                    setVal(id, state[id]);
+                }
+            });
+        }
+    }
+
+    // --- "สวิตช์" หลัก (Fulfillment) ---
+    function switchLog() {
+        const logKey = generateLogKey();
+        
+        // 1. 🔥 นี่คือ "การดึงยอดจากหน้าแรก" ที่ถูกต้อง! 🔥
+        const masterDB = JSON.parse(localStorage.getItem('MASTER_ORDERS_DB') || '{}');
+        const selectedTruckName = getVal('truck_select');
+        const truckId = TRUCK_MAP[selectedTruckName];
+        const order = masterDB[truckId];
+        
+        if (order) {
+            // อัปเดต "Header ยอดสั่ง"
+            setHTML('header_wid', truckId);
+            setHTML('header_name', order.name);
+            setHTML('header_route', order.route);
+            setHTML('header_hl', order.hl);
+            setHTML('header_bh', order.bh);
+            setHTML('header_bl', order.bl);
+        } else {
+            // 🔥 นี่คือ "ตัวดักบั๊ก" ที่ลูกศิษย์เจอ! 🔥
+            alert("ไม่พบ Master Order! กรุณากลับไป 'หน้า 1' แล้วกด 'บันทึก' ก่อน!");
+            setHTML('header_wid', "Error!");
+            setHTML('header_name', "ไม่พบข้อมูล!");
+            setHTML('header_route', "-");
+            setHTML('header_hl', 0); setHTML('header_bh', 0); setHTML('header_bl', 0);
+        }
+
+        // 2. โหลด Fulfillment State (ข้อมูลที่กรอกค้างไว้)
+        loadFulfillmentState(logKey);
+        
+        // 3. คำนวณทุกอย่างใหม่
+        calculate();
+    }
+
+    // --- "เครื่องคำนวณ" (Fulfillment) ---
+    function calculate() {
+        let grandTotal = { hl: { t1: 0, t2: 0, sum: 0 }, bh: { t1: 0, t2: 0, sum: 0 }, bl: { t1: 0, t2: 0, sum: 0 } };
+
+        // 1. คำนวณ "แนวนอน" (รวม ตู้1 + ตู้2) ... และ "แนวตั้ง" (รวม ขา1-6) ไปพร้อมกัน
+        FULFILL_LEGS.forEach(leg => { // '1' ถึง '6'
+            FULFILL_ICE_TYPES.forEach(type => { // 'hl', 'bh', 'bl'
+                // ดึงค่าจากช่องกรอก
+                const t1_val = getNum(`${type}_leg${leg}_t1`);
+                const t2_val = getNum(`${type}_leg${leg}_t2`);
+                const sum_val = t1_val + t2_val;
+                
+                // อัปเดต "รวม" (แนวนอน) ของแถวนั้น
+                setHTML(`${type}_leg${leg}_sum`, sum_val);
+                
+                // บวกสะสมยอด "รวม" (แนวตั้ง)
+                grandTotal[type].t1 += t1_val;
+                grandTotal[type].t2 += t2_val;
+                grandTotal[type].sum += sum_val;
+            });
+        });
+
+        // 2. อัปเดต "Footer" (ยอดรวมเบิก)
+        FULFILL_ICE_TYPES.forEach(type => {
+            setHTML(`footer_${type}_t1`, grandTotal[type].t1);
+            setHTML(`footer_${type}_t2`, grandTotal[type].t2);
+            setHTML(`footer_${type}_sum`, grandTotal[type].sum);
+        });
+
+        // 3. อัปเดต "คงเหลือ" (กระทบยอด Master)
+        FULFILL_ICE_TYPES.forEach(type => {
+            const masterQty = getNumFromHTML(`header_${type}`);
+            const remaining = masterQty - grandTotal[type].sum;
+            
+            const remainingEl = getEl(`remaining_${type}`);
+            setHTML(`remaining_${type}`, remaining);
+            remainingEl.classList.toggle('complete', remaining <= 0);
+        });
+        
+        // 4. บันทึกทุกอย่างลง `localStorage`
+        saveFulfillmentState();
+    }
+</script>
+</body>
+</html>
