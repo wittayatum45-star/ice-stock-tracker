@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ultimate Ice ERP V11 (Responsive)</title>
+    <style>
+        /* --- CSS Global --- */
+        body { font-family: Tahoma, sans-serif; margin: 0; padding: 10px; background: #f0f2f5; font-size: 14px; color: #333; }
+        .container { 
+            width: 98%; 
+            max-width: 1250px; 
+            margin: 10px auto; 
+            padding: 15px; 
+            background: white; 
+            border: 2px solid #333; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); 
+            overflow-x: auto; 
+        }
+        
+        /* --- Styles: การซ่อน/โชว์หน้า (Page) --- */
+        .page { display: none; } 
+        .page.active { display: block; }
+
+        /* --- Styles: ทั่วไป --- */
+        table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 0.9em; table-layout: fixed; }
+        th, td { border: 1px solid #000; padding: 4px 1px; text-align: center; vertical-align: middle; height: 30px; white-space: nowrap; } 
+        th { background: #dcdcdc; font-weight: bold; position: sticky; top: 0; z-index: 10; } 
+        
+        input[type="number"] {
+            width: 100%; padding: 4px 1px; border: none; box-sizing: border-box; font-size: 1.0em; text-align: center;
+            background: #fff8e1; -moz-appearance: textfield; 
+        }
+        input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="text"], input[type="time"], input[type="date"], select { 
+            width: 100%; padding: 5px 2px; border: 1px solid #ccc; box-sizing: border-box; font-size: 1.0em; text-align: center; 
+        }
+        button {
+            padding: 10px 15px; font-size: 1.1em; background: #007bff; color: white; border: none;
+            cursor: pointer; width: 100%; margin-bottom: 10px; 
+        }
+        button.nav-btn { background: #6c757d; }
+        button.save-btn { background: #28a745; }
+        .grid-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        /* --- Styles: หน้า 1 (Master Order) --- */
+        #page-master-order input[type="number"] { background: #fdfde7; }
+        #page-master-order input[type="text"] { background: #e0f7fa; }
+
+        /* --- Styles: หน้า 2 (Fulfillment) --- */
+        #page-fulfillment .control-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .control-group { flex: 1; }
+        #master-order-header {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px;
+            padding: 10px; border: 2px solid #333; background: #f5f5f5;
+        }
+        .header-box { font-size: 1.0em; text-align: center; } 
+        .header-box label { font-weight: bold; display: block; margin-bottom: 3px; } 
+        .header-value { font-weight: 900; color: #004d40; font-size: 1.2em; display: block; } 
+        #fulfillment-matrix { min-width: 1200px; } 
+        .input-blue { background-color: #e0f2f7 !important; } 
+        .input-red { background-color: #ffe0e0 !important; }
+        .hl-group { background-color: #e3f2fd; } 
+        .bh-group { background-color: #e8f5e9; } 
+        .bl-group { background-color: #fff3e0; } 
+        .leg-total { background-color: #bbdefb; font-weight: bold; font-size: 1.0em; }
+        .leg-total.bh-group { background-color: #c8e6c9; } 
+        .leg-total.bl-group { background-color: #ffe0b2; } 
+        #fulfillment-matrix tfoot td { background: #dcedc8; font-weight: 900; font-size: 1.1em; }
+        #total_hl_all_sources { background-color: #90caf9; } 
+        #total_bh_all_sources { background-color: #a5d6a7; } 
+        #total_bl_all_sources { background-color: #ffcc80; } 
+        #grand_total_all_types { background-color: #c5cae9; font-weight: 900; font-size: 1.2em; color: #3f51b5; }
+        .remaining-row td { background: #fff8e1; font-weight: 900; font-size: 1.1em; }
+        .remaining-qty { color: #d32f2f; } 
+        .remaining-qty.complete { color: #2e7d32; } 
+        #fulfillment-matrix thead th.sub-header { font-size: 0.85em; padding: 2px 0; }
+
+        /* --- 🔥 Styles: หน้า 3 (Production) V11 🔥 --- */
+        #page-production .control-panel { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr 1fr; /* 3 คอลัมน์ */
+            gap: 10px; 
+            margin-bottom: 10px; 
+        }
+        #page-production { font-size: 0.8em; }
+        #production-grid { 
+            display: grid; 
+            grid-template-columns: 3fr 1fr; /* 2 คอลัมน์ (Desktop) */
+            gap: 15px; 
+        }
+        
+        /* 🔥 V11: "คาถา" (Media Query) ให้ "พอดีจอ" (Responsive) 🔥 */
+        @media (max-width: 768px) {
+            #production-grid { 
+                grid-template-columns: 1fr; /* "บังคับ" 1 คอลัมน์ (บน-ล่าง) */
+            }
+            #page-production .control-panel {
+                grid-template-columns: 1fr; /* "บังคับ" 1 คอลัมน์ (บน-ล่าง) */
+            }
+        }
+        
+        #production-table { min-width: 750px; }
+        #production-table input[type="number"], #production-table input[type="time"] { 
+            background: none; border: none; padding: 2px 0; 
+        }
+        #production-table input[type="time"] { font-size: 1.0em; }
+        
+        .col-time { background-color: #fce4d6; } /* ชมพู */
+        .col-withdraw { background-color: #ebf1de; } /* เขียว */
+        .col-production { background-color: #ddebf7; } /* ฟ้า */
+        .col-remaining { background-color: #e4dfec; } /* ม่วง */
+        
+        #production-table th.header-green { background-color: #c6efce; }
+        #production-table th.header-blue { background-color: #bdd7ee; }
+        
+        /* 🔥 "UI ฝั่งขวา (RHS) V10" (ลอกตามกระดาษเป๊ะ!) 🔥 */
+        #production-summary-rhs { 
+            background: #ffffff; padding: 10px; border: 1px solid #ccc; font-size: 1.1em; 
+        }
+        .summary-group { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed #999; }
+        .summary-group:last-child { border-bottom: none; }
+        .summary-row { 
+            display: grid; 
+            grid-template-columns: 3fr 1fr 1fr; /* Label | Value | Unit */
+            gap: 5px; 
+            margin-bottom: 4px; 
+        }
+        .summary-row label { font-weight: bold; text-align: left; }
+        .summary-row span, .summary-row input { text-align: right; font-weight: bold; }
+        .summary-row input[type="number"] { width: 100%; padding: 2px; }
+        .summary-total { color: #0d47a1; font-size: 1.1em; }
+    </style>
+</head>
+<body>
+
+    <div id="page-master-order" class="page active">
+        <div class="container">
+            <h2>หน้า 1: 📋 บันทึก Master Order (บัญชีสั่งของหลัก)</h2>
+            <p style="color: red; font-weight: bold;">⚠️ กรุณากด "บันทึก" ทุกครั้งที่มีการแก้ไขข้อมูลในหน้านี้!</p>
+            
+            <table>
+                <thead>
+                    <tr><th>W-ID</th><th>พนักงานขับ (ชื่อ)</th><th>สาย (เส้นทาง)</th><th>หลอดใหญ่ (HL)</th><th>บดหยาบ (BH)</th><th>บดละเอียด (BL)</th></tr>
+                </thead>
+                <tbody id="master-order-input-body">
+                    <tr><td>W041-001</td><td><input type="text" id="master_name_001" value="นายอนันตวี ชูระสุข"></td><td><input type="text" id="master_route_001" value="ดอนฉ่ำค้า"></td><td><input type="number" id="master_hl_001" value="65"></td><td><input type="number" id="master_bh_001" value="41"></td><td><input type="number" id="master_bl_001" value="2"></td></tr>
+                    <tr><td>W041-002</td><td><input type="text" id="master_name_002" value="นายวรวิชญ์ พรหมชาติ"></td><td><input type="text" id="master_route_002" value="โพนงาม"></td><td><input type="number" id="master_hl_002" value="65"></td><td><input type="number" id="master_bh_002" value="30"></td><td><input type="number" id="master_bl_002" value="13"></td></tr>
+                    <tr><td>W041-003</td><td><input type="text" id="master_name_003" value="นายโพธิ์ ป้องจวงลา"></td><td><input type="text" id="master_route_003" value="บ้านหม้อ"></td><td><input type="number" id="master_hl_003" value="65"></td><td><input type="number" id="master_bh_003" value="35"></td><td><input type="number" id="master_bl_003" value="8"></td></tr>
+                    <tr><td>W041-004</td><td><input type="text" id="master_name_004" value="นายสิทธิชัย โสมาวัตร"></td><td><input type="text" id="master_route_004" value="โคกสว่าง"></td><td><input type="number" id="master_hl_004" value="50"></td><td><input type="number" id="master_bh_004" value="50"></td><td><input type="number" id="master_bl_004" value="8"></td></tr>
+                    <tr><td>W041-005</td><td><input type="text" id="master_name_005" value="นายทรงยศ ยางขั้น"></td><td><input type="text" id="master_route_005" value="หนองเห็บ"></td><td><input type="number" id="master_hl_005" value="70"></td><td><input type="number" id="master_bh_005" value="23"></td><td><input type="number" id="master_bl_005" value="15"></td></tr>
+                    <tr><td>W041-006</td><td><input type="text" id="master_name_006" value="นายอไทพร เมืองกลาง"></td><td><input type="text" id="master_route_006" value="จอมศรี"></td><td><input type="number" id="master_hl_006" value="60"></td><td><input type="number" id="master_bh_006" value="43"></td><td><input type="number" id="master_bl_006" value="5"></td></tr>
+                    <tr><td>W041-007</td><td><input type="text" id="master_name_007" value="นายชัยณรงค์ พลซุ้ย"></td><td><input type="text" id="master_route_007" value="ดงอ้น"></td><td><input type="number" id="master_hl_007" value="70"></td><td><input type="number" id="master_bh_007" value="32"></td><td><input type="number" id="master_bl_007" value="6"></td></tr>
+                    <tr><td>W041-008</td><td><input type="text" id="master_name_008" value="นายณัฐพงศ์ วงษ์ดี"></td><td><input type="text" id="master_route_008" value="หมู่ม่น"></td><td><input type="number" id="master_hl_008" value="70"></td><td><input type="number" id="master_bh_008" value="28"></td><td><input type="number" id="master_bl_008" value="10"></td></tr>
+                    <tr><td>W041-009</td><td><input type="text" id="master_name_009" value="นายธนยศชา แก้วสอนดี"></td><td><input type="text" id="master_route_009" value="ดอนแพง"></td><td><input type="number" id="master_hl_009" value="70"></td><td><input type="number" id="master_bh_009" value="20"></td><td><input type="number" id="master_bl_009" value="8"></td></tr>
+                </tbody>
+            </table>
+            
+            <button id="save-master-list-btn" class="save-btn">💾 บันทึก Master List (ลงในเครื่องนี้)</button>
+            <div class="grid-nav">
+                <button id="go-to-fulfillment-btn" class="nav-btn">ไปที่หน้าเบิกของ (หน้า 2) ➡️</button>
+                <button id="go-to-production-btn" class="nav-btn" style="background-color: #ffc107; color: #000;">ไปที่หน้าสรุปผลิต (หน้า 3) ➡️</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-fulfillment" class="page">
+        <div class="container">
+            <h2>หน้า 2: 🚚 บันทึกการเบิกของ (Fulfillment)</h2>
+            <button id="go-to-master-btn" class="nav-btn">⬅️ กลับไปหน้า Master (หน้า 1)</button>
+            
+            <div class="control-panel">
+                <div class="control-group"><label for="date_select">เลือกวันที่ 🗓️</label><input type="date" id="date_select"></div>
+                <div class="control-group">
+                    <label for="truck_select">เลือกรถ 🚚</label>
+                    <select id="truck_select">
+                        <option value="รถ 1">รถ 1 (W041-001)</option>
+                        <option value="รถ 2">รถ 2 (W041-002)</option>
+                        <option value="รถ 3">รถ 3 (W041-003)</option>
+                        <option value="รถ 4">รถ 4 (W041-004)</option>
+                        <option value="รถ 5">รถ 5 (W041-005)</option>
+                        <option value="รถ 6">รถ 6 (W041-006)</option>
+                        <option value="รถ 7">รถ 7 (W041-007)</option>
+                        <option value="รถ 8">รถ 8 (W041-008)</option>
+                        <option value="รถ 9">รถ 9 (W041-009)</option>
+                    </select>
+                </div>
+            </div>
+            <div id="master-order-header">
+                <div class="header-box"><label>W-ID:</label> <span id="header_wid" class="header-value">-</span></div>
+                <div class="header-box"><label>ยอดสั่ง (หลอดใหญ่):</label> <span id="header_hl" class="header-value">0</span></div>
+                <div class="header-box"><label>ยอดสั่ง (บดหยาบ):</label> <span id="header_bh" class="header-value">0</span></div>
+                <div class="header-box"><label>ยอดสั่ง (บดละเอียด):</label> <span id="header_bl" class="header-value">0</span></div>
+            </div>
+            <table id="fulfillment-matrix">
+                <thead>
+                    <tr>
+                        <th rowspan="3" style="width: 5%;">รายการ</th>
+                        <th colspan="5" class="hl-group">หลอดใหญ่</th><th colspan="5" class="bh-group">บดหยาบ</th><th colspan="5" class="bl-group">บดละเอียด</th>
+                    </tr>
+                    <tr>
+                        <th colspan="2" class="sub-header hl-group">ตู้ 1</th><th colspan="2" class="sub-header hl-group">ตู้ 2</th><th rowspan="2" class="leg-total hl-group">รวม</th> 
+                        <th colspan="2" class="sub-header bh-group">ตู้ 1</th><th colspan="2" class="sub-header bh-group">ตู้ 2</th><th rowspan="2" class="leg-total bh-group">รวม</th> 
+                        <th colspan="2" class="sub-header bl-group">ตู้ 1</th><th colspan="2" class="sub-header bl-group">ตู้ 2</th><th rowspan="2" class="leg-total bl-group">รวม</th> 
+                    </tr>
+                    <tr>
+                        <th style="width: 4%;" class="hl-group">ฟ้า</th><th style="width: 4%;" class="hl-group">แดง</th><th style="width: 4%;" class="hl-group">ฟ้า</th><th style="width: 4%;" class="hl-group">แดง</th>
+                        <th style="width: 4%;" class="bh-group">ฟ้า</th><th style="width: 4%;" class="bh-group">แดง</th><th style="width: 4%;" class="bh-group">ฟ้า</th><th style="width: 4%;" class="bh-group">แดง</th>
+                        <th style="width: 4%;" class="bl-group">ฟ้า</th><th style="width: 4%;" class="bl-group">แดง</th><th style="width: 4%;" class="bl-group">ฟ้า</th><th style="width: 4%;" class="bl-group">แดง</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="font-weight: bold;">ขาที่ 1</td>
+                        <td><input type="number" id="hl_leg1_t1_blue" class="input-blue" value="0" inputmode="numeric"></td><td><input type="number" id="hl_leg1_t1_red" class="input-red" value="0" inputmode="numeric"></td><td><input type="number" id="hl_leg1_t2_blue" class="input-blue" value="0" inputmode="numeric"></td><td><input type="number" id="hl_leg1_t2_red" class="input-red" value="0" inputmode="numeric"></td><td class="leg-total hl-group" id="hl_leg1_total">0</td>
+                        <td><input type="number" id="bh_leg1_t1_blue" class="input-blue" value="0" inputmode="numeric"></td><td><input type="number" id="bh_leg1_t1_red" class="input-red" value="0" inputmode="numeric"></td><td><input type="number" id="bh_leg1_t2_blue" class="input-blue" value="0" inputmode="numeric"></td><td><input type="number" id="bh_leg1_t2_red" class="input-red" value="0" inputmode="numeric"></td><td class="leg-total bh-group" id="bh_leg1_total">0</td>
+                        <td><input type="number" id="bl_leg1_t1_blue" class="input-blue" value="0" inputmode="numeric"></td><td><input type="number" id="bl_leg1_t1_red" class="input-red" value="0" inputmode="numeric"></td><td><input type="number" id="bl_leg1_t2_blue" class="input-blue" value="0" inputmode="numeric"></td><td><input type="number" id="bl_leg1_t2_red" class="input-red" value="0" inputmode="numeric"></td><td class="leg-total bl-group" id="bl_leg1_total">0</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">ขาที่ 2</td>
+                        <td><input type="number" id="hl_leg2_t1_blue" class="input-blue" value="0" inputmode="numeric"></td><td><input type="number" id="hl_leg2_t1_red" class="input-red" value="0" inputmode="numeric"></td><td><input type="number" id="hl_leg2_t2_blue" class="input-blue" value="0" inputmode="numeric"></td><td><input type="number" id="hl_leg2_t2_red" class="input-red" value="0" inputmode="numeric"></td><td class="leg-total hl-group" id="hl_leg2_total">0</td>
+                        <td><input type="number" id="bh_leg2_t1_blue" class="input-blue" value="0" inputmode="numeric"></td><td><input type="number" id="bh_leg2_t1_red" class="input-red" value="0" inputmode="numeric"></td><td><input type="number" id="bh_leg2_t2_blue" class="input-blue" value="0" inputmode="numeric"></td><td><input type="number" id="bh_leg2_t2_red" class="input-red" value="0" inputmode="numeric"></td><td class="leg-total bh-group" id="bh_leg2_total">0</td>
+                        <td><input type="number" id="bl_leg2_t1_blue" class="input-blue" value="0" inputmode="numeric"></td><td><input type="number" id="bl_leg2_t1_red" class="input-red" value="0" inputmode="numeric"></td><td><input type="number" id="bl_leg2_t2_blue" class="input-blue" value="0" inputmode="numeric"></td><td><input type="number" id="bl_leg2_t2_red" class="input-red" value="0" inputmode="numeric"></td><td class="leg-total bl-group" id="bl_leg2_total">0</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">ขาที่ 3</td>
+                        <td><input type="number" id="hl_leg3_t1_blue" class="input-blue" value="0" inputmode="numeric"></td><td><input type="number" id="hl_leg3_t1_red" class="input-red" value="0" inputmode="numeric"></td><td><input type="number" id="hl_leg3_t2_blue" class="input-blue" value="0" inputmode="numeric"></td><td><input type="number" id="hl_leg3_t2_red" class="input-red" value="0" inputmode="numeric"></td><td class="leg-total hl-group" id="hl_leg3_total">0</td>
+                        <td><input type="number" id="bh_leg3_t1_blue" class="input-blue" value="0" inputmode="numeric"></td><td><input type="number" id="bh_leg3_t1_red" class="input-red" value="0" inputmode="numeric"></td><td><input type="number" id="bh_leg3_t2_blue" class="input-blue" value="0" inputmode="numeric"></td><td><input type="number" id="bh_leg3_t2_red" class="input-red" value="0" inputmode="numeric"></td><td class="leg-total bh-group" id="bh_leg3_total">0</td>
+                        <td><input type="number" id="bl_leg3_t1_blue" class="input-blue" value="0" inputmode="numeric"></td><td><input type="number" id="bl_leg3_t1_red" class="input-red" value="0" inputmode="numeric"></td><td><input type="number" id="bl_leg3_t2_blue" class="input-blue" value="0" inputmode="numeric"></td><td><input type="number" id="bl_leg3_t2_red" class="input-red" value="0" inputmode="numeric"></td><td class="leg-total bl-group" id="bl_leg3_total">0</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">ขาที่ 4</td>
+                        <td><input type="number" id="hl_leg4_t1_blue" class="input-blue" value="0" inputmode="numeric"></td><td><input type="number" id="hl_leg4_t1_red" class="input-red" value="0" inputmode="numeric"></td><td><input type="number" id="hl_leg4_t2_blue" class="input-blue" value="0" inputmode="numeric"></td><td><input type="number" id="hl_leg4_t2_red" class="input-red" value="0" inputmode="numeric"></td><td class="leg-total hl-group" id="hl_leg4_total">0</td>
+                        <td><input type="number" id="bh_leg4_t1_blue" class="input-blue" value="0" inputmode="numeric"></td><td><input type="number" id="bh_leg4_t1_red" class="input-red" value="0" inputmode="numeric"></td><td><input type="number" id="bh_leg4_t2_blue" class="input-blue" value="0" inputmode="numeric"></td><td><input type="number" id="bh_leg4_t2_red" class="input-red" value="0" inputmode="numeric"></td><td class="leg-total bh-group" id="bh_leg4_total">0</td>
+                        <td><input type="number" id="bl_leg4_t1_blue" class="input-blue" value="0" inputmode="numeric"></td><td><input type="number" id="bl_leg4_t1_red" class="input-red" value="0" inputmode="numeric"></td><td><input type="number" id="bl_leg4_t2_blue" class="input-blue" value="0" inputmode="numeric"></td><td><input type="number" id="bl_leg4_t2_red" class="input-red" value="0" inputmode="numeric"></td><td class="leg-total bl-group" id="bl_leg4_total">0</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td style="font-weight: bold;">รวมเบิก</td>
+                        <td id="footer_hl_t1_blue" class="hl-group">0</td><td id="footer_hl_t1_red" class="hl-group">0</td><td id="footer_hl_t2_blue" class="hl-group">0</td><td id="footer_hl_t2_red" class="hl-group">0</td><td id="footer_hl_total" class="hl-group">0</td>
+                        <td id="footer_bh_t1_blue" class="bh-group">0</td><td id="footer_bh_t1_red" class="bh-group">0</td><td id="footer_bh_t2_blue" class="bh-group">0</td><td id="footer_bh_t2_red" class="bh-group">0</td><td id="footer_bh_total" class="bh-group">0</td>
+                        <td id="footer_bl_t1_blue" class="bl-group">0</td><td id="footer_bl_t1_red" class="bl-group">0</td><td id="footer_bl_t2_blue" class="bl-group">0</td><td id="footer_bl_t2_red" class="bl-group">0</td><td id="footer_bl_total" class="bl-group">0</td>
+                    </tr>
+                    <tr class="remaining-row">
+                        <td style="font-weight: bold;">รวมยอด (4 ช่อง)</td>
+                        <td colspan="5" id="total_hl_all_sources" class="hl-group">0</td>
+                        <td colspan="5" id="total_bh_all_sources" class="bh-group">0</td>
+                        <td colspan="5" id="total_bl_all_sources" class="bl-group">0</td>
+                    </tr>
+                    <tr class="remaining-row">
+                        <td style="font-weight: bold;">คงเหลือ (สั่ง - เบิก)</td>
+                        <td colspan="5" id="remaining_hl" class="remaining-qty hl-group">0</td>
+                        <td colspan="5" id="remaining_bh" class="remaining-qty bh-group">0</td>
+                        <td colspan="5" id="remaining_bl" class="remaining-qty bl-group">0</td>
+                    </tr>
+                    <tr class="remaining-row">
+                        <td style="font-weight: bold;">ยอดรวมทั้งหมด</td>
+                        <td colspan="15" id="grand_total_all_types">0</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <div id="page-production" class="page">
+        <div class="container">
+            <h2>หน้า 3: 🏭 สรุปยอดผลิต (Production)</h2>
+            <button id="go-to-master-from-prod-btn" class="nav-btn">⬅️ กลับไปหน้า Master (หน้า 1)</button>
+            
+            <div id="page-production-controls" class="control-panel">
+                <div class="control-group">
+                    <label for="prod_date_select">เลือกวันที่ 🗓️</label>
+                    <input type="date" id="prod_date_select">
+                </div>
+                <div class="control-group">
+                    <label for="prod_start_time">เวลาเปิดเครื่อง ⚙️</label>
+                    <input type="time" id="prod_start_time" value="22:15">
+                </div>
+                <div class="control-group">
+                    <label for="prod_end_time">เวลาปิดเครื่อง 🛑</label>
+                    <input type="time" id="prod_end_time" value="07:00"> 
+                </div>
+            </div>
+            
+            <div id="production-grid">
+                <div id="production-table-wrapper">
+                    <table id="production-table">
+                        <thead>
+                            <tr>
+                                <th rowspan="2" colspan="2" class="col-time">เวลา</th>
+                                <th colspan="2" class="header-green">เบิกกระสอบ</th>
+                                <th colspan="3" class="header-blue">ผลการผลิต</th>
+                                <th colspan="2" class="header-green">กระสอบคงเหลือ</th>
+                            </tr>
+                            <tr>
+                                <th class="col-withdraw">หลอด</th>
+                                <th class="col-withdraw">บด</th>
+                                <th class="col-production">หลอดใหญ่</th>
+                                <th class="col-production">บดหยาบ</th>
+                                <th class="col-production">บดละเอียด</th>
+                                <th class="col-remaining">หลอด</th>
+                                <th class="col-remaining">บด</th>
+                            </tr>
+                        </thead>
+                        <tbody id="production-body">
+                            </tbody>
+                        <tfoot>
+                            <tr>
+                                <td style="font-weight: bold;">รวม</td>
+                                <td class="col-time" id="prod_total_mins">0</td>
+                                <td class="col-withdraw" id="prod_total_w_tube">0</td>
+                                <td class="col-withdraw" id="prod_total_w_crush">0</td>
+                                <td class="col-production" id="prod_total_p_tube">0</td>
+                                <td class="col-production" id="prod_total_p_coarse">0</td>
+                                <td class="col-production" id="prod_total_p_fine">0</td>
+                                <td class="col-remaining" id="prod_total_r_tube">0</td>
+                                <td class="col-remaining" id="prod_total_r_crush">0</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                
+                <div id="production-summary-rhs">
+                    <div class="summary-group">
+                        <div class="summary-row"><label>หลอดใหญ่:</label> <span id="rhs_prod_tube">0</span> <span>กระสอบ</span></div>
+                        <div class="summary-row"><label>บดหยาบ:</label> <span id="rhs_prod_coarse">0</span> <span>กระสอบ</span></div>
+                        <div class="summary-row"><label>บดละเอียด:</label> <span id="rhs_prod_fine">0</span> <span>กระสอบ</span></div>
+                        <div class="summary-row summary-total"><label>รวม:</label> <span id="rhs_prod_total">0</span> <span>กระสอบ</span></div>
+                    </div>
+                    
+                    <div class="summary-group">
+                        <div class="summary-row"><label>นน.เฉลี่ยหลอดใหญ่:</label> <span id="rhs_weight_tube_total">0</span> <span>กก.</span></div>
+                        <div class="summary-row"><label>นน.เฉลี่ยบดหยาบ:</label> <span id="rhs_weight_coarse_total">0</span> <span>กก.</span></div>
+                        <div class="summary-row"><label>นน.เฉลี่ยบดละเอียด:</label> <span id="rhs_weight_fine_total">0</span> <span>กก.</span></div>
+                        <div class="summary-row summary-total"><label>น้ำหนักรวม:</label> <span id="rhs_weight_total">0</span> <span>กก.</span></div>
+                    </div>
+                    
+                    <div class="summary-group">
+                        <div class="summary-row"><label>เวลาเฉลี่ย:</label> <span id="rhs_time_prod">0</span> <span>นาที/ตก</span></div>
+                        <div class="summary-row"><label>น้ำหนัก:</label> <span id="rhs_weight_ton">0</span> <span>ตัน/วัน</span></div>
+                        <div class="summary-row"><label>จำนวนเฉลี่ย:</label> <span id="rhs_qty_prod">0</span> <span>กระสอบ/ตก</span></div>
+                    </div>
+                    
+                    <div class="summary-group">
+                        <div class="summary-row"><label>เบิกกระสอบ:</label> <span id="rhs_bag_withdraw">0</span> <span>ใบ</span></div>
+                        <div class="summary-row"><label>กระสอบที่ใช้:</label> <span id="rhs_bag_used">0</span> <span>ใบ</span></div>
+                        <div class="summary-row summary-total"><label>กระสอบคงเหลือ:</label> <span id="rhs_bag_remaining">0</span> <span>ใบ</span></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+<script>
+    // 🔥 "สมอง" ของแอป V11 (JavaScript) - Responsive Fix & Remaining Total! 🔥
+
+    // --- ฐานข้อมูล ID (W-ID <-> ชื่อรถ) ---
+    const TRUCK_MAP = {
+        "รถ 1": "W041-001", "รถ 2": "W041-002", "รถ 3": "W041-003",
+        "รถ 4": "W041-004", "รถ 5": "W041-005", "รถ 6": "W041-006",
+        "รถ 7": "W041-007", "รถ 8": "W041-008", "รถ 9": "W041-009"
+    };
+    const MASTER_TRUCK_IDS = Object.values(TRUCK_MAP); // ["W041-001", ...]
+    
+    // --- (คงที่) หน้า 2 ---
+    const FULFILL_ICE_TYPES = ['hl', 'bh', 'bl'];
+    const FULFILL_LEGS = ['1', '2', '3', '4']; // เหลือ 4 ขา
+    const FULFILL_CONTAINERS = ['t1', 't2']; // ตู้ 1, ตู้ 2
+    const FULFILL_SOURCES = ['blue', 'red']; // ฟ้า (ตู้), แดง (เครื่อง)
+
+    // --- (คงที่) หน้า 3 ---
+    const PROD_ROWS = 18; // 18 แถว
+    const PROD_COLUMNS = ['w_tube', 'w_crush', 'p_tube', 'p_coarse', 'p_fine'];
+    // 🔥 Hardcode น้ำหนัก (กก.) ตามที่ลูกศิษย์บอก 🔥
+    const PROD_WEIGHTS = {
+        tube: 20,
+        coarse: 23,
+        fine: 24
+    };
+    const PROD_RHS_INPUTS = []; // V10/V11: ไม่มีช่องกรอกฝั่งขวาแล้ว
+
+    // --- รวบรวม ID Inputs ทั้งหมดเพื่อ Save/Load State ---
+    const allMasterInputIds = [];
+    MASTER_TRUCK_IDS.forEach(id => {
+        const numId = id.split('-')[1]; // "001"
+        allMasterInputIds.push(`master_name_${numId}`);
+        allMasterInputIds.push(`master_route_${numId}`);
+        allMasterInputIds.push(`master_hl_${numId}`);
+        allMasterInputIds.push(`master_bh_${numId}`);
+        allMasterInputIds.push(`master_bl_${numId}`);
+    });
+    
+    const allFulfillInputIds = []; // ID ของช่อง "กรอก" หน้า 2
+    FULFILL_LEGS.forEach(leg => {
+        FULFILL_ICE_TYPES.forEach(type => {
+            FULFILL_CONTAINERS.forEach(container => {
+                FULFILL_SOURCES.forEach(source => {
+                    allFulfillInputIds.push(`${type}_leg${leg}_${container}_${source}`); // "hl_leg1_t1_blue"
+                });
+            });
+        });
+    });
+
+    const allProdInputIds = ['prod_start_time', 'prod_end_time']; // V10: เพิ่ม prod_end_time
+    for (let i = 1; i <= PROD_ROWS; i++) {
+        allProdInputIds.push(`prod_time_r${i}`);
+        PROD_COLUMNS.forEach(col => {
+            allProdInputIds.push(`prod_${col}_r${i}`);
+        });
+    }
+    PROD_RHS_INPUTS.forEach(id => allProdInputIds.push(id));
+
+
+    // --- Utility Functions (เครื่องมือช่วย) ---
+    function getEl(id) { return document.getElementById(id); }
+    function getVal(id) { return getEl(id).value; }
+    function setVal(id, value) { getEl(id).value = value; }
+    function setHTML(id, html) { getEl(id).innerHTML = html; }
+    function getNum(id) { return parseFloat(getVal(id)) || 0; }
+    function getNumFromHTML(id) { return parseFloat(getEl(id).textContent) || 0; }
+    
+    // V8: แปลงเวลา "HH:MM" เป็น "นาที"
+    function timeToMinutes(timeString) {
+        if (!timeString) return 0;
+        const parts = timeString.split(':');
+        if (parts.length !== 2) return 0;
+        return (parseInt(parts[0], 10) * 60) + parseInt(parts[1], 10);
+    }
+    // "Zero" Magic
+    function handleInputFocus(event) {
+        if (event.target.value === '0') event.target.value = '';
+    }
+    function handleInputBlur(event) {
+        if (event.target.value === '') event.target.value = '0';
+        // ตรวจสอบว่าฟังก์ชันคำนวณที่เกี่ยวข้องคืออะไร
+        if (allFulfillInputIds.includes(event.target.id)) {
+            calculateFulfillment();
+        } else if (allProdInputIds.includes(event.target.id)) {
+            calculateProduction();
+        }
+    }
+
+    // --- ระบบนำทาง (Navigation) ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const pageMaster = getEl('page-master-order');
+        const pageFulfill = getEl('page-fulfillment');
+        const pageProduction = getEl('page-production');
+
+        // V7: ปุ่มเปลี่ยนหน้า
+        getEl('go-to-fulfillment-btn').onclick = () => {
+            pageMaster.classList.remove('active');
+            pageProduction.classList.remove('active');
+            pageFulfill.classList.add('active');
+            switchLogFulfillment(); 
+        };
+        getEl('go-to-production-btn').onclick = () => {
+            pageMaster.classList.remove('active');
+            pageFulfill.classList.remove('active');
+            pageProduction.classList.add('active');
+            switchLogProduction();
+        };
+        getEl('go-to-master-btn').onclick = () => {
+            pageFulfill.classList.remove('active');
+            pageProduction.classList.remove('active');
+            pageMaster.classList.add('active');
+        };
+        getEl('go-to-master-from-prod-btn').onclick = () => {
+            pageFulfill.classList.remove('active');
+            pageProduction.classList.remove('active');
+            pageMaster.classList.add('active');
+        };
+
+        // --- Setup หน้า 1 (Master) ---
+        getEl('save-master-list-btn').onclick = saveMasterList;
+        loadMasterList(); 
+
+        // --- Setup หน้า 2 (Fulfillment) ---
+        getEl('date_select').value = new Date().toISOString().split('T')[0];
+        getEl('date_select').onchange = switchLogFulfillment;
+        getEl('truck_select').onchange = switchLogFulfillment;
+        allFulfillInputIds.forEach(id => {
+            const inputEl = getEl(id);
+            inputEl.oninput = calculateFulfillment;
+            inputEl.onfocus = handleInputFocus;
+            inputEl.onblur = handleInputBlur;
+        });
+
+        // --- Setup หน้า 3 (Production) ---
+        buildProductionTable(); // สร้างตาราง 18 แถว
+        getEl('prod_date_select').value = new Date().toISOString().split('T')[0];
+        getEl('prod_date_select').onchange = switchLogProduction;
+        // ติดตั้ง "สมอง" ให้หน้า 3
+        allProdInputIds.forEach(id => {
+            const inputEl = getEl(id);
+            if (!inputEl) { console.error("Missing ID:", id); return; } // Debug
+            
+            if (inputEl.type === 'number' || inputEl.type === 'time') {
+                inputEl.oninput = calculateProduction;
+            }
+            if (inputEl.type === 'number') {
+                inputEl.onfocus = handleInputFocus;
+                inputEl.onblur = handleInputBlur;
+            }
+        });
+
+        // โหลดครั้งแรก (DB V11)
+        if (!localStorage.getItem('MASTER_ORDERS_DB_V11')) { 
+            saveMasterList(true); // true = บันทึกแบบเงียบๆ
+        }
+    });
+
+    // --- "ฐานข้อมูล" หน้า 1 (Master Order) ---
+    function saveMasterList(silent = false) {
+        const masterDB = {};
+        MASTER_TRUCK_IDS.forEach(id => {
+            const numId = id.split('-')[1];
+            masterDB[id] = {
+                name: getVal(`master_name_${numId}`), route: getVal(`master_route_${numId}`),
+                hl: getNum(`master_hl_${numId}`), bh: getNum(`master_bh_${numId}`), bl: getNum(`master_bl_${numId}`)
+            };
+        });
+        localStorage.setItem('MASTER_ORDERS_DB_V11', JSON.stringify(masterDB)); 
+        if (!silent) alert('✅ บันทึก Master List ลงในเครื่องนี้แล้ว!');
+    }
+    function loadMasterList() {
+        const db = localStorage.getItem('MASTER_ORDERS_DB_V11'); 
+        if (!db) return; 
+        const masterDB = JSON.parse(db);
+        MASTER_TRUCK_IDS.forEach(id => {
+            const order = masterDB[id];
+            if (order) {
+                const numId = id.split('-')[1];
+                setVal(`master_name_${numId}`, order.name); setVal(`master_route_${numId}`, order.route);
+                setVal(`master_hl_${numId}`, order.hl); setVal(`master_bh_${numId}`, order.bh); setVal(`master_bl_${numId}`, order.bl);
+            }
+        });
+    }
+
+    // --- "สวิตช์" และ "สมอง" หน้า 2 (Fulfillment) ---
+    function generateFulfillLogKey() {
+        const date = getVal('date_select');
+        const truckName = getVal('truck_select');
+        const truckId = TRUCK_MAP[truckName] || "UNKNOWN";
+        return `fulfill_v11_${date}_${truckId}`;
+    }
+    function saveFulfillmentState() {
+        const logKey = generateFulfillLogKey();
+        const state = {};
+        allFulfillInputIds.forEach(id => { state[id] = getVal(id); });
+        localStorage.setItem(logKey, JSON.stringify(state));
+    }
+    function loadFulfillmentState(logKey) {
+        allFulfillInputIds.forEach(id => setVal(id, '0'));
+        const stateJSON = localStorage.getItem(logKey);
+        if (stateJSON) {
+            const state = JSON.parse(stateJSON);
+            allFulfillInputIds.forEach(id => {
+                if (state[id] !== undefined) setVal(id, state[id]);
+            });
+        }
+    }
+    function switchLogFulfillment() {
+        const logKey = generateFulfillLogKey();
+        const masterDB = JSON.parse(localStorage.getItem('MASTER_ORDERS_DB_V11') || '{}');
+        const selectedTruckName = getVal('truck_select');
+        const truckId = TRUCK_MAP[selectedTruckName];
+        const order = masterDB[truckId];
+        
+        if (order) {
+            setHTML('header_wid', truckId);
+            setHTML('header_hl', order.hl); setHTML('header_bh', order.bh); setHTML('header_bl', order.bl);
+        } else {
+            if(getEl('page-fulfillment').classList.contains('active')) {
+                alert("ไม่พบ Master Order! กรุณากลับไป 'หน้า 1' แล้วกด 'บันทึก' ก่อน!");
+            }
+            setHTML('header_wid', "Error!");
+            setHTML('header_hl', 0); setHTML('header_bh', 0); setHTML('header_bl', 0);
+        }
+        loadFulfillmentState(logKey);
+        calculateFulfillment();
+    }
+    function calculateFulfillment() {
+        let grandTotal = {};
+        let grandTotalAll = 0; 
+        FULFILL_ICE_TYPES.forEach(type => {
+            grandTotal[type] = { t1_blue: 0, t1_red: 0, t2_blue: 0, t2_red: 0, totalSum: 0 };
+        });
+        FULFILL_LEGS.forEach(leg => { 
+            FULFILL_ICE_TYPES.forEach(type => { 
+                let legTotal = 0;
+                FULFILL_CONTAINERS.forEach(container => { 
+                    FULFILL_SOURCES.forEach(source => { 
+                        const id = `${type}_leg${leg}_${container}_${source}`;
+                        const val = getNum(id);
+                        legTotal += val;
+                        grandTotal[type][`${container}_${source}`] += val;
+                    });
+                });
+                setHTML(`${type}_leg${leg}_total`, legTotal);
+            });
+        });
+        FULFILL_ICE_TYPES.forEach(type => {
+            const totalSum = grandTotal[type].t1_blue + grandTotal[type].t1_red + grandTotal[type].t2_blue + grandTotal[type].t2_red;
+            grandTotal[type].totalSum = totalSum;
+            grandTotalAll += totalSum; 
+            setHTML(`footer_${type}_t1_blue`, grandTotal[type].t1_blue);
+            setHTML(`footer_${type}_t1_red`, grandTotal[type].t1_red);
+            setHTML(`footer_${type}_t2_blue`, grandTotal[type].t2_blue);
+            setHTML(`footer_${type}_t2_red`, grandTotal[type].t2_red);
+            setHTML(`footer_${type}_total`, totalSum); 
+            setHTML(`total_${type}_all_sources`, totalSum);
+        });
+        setHTML('grand_total_all_types', grandTotalAll);
+        FULFILL_ICE_TYPES.forEach(type => {
+            const masterQty = getNumFromHTML(`header_${type}`);
+            const remaining = masterQty - grandTotal[type].totalSum;
+            const remainingEl = getEl(`remaining_${type}`);
+            setHTML(`remaining_${type}`, remaining);
+            remainingEl.classList.toggle('complete', remaining <= 0); 
+        });
+        saveFulfillmentState();
+    }
+
+    // --- 🔥 "สวิตช์" และ "สมอง" V11 (หน้า 3) 🔥 ---
+    
+    // สร้างตาราง 18 แถว
+    function buildProductionTable() {
+        const tbody = getEl('production-body');
+        let html = '';
+        for (let i = 1; i <= PROD_ROWS; i++) {
+            html += `
+                <tr>
+                    <td class="col-time"><input type="time" id="prod_time_r${i}"></td>
+                    <td class="col-time" id="prod_mins_r${i}">0</td>
+                    <td class="col-withdraw"><input type="number" id="prod_w_tube_r${i}" value="0" inputmode="numeric"></td>
+                    <td class="col-withdraw"><input type="number" id="prod_w_crush_r${i}" value="0" inputmode="numeric"></td>
+                    <td class="col-production"><input type="number" id="prod_p_tube_r${i}" value="0" inputmode="numeric"></td>
+                    <td class="col-production"><input type="number" id="prod_p_coarse_r${i}" value="0" inputmode="numeric"></td>
+                    <td class="col-production"><input type="number" id="prod_p_fine_r${i}" value="0" inputmode="numeric"></td>
+                    <td class="col-remaining" id="prod_r_tube_r${i}">0</td>
+                    <td class="col-remaining" id="prod_r_crush_r${i}">0</td>
+                </tr>
+            `;
+        }
+        tbody.innerHTML = html;
+    }
+
+    function generateProdLogKey() {
+        const date = getVal('prod_date_select');
+        return `prod_v11_${date}`; // Key ใหม่สำหรับ V11
+    }
+
+    function saveProductionState() {
+        const logKey = generateProdLogKey();
+        const state = {};
+        allProdInputIds.forEach(id => {
+            state[id] = getVal(id);
+        });
+        localStorage.setItem(logKey, JSON.stringify(state));
+    }
+
+    function loadProductionState(logKey) {
+        allProdInputIds.forEach(id => setVal(id, '0'));
+        setVal('prod_start_time', '22:15'); // default
+        setVal('prod_end_time', '07:00'); // default
+
+        const stateJSON = localStorage.getItem(logKey);
+        if (stateJSON) {
+            const state = JSON.parse(stateJSON);
+            allProdInputIds.forEach(id => {
+                if (state[id] !== undefined) setVal(id, state[id]);
+            });
+        }
+    }
+
+    function switchLogProduction() {
+        const logKey = generateProdLogKey();
+        loadProductionState(logKey);
+        calculateProduction();
+    }
+
+    function calculateProduction() {
+        let startTimeVal = getVal('prod_start_time');
+        let lastTimeInMinutes = timeToMinutes(startTimeVal);
+        
+        let total = {
+            mins: 0, w_tube: 0, w_crush: 0,
+            p_tube: 0, p_coarse: 0, p_fine: 0,
+            r_tube: 0, r_crush: 0 // 🔥 V11: "ถัง" สำหรับ "รวมยอดคงเหลือ"
+        };
+        let dropCount = 0; // V9: ตัวนับ "รอบตก"
+        
+        for (let i = 1; i <= PROD_ROWS; i++) {
+            // 1. 🔥 "แก้บั๊กข้ามวัน" (Midnight Fix V10) 🔥
+            const currentTimeVal = getVal(`prod_time_r${i}`);
+            if (currentTimeVal) {
+                let currentTimeInMinutes = timeToMinutes(currentTimeVal);
+                let minutesDiff = 0;
+
+                if (currentTimeInMinutes > 0 || (i === 1 && currentTimeInMinutes === 0)) { 
+                    if (currentTimeInMinutes < lastTimeInMinutes) {
+                        minutesDiff = (1440 - lastTimeInMinutes) + currentTimeInMinutes; // 1440 = 24 * 60
+                    } else {
+                        minutesDiff = currentTimeInMinutes - lastTimeInMinutes;
+                    }
+                    
+                    setHTML(`prod_mins_r${i}`, minutesDiff);
+                    total.mins += minutesDiff;
+                    lastTimeInMinutes = currentTimeInMinutes; // อัปเดต "เวลาล่าสุด"
+                } else {
+                    setHTML(`prod_mins_r${i}`, 0); // ไม่มีเวลา = 0 นาที
+                }
+            } else {
+                setHTML(`prod_mins_r${i}`, 0);
+            }
+            
+            // 2. คำนวณกระสอบ (แถวต่อแถว)
+            const w_tube = getNum(`prod_w_tube_r${i}`);
+            const w_crush = getNum(`prod_w_crush_r${i}`);
+            const p_tube = getNum(`prod_p_tube_r${i}`);
+            const p_coarse = getNum(`prod_p_coarse_r${i}`);
+            const p_fine = getNum(`prod_p_fine_r${i}`);
+            
+            const r_tube = w_tube - p_tube;
+            const r_crush = w_crush - p_coarse - p_fine;
+            
+            setHTML(`prod_r_tube_r${i}`, r_tube);
+            setHTML(`prod_r_crush_r${i}`, r_crush);
+            
+            // V9: นับ "รอบตก" (ถ้ามีการผลิต)
+            if (p_tube > 0 || p_coarse > 0 || p_fine > 0) {
+                dropCount++;
+            }
+            
+            // 3. บวกสะสมยอดรวม
+            total.w_tube += w_tube;
+            total.w_crush += w_crush;
+            total.p_tube += p_tube;
+            total.p_coarse += p_coarse;
+            total.p_fine += p_fine;
+            total.r_tube += r_tube; // 🔥 V11: บวกสะสม "คงเหลือ"
+            total.r_crush += r_crush; // 🔥 V11: บวกสะสม "คงเหลือ"
+        }
+
+        // 4. อัปเดต "Footer"
+        setHTML('prod_total_mins', total.mins);
+        setHTML('prod_total_w_tube', total.w_tube);
+        setHTML('prod_total_w_crush', total.w_crush);
+        setHTML('prod_total_p_tube', total.p_tube);
+        setHTML('prod_total_p_coarse', total.p_coarse);
+        setHTML('prod_total_p_fine', total.p_fine);
+        setHTML('prod_total_r_tube', total.r_tube); // 🔥 V11: อัปเดต "รวมคงเหลือ"
+        setHTML('prod_total_r_crush', total.r_crush); // 🔥 V11: อัปเดต "รวมคงเหลือ"
+        
+        // 5. 🔥 อัปเดต "RHS V10" (ฝั่งขวา) 🔥
+        setHTML('rhs_prod_tube', total.p_tube);
+        setHTML('rhs_prod_coarse', total.p_coarse);
+        setHTML('rhs_prod_fine', total.p_fine);
+        const totalProdAll = total.p_tube + total.p_coarse + total.p_fine;
+        setHTML('rhs_prod_total', totalProdAll);
+        
+        // "Hardcode" น้ำหนัก
+        const weightTubeTotal = total.p_tube * PROD_WEIGHTS.tube;
+        const weightCoarseTotal = total.p_coarse * PROD_WEIGHTS.coarse;
+        const weightFineTotal = total.p_fine * PROD_WEIGHTS.fine;
+        
+        setHTML('rhs_weight_tube_total', weightTubeTotal);
+        setHTML('rhs_weight_coarse_total', weightCoarseTotal);
+        setHTML('rhs_weight_fine_total', weightFineTotal);
+        const totalWeightKg = weightTubeTotal + weightCoarseTotal + weightFineTotal;
+        setHTML('rhs_weight_total', totalWeightKg);
+        
+        // V10: การคำนวณใหม่ตามที่ขอ
+        
+        // --- เวลาเฉลี่ย (นาที/ตก) ---
+        const avgTimePerDrop = (dropCount > 0) ? (total.mins / dropCount) : 0;
+        setHTML('rhs_time_prod', avgTimePerDrop.toFixed(1)); 
+        
+        // --- น้ำหนัก (ตัน/วัน) ---
+        const endTimeVal = getVal('prod_end_time');
+        let totalMachineTime = 0;
+        if (startTimeVal && endTimeVal) {
+            let startMinutes = timeToMinutes(startTimeVal);
+            let endMinutes = timeToMinutes(endTimeVal);
+            if (endMinutes < startMinutes) {
+                totalMachineTime = (1440 - startMinutes) + endMinutes; // ข้ามวัน
+            } else {
+                totalMachineTime = endMinutes - startMinutes; // วันเดียวกัน
+            }
+        }
+        const tonsPerDay = (totalMachineTime > 0) ? (totalWeightKg * 1440) / totalMachineTime : 0;
+        setHTML('rhs_weight_ton', (tonsPerDay / 1000).toFixed(2)); // หาร 1000 เพื่อเป็น "ตัน"
+        
+        // --- จำนวนเฉลี่ย (กระสอบ/ตก) ---
+        const avgQtyPerDrop = (dropCount > 0) ? (totalProdAll / dropCount) : 0;
+        setHTML('rhs_qty_prod', avgQtyPerDrop.toFixed(1)); 
+        
+        // --- สรุปกระสอบ ---
+        const totalWithdrawAll = total.w_tube + total.w_crush;
+        setHTML('rhs_bag_withdraw', totalWithdrawAll);
+        setHTML('rhs_bag_used', totalProdAll);
+        setHTML('rhs_bag_remaining', totalWithdrawAll - totalProdAll);
+
+        // 6. บันทึก
+        saveProductionState();
+    }
+
+</script>
+</body>
+</html>
