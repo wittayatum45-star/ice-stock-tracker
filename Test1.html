@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Smart Ice V29 (Status Bar)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- Global Theme --- */
+        body { font-family: 'Sarabun', sans-serif; margin: 0; padding: 0; background: #f5f7fa; color: #37474f; padding-bottom: 100px; font-size: 14px; }
+        * { box-sizing: border-box; }
+
+        /* --- Sticky Dashboard --- */
+        .dashboard {
+            position: sticky; top: 0; z-index: 1000;
+            background: #263238; color: white;
+            padding: 12px 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: flex; justify-content: space-around;
+        }
+        .dash-item span { font-size: 0.75rem; color: #b0bec5; display: block; margin-bottom: 2px; }
+        .dash-item div { font-size: 1.3rem; font-weight: 800; color: #69f0ae; line-height: 1; }
+
+        /* 🔥 Order Status Bar (New) 🔥 */
+        .order-status-bar {
+            background: #fff3e0; border-bottom: 1px solid #ffe0b2;
+            padding: 8px; text-align: center; font-size: 0.9rem;
+            color: #ef6c00; font-weight: bold;
+            display: flex; justify-content: space-around;
+            position: sticky; top: 56px; z-index: 950; /* ต่อจาก Dashboard */
+        }
+        .os-item b { color: #d84315; font-size: 1.1rem; }
+
+        /* --- Navigation --- */
+        .nav-bar { display: flex; background: white; margin: 10px; border-radius: 50px; padding: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: sticky; top: 95px; z-index: 900; }
+        .nav-btn { flex: 1; padding: 10px; text-align: center; border: none; background: none; font-weight: bold; color: #90a4ae; cursor: pointer; border-radius: 40px; transition: 0.2s; }
+        .nav-btn.active { background: #0277bd; color: white; box-shadow: 0 2px 8px rgba(2,119,189,0.4); }
+
+        /* --- Pages --- */
+        .page { display: none; padding: 10px; max-width: 600px; margin: 0 auto; }
+        .page.active { display: block; }
+
+        /* --- Modern Card Style --- */
+        .modern-card { 
+            background: white; border-radius: 16px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06); 
+            margin-bottom: 20px; overflow: hidden; border: 1px solid #fff;
+        }
+
+        /* Header Layout */
+        .card-header-flex { display: flex; align-items: center; padding: 10px; gap: 10px; border-bottom: 1px solid #f0f0f0; }
+        
+        /* Type Badge (ซ้าย) */
+        .badge-box {
+            border-radius: 12px; padding: 10px; width: 80px; text-align: center;
+            display: flex; flex-direction: column; justify-content: center; height: 60px;
+            font-weight: bold; font-size: 0.8rem; line-height: 1.2; color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .bg-prod { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+        .bg-stock { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; }
+
+        /* Time Input (กลาง) */
+        .time-box { flex: 1; text-align: center; }
+        .big-time-input {
+            font-size: 2rem; font-weight: 800; color: #37474f;
+            border: none; background: none; width: 100%; text-align: center;
+            font-family: 'Sarabun', sans-serif;
+        }
+
+        /* Delete Button (ขวา) */
+        .btn-close-red {
+            width: 40px; height: 40px; border-radius: 10px;
+            background: #ffebee; color: #c62828; border: none;
+            font-size: 1.2rem; font-weight: bold; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* Time Stats Badges */
+        .stats-row { display: flex; gap: 8px; padding: 0 15px 10px 15px; margin-top: -5px; }
+        .stat-pill { 
+            background: #eceff1; color: #546e7a; font-size: 0.75rem; 
+            padding: 4px 10px; border-radius: 20px; font-weight: 600;
+            display: flex; align-items: center; gap: 4px;
+        }
+
+        /* Content Area */
+        .card-body { padding: 15px; }
+
+        /* Sack Logic Row */
+        .sack-row { 
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; 
+            background: #f9fbe7; padding: 10px; border-radius: 12px; 
+            margin-bottom: 15px; border: 1px solid #f0f4c3;
+        }
+        .sack-item { text-align: center; }
+        .sack-label { font-size: 0.7rem; color: #827717; font-weight: bold; margin-bottom: 2px; }
+        .sack-val { font-size: 1.3rem; font-weight: 800; color: #33691e; }
+        
+        /* Inputs */
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        .input-label { font-size: 0.75rem; color: #78909c; margin-bottom: 4px; font-weight: 600; }
+        
+        input[type="number"] {
+            width: 100%; padding: 12px; font-size: 1.2rem; text-align: center; font-weight: 600;
+            border: 1px solid #e0e0e0; border-radius: 10px; background: #fff;
+            -moz-appearance: textfield; transition: 0.2s;
+        }
+        input[type="number"]:focus { border-color: #29b6f6; box-shadow: 0 0 0 3px rgba(41,182,246,0.1); outline: none; }
+        
+        /* Distribution Section */
+        .dist-container { background: #fafafa; border-radius: 12px; padding: 10px; border: 1px dashed #cfd8dc; margin-top: 15px; }
+        .dist-row-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; background: white; padding: 8px; border-radius: 8px; border: 1px solid #eee; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        
+        /* FAB */
+        .fab-container { position: fixed; bottom: 25px; right: 20px; z-index: 2000; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+        .fab-main { width: 65px; height: 65px; border-radius: 50%; background: #00c853; color: white; border: none; font-size: 32px; box-shadow: 0 6px 20px rgba(0,200,83,0.4); cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .fab-main:active { transform: scale(0.95); }
+        .fab-main.rotate { transform: rotate(45deg); background: #ff5252; box-shadow: 0 6px 20px rgba(255,82,82,0.4); }
+        .fab-menu { display: none; flex-direction: column; gap: 12px; align-items: flex-end; }
+        .fab-menu.show { display: flex; }
+        .fab-item { display: flex; align-items: center; gap: 10px; }
+        .fab-label { background: white; padding: 6px 12px; border-radius: 8px; font-weight: bold; color: #546e7a; box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-size: 0.9rem; }
+        .fab-mini { width: 50px; height: 50px; border-radius: 50%; border: none; color: white; font-size: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        
+        .bg-green { background: #00c853; }
+        .bg-orange { background: #ff9100; }
+        
+        .btn-add-dist { width: 100%; padding: 12px; background: #eceff1; color: #546e7a; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+
+        /* Status Badges */
+        .status-badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 4px; font-weight: bold; color: white; display: block; margin-bottom: 5px; text-align: center; }
+        .st-warn { background: #ffa726; }
+        .st-ok { background: #66bb6a; }
+        .st-over { background: #42a5f5; }
+        
+        /* Setup Page Inputs */
+        .setup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        input[type="date"], input[type="time"] { width: 100%; padding: 10px; border: 1px solid #cfd8dc; border-radius: 8px; text-align: center; font-size: 1.1rem; background: white; }
+
+    </style>
+</head>
+<body>
+
+    <div class="dashboard">
+        <div class="dash-item"><span>🧊 หลอด</span><div id="dash_hl">0</div></div>
+        <div class="dash-item"><span>🔨 หยาบ</span><div id="dash_bh">0</div></div>
+        <div class="dash-item"><span>❄️ ละเอียด</span><div id="dash_bl">0</div></div>
+    </div>
+    
+    <div class="order-status-bar">
+        <div class="os-item">สั่งรวม: <span id="os_total">0</span></div>
+        <div class="os-item">ส่งแล้ว: <span id="os_sent">0</span></div>
+        <div class="os-item">ค้างส่ง: <b id="os_remain">0</b></div>
+    </div>
+
+    <div class="nav-bar">
+        <button class="nav-btn active" onclick="switchPage('setup')">1. ตั้งค่า</button>
+        <button class="nav-btn" onclick="switchPage('production')">2. ผลิต/จ่าย</button>
+        <button class="nav-btn" onclick="switchPage('summary')">3. สรุปยอด</button>
+    </div>
+
+    <div id="page-setup" class="page active">
+        <div class="modern-card card-body">
+            <h3 style="margin-top:0;">⚙️ ตั้งค่าประจำวัน</h3>
+            <label>วันที่</label>
+            <input type="date" id="setup_date" onchange="saveData()">
+            <div class="setup-grid">
+                <div><label>🟢 เปิดเครื่อง</label><input type="time" id="time_start" value="22:00" onchange="saveData()"></div>
+                <div><label>🔴 ปิดเครื่อง</label><input type="time" id="time_stop" value="06:00" onchange="saveData()"></div>
+            </div>
+        </div>
+        <div class="modern-card card-body">
+            <h3 style="margin-top:0;">📦 สต็อกยกมา (ในห้อง)</h3>
+            <div class="grid-3">
+                <div><div class="input-label">หลอด</div><input type="number" inputmode="numeric" id="init_hl" value="0" oninput="saveData(); calcAll();" onfocus="clearZero(this)" onblur="fillZero(this)"></div>
+                <div><div class="input-label">หยาบ</div><input type="number" inputmode="numeric" id="init_bh" value="0" oninput="saveData(); calcAll();" onfocus="clearZero(this)" onblur="fillZero(this)"></div>
+                <div><div class="input-label">ละเอียด</div><input type="number" inputmode="numeric" id="init_bl" value="0" oninput="saveData(); calcAll();" onfocus="clearZero(this)" onblur="fillZero(this)"></div>
+            </div>
+        </div>
+        <div class="modern-card card-body">
+            <h3 style="margin-top:0;">🚚 สั่งซื้อ (Master Order)</h3>
+            <div id="order_inputs"></div>
+        </div>
+    </div>
+
+    <div id="page-production" class="page">
+        <div id="drops_list"></div>
+        <div style="height: 100px;"></div>
+    </div>
+
+    <div class="fab-container">
+        <div class="fab-menu" id="fab_menu">
+            <div class="fab-item" onclick="addDrop('stock')">
+                <span class="fab-label">📦 เบิกห้องเย็น</span>
+                <button class="fab-mini bg-orange">Stock</button>
+            </div>
+            <div class="fab-item" onclick="addDrop('prod')">
+                <span class="fab-label">❄️ น้ำแข็งตก</span>
+                <button class="fab-mini bg-green">Prod</button>
+            </div>
+        </div>
+        <button class="fab-main" onclick="toggleFab(this)">+</button>
+    </div>
+
+    <div id="page-summary" class="page">
+        <div class="modern-card card-body">
+            <h3 style="margin-top:0;">📊 สรุปภาพรวม</h3>
+            <div id="summary_content"></div> 
+        </div>
+    </div>
+
+<script>
+    // --- CONFIG ---
+    const TRUCKS = ["รถ 1", "รถ 2", "รถ 3", "รถ 4", "รถ 5", "รถ 6", "รถ 7", "รถ 8", "รถ 9"];
+    const ICE_TYPES = [
+        { id: 'hl', label: 'หลอด' }, { id: 'bh', label: 'หยาบ' }, { id: 'bl', label: 'ละเอียด' }
+    ];
+    let DATA = {
+        date: new Date().toISOString().split('T')[0],
+        times: { start: "22:00", stop: "06:00" },
+        initStock: { hl: 0, bh: 0, bl: 0 },
+        orders: {}, drops: [] 
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadData();
+        renderOrderInputs();
+        renderDrops();
+        calcAll();
+        renderSummaryPage(); 
+    });
+
+    function toggleFab(btn) {
+        document.getElementById('fab_menu').classList.toggle('show');
+        btn.classList.toggle('rotate');
+    }
+
+    function addDrop(type) {
+        const now = new Date();
+        const timeStr = now.toTimeString().substring(0, 5);
+        DATA.drops.push({
+            id: Date.now(),
+            type: type,
+            time: timeStr,
+            sackWithdraw: type === 'prod' ? 80 : 0,
+            p: { hl: 0, bh: 0, bl: 0 },
+            dist: [] 
+        });
+        saveData();
+        renderDrops();
+        toggleFab(document.querySelector('.fab-main'));
+        setTimeout(() => window.scrollTo(0, document.body.scrollHeight), 100);
+    }
+
+    function deleteDrop(id) {
+        if(confirm("ต้องการลบรายการนี้?")) {
+            DATA.drops = DATA.drops.filter(d => d.id !== id);
+            saveData();
+            renderDrops();
+            calcAll();
+        }
+    }
+
+    // --- RENDER DROPS (MODERN UI) ---
+    function renderDrops() {
+        const container = document.getElementById('drops_list');
+        container.innerHTML = '';
+        
+        const startTime = document.getElementById('time_start').value;
+        let lastProdTime = startTime;
+
+        DATA.drops.forEach((d, idx) => {
+            const isProd = d.type === 'prod';
+            
+            // Badge Logic
+            const badgeHtml = isProd 
+                ? `<div class="badge-box bg-prod"><span>น้ำแข็ง<br>ตก<br>(ผลิต)</span></div>`
+                : `<div class="badge-box bg-stock"><span>เบิก<br>ห้องเย็น<br>(เก่า)</span></div>`;
+
+            // Time Stats
+            let timeStatsHtml = '';
+            if(isProd) {
+                const sinceStart = getMinutesDiff(startTime, d.time);
+                const sinceLast = getMinutesDiff(lastProdTime, d.time);
+                timeStatsHtml = `
+                    <div class="stats-row">
+                        <div class="stat-pill">⏱️ เปิดเครื่อง: ${sinceStart} นาที</div>
+                        <div class="stat-pill">🔄 รอบนี้: ${sinceLast} นาที</div>
+                    </div>
+                `;
+                lastProdTime = d.time;
+            }
+
+            // Production / Sack Logic
+            let prodHtml = '';
+            if(isProd) {
+                const totalProd = (d.p.hl||0) + (d.p.bh||0) + (d.p.bl||0);
+                const sackRemain = (d.sackWithdraw||0) - totalProd;
+                const remainColor = sackRemain < 0 ? '#d32f2f' : '#2e7d32';
+
+                prodHtml = `
+                <div class="sack-row">
+                    <div class="sack-item"><div class="sack-label">เบิกกระสอบ</div>
+                        <input type="number" inputmode="numeric" value="${d.sackWithdraw}" oninput="updateDropValue(${d.id}, 'sackWithdraw', null, this.value)" onfocus="clearZero(this)" onblur="fillZero(this)" style="font-size:1.4rem; font-weight:bold; color:#555;">
+                    </div>
+                    <div class="sack-item"><div class="sack-label">ผลิตได้</div>
+                        <div class="sack-val" style="color:#333;">${totalProd}</div>
+                    </div>
+                    <div class="sack-item"><div class="sack-label">เหลือคืน</div>
+                        <div class="sack-val" style="color:${remainColor};">${sackRemain}</div>
+                    </div>
+                </div>
+                <div class="grid-3">
+                    <div><div class="input-label">หลอด</div><input type="number" inputmode="numeric" value="${d.p.hl||''}" placeholder="0" oninput="updateDropValue(${d.id}, 'p', 'hl', this.value)" onfocus="clearZero(this)" onblur="fillZero(this)"></div>
+                    <div><div class="input-label">หยาบ</div><input type="number" inputmode="numeric" value="${d.p.bh||''}" placeholder="0" oninput="updateDropValue(${d.id}, 'p', 'bh', this.value)" onfocus="clearZero(this)" onblur="fillZero(this)"></div>
+                    <div><div class="input-label">ละเอียด</div><input type="number" inputmode="numeric" value="${d.p.bl||''}" placeholder="0" oninput="updateDropValue(${d.id}, 'p', 'bl', this.value)" onfocus="clearZero(this)" onblur="fillZero(this)"></div>
+                </div>
+                `;
+            }
+
+            // Distribution
+            let distHtml = '';
+            d.dist.forEach((item, dIdx) => {
+                const statusHtml = getTruckStatusHTML(item.truck, item.type);
+                
+                let inputs = '';
+                if(isProd) {
+                    inputs = `
+                    <div><div class="input-label" style="color:#2e7d32;">🔥 สด</div><input type="number" inputmode="numeric" value="${item.fresh||''}" placeholder="0" oninput="updateDist(${d.id}, ${dIdx}, 'fresh', this.value)" onfocus="clearZero(this)" onblur="fillZero(this)" style="background:#e8f5e9; border-color:#a5d6a7;"></div>
+                    <div><div class="input-label" style="color:#0277bd;">❄️ เก่า</div><input type="number" inputmode="numeric" value="${item.stock||''}" placeholder="0" oninput="updateDist(${d.id}, ${dIdx}, 'stock', this.value)" onfocus="clearZero(this)" onblur="fillZero(this)" style="background:#e1f5fe; border-color:#81d4fa;"></div>`;
+                } else {
+                    inputs = `
+                    <div style="grid-column:span 2;"><div class="input-label" style="color:#0277bd;">❄️ เบิกจากห้อง</div><input type="number" inputmode="numeric" value="${item.stock||''}" placeholder="0" oninput="updateDist(${d.id}, ${dIdx}, 'stock', this.value)" onfocus="clearZero(this)" onblur="fillZero(this)" style="background:#e1f5fe; border-color:#81d4fa;"></div>`;
+                }
+
+                distHtml += `
+                <div class="dist-row-item">
+                    <div style="flex:1;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                            <div style="font-weight:bold; font-size:0.9rem;">${item.truck} (${ICE_TYPES.find(t=>t.id===item.type).label})</div>
+                            <button style="background:none; border:none; color:#ef5350; font-weight:bold; font-size:1.2rem;" onclick="removeDistRow(${d.id}, ${dIdx})">×</button>
+                        </div>
+                        ${statusHtml}
+                        <div class="grid-2" style="margin-top:5px; gap:10px; display:grid; grid-template-columns:1fr 1fr;">
+                            ${inputs}
+                        </div>
+                    </div>
+                </div>`;
+            });
+
+            const html = `
+            <div class="modern-card">
+                <div class="card-header-flex">
+                    ${badgeHtml}
+                    <div class="time-box">
+                        <input type="time" class="big-time-input" value="${d.time}" onchange="updateDropTime(${d.id}, this.value)">
+                    </div>
+                    <button class="btn-close-red" onclick="deleteDrop(${d.id})">×</button>
+                </div>
+                ${timeStatsHtml}
+                
+                <div class="card-body" style="padding-top:0;">
+                    ${prodHtml}
+
+                    <div class="dist-container">
+                        <div style="font-size:0.8rem; color:#90a4ae; margin-bottom:5px; font-weight:bold;">จ่ายเข้ารถ (สด / สต็อก)</div>
+                        ${distHtml}
+                        <button class="btn-add-dist" onclick="addDistRow(${d.id})">+ เพิ่มรายการส่ง</button>
+                    </div>
+                </div>
+            </div>`;
+            
+            container.insertAdjacentHTML('beforeend', html);
+        });
+    }
+
+    // --- HELPERS ---
+    function getMinutesDiff(start, end) {
+        if(!start || !end) return 0;
+        const [h1, m1] = start.split(':').map(Number);
+        const [h2, m2] = end.split(':').map(Number);
+        let m = (h2*60+m2) - (h1*60+m1);
+        if(m < 0) m += 1440;
+        return m;
+    }
+
+    function getTruckStatusHTML(truckId, typeId) {
+        const orderKey = `${truckId}_${typeId}`;
+        const orderQty = DATA.orders[orderKey] || 0;
+        if (orderQty === 0) return `<span class="status-badge" style="background:#b0bec5; color:white;">ไม่ได้สั่ง</span>`;
+
+        let totalGiven = 0;
+        DATA.drops.forEach(d => {
+            d.dist.forEach(item => {
+                if(item.truck === truckId && item.type === typeId) totalGiven += (item.fresh + item.stock);
+            });
+        });
+
+        const remaining = orderQty - totalGiven;
+        let badgeClass = 'st-warn', text = `ขาด ${remaining}`;
+        if(remaining === 0) { badgeClass='st-ok'; text='ครบแล้ว'; }
+        else if(remaining < 0) { badgeClass='st-over'; text=`เกิน ${Math.abs(remaining)}`; }
+
+        return `<span class="status-badge ${badgeClass}">สั่ง: ${orderQty} | ${text}</span>`;
+    }
+
+    // --- ORDER & DATA LOGIC ---
+    function renderOrderInputs() {
+        const c = document.getElementById('order_inputs');
+        let h = '';
+        TRUCKS.forEach((t, i) => {
+            const tid = `t${i+1}`;
+            h += `<div style="display:flex; align-items:center; gap:5px; margin-bottom:5px; background:#f9f9f9; padding:5px; border-radius:6px;">
+                <div style="width:50px; font-weight:bold; font-size:0.8rem;">${t}</div>
+                <input type="number" placeholder="หลอด" value="${DATA.orders[tid+'_hl']||''}" onchange="updateOrder('${tid}_hl',this.value)" style="flex:1;">
+                <input type="number" placeholder="หยาบ" value="${DATA.orders[tid+'_bh']||''}" onchange="updateOrder('${tid}_bh',this.value)" style="flex:1;">
+                <input type="number" placeholder="ละเอียด" value="${DATA.orders[tid+'_bl']||''}" onchange="updateOrder('${tid}_bl',this.value)" style="flex:1;">
+            </div>`;
+        });
+        c.innerHTML = h;
+    }
+
+    function updateOrder(k, v) { DATA.orders[k] = parseFloat(v)||0; saveData(); calcAll(); }
+    function updateDropTime(id, v) { const d=DATA.drops.find(x=>x.id===id); if(d){ d.time=v; saveData(); renderDrops(); } }
+    function updateDropValue(id, t, k, v) { 
+        const d=DATA.drops.find(x=>x.id===id); if(!d)return;
+        const num=parseFloat(v)||0;
+        if(t==='p') d.p[k]=num; else if(t==='sackWithdraw') d.sackWithdraw=num;
+        saveData(); calcAll();
+        renderDrops(); // Re-render for live sack update
+    }
+    function addDistRow(id) { const d=DATA.drops.find(x=>x.id===id); if(d){ d.dist.push({truck:'t1',type:'hl',fresh:0,stock:0}); saveData(); renderDrops(); } }
+    function removeDistRow(id, idx) { const d=DATA.drops.find(x=>x.id===id); if(d){ d.dist.splice(idx,1); saveData(); renderDrops(); calcAll(); } }
+    function updateDist(id, idx, k, v) {
+        const d=DATA.drops.find(x=>x.id===id); if(!d)return;
+        if(k==='fresh'||k==='stock') v=parseFloat(v)||0;
+        d.dist[idx][k]=v; saveData(); calcAll(); 
+        if(k==='truck'||k==='type') renderDrops(); // Re-render for status badge
+    }
+
+    function calcAll() {
+        let sumP={hl:0,bh:0,bl:0};
+        DATA.drops.forEach(d => { if(d.type==='prod'){ sumP.hl+=d.p.hl; sumP.bh+=d.p.bh; sumP.bl+=d.p.bl; } });
+        
+        let curHL = (parseFloat(document.getElementById('init_hl').value)||0) + sumP.hl;
+        let curCrush = (parseFloat(document.getElementById('init_bh').value)||0) + (parseFloat(document.getElementById('init_bl').value)||0) + sumP.bh + sumP.bl;
+        
+        let totalSent = 0;
+        DATA.drops.forEach(d => {
+            d.dist.forEach(i => {
+                const amount = (i.fresh+i.stock);
+                totalSent += amount;
+                if(i.type==='hl') curHL -= amount;
+                else curCrush -= amount;
+            });
+        });
+        document.getElementById('dash_hl').textContent = curHL;
+        document.getElementById('dash_bh').textContent = curCrush;
+        document.getElementById('dash_bl').textContent = (parseFloat(document.getElementById('init_bl').value)||0) + sumP.bl;
+
+        // Order Summary
+        let totalOrdered = 0;
+        for (let k in DATA.orders) totalOrdered += DATA.orders[k];
+        document.getElementById('os_total').innerText = totalOrdered;
+        document.getElementById('os_sent').innerText = totalSent;
+        document.getElementById('os_remain').innerText = totalOrdered - totalSent;
+
+        renderSummaryPage();
+    }
+
+    function renderSummaryPage() {
+        // Simple summary logic (can be expanded)
+        let h = `<h4>สรุปยังไม่ได้ทำเพิ่มใน V29 (เน้น UI Input)</h4>`;
+        document.getElementById('summary_content').innerHTML = h; 
+    }
+
+    function switchPage(id) {
+        document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+        document.getElementById('page-'+id).classList.add('active');
+        const map = { setup:0, production:1, summary:2 };
+        document.querySelectorAll('.nav-btn')[map[id]].classList.add('active');
+        calcAll();
+    }
+
+    function saveData() { 
+        DATA.times = { start: document.getElementById('time_start').value, stop: document.getElementById('time_stop').value };
+        localStorage.setItem('ICE_V29', JSON.stringify(DATA)); 
+    }
+    function loadData() {
+        const d=localStorage.getItem('ICE_V29'); if(d) { DATA=JSON.parse(d); 
+        document.getElementById('time_start').value=DATA.times.start;
+        document.getElementById('time_stop').value=DATA.times.stop;
+        }
+    }
+    function clearZero(e){if(e.value=='0')e.value=''}
+    function fillZero(e){if(e.value=='')e.value='0'}
+
+</script>
+</body>
+</html>
