@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Smart Ice V55 (Super Stable)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- Global Theme --- */
+        body { font-family: 'Sarabun', sans-serif; margin: 0; padding: 0; background: #f5f7fa; color: #37474f; padding-bottom: 100px; font-size: 14px; }
+        * { box-sizing: border-box; }
+
+        /* --- Dashboard --- */
+        .dashboard {
+            position: sticky; top: 0; z-index: 1000;
+            background: #263238; color: white;
+            padding: 12px 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: flex; justify-content: space-around;
+        }
+        .dash-item span { font-size: 0.75rem; color: #b0bec5; display: block; margin-bottom: 2px; }
+        .dash-item div { font-size: 1.3rem; font-weight: 800; color: #69f0ae; line-height: 1; }
+
+        /* Order Status Bar */
+        .order-status-bar {
+            background: #fff3e0; border-bottom: 1px solid #ffe0b2;
+            padding: 8px; text-align: center; font-size: 0.9rem;
+            color: #ef6c00; font-weight: bold;
+            display: flex; justify-content: space-around;
+            position: sticky; top: 65px; z-index: 950;
+        }
+        .os-item b { color: #d84315; font-size: 1.1rem; }
+
+        /* Navigation */
+        .nav-bar { display: flex; background: white; margin: 10px; border-radius: 50px; padding: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: sticky; top: 105px; z-index: 900; }
+        .nav-btn { flex: 1; padding: 10px; text-align: center; border: none; background: none; font-weight: bold; color: #90a4ae; cursor: pointer; border-radius: 40px; transition: 0.2s; }
+        .nav-btn.active { background: #0277bd; color: white; box-shadow: 0 2px 8px rgba(2,119,189,0.4); }
+
+        /* Pages & Cards */
+        .page { display: none; padding: 10px; max-width: 800px; margin: 0 auto; }
+        .page.active { display: block; }
+        .modern-card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); margin-bottom: 20px; overflow: hidden; border: 1px solid #fff; }
+        .card-body { padding: 15px; }
+        
+        /* Inputs - Stable Design */
+        input[type="number"], input[type="tel"] {
+            width: 100%; padding: 10px; font-size: 1.3rem; text-align: center; font-weight: 600;
+            border: 1px solid #e0e0e0; border-radius: 10px; background: #fff;
+            -moz-appearance: textfield; transition: box-shadow 0.2s; /* Only animate shadow, not size */
+        }
+        /* Fix Jitter: Use box-shadow instead of border-width change */
+        input[type="number"]:focus, input[type="tel"]:focus { 
+            border-color: #29b6f6; 
+            box-shadow: 0 0 0 3px rgba(41,182,246,0.1); 
+            outline: none; 
+            background: #fff; /* Keep background stable */
+        }
+        input[type="time"], input[type="date"] { width: 100%; padding: 10px; border: 1px solid #cfd8dc; border-radius: 8px; text-align: center; font-size: 1.1rem; background: white; }
+
+        /* Helpers */
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .input-label { font-size: 0.75rem; color: #78909c; margin-bottom: 4px; font-weight: 600; text-align: center; }
+        
+        /* Drop Card */
+        .card-header-flex { display: flex; align-items: center; padding: 10px; gap: 10px; background: #f9fafb; border-bottom: 1px solid #eee; }
+        .badge-box { border-radius: 12px; padding: 5px; width: 70px; text-align: center; color: white; font-weight: bold; font-size: 0.75rem; display: flex; flex-direction: column; justify-content: center; height: 50px; }
+        .bg-prod { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+        .bg-stock { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; }
+        .big-time-input { font-size: 1.8rem; font-weight: 800; color: #37474f; border: none; background: none; width: 100%; text-align: center; }
+        .btn-close-red { width: 35px; height: 35px; border-radius: 8px; background: #ffebee; color: #c62828; border: none; font-size: 1.2rem; font-weight: bold; cursor: pointer; }
+        
+        /* Stats & Sacks */
+        .stats-row { display: flex; gap: 8px; padding: 0 15px 10px 15px; margin-top: -5px; }
+        .stat-pill { background: #eceff1; color: #546e7a; font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
+        .sack-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; background: #e0f2f1; padding: 10px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #b2dfdb; }
+        .sack-item { text-align: center; }
+        .sack-label { font-size: 0.7rem; color: #00695c; font-weight: bold; margin-bottom: 2px; }
+        .sack-val { font-size: 1.4rem; font-weight: 800; color: #004d40; }
+
+        /* Distribution */
+        .dist-container { background: #fafafa; border-radius: 12px; padding: 10px; border: 1px dashed #cfd8dc; margin-top: 15px; }
+        .dist-row-item { background: white; padding: 10px; border-radius: 8px; border: 1px solid #eee; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom: 10px; }
+        .truck-context-bar { background: #fff8e1; border: 1px solid #ffecb3; border-radius: 8px; padding: 8px; margin: 8px 0; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; color: #f57f17; font-weight: bold; }
+        .input-fresh { background-color: #e8f5e9 !important; border-color: #a5d6a7 !important; }
+        .input-stock { background-color: #e1f5fe !important; border-color: #81d4fa !important; }
+        .input-green { background-color: #e8f5e9 !important; border-color: #a5d6a7 !important; }
+        .btn-add-dist { width: 100%; padding: 12px; background: #eceff1; color: #546e7a; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .btn-del-dist { background: none; border: none; color: #ef5350; font-weight: bold; cursor: pointer; font-size: 1.2rem; }
+
+        /* FABs */
+        .fab-container { position: fixed; bottom: 25px; right: 20px; z-index: 2000; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+        .fab-main { width: 65px; height: 65px; border-radius: 50%; background: #00c853; color: white; border: none; font-size: 32px; box-shadow: 0 6px 20px rgba(0,200,83,0.4); cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .fab-main.rotate { transform: rotate(45deg); background: #ff5252; }
+        
+        /* 🔥 Truck FAB (Left Side) 🔥 */
+        .fab-truck { 
+            position: fixed; bottom: 25px; left: 20px; z-index: 2000;
+            width: 65px; height: 65px; border-radius: 50%; 
+            background: #0288d1; color: white; border: none; font-size: 30px; 
+            box-shadow: 0 6px 20px rgba(2,136,209,0.4); 
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+        .fab-truck:active { transform: scale(0.95); }
+
+        .fab-menu { display: none; flex-direction: column; gap: 12px; align-items: flex-end; }
+        .fab-menu.show { display: flex; }
+        .fab-item { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .fab-label { background: white; padding: 6px 12px; border-radius: 8px; font-weight: bold; color: #546e7a; box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-size: 0.9rem; }
+        .fab-mini { width: 50px; height: 50px; border-radius: 50%; border: none; color: white; font-size: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; }
+        .bg-green { background: #00c853; } .bg-orange { background: #ff9100; }
+
+        /* Summary & Tables */
+        .sum-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dotted #cfd8dc; font-size: 1rem; }
+        .sum-label { color: #455a64; font-weight: 600; }
+        .sum-val { font-weight: 900; color: #263238; font-size: 1.1rem; }
+        .sum-highlight { color: #0277bd; font-size: 1.2rem; }
+        .divider-line { border-top: 2px dashed #b0bec5; margin: 15px 0; opacity: 0.5; }
+
+        .report-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; margin-top: 5px; table-layout: fixed; }
+        .report-table th, .report-table td { border: 1px solid #cfd8dc; padding: 8px 4px; text-align: center; }
+        .th-time { background: #eceff1; color: #546e7a; }
+        .th-withdraw { background: #e3f2fd; color: #1565c0; }
+        .th-prod { background: #e8f5e9; color: #2e7d32; }
+        .th-remain { background: #f3e5f5; color: #6a1b9a; }
+        .td-prod-val { font-weight: 800; color: #2e7d32; background: #f1f8e9; }
+        .td-remain-val { font-weight: 600; color: #37474f; background: #f3e5f5; }
+        .td-withdraw-val { font-weight: 600; color: #37474f; background: #e3f2fd; }
+        .td-dash { color: #cfd8dc; font-weight: 300; }
+
+        .truck-matrix-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 5px; }
+        .truck-matrix-table th { background: #eceff1; color: #546e7a; padding: 12px 8px; font-weight: 700; border-bottom: 2px solid #cfd8dc; font-size: 0.9rem; }
+        .truck-matrix-table td { border-bottom: 1px solid #f0f0f0; padding: 10px 4px; text-align: center; vertical-align: middle; }
+        .truck-name-col { text-align: left; padding-left: 15px; font-weight: 800; color: #37474f; font-size: 0.95rem; }
+        .st-pill { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; min-width: 60px; }
+        .st-over { background: #e3f2fd; color: #1565c0; } .st-miss { background: #ffebee; color: #c62828; } .st-ok { background: #e8f5e9; color: #2e7d32; } .st-none { color: #cfd8dc; font-weight: 400; font-size: 1.2rem; }
+        
+        .detail-table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 0.9rem; }
+        .detail-table th { background: #fafafa; color: #546e7a; padding: 8px; border-bottom: 1px solid #ddd; font-weight: 700; font-size: 0.85rem; }
+        .detail-table td { padding: 8px; border-bottom: 1px solid #eee; text-align: center; vertical-align: middle; }
+        .dt-fresh { color: #2e7d32; font-weight: bold; background: #f1f8e9; }
+        .dt-stock { color: #1565c0; font-weight: bold; background: #e3f2fd; }
+        .dt-total { font-weight: 900; color: #37474f; background: #eceff1; }
+        .dt-row-label { font-weight: bold; color: #78909c; text-align: center; width: 20%; }
+
+        .order-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .order-table th { background: #eceff1; padding: 8px; color: #546e7a; }
+        .order-table td { padding: 8px 4px; border-bottom: 1px solid #eee; }
+        .order-sum-col { font-weight: bold; color: #0277bd; background: #e1f5fe; text-align: center; }
+
+        /* 🔥 MODAL STYLES (Fixed Stability) 🔥 */
+        .modal {
+            display: none; position: fixed; z-index: 3000; left: 0; top: 0;
+            width: 100%; height: 100%; overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(3px);
+        }
+        .modal-content {
+            background-color: #f5f7fa; margin: 10% auto; padding: 15px;
+            border-radius: 16px; width: 95%; max-width: 600px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            position: relative; 
+            /* Fix: No Animation to prevent layout recalculation glitches during open */
+        }
+        
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; }
+        .modal-title { font-size: 1.3rem; font-weight: 800; color: #0277bd; display: flex; align-items: center; gap: 10px; }
+        .btn-close-modal { background: #ffebee; color: #c62828; border: none; font-size: 1.5rem; font-weight: bold; padding: 0 12px; border-radius: 50%; cursor: pointer; height: 40px; width: 40px; display: flex; align-items: center; justify-content: center; }
+
+        .truck-load-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #e0e0e0; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .truck-load-header { font-weight: 800; font-size: 1.1rem; color: #37474f; margin-bottom: 10px; border-bottom: 2px solid #b3e5fc; padding-bottom: 5px; }
+        
+        .load-type-block { margin-bottom: 10px; background: #fff; padding: 5px; }
+        .load-target-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; background: #f9f9f9; padding: 5px 10px; border-radius: 6px; }
+        .target-label { font-weight: bold; color: #0277bd; font-size: 1rem; }
+        .target-val { color: #546e7a; font-size: 0.9rem; font-weight: bold; }
+        
+        .row-grid-container { display: flex; flex-direction: column; gap: 8px; }
+        .row-item { display: grid; grid-template-columns: 30px 1fr 1fr; gap: 5px; align-items: center; }
+        .row-num { font-weight: bold; color: #b0bec5; text-align: center; font-size: 0.8rem; background: #eceff1; border-radius: 4px; padding: 2px; }
+        
+        /* 🔥 Optimized Input for Performance 🔥 */
+        .input-split { 
+            width: 100%; padding: 10px; font-size: 1.2rem; text-align: center; 
+            border: 1px solid #ddd; border-radius: 8px; font-weight: bold; 
+            background: #fff; /* Static background */
+        }
+        .inp-stock { color: #1565c0; border-color: #90caf9; background: #e3f2fd; } 
+        .inp-fresh { color: #2e7d32; border-color: #a5d6a7; background: #e8f5e9; } 
+        /* Important: Prevent layout shift on focus */
+        .input-split:focus { outline: none; box-shadow: inset 0 0 0 2px rgba(0,0,0,0.1); }
+
+        .load-summary { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; padding-top: 5px; border-top: 1px dashed #eee; font-size: 0.9rem; }
+        .sum-val { font-weight: 900; }
+        
+        .rem-pos { color: #d32f2f; } .rem-zero { color: #2e7d32; } .rem-neg { color: #1565c0; }
+
+    </style>
+</head>
+<body>
+
+    <div class="dashboard">
+        <div class="dash-item"><span>🧊 หลอด</span><div id="dash_hl">0</div></div>
+        <div class="dash-item"><span>🔨 หยาบ</span><div id="dash_bh">0</div></div>
+        <div class="dash-item"><span>❄️ ละเอียด</span><div id="dash_bl">0</div></div>
+    </div>
+    
+    <div class="order-status-bar">
+        <div class="os-item">สั่งรวม: <span id="os_total">0</span></div>
+        <div class="os-item">ส่งแล้ว: <span id="os_sent">0</span></div>
+        <div class="os-item">ค้างส่ง: <b id="os_remain">0</b></div>
+    </div>
+
+    <div class="nav-bar">
+        <button class="nav-btn active" onclick="switchPage('setup')">1. ตั้งค่า</button>
+        <button class="nav-btn" onclick="switchPage('production')">2. ผลิต/จ่าย</button>
+        <button class="nav-btn" onclick="switchPage('summary')">3. สรุปยอด</button>
+    </div>
+
+    <div id="page-setup" class="page active">
+        <div class="modern-card card-body">
+            <h3 style="margin-top:0;">⚙️ ตั้งค่าประจำวัน</h3>
+            <label>วันที่</label>
+            <input type="date" id="setup_date" onchange="changeDate()">
+            <div class="grid-2" style="margin-top:10px;">
+                <div><label>🟢 เปิดเครื่อง</label><input type="time" id="time_start" value="22:00" onchange="saveData()"></div>
+                <div><label>🔴 ปิดเครื่อง</label><input type="time" id="time_stop" value="06:00" onchange="saveData()"></div>
+            </div>
+        </div>
+        <div class="modern-card card-body">
+            <h3 style="margin-top:0;">📦 สต็อกยกมา (ในห้อง)</h3>
+            <div class="grid-3">
+                <div><div class="input-label">หลอด</div><input type="number" inputmode="numeric" id="init_hl" value="0" oninput="saveData(); calcAll();" onfocus="clearZero(this)" onblur="fillZero(this)"></div>
+                <div><div class="input-label">หยาบ</div><input type="number" inputmode="numeric" id="init_bh" value="0" oninput="saveData(); calcAll();" onfocus="clearZero(this)" onblur="fillZero(this)"></div>
+                <div><div class="input-label">ละเอียด</div><input type="number" inputmode="numeric" id="init_bl" value="0" oninput="saveData(); calcAll();" onfocus="clearZero(this)" onblur="fillZero(this)"></div>
+            </div>
+        </div>
+        <div class="modern-card card-body">
+            <h3 style="margin-top:0;">🚚 สั่งซื้อ (Master Order)</h3>
+            <div id="order_inputs"></div>
+        </div>
+    </div>
+
+    <div id="page-production" class="page">
+        <div id="drops_list"></div>
+        <div style="height: 100px;"></div>
+    </div>
+
+    <button class="fab-truck" onclick="openLoadingModal()">🚛</button>
+
+    <div class="fab-container">
+        <div class="fab-menu" id="fab_menu">
+            <div class="fab-item" onclick="addDrop('stock')">
+                <span class="fab-label">📦 เบิกห้องเย็น</span>
+                <button class="fab-mini bg-orange">Stock</button>
+            </div>
+            <div class="fab-item" onclick="addDrop('prod')">
+                <span class="fab-label">❄️ น้ำแข็งตก</span>
+                <button class="fab-mini bg-green">Prod</button>
+            </div>
+        </div>
+        <button class="fab-main" onclick="toggleFab(this)">+</button>
+    </div>
+
+    <div id="loading_modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">🚛 จัดเรียงสินค้าขึ้นรถ</div>
+                <button class="btn-close-modal" onclick="closeLoadingModal()">×</button>
+            </div>
+            <div style="text-align:center; color:#546e7a; margin-bottom:10px; font-size:0.9rem;">
+                <span style="color:#1565c0;">🟦 เก่า (ซ้าย)</span> | <span style="color:#2e7d32;">🟩 สด (ขวา)</span>
+            </div>
+            <div id="loading_board"></div>
+            <div style="height:50px;"></div>
+        </div>
+    </div>
+
+    <div id="page-summary" class="page">
+        <div class="modern-card card-body">
+             <h3 style="margin-top:0;">📊 สรุปสถานะรายคัน (Real-time)</h3>
+             <div style="font-size:0.8rem; color:#90a4ae; margin-bottom:10px;">(เป้าหมาย - ยอดส่งจริง = คงเหลือ)</div>
+             <div id="truck_report_container"></div>
+        </div>
+
+        <div class="modern-card card-body">
+            <h3 style="margin-top:0;">📝 บันทึกการผลิต (Log)</h3>
+            <div style="overflow-x:auto;">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" class="th-time">เวลา</th>
+                            <th rowspan="2" class="th-time">นาที</th>
+                            <th colspan="2" class="th-withdraw">เบิก (กระสอบ)</th>
+                            <th colspan="3" class="th-prod">ผลิต (ใบ)</th>
+                            <th colspan="2" class="th-remain">คงเหลือ</th>
+                        </tr>
+                        <tr>
+                            <th class="th-withdraw">หลอด</th><th class="th-withdraw">บด</th>
+                            <th class="th-prod">หลอด</th><th class="th-prod">หยาบ</th><th class="th-prod">ละ..</th>
+                            <th class="th-remain">หลอด</th><th class="th-remain">บด</th>
+                        </tr>
+                    </thead>
+                    <tbody id="prod_log_body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="modern-card card-body">
+            <h3>🏭 สรุปยอดผลิต</h3>
+            <div class="sum-row"><span class="sum-label">หลอดใหญ่:</span> <span><span class="sum-val" id="rpt_hl">0</span> กระสอบ</span></div>
+            <div class="sum-row"><span class="sum-label">บดหยาบ:</span> <span><span class="sum-val" id="rpt_bh">0</span> กระสอบ</span></div>
+            <div class="sum-row"><span class="sum-label">บดละเอียด:</span> <span><span class="sum-val" id="rpt_bl">0</span> กระสอบ</span></div>
+            <div class="sum-row" style="padding-top:10px; color:#0277bd;"><span class="sum-label sum-highlight">รวมผลิต:</span> <span><span class="sum-val sum-highlight" id="rpt_total_prod">0</span> กระสอบ</span></div>
+            
+            <div class="divider-line"></div>
+            <h4>⚖️ น้ำหนัก (กก.)</h4>
+            <div class="sum-row"><span class="sum-label">นน.หลอด (20kg):</span> <span><span class="sum-val" id="rpt_w_hl">0</span> กก.</span></div>
+            <div class="sum-row"><span class="sum-label">นน.หยาบ (23kg):</span> <span><span class="sum-val" id="rpt_w_bh">0</span> กก.</span></div>
+            <div class="sum-row"><span class="sum-label">นน.ละเอียด (24kg):</span> <span><span class="sum-val" id="rpt_w_bl">0</span> กก.</span></div>
+            <div class="sum-row" style="color:#0277bd;"><span class="sum-label">รวมน้ำหนัก:</span> <span><span class="sum-val" id="rpt_total_weight">0</span> กก.</span></div>
+
+            <div class="divider-line"></div>
+            <h4>📥 สรุปกระสอบ (Sack Audit)</h4>
+            <div class="sum-row"><span class="sum-label">เบิกหลอดรวม:</span> <span class="sum-val" id="rpt_with_hl">0</span> ใบ</div>
+            <div class="sum-row"><span class="sum-label">เบิกบดรวม:</span> <span class="sum-val" id="rpt_with_bod">0</span> ใบ</div>
+            <div class="sum-row" style="background:#fffde7; padding:5px; border-radius:4px; margin-top:5px;"><span class="sum-label">รวมเบิกทั้งหมด:</span> <span class="sum-val" id="rpt_sack_withdraw" style="font-weight:900;">0</span> ใบ</div>
+            
+            <div class="sum-row"><span class="sum-label">ใช้บรรจุไป:</span> <span class="sum-val" id="rpt_sack_used">0</span> ใบ</div>
+            
+            <div class="sum-row" style="background:#e8f5e9; padding:5px; border-radius:4px; margin-top:5px;"><span class="sum-label">🟢 หลอดเหลือคืน:</span> <span class="sum-val" id="rpt_rem_hl" style="color:#2e7d32;">0</span> ใบ</div>
+            <div class="sum-row" style="background:#f3e5f5; padding:5px; border-radius:4px;"><span class="sum-label">🟣 บดเหลือคืน:</span> <span class="sum-val" id="rpt_rem_bod" style="color:#6a1b9a;">0</span> ใบ</div>
+            <div class="sum-row" style="background:#e0f7fa; padding:5px; border-radius:4px; margin-top:5px;"><span class="sum-label">🔵 รวมเหลือคืนทั้งหมด:</span> <span class="sum-val" id="rpt_rem_total_all" style="color:#0277bd; font-weight:900;">0</span> ใบ</div>
+
+            <div class="divider-line"></div>
+            <h4>📊 สถิติ (Performance)</h4>
+            <div class="sum-row"><span class="sum-label">⏱️ รวมเวลาเดินเครื่อง:</span> <span class="sum-val" id="rpt_total_minutes" style="color:#0277bd;">0 นาที</span></div>
+            <div class="sum-row"><span class="sum-label">เวลาเฉลี่ย/รอบ:</span> <span><span class="sum-val" id="rpt_avg_time">0</span> นาที</span></div>
+            <div class="sum-row"><span class="sum-label">กำลังผลิต:</span> <span><span class="sum-val" id="rpt_tons_day">0</span> ตัน/วัน</span></div>
+            <div class="sum-row"><span class="sum-label">เฉลี่ยกระสอบ/ตก:</span> <span><span class="sum-val" id="rpt_avg_yield">0</span> ใบ</span></div>
+        </div>
+
+        <div class="modern-card card-body">
+             <h3 style="margin-top:0;">📋 รายละเอียดการขึ้นของ (รายคัน)</h3>
+             <div style="text-align:center; font-size:0.8rem; color:#aaa; margin-bottom:5px;">(ซ้าย=เก่า / ขวา=สด)</div>
+             <div id="truck_detail_container"></div>
+        </div>
+    </div>
+
+<script>
+    // --- CONFIG ---
+    const TRUCKS = ["รถ 1", "รถ 2", "รถ 3", "รถ 4", "รถ 5", "รถ 6", "รถ 7", "รถ 8", "รถ 9"];
+    const ICE_TYPES = [ { id: 'hl', label: 'หลอด' }, { id: 'bh', label: 'หยาบ' }, { id: 'bl', label: 'ละเอียด' } ];
+    const WEIGHTS = { hl: 20, bh: 23, bl: 24 }; 
+    let DATA = getEmptyData();
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('setup_date').value = today;
+        loadData(today);
+        renderOrderInputs();
+        renderDrops();
+        calcAll();
+        renderLoadingBoard(); 
+    });
+
+    function getEmptyData() {
+        return {
+            times: { start: "22:00", stop: "06:00" },
+            initStock: { hl: 0, bh: 0, bl: 0 },
+            orders: {}, drops: [],
+            loadingLog: {} 
+        };
+    }
+
+    function changeDate() {
+        const newDate = document.getElementById('setup_date').value;
+        loadData(newDate);
+        renderOrderInputs();
+        renderDrops();
+        calcAll();
+        renderLoadingBoard();
+    }
+
+    function saveData() { 
+        const dateKey = document.getElementById('setup_date').value;
+        DATA.times = { start: document.getElementById('time_start').value, stop: document.getElementById('time_stop').value };
+        DATA.initStock = {
+             hl: parseFloat(document.getElementById('init_hl').value)||0,
+             bh: parseFloat(document.getElementById('init_bh').value)||0,
+             bl: parseFloat(document.getElementById('init_bl').value)||0
+        };
+        localStorage.setItem(`ICE_DATA_${dateKey}`, JSON.stringify(DATA)); 
+    }
+    
+    function loadData(dateKey) {
+        const d = localStorage.getItem(`ICE_DATA_${dateKey}`);
+        if(d) {
+            DATA = JSON.parse(d);
+            if(!DATA.drops) DATA.drops = [];
+            if(!DATA.times) DATA.times = { start: "22:00", stop: "06:00" };
+            if(!DATA.initStock) DATA.initStock = { hl: 0, bh: 0, bl: 0 };
+            if(!DATA.orders) DATA.orders = {};
+            if(!DATA.loadingLog) DATA.loadingLog = {}; 
+        } else {
+            DATA = getEmptyData();
+        }
+        document.getElementById('time_start').value = DATA.times.start;
+        document.getElementById('time_stop').value = DATA.times.stop;
+        document.getElementById('init_hl').value = DATA.initStock.hl;
+        document.getElementById('init_bh').value = DATA.initStock.bh;
+        document.getElementById('init_bl').value = DATA.initStock.bl;
+    }
+
+    // --- Loading Modal Functions ---
+    function openLoadingModal() {
+        renderLoadingBoard();
+        document.getElementById('loading_modal').style.display = 'block';
+    }
+    
+    function closeLoadingModal() {
+        document.getElementById('loading_modal').style.display = 'none';
+        calcAll(); // Calc when closing to be sure
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('loading_modal');
+        if (event.target == modal) { modal.style.display = "none"; calcAll(); }
+    }
+
+    function renderLoadingBoard() {
+        const container = document.getElementById('loading_board');
+        let html = '';
+        
+        TRUCKS.forEach((t, i) => {
+            const tid = `t${i+1}`;
+            let hasOrder = false;
+            ICE_TYPES.forEach(type => { if((DATA.orders[`${tid}_${type.id}`]||0) > 0) hasOrder = true; });
+
+            if(hasOrder) {
+                let truckHtml = `<div class="truck-load-card"><div class="truck-load-header">🚛 ${t}</div>`;
+                
+                ICE_TYPES.forEach(type => {
+                    const orderKey = `${tid}_${type.id}`;
+                    const orderQty = DATA.orders[orderKey] || 0;
+                    
+                    if(orderQty > 0) {
+                        const logKey = `${tid}_${type.id}`;
+                        const log = DATA.loadingLog[logKey] || {};
+                        const totalLoaded = (log.r1s||0)+(log.r1f||0) + (log.r2s||0)+(log.r2f||0) + (log.r3s||0)+(log.r3f||0);
+                        const remaining = orderQty - totalLoaded;
+                        
+                        const summaryId = `sum_${tid}_${type.id}`;
+                        const remainId = `rem_${tid}_${type.id}`;
+
+                        truckHtml += `
+                        <div class="load-type-block">
+                            <div class="load-target-info">
+                                <span class="target-label">${type.label}</span>
+                                <span class="target-val">เป้า: ${orderQty}</span>
+                            </div>
+                            <div class="row-grid-container">
+                                <div class="row-item">
+                                    <span class="row-num">1</span>
+                                    <input type="tel" inputmode="numeric" pattern="[0-9]*" class="input-split inp-stock" placeholder="เก่า" value="${log.r1s||''}" 
+                                        oninput="updateRowCalc('${tid}','${type.id}', 'r1s', this.value, ${orderQty})">
+                                    <input type="tel" inputmode="numeric" pattern="[0-9]*" class="input-split inp-fresh" placeholder="สด" value="${log.r1f||''}" 
+                                        oninput="updateRowCalc('${tid}','${type.id}', 'r1f', this.value, ${orderQty})">
+                                </div>
+                                <div class="row-item">
+                                    <span class="row-num">2</span>
+                                    <input type="tel" inputmode="numeric" pattern="[0-9]*" class="input-split inp-stock" placeholder="เก่า" value="${log.r2s||''}" 
+                                        oninput="updateRowCalc('${tid}','${type.id}', 'r2s', this.value, ${orderQty})">
+                                    <input type="tel" inputmode="numeric" pattern="[0-9]*" class="input-split inp-fresh" placeholder="สด" value="${log.r2f||''}" 
+                                        oninput="updateRowCalc('${tid}','${type.id}', 'r2f', this.value, ${orderQty})">
+                                </div>
+                                <div class="row-item">
+                                    <span class="row-num">3</span>
+                                    <input type="tel" inputmode="numeric" pattern="[0-9]*" class="input-split inp-stock" placeholder="เก่า" value="${log.r3s||''}" 
+                                        oninput="updateRowCalc('${tid}','${type.id}', 'r3s', this.value, ${orderQty})">
+                                    <input type="tel" inputmode="numeric" pattern="[0-9]*" class="input-split inp-fresh" placeholder="สด" value="${log.r3f||''}" 
+                                        oninput="updateRowCalc('${tid}','${type.id}', 'r3f', this.value, ${orderQty})">
+                                </div>
+                            </div>
+                            <div class="load-summary">
+                                <span class="sum-text">ใส่แล้ว: <b id="${summaryId}">${totalLoaded}</b></span>
+                                <span class="sum-val" id="${remainId}">${getRemainHtml(remaining)}</span>
+                            </div>
+                        </div>`;
+                    }
+                });
+                truckHtml += `</div>`;
+                html += truckHtml;
+            }
+        });
+        
+        if(html === '') html = '<div style="text-align:center; padding:20px; color:#aaa;">ยังไม่มีคำสั่งซื้อในหน้า 1</div>';
+        container.innerHTML = html;
+    }
+
+    function getRemainHtml(rem) {
+        if(rem > 0) return `<span class="rem-pos">ขาด ${rem}</span>`;
+        if(rem < 0) return `<span class="rem-neg">เกิน ${Math.abs(rem)}</span>`;
+        return `<span class="rem-zero">ครบ</span>`;
+    }
+
+    // 🔥 FIX: Update only Numbers, DO NOT RE-RENDER the Inputs 🔥
+    function updateRowCalc(tid, typeId, field, val, target) {
+        const key = `${tid}_${typeId}`;
+        if(!DATA.loadingLog[key]) DATA.loadingLog[key] = {};
+        
+        DATA.loadingLog[key][field] = parseFloat(val) || 0;
+        
+        const log = DATA.loadingLog[key];
+        const total = (log.r1s||0)+(log.r1f||0) + (log.r2s||0)+(log.r2f||0) + (log.r3s||0)+(log.r3f||0);
+        const remaining = target - total;
+
+        // Update UI directly to avoid layout shift
+        const sumEl = document.getElementById(`sum_${tid}_${typeId}`);
+        const remEl = document.getElementById(`rem_${tid}_${typeId}`);
+        if(sumEl) sumEl.innerText = total;
+        if(remEl) remEl.innerHTML = getRemainHtml(remaining);
+
+        saveData();
+    }
+
+    // --- Ops ---
+    function toggleFab(btn) { document.getElementById('fab_menu').classList.toggle('show'); btn.classList.toggle('rotate'); }
+    function addDrop(type) {
+        const now = new Date();
+        const timeStr = now.toTimeString().substring(0, 5);
+        DATA.drops.push({ id: Date.now(), type: type, time: timeStr, sackWithdraw: type === 'prod' ? 80 : 0, p_in_room: { hl: 0, bh: 0, bl: 0 }, dist: [] });
+        saveData(); renderDrops(); toggleFab(document.querySelector('.fab-main')); setTimeout(() => window.scrollTo(0, document.body.scrollHeight), 100);
+    }
+    function deleteDrop(id) { if(confirm("ต้องการลบรายการนี้ใช่ไหม?")) { DATA.drops = DATA.drops.filter(d => d.id !== id); saveData(); renderDrops(); calcAll(); } }
+
+    function renderDrops() {
+        const container = document.getElementById('drops_list');
+        container.innerHTML = '';
+        const startTime = document.getElementById('time_start').value;
+        let lastProdTime = startTime;
+
+        DATA.drops.forEach((d, idx) => {
+            const isProd = d.type === 'prod';
+            const badgeHtml = isProd ? `<div class="badge-box bg-prod"><span>น้ำแข็ง<br>ตก<br>(ผลิต)</span></div>` : `<div class="badge-box bg-stock"><span>เบิก<br>ห้องเย็น<br>(เก่า)</span></div>`;
+            let timeStatsHtml = '';
+            if(isProd) {
+                const sinceStart = getMinutesDiff(startTime, d.time);
+                const sinceLast = getMinutesDiff(lastProdTime, d.time);
+                timeStatsHtml = `<div class="stats-row"><div class="stat-pill">⏱️ เปิดเครื่อง: ${sinceStart} น.</div><div class="stat-pill">🔄 รอบนี้: ${sinceLast} น.</div></div>`;
+                lastProdTime = d.time;
+            }
+
+            let distTotal = { hl:0, bh:0, bl:0 };
+            d.dist.forEach(item => { if(item.type === 'hl') distTotal.hl += (item.fresh || 0); if(item.type === 'bh') distTotal.bh += (item.fresh || 0); if(item.type === 'bl') distTotal.bl += (item.fresh || 0); });
+            const totalHL = (d.p_in_room?.hl || 0) + distTotal.hl;
+            const totalBH = (d.p_in_room?.bh || 0) + distTotal.bh;
+            const totalBL = (d.p_in_room?.bl || 0) + distTotal.bl;
+            const totalAllProd = totalHL + totalBH + totalBL;
+            const sackRemain = (d.sackWithdraw||0) - totalAllProd;
+            const remainColor = sackRemain < 0 ? '#d32f2f' : '#2e7d32';
+
+            let prodHtml = '';
+            if(isProd) {
+                prodHtml = `<div class="sack-row"><div class="sack-item"><div class="sack-label">เบิกกระสอบ</div><input type="number" inputmode="numeric" value="${d.sackWithdraw}" oninput="updateDropValue(${d.id}, 'sackWithdraw', null, this.value)" onfocus="clearZero(this)" onblur="fillZero(this)" style="font-size:1.4rem; font-weight:bold; color:#555;"></div><div class="sack-item"><div class="sack-label">ใช้บรรจุ</div><div class="sack-val" id="disp_total_prod_${d.id}" style="color:#333;">${totalAllProd}</div></div><div class="sack-item"><div class="sack-label">เหลือคืน</div><div class="sack-val" id="disp_sack_remain_${d.id}" style="color:${remainColor};">${sackRemain}</div></div></div><div class="grid-3"><div><div class="input-label">หลอด (เข้าห้อง)</div><input type="number" inputmode="numeric" class="input-green" value="${d.p_in_room?.hl||0}" oninput="updateDropValue(${d.id}, 'p_in_room', 'hl', this.value)" onfocus="clearZero(this)" onblur="fillZero(this)"></div><div><div class="input-label">หยาบ (เข้าห้อง)</div><input type="number" inputmode="numeric" class="input-green" value="${d.p_in_room?.bh||0}" oninput="updateDropValue(${d.id}, 'p_in_room', 'bh', this.value)" onfocus="clearZero(this)" onblur="fillZero(this)"></div><div><div class="input-label">ละเอียด (เข้าห้อง)</div><input type="number" inputmode="numeric" class="input-green" value="${d.p_in_room?.bl||0}" oninput="updateDropValue(${d.id}, 'p_in_room', 'bl', this.value)" onfocus="clearZero(this)" onblur="fillZero(this)"></div></div>`;
+            }
+
+            let distHtml = '';
+            d.dist.forEach((item, dIdx) => {
+                const contextBarId = `ctx_${d.id}_${dIdx}`;
+                const contextBar = `<div class="truck-context-bar" id="${contextBarId}">${getTruckStatusHTML(item.truck, item.type)}</div>`;
+                let inputs = isProd ? `<div><div class="input-label" style="color:#2e7d32;">🔥 สด</div><input type="number" inputmode="numeric" value="${item.fresh||''}" placeholder="0" oninput="updateDist(${d.id}, ${dIdx}, 'fresh', this.value)" onfocus="clearZero(this)" onblur="fillZero(this)" style="background:#e8f5e9; border-color:#a5d6a7;"></div><div><div class="input-label" style="color:#0277bd;">❄️ เก่า</div><input type="number" inputmode="numeric" value="${item.stock||''}" placeholder="0" oninput="updateDist(${d.id}, ${dIdx}, 'stock', this.value)" onfocus="clearZero(this)" onblur="fillZero(this)" style="background:#e1f5fe; border-color:#81d4fa;"></div>` : `<div style="grid-column:span 2;"><div class="input-label" style="color:#0277bd;">❄️ เบิกจากห้อง</div><input type="number" inputmode="numeric" value="${item.stock||''}" placeholder="0" oninput="updateDist(${d.id}, ${dIdx}, 'stock', this.value)" onfocus="clearZero(this)" onblur="fillZero(this)" style="background:#e1f5fe; border-color:#81d4fa;"></div>`;
+                distHtml += `<div class="dist-row-item"><div style="display:flex; justify-content:space-between; margin-bottom:5px;"><div style="flex:1; display:flex; gap:5px;"><select onchange="updateDist(${d.id}, ${dIdx}, 'truck', this.value); renderDrops();" style="width:auto;">${TRUCKS.map((t,i) => `<option value="t${TRUCKS.indexOf(t)+1}" ${item.truck===`t${TRUCKS.indexOf(t)+1}`?'selected':''}>${t}</option>`).join('')}</select><select onchange="updateDist(${d.id}, ${dIdx}, 'type', this.value); renderDrops();" style="width:auto;">${ICE_TYPES.map(t=>`<option value="${t.id}" ${item.type===t.id?'selected':''}>${t.label}</option>`).join('')}</select></div><button class="btn-del-dist" onclick="removeDistRow(${d.id}, ${dIdx})">×</button></div><div id="${contextBarId}" style="margin-bottom:5px;">${contextBar}</div><div class="grid-2">${inputs}</div></div>`;
+            });
+
+            const html = `<div class="modern-card"><div class="card-header-flex">${badgeHtml}<div class="time-box"><input type="time" class="big-time-input" value="${d.time}" onchange="updateDropTime(${d.id}, this.value)"></div><button class="btn-close-red" onclick="deleteDrop(${d.id})">×</button></div>${timeStatsHtml}<div class="card-body" style="padding-top:0;">${prodHtml}<div class="dist-container"><div style="font-size:0.8rem; color:#90a4ae; margin-bottom:5px; font-weight:bold;">จ่ายเข้ารถ</div>${distHtml}<button class="btn-add-dist" onclick="addDistRow(${d.id})">+ เพิ่มรายการส่ง</button></div></div></div>`;
+            container.insertAdjacentHTML('beforeend', html);
+        });
+        updateAllContextBars();
+    }
+
+    // --- Helpers ---
+    function getMinutesDiff(start, end) { if(!start || !end) return 0; const [h1, m1] = start.split(':').map(Number); const [h2, m2] = end.split(':').map(Number); let m = (h2*60+m2) - (h1*60+m1); if(m < 0) m += 1440; return m; }
+    function updateAllContextBars() { DATA.drops.forEach(d => { d.dist.forEach((item, dIdx) => { const el = document.getElementById(`ctx_${d.id}_${dIdx}`); if(el) el.innerHTML = getTruckStatusHTML(item.truck, item.type); }); }); }
+    function getTruckStatusHTML(truckId, typeId) { const orderKey = `${truckId}_${typeId}`; const orderQty = DATA.orders[orderKey] || 0; if (orderQty === 0) return `<span style="color:#aaa">ไม่ได้สั่ง</span>`; let totalGiven = 0; DATA.drops.forEach(d => { d.dist.forEach(item => { if(item.truck===truckId && item.type===typeId) totalGiven += (item.fresh + item.stock); }); }); const remaining = orderQty - totalGiven; let statusText = remaining <= 0 ? "ครบ" : `ขาด ${remaining}`; let statusColor = remaining <= 0 ? "#4caf50" : "#ef6c00"; if(remaining < 0) { statusText = `เกิน ${Math.abs(remaining)}`; statusColor = "#2962ff"; } return `<div><span>สั่ง</span>${orderQty}</div><div><span>ส่ง</span>${totalGiven}</div><div style="color:${statusColor}">${statusText}</div>`; }
+    function renderOrderInputs() { const c = document.getElementById('order_inputs'); let h = '<table class="order-table"><thead><tr><th>รถ</th><th>หลอด</th><th>หยาบ</th><th>ละเอียด</th><th class="col-total">รวม</th></tr></thead><tbody>'; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; const hl = DATA.orders[tid+'_hl']||0; const bh = DATA.orders[tid+'_bh']||0; const bl = DATA.orders[tid+'_bl']||0; const total = hl + bh + bl; h += `<tr><td>${t}</td><td><input type="number" inputmode="numeric" value="${hl===0?'':hl}" onchange="updateOrder('${tid}_hl',this.value)" placeholder="0" onfocus="clearZero(this)" onblur="fillZero(this)"></td><td><input type="number" inputmode="numeric" value="${bh===0?'':bh}" onchange="updateOrder('${tid}_bh',this.value)" placeholder="0" onfocus="clearZero(this)" onblur="fillZero(this)"></td><td><input type="number" inputmode="numeric" value="${bl===0?'':bl}" onchange="updateOrder('${tid}_bl',this.value)" placeholder="0" onfocus="clearZero(this)" onblur="fillZero(this)"></td><td class="order-sum-col">${total}</td></tr>`; }); h += '</tbody></table>'; c.innerHTML = h; }
+
+    function updateOrder(k, v) { DATA.orders[k] = parseFloat(v)||0; saveData(); calcAll(); renderOrderInputs(); if(document.getElementById('loading_modal').style.display === 'block') renderLoadingBoard(); }
+    function updateDropTime(id, v) { const d=DATA.drops.find(x=>x.id===id); if(d){ d.time=v; saveData(); renderDrops(); } }
+    function updateDropValue(id, type, key, val) { const d = DATA.drops.find(x=>x.id===id); if(!d) return; const num = parseFloat(val)||0; if(type === 'sackWithdraw') { d.sackWithdraw = num; } else if(type === 'p_in_room') { if(!d.p_in_room) d.p_in_room = { hl:0, bh:0, bl:0 }; d.p_in_room[key] = num; } saveData(); let distTotal = { hl:0, bh:0, bl:0 }; d.dist.forEach(i => { if(i.type==='hl') distTotal.hl += i.fresh; if(i.type==='bh') distTotal.bh += i.fresh; if(i.type==='bl') distTotal.bl += i.fresh; }); const totalProd = (d.p_in_room.hl + distTotal.hl) + (d.p_in_room.bh + distTotal.bh) + (d.p_in_room.bl + distTotal.bl); const sackRemain = (d.sackWithdraw||0) - totalProd; const prodEl = document.getElementById(`disp_total_prod_${id}`); const remainEl = document.getElementById(`disp_sack_remain_${id}`); if(prodEl) prodEl.innerText = totalProd; if(remainEl) { remainEl.innerText = sackRemain; remainEl.style.color = sackRemain < 0 ? '#d32f2f' : '#2e7d32'; } calcAll(); }
+    function addDistRow(id) { const d=DATA.drops.find(x=>x.id===id); if(d){ d.dist.push({truck:'t1',type:'hl',fresh:0,stock:0}); saveData(); renderDrops(); } }
+    function removeDistRow(id, idx) { const d=DATA.drops.find(x=>x.id===id); if(d){ d.dist.splice(idx,1); saveData(); renderDrops(); calcAll(); } }
+    function updateDist(id, idx, field, val) { const d=DATA.drops.find(x=>x.id===id); if(!d) return; if(field==='fresh'||field==='stock') val = parseFloat(val)||0; d.dist[idx][field] = val; saveData(); calcAll(); updateAllContextBars(); updateDropValue(id, 'dummy', 'dummy', 0); }
+
+    // --- CALCULATION ---
+    function calcAll() {
+        let sumP={hl:0,bh:0,bl:0};
+        let curHL = parseFloat(document.getElementById('init_hl').value)||0;
+        let curBH = parseFloat(document.getElementById('init_bh').value)||0;
+        let curBL = parseFloat(document.getElementById('init_bl').value)||0;
+        let totalSent = 0;
+        let totalSackWith = 0;
+        let totalSackUsed = 0;
+        
+        let totalRemHL = 0;
+        let totalRemBod = 0;
+        let totalWithHL = 0;
+        let totalWithBod = 0;
+
+        let prodLogHtml = '';
+        let lastProdTime = document.getElementById('time_start').value;
+
+        DATA.drops.forEach(d => {
+            if(d.type === 'prod') {
+                let p_hl = d.p_in_room?.hl || 0;
+                let p_bh = d.p_in_room?.bh || 0;
+                let p_bl = d.p_in_room?.bl || 0;
+                d.dist.forEach(i => { if(i.type==='hl') p_hl += i.fresh; if(i.type==='bh') p_bh += i.fresh; if(i.type==='bl') p_bl += i.fresh; });
+
+                sumP.hl+=p_hl; sumP.bh+=p_bh; sumP.bl+=p_bl;
+                curHL += (d.p_in_room?.hl || 0); curBH += (d.p_in_room?.bh || 0); curBL += (d.p_in_room?.bl || 0);
+
+                const totalTube = p_hl;
+                const totalCrushed = p_bh + p_bl;
+                const totalAll = totalTube + totalCrushed;
+                const sackLimit = d.sackWithdraw || 80;
+                const sackRemain = sackLimit - totalAll;
+
+                totalSackWith += sackLimit;
+                totalSackUsed += totalAll;
+
+                let disp_w_hl='-', disp_w_bod='-', disp_r_hl='-', disp_r_bod='-';
+                if (totalTube >= totalCrushed) { 
+                    disp_w_hl = sackLimit; disp_r_hl = sackRemain; 
+                    totalRemHL += sackRemain; 
+                    totalWithHL += sackLimit; 
+                } else { 
+                    disp_w_bod = sackLimit; disp_r_bod = sackRemain; 
+                    totalRemBod += sackRemain; 
+                    totalWithBod += sackLimit; 
+                }
+
+                const minDiff = getMinutesDiff(lastProdTime, d.time);
+                lastProdTime = d.time;
+
+                prodLogHtml += `<tr><td class="td-dash">${d.time}</td><td class="td-dash">${minDiff}</td><td class="td-withdraw-val">${disp_w_hl}</td><td class="td-withdraw-val">${disp_w_bod}</td><td class="${p_hl>0?'td-prod-val':'td-dash'}">${p_hl||'-'}</td><td class="${p_bh>0?'td-prod-val':'td-dash'}">${p_bh||'-'}</td><td class="${p_bl>0?'td-prod-val':'td-dash'}">${p_bl||'-'}</td><td class="td-remain-val" style="color:${disp_r_hl<0?'red':''}">${disp_r_hl}</td><td class="td-remain-val" style="color:${disp_r_bod<0?'red':''}">${disp_r_bod}</td></tr>`;
+            }
+            d.dist.forEach(i => { totalSent += (i.fresh + i.stock); if(i.type==='hl') curHL -= i.stock; if(i.type==='bh') curBH -= i.stock; if(i.type==='bl') curBL -= i.stock; });
+        });
+
+        document.getElementById('prod_log_body').innerHTML = prodLogHtml; 
+        document.getElementById('dash_hl').textContent = curHL;
+        document.getElementById('dash_bh').textContent = curBH;
+        document.getElementById('dash_bl').textContent = curBL;
+
+        let totalOrdered = 0;
+        for(let k in DATA.orders) totalOrdered += DATA.orders[k];
+        document.getElementById('os_total').innerText = totalOrdered;
+        document.getElementById('os_sent').innerText = totalSent;
+        document.getElementById('os_remain').innerText = totalOrdered - totalSent;
+
+        // Reports
+        document.getElementById('rpt_hl').innerText = sumP.hl;
+        document.getElementById('rpt_bh').innerText = sumP.bh;
+        document.getElementById('rpt_bl').innerText = sumP.bl;
+        const totalProdVal = sumP.hl + sumP.bh + sumP.bl;
+        document.getElementById('rpt_total_prod').innerText = totalProdVal;
+
+        // Weight Calc
+        const wHL = sumP.hl * WEIGHTS.hl;
+        const wBH = sumP.bh * WEIGHTS.bh;
+        const wBL = sumP.bl * WEIGHTS.bl;
+        const totalW = wHL + wBH + wBL;
+        document.getElementById('rpt_w_hl').innerText = wHL.toLocaleString();
+        document.getElementById('rpt_w_bh').innerText = wBH.toLocaleString();
+        document.getElementById('rpt_w_bl').innerText = wBL.toLocaleString();
+        document.getElementById('rpt_total_weight').innerText = totalW.toLocaleString();
+
+        // Sack Report Display
+        document.getElementById('rpt_with_hl').innerText = totalWithHL;
+        document.getElementById('rpt_with_bod').innerText = totalWithBod;
+        document.getElementById('rpt_sack_withdraw').innerText = totalSackWith;
+        document.getElementById('rpt_sack_used').innerText = totalSackUsed;
+        document.getElementById('rpt_rem_hl').innerText = totalRemHL; 
+        document.getElementById('rpt_rem_bod').innerText = totalRemBod; 
+        const totalRemAll = totalRemHL + totalRemBod;
+        document.getElementById('rpt_rem_total_all').innerText = totalRemAll;
+        
+        // Time Calc
+        const startTimeVal = document.getElementById('time_start').value;
+        let lastDropTimeStr = "";
+        for(let i=DATA.drops.length-1; i>=0; i--) { if(DATA.drops[i].type==='prod'){ lastDropTimeStr=DATA.drops[i].time; break; } }
+        let opMins = lastDropTimeStr ? getMinutesDiff(startTimeVal, lastDropTimeStr) : 0;
+        
+        document.getElementById('rpt_total_minutes').innerText = `${opMins} นาที`;
+
+        const prodDrops = DATA.drops.filter(d => d.type==='prod').length;
+        document.getElementById('rpt_avg_time').innerText = prodDrops > 0 ? (opMins / prodDrops).toFixed(4) : 0;
+        
+        const tonsPerDay = opMins > 0 ? ((totalW * 1440) / opMins) / 1000 : 0;
+        document.getElementById('rpt_tons_day').innerText = tonsPerDay.toFixed(4);
+
+        document.getElementById('rpt_avg_yield').innerText = prodDrops > 0 ? (totalProdVal / prodDrops).toFixed(4) : 0;
+
+        renderTruckSummary(); 
+        renderTruckDetail(); 
+    }
+
+    function renderTruckSummary() {
+        const container = document.getElementById('truck_report_container');
+        let truckTotals = {}; 
+        TRUCKS.forEach((t, i) => { truckTotals[`t${i+1}`] = { hl:0, bh:0, bl:0 }; });
+        DATA.drops.forEach(d => { d.dist.forEach(item => { if(truckTotals[item.truck]) { truckTotals[item.truck][item.type] += (item.fresh + item.stock); } }); });
+
+        let html = `<table class="truck-matrix-table"><thead><tr><th style="text-align:left; padding-left:15px; border-top-left-radius:8px;">รถ</th><th>หลอด</th><th>หยาบ</th><th style="border-top-right-radius:8px;">ละเอียด</th></tr></thead><tbody>`;
+        TRUCKS.forEach((t, i) => {
+            const tid = `t${i+1}`;
+            html += `<tr><td class="truck-name-col">${t}</td>`;
+            ICE_TYPES.forEach(type => {
+                const target = DATA.orders[`${tid}_${type.id}`] || 0;
+                const sent = truckTotals[tid][type.id];
+                const remaining = target - sent;
+                let cellHtml = `<span class="st-none">-</span>`; 
+                if (target > 0 || sent > 0) {
+                    if (remaining > 0) { cellHtml = `<span class="st-pill st-miss">ขาด ${remaining}</span>`; } 
+                    else if (remaining < 0) { cellHtml = `<span class="st-pill st-over">เกิน ${Math.abs(remaining)}</span>`; } 
+                    else { cellHtml = `<span class="st-pill st-ok">ครบ</span>`; }
+                }
+                html += `<td>${cellHtml}</td>`;
+            });
+            html += `</tr>`;
+        });
+        html += `</tbody></table>`;
+        container.innerHTML = html;
+    }
+
+    function renderTruckDetail() {
+        const container = document.getElementById('truck_detail_container');
+        let html = '';
+        TRUCKS.forEach((t, i) => {
+            const tid = `t${i+1}`;
+            let report = { hl: { fresh: 0, stock: 0 }, bh: { fresh: 0, stock: 0 }, bl: { fresh: 0, stock: 0 } };
+            let hasLoad = false;
+            DATA.drops.forEach(d => { d.dist.forEach(item => { if(item.truck === tid) { report[item.type].fresh += item.fresh; report[item.type].stock += item.stock; if(item.fresh > 0 || item.stock > 0) hasLoad = true; } }); });
+            
+            // Check Row Loading Log
+            ICE_TYPES.forEach(type => {
+               const log = DATA.loadingLog[`${tid}_${type.id}`];
+               if(log && ((log.r1s||0)+(log.r1f||0)+(log.r2s||0)+(log.r2f||0)+(log.r3s||0)+(log.r3f||0)) > 0) hasLoad = true;
+            });
+
+            if(hasLoad) {
+                html += `<div style="background:#fff; padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid #e0e0e0; box-shadow:0 2px 5px rgba(0,0,0,0.05);"><div style="font-weight:800; color:#006064; margin-bottom:10px; font-size:1.1rem; border-bottom:1px solid #eee; padding-bottom:5px;">🚛 ${t}</div>`;
+                
+                ICE_TYPES.forEach(type => {
+                    const logKey = `${tid}_${type.id}`;
+                    const log = DATA.loadingLog[logKey] || {};
+                    const orderQty = DATA.orders[logKey] || 0;
+                    const r1s = log.r1s||0, r1f = log.r1f||0;
+                    const r2s = log.r2s||0, r2f = log.r2f||0;
+                    const r3s = log.r3s||0, r3f = log.r3f||0;
+                    const totalLoaded = r1s+r1f + r2s+r2f + r3s+r3f;
+
+                    if(orderQty > 0 || totalLoaded > 0) {
+                        html += `<div style="margin-bottom:10px;"><div style="font-weight:bold; color:#0277bd; margin-bottom:3px;">${type.label} <span style="font-size:0.8rem; color:#777;">(เป้า: ${orderQty})</span></div><table class="detail-table"><thead><tr><th style="width:20%;">แถว</th><th>เก่า (ห้อง)</th><th>สด (ผลิต)</th><th>รวม</th></tr></thead><tbody><tr><td class="dt-row-label">1</td><td class="dt-stock">${r1s||'-'}</td><td class="dt-fresh">${r1f||'-'}</td><td style="font-weight:bold;">${r1s+r1f}</td></tr><tr><td class="dt-row-label">2</td><td class="dt-stock">${r2s||'-'}</td><td class="dt-fresh">${r2f||'-'}</td><td style="font-weight:bold;">${r2s+r2f}</td></tr><tr><td class="dt-row-label">3</td><td class="dt-stock">${r3s||'-'}</td><td class="dt-fresh">${r3f||'-'}</td><td style="font-weight:bold;">${r3s+r3f}</td></tr><tr><td colspan="3" style="text-align:right; font-weight:bold;">รวมทั้งหมด:</td><td class="dt-total">${totalLoaded}</td></tr></tbody></table></div>`;
+                    }
+                });
+                html += `</div>`;
+            }
+        });
+        if(html === '') html = '<div style="text-align:center; color:#aaa; padding:20px;">ยังไม่มีข้อมูลการขึ้นของ</div>';
+        container.innerHTML = html;
+    }
+
+    function switchPage(id) {
+        document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+        document.getElementById('page-'+id).classList.add('active');
+        const map = { setup:0, production:1, summary:2 };
+        document.querySelectorAll('.nav-btn')[map[id]].classList.add('active');
+        if(id==='summary') calcAll();
+    }
+    function clearZero(e){if(e.value=='0')e.value=''}
+    function fillZero(e){if(e.value=='')e.value='0'}
+</script>
+</body>
+</html>
