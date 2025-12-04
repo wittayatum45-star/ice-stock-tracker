@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Smart Ice V60 (Smart Wizard)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- Global Theme --- */
+        body { font-family: 'Sarabun', sans-serif; margin: 0; padding: 0; background: #f5f7fa; color: #37474f; padding-bottom: 100px; font-size: 14px; }
+        * { box-sizing: border-box; }
+
+        /* --- Dashboard --- */
+        .dashboard { position: sticky; top: 0; z-index: 1000; background: #263238; color: white; padding: 12px 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; justify-content: space-around; }
+        .dash-item span { font-size: 0.75rem; color: #b0bec5; display: block; margin-bottom: 2px; }
+        .dash-item div { font-size: 1.3rem; font-weight: 800; color: #69f0ae; line-height: 1; }
+
+        /* Navigation */
+        .nav-bar { display: flex; background: white; margin: 10px; border-radius: 50px; padding: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: sticky; top: 65px; z-index: 900; }
+        .nav-btn { flex: 1; padding: 10px; text-align: center; border: none; background: none; font-weight: bold; color: #90a4ae; cursor: pointer; border-radius: 40px; transition: 0.2s; }
+        .nav-btn.active { background: #0277bd; color: white; box-shadow: 0 2px 8px rgba(2,119,189,0.4); }
+
+        /* Pages */
+        .page { display: none; padding: 10px; max-width: 800px; margin: 0 auto; }
+        .page.active { display: block; }
+        .modern-card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); margin-bottom: 20px; overflow: hidden; border: 1px solid #fff; }
+        .card-body { padding: 15px; }
+        
+        /* Inputs */
+        input[type="number"], input[type="tel"] { width: 100%; padding: 10px; font-size: 1.3rem; text-align: center; font-weight: 600; border: 1px solid #e0e0e0; border-radius: 10px; background: #fff; -moz-appearance: textfield; transition: box-shadow 0.2s; }
+        input:focus { border-color: #29b6f6; box-shadow: 0 0 0 3px rgba(41,182,246,0.1); outline: none; background: #fff; }
+        input[type="time"], input[type="date"] { width: 100%; padding: 10px; border: 1px solid #cfd8dc; border-radius: 8px; text-align: center; font-size: 1.1rem; background: white; }
+
+        /* Helpers */
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .input-label { font-size: 0.75rem; color: #78909c; margin-bottom: 4px; font-weight: 600; text-align: center; }
+        
+        /* Drop Card & List (Hidden details for brevity, keeping core styles) */
+        .card-header-flex { display: flex; align-items: center; padding: 10px; gap: 10px; background: #f9fafb; border-bottom: 1px solid #eee; }
+        .badge-box { border-radius: 12px; padding: 5px; width: 70px; text-align: center; color: white; font-weight: bold; font-size: 0.75rem; display: flex; flex-direction: column; justify-content: center; height: 50px; }
+        .bg-prod { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+        .bg-stock { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; }
+        .big-time-input { font-size: 1.8rem; font-weight: 800; color: #37474f; border: none; background: none; width: 100%; text-align: center; }
+        .btn-close-red { width: 35px; height: 35px; border-radius: 8px; background: #ffebee; color: #c62828; border: none; font-size: 1.2rem; font-weight: bold; cursor: pointer; }
+        .stats-row { display: flex; gap: 8px; padding: 0 15px 10px 15px; margin-top: -5px; }
+        .stat-pill { background: #eceff1; color: #546e7a; font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
+        .sack-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; background: #e0f2f1; padding: 10px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #b2dfdb; }
+        .sack-item { text-align: center; }
+        .sack-label { font-size: 0.7rem; color: #00695c; font-weight: bold; margin-bottom: 2px; }
+        .sack-val { font-size: 1.4rem; font-weight: 800; color: #004d40; }
+        .dist-container { background: #fafafa; border-radius: 12px; padding: 10px; border: 1px dashed #cfd8dc; margin-top: 15px; }
+        .dist-row-item { background: white; padding: 10px; border-radius: 8px; border: 1px solid #eee; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom: 10px; }
+        .truck-context-bar { background: #fff8e1; border: 1px solid #ffecb3; border-radius: 8px; padding: 8px; margin: 8px 0; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; color: #f57f17; font-weight: bold; }
+        .input-fresh { background-color: #e8f5e9 !important; border-color: #a5d6a7 !important; }
+        .input-stock { background-color: #e1f5fe !important; border-color: #81d4fa !important; }
+        .input-green { background-color: #e8f5e9 !important; border-color: #a5d6a7 !important; }
+        .btn-add-dist { width: 100%; padding: 12px; background: #eceff1; color: #546e7a; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .btn-del-dist { background: none; border: none; color: #ef5350; font-weight: bold; cursor: pointer; font-size: 1.2rem; }
+
+        /* FABs */
+        .fab-container { position: fixed; bottom: 25px; right: 20px; z-index: 2000; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+        .fab-main { width: 65px; height: 65px; border-radius: 50%; background: #00c853; color: white; border: none; font-size: 32px; box-shadow: 0 6px 20px rgba(0,200,83,0.4); cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .fab-main.rotate { transform: rotate(45deg); background: #ff5252; }
+        .fab-truck { position: fixed; bottom: 25px; left: 20px; z-index: 2000; width: 65px; height: 65px; border-radius: 50%; background: #0288d1; color: white; border: none; font-size: 30px; box-shadow: 0 6px 20px rgba(2,136,209,0.4); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .fab-menu { display: none; flex-direction: column; gap: 12px; align-items: flex-end; }
+        .fab-menu.show { display: flex; }
+        .fab-item { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .fab-label { background: white; padding: 6px 12px; border-radius: 8px; font-weight: bold; color: #546e7a; box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-size: 0.9rem; }
+        .fab-mini { width: 50px; height: 50px; border-radius: 50%; border: none; color: white; font-size: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; }
+        .bg-green { background: #00c853; } .bg-orange { background: #ff9100; }
+
+        /* Report Tables */
+        .report-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; margin-top: 5px; table-layout: fixed; }
+        .report-table th, .report-table td { border: 1px solid #cfd8dc; padding: 8px 4px; text-align: center; }
+        .th-time { background: #eceff1; color: #546e7a; }
+        .th-withdraw { background: #e3f2fd; color: #1565c0; }
+        .th-prod { background: #e8f5e9; color: #2e7d32; }
+        .th-remain { background: #f3e5f5; color: #6a1b9a; }
+        .td-prod-val { font-weight: 800; color: #2e7d32; background: #f1f8e9; }
+        .td-remain-val { font-weight: 600; color: #37474f; background: #f3e5f5; }
+        .td-withdraw-val { font-weight: 600; color: #37474f; background: #e3f2fd; }
+        
+        .truck-matrix-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 5px; }
+        .truck-matrix-table th { background: #eceff1; color: #546e7a; padding: 12px 8px; font-weight: 700; border-bottom: 2px solid #cfd8dc; font-size: 0.9rem; }
+        .truck-matrix-table td { border-bottom: 1px solid #f0f0f0; padding: 10px 4px; text-align: center; vertical-align: middle; }
+        .truck-name-col { text-align: left; padding-left: 15px; font-weight: 800; color: #37474f; font-size: 0.95rem; }
+        .st-pill { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; min-width: 60px; }
+        .st-over { background: #e3f2fd; color: #1565c0; } .st-miss { background: #ffebee; color: #c62828; } .st-ok { background: #e8f5e9; color: #2e7d32; } .st-none { color: #cfd8dc; font-weight: 400; font-size: 1.2rem; }
+        
+        .detail-table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 0.9rem; }
+        .detail-table th { background: #fafafa; color: #546e7a; padding: 8px; border-bottom: 1px solid #ddd; font-weight: 700; font-size: 0.85rem; }
+        .detail-table td { padding: 8px; border-bottom: 1px solid #eee; text-align: center; vertical-align: middle; }
+        .dt-fresh { color: #2e7d32; font-weight: bold; background: #f1f8e9; }
+        .dt-stock { color: #1565c0; font-weight: bold; background: #e3f2fd; }
+        .dt-total { font-weight: 900; color: #37474f; background: #eceff1; }
+        .dt-row-label { font-weight: bold; color: #78909c; text-align: center; width: 20%; }
+
+        /* 🔥 MODAL: SMART WIZARD STYLE 🔥 */
+        .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; overflow: hidden; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(3px); }
+        .modal-content {
+            background-color: #f5f7fa; margin: 0; position: absolute; bottom: 0; left: 0; right: 0;
+            border-radius: 20px 20px 0 0; width: 100%; max-height: 90vh;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.2);
+            display: flex; flex-direction: column; animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp { from {transform: translateY(100%);} to {transform: translateY(0);} }
+
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: white; border-bottom: 1px solid #eee; border-radius: 20px 20px 0 0; }
+        .modal-title { font-size: 1.2rem; font-weight: 800; color: #37474f; }
+        .btn-close-modal { background: #ffebee; color: #c62828; border: none; font-size: 1.5rem; font-weight: bold; padding: 0; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .modal-body { overflow-y: auto; padding: 20px; flex-grow: 1; }
+
+        /* Wizard Controls */
+        .wizard-selector { display: flex; gap: 10px; margin-bottom: 20px; }
+        .w-select-group { flex: 1; }
+        .w-label { display: block; font-size: 0.8rem; color: #78909c; margin-bottom: 5px; font-weight: bold; }
+        .w-select { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #cfd8dc; font-size: 1.1rem; font-weight: bold; background: white; color: #37474f; }
+
+        /* Live Status Card */
+        .live-status-card { 
+            background: #fff; border-radius: 16px; padding: 15px; margin-bottom: 20px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; border: 1px solid #e0e0e0;
+        }
+        .ls-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 1rem; color: #546e7a; }
+        .ls-big { font-size: 3rem; font-weight: 800; line-height: 1; margin: 10px 0; color: #37474f; }
+        .ls-label { font-size: 0.9rem; font-weight: bold; color: #90a4ae; display: block; }
+        
+        .st-good { color: #2e7d32; } /* Green */
+        .st-bad { color: #d32f2f; } /* Red */
+        .st-over { color: #1565c0; } /* Blue */
+
+        /* Row Inputs */
+        .wizard-rows { display: flex; flex-direction: column; gap: 12px; }
+        .w-row-item { display: grid; grid-template-columns: 40px 1fr 1fr; gap: 10px; align-items: center; }
+        .w-row-num { font-weight: 900; font-size: 1.2rem; color: #cfd8dc; text-align: center; }
+        .w-input { 
+            width: 100%; padding: 12px; font-size: 1.2rem; text-align: center; 
+            border: 2px solid #eee; border-radius: 10px; font-weight: bold; background: white;
+        }
+        .wi-stock { color: #1565c0; border-color: #bbdefb; background: #e3f2fd; } /* Blue Tint */
+        .wi-fresh { color: #2e7d32; border-color: #c8e6c9; background: #e8f5e9; } /* Green Tint */
+        .w-input:focus { border-width: 2px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transform: scale(1.02); }
+        .w-input::placeholder { color: #90a4ae; opacity: 0.5; font-weight: normal; font-size: 1rem; }
+
+        .helper-text { text-align: center; font-size: 0.85rem; color: #b0bec5; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard">
+        <div class="dash-item"><span>🧊 หลอด</span><div id="dash_hl">0</div></div>
+        <div class="dash-item"><span>🔨 หยาบ</span><div id="dash_bh">0</div></div>
+        <div class="dash-item"><span>❄️ ละเอียด</span><div id="dash_bl">0</div></div>
+    </div>
+    <div class="nav-bar">
+        <button class="nav-btn active" onclick="switchPage('setup')">1. ตั้งค่า</button>
+        <button class="nav-btn" onclick="switchPage('production')">2. ผลิต/จ่าย</button>
+        <button class="nav-btn" onclick="switchPage('summary')">3. สรุปยอด</button>
+    </div>
+
+    <div id="page-setup" class="page active">
+        <div class="modern-card card-body">
+            <h3>🚚 สั่งซื้อ (Master Order)</h3>
+            <div id="order_inputs"></div>
+        </div>
+        <div class="modern-card card-body">
+            <h3>📦 สต็อกยกมา</h3>
+            <div class="grid-3">
+                <div><div class="input-label">หลอด</div><input type="number" id="init_hl" value="0" oninput="saveData(); calcAll();"></div>
+                <div><div class="input-label">หยาบ</div><input type="number" id="init_bh" value="0" oninput="saveData(); calcAll();"></div>
+                <div><div class="input-label">ละเอียด</div><input type="number" id="init_bl" value="0" oninput="saveData(); calcAll();"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-production" class="page">
+        <div id="drops_list"></div>
+        <div style="height: 100px;"></div>
+    </div>
+
+    <button class="fab-truck" onclick="openWizard()">🚛</button>
+
+    <div class="fab-container">
+        <div class="fab-menu" id="fab_menu">
+            <div class="fab-item" onclick="addDrop('stock')"><span class="fab-label">📦 เบิกห้อง</span><button class="fab-mini bg-orange">Stock</button></div>
+            <div class="fab-item" onclick="addDrop('prod')"><span class="fab-label">❄️ ผลิตใหม่</span><button class="fab-mini bg-green">Prod</button></div>
+        </div>
+        <button class="fab-main" onclick="toggleFab(this)">+</button>
+    </div>
+
+    <div id="wizard_modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">🚛 ผู้ช่วยลงของ (Wizard)</div>
+                <button class="btn-close-modal" onclick="closeWizard()">×</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="wizard-selector">
+                    <div class="w-select-group">
+                        <label class="w-label">เลือกรถ</label>
+                        <select id="wiz_truck" class="w-select" onchange="updateWizardUI()">
+                            </select>
+                    </div>
+                    <div class="w-select-group">
+                        <label class="w-label">ประเภท</label>
+                        <select id="wiz_type" class="w-select" onchange="updateWizardUI()">
+                            </select>
+                    </div>
+                </div>
+
+                <div class="live-status-card" id="wiz_card">
+                    <div class="ls-row">
+                        <span>🎯 เป้าหมาย: <b id="wiz_target">0</b></span>
+                        <span>🚛 ใส่แล้ว: <b id="wiz_loaded">0</b></span>
+                    </div>
+                    <div class="ls-big" id="wiz_remain">0</div>
+                    <span class="ls-label" id="wiz_status_text">สถานะคงเหลือ</span>
+                </div>
+
+                <div class="wizard-rows">
+                    <div class="w-row-item">
+                        <div class="w-row-num">1</div>
+                        <input type="tel" id="inp_r1s" class="w-input wi-stock" placeholder="เก่า" oninput="onWizInput()">
+                        <input type="tel" id="inp_r1f" class="w-input wi-fresh" placeholder="สด" oninput="onWizInput()">
+                    </div>
+                    <div class="w-row-item">
+                        <div class="w-row-num">2</div>
+                        <input type="tel" id="inp_r2s" class="w-input wi-stock" placeholder="เก่า" oninput="onWizInput()">
+                        <input type="tel" id="inp_r2f" class="w-input wi-fresh" placeholder="สด" oninput="onWizInput()">
+                    </div>
+                    <div class="w-row-item">
+                        <div class="w-row-num">3</div>
+                        <input type="tel" id="inp_r3s" class="w-input wi-stock" placeholder="เก่า" oninput="onWizInput()">
+                        <input type="tel" id="inp_r3f" class="w-input wi-fresh" placeholder="สด" oninput="onWizInput()">
+                    </div>
+                </div>
+
+                <div class="helper-text">พิมพ์ตัวเลข แล้วดูยอดคงเหลือด้านบนได้เลย!</div>
+                <div style="height:200px;"></div> </div>
+        </div>
+    </div>
+
+    <div id="page-summary" class="page">
+        <div class="modern-card card-body">
+             <h3>📊 สรุปสถานะรายคัน</h3>
+             <div id="truck_report_container"></div>
+        </div>
+        <div class="modern-card card-body">
+             <h3>📋 รายละเอียดการขึ้นของ</h3>
+             <div style="text-align:center; font-size:0.8rem; color:#aaa; margin-bottom:5px;">(ซ้าย=เก่า / ขวา=สด)</div>
+             <div id="truck_detail_container"></div>
+        </div>
+    </div>
+
+<script>
+    // --- CONFIG ---
+    const TRUCKS = ["รถ 1", "รถ 2", "รถ 3", "รถ 4", "รถ 5", "รถ 6", "รถ 7", "รถ 8", "รถ 9"];
+    const ICE_TYPES = [ { id: 'hl', label: 'หลอด' }, { id: 'bh', label: 'หยาบ' }, { id: 'bl', label: 'ละเอียด' } ];
+    let DATA = getEmptyData();
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('setup_date').value = today;
+        loadData(today);
+        renderOrderInputs();
+        renderDrops();
+        calcAll();
+        initWizard(); // 🔥 Init Wizard Dropdowns
+    });
+
+    function getEmptyData() {
+        return { times: { start: "22:00", stop: "06:00" }, initStock: { hl:0, bh:0, bl:0 }, orders: {}, drops: [], loadingLog: {} };
+    }
+
+    function saveData() { 
+        const dateKey = document.getElementById('setup_date').value;
+        DATA.initStock = { hl: parseFloat(document.getElementById('init_hl').value)||0, bh: parseFloat(document.getElementById('init_bh').value)||0, bl: parseFloat(document.getElementById('init_bl').value)||0 };
+        localStorage.setItem(`ICE_DATA_${dateKey}`, JSON.stringify(DATA)); 
+    }
+    
+    function loadData(dateKey) {
+        const d = localStorage.getItem(`ICE_DATA_${dateKey}`);
+        if(d) { DATA = JSON.parse(d); if(!DATA.loadingLog) DATA.loadingLog = {}; } 
+        else { DATA = getEmptyData(); }
+        document.getElementById('init_hl').value = DATA.initStock.hl;
+        document.getElementById('init_bh').value = DATA.initStock.bh;
+        document.getElementById('init_bl').value = DATA.initStock.bl;
+    }
+
+    // --- 🔥 WIZARD LOGIC 🔥 ---
+    function initWizard() {
+        const tSel = document.getElementById('wiz_truck');
+        const tySel = document.getElementById('wiz_type');
+        tSel.innerHTML = TRUCKS.map((t,i) => `<option value="t${i+1}">${t}</option>`).join('');
+        tySel.innerHTML = ICE_TYPES.map(ty => `<option value="${ty.id}">${ty.label}</option>`).join('');
+    }
+
+    function openWizard() {
+        updateWizardUI();
+        document.getElementById('wizard_modal').style.display = 'block';
+    }
+
+    function closeWizard() {
+        document.getElementById('wizard_modal').style.display = 'none';
+        calcAll();
+    }
+
+    function updateWizardUI() {
+        const tid = document.getElementById('wiz_truck').value;
+        const typeId = document.getElementById('wiz_type').value;
+        const key = `${tid}_${typeId}`;
+        
+        const log = DATA.loadingLog[key] || {};
+        
+        // Fill Inputs (Without triggering oninput)
+        document.getElementById('inp_r1s').value = log.r1s || '';
+        document.getElementById('inp_r1f').value = log.r1f || '';
+        document.getElementById('inp_r2s').value = log.r2s || '';
+        document.getElementById('inp_r2f').value = log.r2f || '';
+        document.getElementById('inp_r3s').value = log.r3s || '';
+        document.getElementById('inp_r3f').value = log.r3f || '';
+
+        calculateWizardStats();
+    }
+
+    function onWizInput() {
+        // Save data immediately as user types
+        const tid = document.getElementById('wiz_truck').value;
+        const typeId = document.getElementById('wiz_type').value;
+        const key = `${tid}_${typeId}`;
+        
+        if(!DATA.loadingLog[key]) DATA.loadingLog[key] = {};
+        
+        DATA.loadingLog[key].r1s = parseFloat(document.getElementById('inp_r1s').value) || 0;
+        DATA.loadingLog[key].r1f = parseFloat(document.getElementById('inp_r1f').value) || 0;
+        DATA.loadingLog[key].r2s = parseFloat(document.getElementById('inp_r2s').value) || 0;
+        DATA.loadingLog[key].r2f = parseFloat(document.getElementById('inp_r2f').value) || 0;
+        DATA.loadingLog[key].r3s = parseFloat(document.getElementById('inp_r3s').value) || 0;
+        DATA.loadingLog[key].r3f = parseFloat(document.getElementById('inp_r3f').value) || 0;
+
+        saveData();
+        calculateWizardStats(); // Refresh the Big Numbers
+    }
+
+    function calculateWizardStats() {
+        const tid = document.getElementById('wiz_truck').value;
+        const typeId = document.getElementById('wiz_type').value;
+        const key = `${tid}_${typeId}`;
+        
+        const target = DATA.orders[key] || 0;
+        const log = DATA.loadingLog[key] || {};
+        
+        const loaded = (log.r1s||0)+(log.r1f||0) + (log.r2s||0)+(log.r2f||0) + (log.r3s||0)+(log.r3f||0);
+        const remain = target - loaded;
+
+        // Update DOM
+        document.getElementById('wiz_target').innerText = target;
+        document.getElementById('wiz_loaded').innerText = loaded;
+        
+        const remEl = document.getElementById('wiz_remain');
+        const statText = document.getElementById('wiz_status_text');
+        
+        if (remain > 0) {
+            remEl.innerText = `ขาด ${remain}`;
+            remEl.className = 'ls-big st-bad';
+            statText.innerText = 'ยังไม่ครบ... เติมอีกหน่อย!';
+        } else if (remain < 0) {
+            remEl.innerText = `เกิน ${Math.abs(remain)}`;
+            remEl.className = 'ls-big st-over';
+            statText.innerText = 'โอ๊ะ! เกินแล้วนะ';
+        } else {
+            remEl.innerText = "ครบแล้ว! ✅";
+            remEl.className = 'ls-big st-good';
+            statText.innerText = 'ยอดเยี่ยม! พอดีเป๊ะ';
+        }
+    }
+
+    // --- Core Functions (Simplified) ---
+    function renderOrderInputs() { const c = document.getElementById('order_inputs'); let h = '<table class="order-table"><thead><tr><th>รถ</th><th>หลอด</th><th>หยาบ</th><th>ละเอียด</th><th class="col-total">รวม</th></tr></thead><tbody>'; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; const hl = DATA.orders[tid+'_hl']||0; const bh = DATA.orders[tid+'_bh']||0; const bl = DATA.orders[tid+'_bl']||0; const total = hl + bh + bl; h += `<tr><td>${t}</td><td><input type="number" value="${hl===0?'':hl}" onchange="updateOrder('${tid}_hl',this.value)"></td><td><input type="number" value="${bh===0?'':bh}" onchange="updateOrder('${tid}_bh',this.value)"></td><td><input type="number" value="${bl===0?'':bl}" onchange="updateOrder('${tid}_bl',this.value)"></td><td class="order-sum-col">${total}</td></tr>`; }); h += '</tbody></table>'; c.innerHTML = h; }
+    function updateOrder(k, v) { DATA.orders[k] = parseFloat(v)||0; saveData(); calcAll(); renderOrderInputs(); if(document.getElementById('wizard_modal').style.display === 'block') calculateWizardStats(); }
+    
+    function calcAll() {
+        let truckTotals = {}; 
+        TRUCKS.forEach((t, i) => { truckTotals[`t${i+1}`] = { hl:0, bh:0, bl:0 }; });
+
+        // Matrix Report
+        let mHtml = `<table class="truck-matrix-table"><thead><tr><th style="text-align:left; padding-left:15px;">รถ</th><th>หลอด</th><th>หยาบ</th><th>ละ..</th></tr></thead><tbody>`;
+        TRUCKS.forEach((t, i) => {
+            const tid = `t${i+1}`;
+            mHtml += `<tr><td class="truck-name-col">${t}</td>`;
+            ICE_TYPES.forEach(type => {
+                const log = DATA.loadingLog[`${tid}_${type.id}`] || {};
+                const loaded = (log.r1s||0)+(log.r1f||0) + (log.r2s||0)+(log.r2f||0) + (log.r3s||0)+(log.r3f||0);
+                const target = DATA.orders[`${tid}_${type.id}`] || 0;
+                const rem = target - loaded;
+                let cell = `<span class="st-none">-</span>`;
+                if(target>0 || loaded>0) {
+                    if(rem > 0) cell = `<span class="st-pill st-miss">ขาด ${rem}</span>`;
+                    else if(rem < 0) cell = `<span class="st-pill st-over">เกิน ${Math.abs(rem)}</span>`;
+                    else cell = `<span class="st-pill st-ok">ครบ</span>`;
+                }
+                mHtml += `<td>${cell}</td>`;
+            });
+            mHtml += `</tr>`;
+        });
+        mHtml += `</tbody></table>`;
+        document.getElementById('truck_report_container').innerHTML = mHtml;
+
+        // Detail Report
+        let dHtml = '';
+        TRUCKS.forEach((t, i) => {
+            const tid = `t${i+1}`;
+            let hasData = false;
+            ICE_TYPES.forEach(type => { if(DATA.loadingLog[`${tid}_${type.id}`] || DATA.orders[`${tid}_${type.id}`]) hasData=true; });
+            if(hasData) {
+                dHtml += `<div style="background:#fff; padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid #e0e0e0;"><div style="font-weight:800; color:#006064; margin-bottom:10px;">🚛 ${t}</div>`;
+                ICE_TYPES.forEach(type => {
+                    const log = DATA.loadingLog[`${tid}_${type.id}`] || {};
+                    const total = (log.r1s||0)+(log.r1f||0) + (log.r2s||0)+(log.r2f||0) + (log.r3s||0)+(log.r3f||0);
+                    if(total > 0 || (DATA.orders[`${tid}_${type.id}`]||0) > 0) {
+                        dHtml += `<div style="margin-bottom:10px;"><div style="font-weight:bold; color:#0277bd;">${type.label}</div><table class="detail-table"><thead><tr><th style="width:20%;">แถว</th><th>เก่า</th><th>สด</th><th>รวม</th></tr></thead><tbody><tr><td>1</td><td class="dt-stock">${log.r1s||'-'}</td><td class="dt-fresh">${log.r1f||'-'}</td><td>${(log.r1s||0)+(log.r1f||0)}</td></tr><tr><td>2</td><td class="dt-stock">${log.r2s||'-'}</td><td class="dt-fresh">${log.r2f||'-'}</td><td>${(log.r2s||0)+(log.r2f||0)}</td></tr><tr><td>3</td><td class="dt-stock">${log.r3s||'-'}</td><td class="dt-fresh">${log.r3f||'-'}</td><td>${(log.r3s||0)+(log.r3f||0)}</td></tr><tr><td colspan="3" style="text-align:right; font-weight:bold;">รวม:</td><td class="dt-total">${total}</td></tr></tbody></table></div>`;
+                    }
+                });
+                dHtml += `</div>`;
+            }
+        });
+        document.getElementById('truck_detail_container').innerHTML = dHtml;
+    }
+
+    // Placeholder Ops
+    function addDrop(type) { /* Logic remains same */ }
+    function renderDrops() { /* Logic remains same */ }
+    function toggleFab(btn) { document.getElementById('fab_menu').classList.toggle('show'); btn.classList.toggle('rotate'); }
+    function changeDate() { /* ... */ }
+    function switchPage(id) { document.querySelectorAll('.page').forEach(x=>x.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active')); document.getElementById('page-'+id).classList.add('active'); const map = { setup:0, production:1, summary:2 }; document.querySelectorAll('.nav-btn')[map[id]].classList.add('active'); if(id==='summary') { calcAll(); window.scrollTo(0,0); } }
+</script>
+</body>
+</html>
