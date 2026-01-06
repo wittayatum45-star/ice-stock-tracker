@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V97 (Summary Fixed)</title>
+    <title>Smart Ice V99 (Test1)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- Global Theme --- */
@@ -35,12 +35,12 @@
         input:focus { border-color: #29b6f6; box-shadow: 0 0 0 3px rgba(41,182,246,0.1); outline: none; background: #fff; }
         input[type="time"], input[type="date"] { width: 100%; padding: 10px; border: 1px solid #cfd8dc; border-radius: 8px; text-align: center; font-size: 1.1rem; background: white; }
 
-        /* Buttons */
+        /* Special Buttons */
         .btn-stock-manager { width: 100%; padding: 15px; background: #ff9800; color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(255,152,0,0.3); display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-view-history { width: 100%; padding: 15px; background: #546e7a; color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(84,110,122,0.3); display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-reset { background: #cfd8dc; color: #546e7a; border: none; padding: 10px; width: 100%; margin-top: 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        
-        /* Card & Layout */
+        .btn-stock-manager:active, .btn-view-history:active { transform: scale(0.98); }
+
+        /* Drop Card Styles */
         .card-header-flex { display: flex; align-items: center; padding: 10px; gap: 10px; background: #f9fafb; border-bottom: 1px solid #eee; }
         .badge-box { border-radius: 12px; padding: 5px; width: 70px; text-align: center; color: white; font-weight: bold; font-size: 0.75rem; display: flex; flex-direction: column; justify-content: center; height: 50px; }
         .bg-prod { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
@@ -141,6 +141,7 @@
         .ht-stock { background: #e3f2fd; color: #1565c0; }
         .hist-actions { display: flex; gap: 5px; }
 
+        .btn-reset { background: #cfd8dc; color: #546e7a; border: none; padding: 10px; width: 100%; margin-top: 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .input-label { font-size: 0.75rem; color: #78909c; margin-bottom: 4px; font-weight: 600; text-align: center; }
@@ -328,7 +329,7 @@
             <div class="sum-row"><span class="sum-label">⏱️ รวมเวลา:</span> <span class="sum-val" id="rpt_total_minutes" style="color:#0277bd;">0 นาที</span></div>
         </div>
         <div class="modern-card card-body">
-             <h3>📋 รายละเอียดการขึ้นของ (แยกแถว: ซ้าย=เก่า/ขวา=ใหม่)</h3>
+             <h3>📋 รายละเอียดการขึ้นของ</h3>
              <div id="truck_detail_container"></div>
         </div>
     </div>
@@ -391,12 +392,10 @@
     function deleteDrop(id) { 
         if(confirm("ลบรายการนี้?")) { 
             DATA.drops = DATA.drops.filter(d => d.id !== id); 
-            saveData(); 
+            saveData(); renderDrops(); calcAll(); 
             if(document.getElementById('stock_manager_modal').style.display === 'block') openStockManager();
             if(document.getElementById('full_history_modal').style.display === 'block') openFullHistory();
             if(document.getElementById('edit_past_modal').style.display === 'block') closeEditPastModal();
-            renderDrops(); 
-            calcAll(); 
         } 
     }
     
@@ -431,6 +430,7 @@
            });
         }
         
+        // Auto-Batch Calculation for Display
         let hlProd = getNum(d.p_in_room.hl);
         let bhProd = getNum(d.p_in_room.bh);
         let blProd = getNum(d.p_in_room.bl);
@@ -478,7 +478,7 @@
                     <div style="background:white; padding:12px; border-radius:10px; margin-bottom:10px; border:1px solid #ddd; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="openEditPast(${d.id})">
                         <div>
                             <div style="font-size:1.1rem; font-weight:bold; color:#37474f;">${d.time} ${tag}</div>
-                            <div style="font-size:0.85rem; color:#78909c;">ผลิตรวม ${prodTotal} ใบ (เข้าห้อง ${getNum(d.p_in_room.hl)+getNum(d.p_in_room.bh)+getNum(d.p_in_room.bl)})</div>
+                            <div style="font-size:0.85rem; color:#78909c;">ผลิตรวม ${prodTotal} ใบ</div>
                         </div>
                         <div style="color:#0277bd; font-weight:bold;">></div>
                     </div>
@@ -535,6 +535,7 @@
         
         saveData(); 
         
+        // 🔥 DIRECT DOM UPDATE (Fastest) 🔥
         if(cat === 'p_in_room' || cat === 'dist_update') {
             let hlProd = getNum(d.p_in_room.hl);
             let bhProd = getNum(d.p_in_room.bh);
@@ -561,6 +562,8 @@
             if(dispR1) dispR1.innerText = `หลอด: ${hlRem}`;
             if(dispR2) dispR2.innerText = `บด: ${crushRem}`;
         }
+        
+        // Background Full Calc (Debounce if heavy, but ok here)
         calcAll();
     }
     
@@ -724,7 +727,6 @@
                 
                 const hlBatch = Math.ceil(p_hl / 40) * 40;
                 const crushBatch = Math.ceil((p_bh + p_bl) / 40) * 40;
-                
                 const hlRem = hlBatch - p_hl;
                 const crushRem = crushBatch - (p_bh + p_bl);
 
@@ -830,6 +832,7 @@
             const tid = `t${i+1}`;
             if(det[tid]) {
                 let hasData = false;
+                // 🔥 ADDED EDIT BUTTON HEADER 🔥
                 let content = `<div class="truck-detail-block"><div class="truck-detail-header"><span>🚛 ${t}</span><button class="btn-history" onclick="openTruckHistory('${tid}')">🕒 ดูประวัติ/แก้ไข</button></div>`;
                 ICE_TYPES.forEach(ty => {
                     if(det[tid][ty.id]) {
@@ -857,6 +860,7 @@
     function getMinDiff(start, end) { const anchor = document.getElementById('time_start').value; const mStart = getAdjustedMinutes(start, anchor); const mEnd = getAdjustedMinutes(end, anchor); return mEnd - mStart; }
     function switchPage(id) { document.querySelectorAll('.page').forEach(x=>x.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active')); document.getElementById('page-'+id).classList.add('active'); const map={setup:0,production:1,summary:2}; document.querySelectorAll('.nav-btn')[map[id]].classList.add('active'); if(id==='summary'){calcAll(); window.scrollTo(0,0);} }
     
+    // 🔥 OPEN HISTORY MODAL 🔥
     function openTruckHistory(tid) {
         const container = document.getElementById('history_list');
         container.innerHTML = '';
@@ -891,6 +895,7 @@
     }
     
     function closeHistoryModal() { document.getElementById('history_modal').style.display = 'none'; }
+
 </script>
 </body>
 </html>
