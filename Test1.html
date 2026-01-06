@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V99 (Test1)</title>
+    <title>Smart Ice V97 (Calc Fixed)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- Global Theme --- */
@@ -442,6 +442,7 @@
             });
         }
         
+        // 🔥 LOGIC FIX: Separate Batches 🔥
         const hlBatch = Math.ceil(hlProd / 40) * 40;
         const crushBatch = Math.ceil((bhProd + blProd) / 40) * 40;
         const hlUsed = hlProd;
@@ -535,7 +536,7 @@
         
         saveData(); 
         
-        // 🔥 DIRECT DOM UPDATE (Fastest) 🔥
+        // 🔥 DIRECT DOM UPDATE FOR SACK DISPLAY 🔥
         if(cat === 'p_in_room' || cat === 'dist_update') {
             let hlProd = getNum(d.p_in_room.hl);
             let bhProd = getNum(d.p_in_room.bh);
@@ -562,8 +563,6 @@
             if(dispR1) dispR1.innerText = `หลอด: ${hlRem}`;
             if(dispR2) dispR2.innerText = `บด: ${crushRem}`;
         }
-        
-        // Background Full Calc (Debounce if heavy, but ok here)
         calcAll();
     }
     
@@ -692,14 +691,15 @@
     }
     
     function updateStats() {
-        // Stats are updated dynamically via updateDropVal direct DOM manipulation
+        // Stats are updated dynamically via updateDropVal
     }
 
     function calcAll() {
         let sumP={hl:0,bh:0,bl:0}, curHL=getNum(document.getElementById('init_hl').value), curBH=getNum(document.getElementById('init_bh').value), curBL=getNum(document.getElementById('init_bl').value);
-        let totalSent=0, totalWithAll=0, totalUsedAll=0;
-        let totalRemHL=0, totalRemBod=0;
+        let totalSent=0;
         let totalWithHL=0, totalWithBod=0;
+        let totalRemHL=0, totalRemBod=0;
+        let totalWithAll=0, totalUsedAll=0;
         let prodLogHtml = '', startTimeStr = document.getElementById('time_start').value;
         let lastProdTime = startTimeStr;
 
@@ -778,7 +778,6 @@
         document.getElementById('rpt_bh').innerText = sumP.bh;
         document.getElementById('rpt_bl').innerText = sumP.bl;
         document.getElementById('rpt_total_prod').innerText = sumP.hl+sumP.bh+sumP.bl;
-        
         const totW = ((sumP.hl*20)+(sumP.bh*23)+(sumP.bl*24));
         document.getElementById('rpt_total_weight').innerText = totW.toLocaleString();
         document.getElementById('rpt_w_hl').innerText = (sumP.hl*20).toLocaleString();
@@ -797,7 +796,12 @@
         for(let i=DATA.drops.length-1; i>=0; i--) { if(DATA.drops[i].type==='prod'){ lastDropTimeStr=DATA.drops[i].time; break; } }
         let opMins = lastDropTimeStr ? getMinDiff(startTimeStr, lastDropTimeStr) : 0;
         document.getElementById('rpt_total_minutes').innerText = `${opMins} นาที`;
-        
+        const prodDropsCount = DATA.drops.filter(d => d.type==='prod').length;
+        document.getElementById('rpt_avg_time').innerText = prodDropsCount > 0 ? (opMins / prodDropsCount).toFixed(2) : 0;
+        const tonsPerDay = opMins > 0 ? ((totW * 1440) / opMins) / 1000 : 0;
+        document.getElementById('rpt_tons_day').innerText = tonsPerDay.toFixed(2);
+        document.getElementById('rpt_avg_yield').innerText = prodDropsCount > 0 ? ((sumP.hl+sumP.bh+sumP.bl) / prodDropsCount).toFixed(2) : 0;
+
         renderSummaryTable(truckMat);
         renderDetailTable(truckDetail);
         updateStats();
@@ -895,7 +899,6 @@
     }
     
     function closeHistoryModal() { document.getElementById('history_modal').style.display = 'none'; }
-
 </script>
 </body>
 </html>
