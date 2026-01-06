@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V99 (Test1)</title>
+    <title>Smart Ice V94 (Stock Fixed)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- Global Theme --- */
@@ -53,8 +53,6 @@
         .sack-item { text-align: center; }
         .sack-label { font-size: 0.7rem; color: #00695c; font-weight: bold; margin-bottom: 2px; }
         .sack-val { font-size: 1.4rem; font-weight: 800; color: #004d40; }
-        .sack-detail { display: flex; flex-direction: column; gap: 2px; font-size: 0.8rem; color: #555; margin-top: 2px; }
-        .sd-hl { color: #2e7d32; } .sd-bod { color: #6a1b9a; }
 
         .dist-container { background: #fafafa; border-radius: 12px; padding: 10px; border: 1px dashed #cfd8dc; margin-top: 15px; }
         .dist-item { background: white; padding: 10px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 8px; position: relative; }
@@ -201,44 +199,7 @@
     </div>
 
     <div class="fab-container">
-        <div class="fab-menu" id="fab_menu">
-            <div class="fab-item" onclick="addDrop('stock')"><span class="fab-label">📦 เบิกห้อง</span><button class="fab-mini bg-orange">Stock</button></div>
-            <div class="fab-item" onclick="addDrop('prod')"><span class="fab-label">❄️ ผลิตใหม่</span><button class="fab-mini bg-green">Prod</button></div>
-        </div>
-        <button class="fab-main" onclick="toggleFab(this)">+</button>
-    </div>
-
-    <div id="dist_modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title" id="wiz_title">🚛 จ่ายเข้ารถ</div>
-                <button class="btn-close-modal" onclick="closeDistModal()">×</button>
-            </div>
-            <div class="modal-body">
-                <div class="wiz-controls">
-                    <div style="flex:1;">
-                        <label style="font-size:0.8rem; font-weight:bold; color:#78909c;">เลือกคันรถ</label>
-                        <select id="wiz_truck" class="wiz-select" onchange="updateWizStats()"></select>
-                    </div>
-                    <div style="flex:1;">
-                        <label style="font-size:0.8rem; font-weight:bold; color:#78909c;">ประเภท</label>
-                        <select id="wiz_type" class="wiz-select" onchange="updateWizStats()"></select>
-                    </div>
-                </div>
-                <div class="wiz-status">
-                    <div class="wiz-status-text">ยอดคงเหลือ (จากเป้าหมาย)</div>
-                    <div class="wiz-remain" id="wiz_remain">0</div>
-                </div>
-                <div class="row-inputs">
-                    <div class="row-group"><div class="row-label">แถว 1</div><input type="tel" id="wiz_r1" placeholder="0" onfocus="if(this.value=='0')this.value=''" oninput="updateWizStats()"></div>
-                    <div class="row-group"><div class="row-label">แถว 2</div><input type="tel" id="wiz_r2" placeholder="0" onfocus="if(this.value=='0')this.value=''" oninput="updateWizStats()"></div>
-                    <div class="row-group"><div class="row-label">แถว 3</div><input type="tel" id="wiz_r3" placeholder="0" onfocus="if(this.value=='0')this.value=''" oninput="updateWizStats()"></div>
-                </div>
-                <button id="btn_save_wiz" class="btn-save-dist" onclick="confirmDistSave()">💾 บันทึกรายการ</button>
-                <div style="text-align:center; margin-top:10px; color:#aaa; font-size:0.8rem;">รวมยอด: <span id="wiz_total_sum">0</span> ใบ</div>
-                <div style="height:200px;"></div>
-            </div>
-        </div>
+        <button class="fab-main" onclick="addDrop('prod')">+</button>
     </div>
 
     <div id="stock_manager_modal" class="modal">
@@ -275,7 +236,44 @@
                 <div class="modal-title" id="edit_past_title">✏️ แก้ไขรายการย้อนหลัง</div>
                 <button class="btn-close-modal" onclick="closeEditPastModal()">×</button>
             </div>
-            <div class="modal-body" id="edit_past_body" style="padding:10px;"></div>
+            <div class="modal-body" id="edit_past_body" style="padding:10px;">
+                </div>
+        </div>
+    </div>
+
+    <div id="dist_modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="wiz_title">🚛 จ่ายเข้ารถ</div>
+                <button class="btn-close-modal" onclick="closeDistModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="wiz-controls">
+                    <div style="flex:1;">
+                        <label style="font-size:0.8rem; font-weight:bold; color:#78909c;">เลือกคันรถ</label>
+                        <select id="wiz_truck" class="wiz-select" onchange="updateWizStats()"></select>
+                    </div>
+                    <div style="flex:1;">
+                        <label style="font-size:0.8rem; font-weight:bold; color:#78909c;">ประเภท</label>
+                        <select id="wiz_type" class="wiz-select" onchange="updateWizStats()"></select>
+                    </div>
+                </div>
+
+                <div class="wiz-status">
+                    <div class="wiz-status-text">ยอดคงเหลือ (จากเป้าหมาย)</div>
+                    <div class="wiz-remain" id="wiz_remain">0</div>
+                </div>
+
+                <div class="row-inputs">
+                    <div class="row-group"><div class="row-label">แถว 1</div><input type="tel" id="wiz_r1" placeholder="0" onfocus="if(this.value=='0')this.value=''" oninput="updateWizStats()"></div>
+                    <div class="row-group"><div class="row-label">แถว 2</div><input type="tel" id="wiz_r2" placeholder="0" onfocus="if(this.value=='0')this.value=''" oninput="updateWizStats()"></div>
+                    <div class="row-group"><div class="row-label">แถว 3</div><input type="tel" id="wiz_r3" placeholder="0" onfocus="if(this.value=='0')this.value=''" oninput="updateWizStats()"></div>
+                </div>
+
+                <button id="btn_save_wiz" class="btn-save-dist" onclick="confirmDistSave()">💾 บันทึกรายการ</button>
+                <div style="text-align:center; margin-top:10px; color:#aaa; font-size:0.8rem;">รวมยอด: <span id="wiz_total_sum">0</span> ใบ</div>
+                <div style="height:200px;"></div>
+            </div>
         </div>
     </div>
 
@@ -314,7 +312,10 @@
             <div class="sum-row" style="padding-top:10px; color:#0277bd;"><span class="sum-label sum-highlight">รวมผลิต:</span> <span><span class="sum-val sum-highlight" id="rpt_total_prod">0</span> กระสอบ</span></div>
             <div class="divider-line"></div>
             <h4>⚖️ น้ำหนัก (กก.)</h4>
-            <div class="sum-row"><span class="sum-label">รวมน้ำหนัก:</span> <span><span class="sum-val" id="rpt_total_weight">0</span> กก.</span></div>
+            <div class="sum-row"><span class="sum-label">นน.หลอด (20kg):</span> <span><span class="sum-val" id="rpt_w_hl">0</span> กก.</span></div>
+            <div class="sum-row"><span class="sum-label">นน.หยาบ (23kg):</span> <span><span class="sum-val" id="rpt_w_bh">0</span> กก.</span></div>
+            <div class="sum-row"><span class="sum-label">นน.ละเอียด (24kg):</span> <span><span class="sum-val" id="rpt_w_bl">0</span> กก.</span></div>
+            <div class="sum-row" style="color:#0277bd;"><span class="sum-label">รวมน้ำหนัก:</span> <span><span class="sum-val" id="rpt_total_weight">0</span> กก.</span></div>
             <div class="divider-line"></div>
             <h4>📥 สรุปกระสอบ (Sack Audit)</h4>
             <div class="sum-row"><span class="sum-label">เบิกหลอดรวม:</span> <span class="sum-val" id="rpt_with_hl">0</span> ใบ</div>
@@ -325,11 +326,14 @@
             <div class="sum-row" style="background:#f3e5f5; padding:5px; border-radius:4px;"><span class="sum-label">🟣 บดเหลือคืน:</span> <span class="sum-val" id="rpt_rem_bod" style="color:#6a1b9a;">0</span> ใบ</div>
             <div class="sum-row" style="background:#e0f7fa; padding:5px; border-radius:4px;"><span class="sum-label">🔵 รวมเหลือคืนทั้งหมด:</span> <span class="sum-val" id="rpt_rem_total_all" style="color:#0277bd; font-weight:900;">0</span> ใบ</div>
             <div class="divider-line"></div>
-            <h4>📊 สถิติ</h4>
-            <div class="sum-row"><span class="sum-label">⏱️ รวมเวลา:</span> <span class="sum-val" id="rpt_total_minutes" style="color:#0277bd;">0 นาที</span></div>
+            <h4>📊 สถิติ (Performance)</h4>
+            <div class="sum-row"><span class="sum-label">⏱️ รวมเวลาเดินเครื่อง:</span> <span class="sum-val" id="rpt_total_minutes" style="color:#0277bd;">0 นาที</span></div>
+            <div class="sum-row"><span class="sum-label">เวลาเฉลี่ย/รอบ:</span> <span><span class="sum-val" id="rpt_avg_time">0</span> นาที</span></div>
+            <div class="sum-row"><span class="sum-label">กำลังผลิต:</span> <span><span class="sum-val" id="rpt_tons_day">0</span> ตัน/วัน</span></div>
+            <div class="sum-row"><span class="sum-label">เฉลี่ยกระสอบ/ตก:</span> <span><span class="sum-val" id="rpt_avg_yield">0</span> ใบ</span></div>
         </div>
         <div class="modern-card card-body">
-             <h3>📋 รายละเอียดการขึ้นของ</h3>
+             <h3>📋 รายละเอียดการขึ้นของ (แยกแถว: ซ้าย=เก่า/ขวา=ใหม่)</h3>
              <div id="truck_detail_container"></div>
         </div>
     </div>
@@ -337,6 +341,7 @@
 <script>
     const TRUCKS = ["รถ 1", "รถ 2", "รถ 3", "รถ 4", "รถ 5", "รถ 6", "รถ 7", "รถ 8", "รถ 9"];
     const ICE_TYPES = [ { id: 'hl', label: 'หลอด' }, { id: 'bh', label: 'หยาบ' }, { id: 'bl', label: 'ละเอียด' } ];
+    const WEIGHTS = { hl: 20, bh: 23, bl: 24 };
     let DATA = getEmptyData();
     let CURRENT_DROP_ID = null;
     let EDITING_DIST_IDX = null;
@@ -379,6 +384,7 @@
     function changeDate() { const newDate = document.getElementById('setup_date').value; loadData(newDate); renderOrderInputs(); renderDrops(); calcAll(); }
     function getNum(val) { return parseFloat(val) || 0; }
 
+    // --- MAIN OPS ---
     function toggleFab(btn) { document.getElementById('fab_menu').classList.toggle('show'); btn.classList.toggle('rotate'); }
     function addDrop(type) {
         const now = new Date();
@@ -406,7 +412,7 @@
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
         const displayDrops = [...sortedDrops].reverse(); 
         const prodDrops = sortedDrops.filter(d => d.type === 'prod');
-        const latestProd = prodDrops[prodDrops.length - 1]; 
+        const latestProd = prodDrops[prodDrops.length - 1]; // FOCUS MODE: Show Latest Only
 
         if(latestProd) {
              const d = latestProd;
@@ -429,35 +435,10 @@
                distHtml += `<div class="dist-item"><div class="dist-header"><span>🚛 ${getTruckName(item.truck)} - ${getTypeName(item.type)}</span><div><button class="btn-edit-mini" onclick="editDist(${d.id}, ${idx})">แก้ไข</button><button class="btn-del-mini" onclick="removeDist(${d.id}, ${idx})">ลบ</button></div></div><div class="dist-rows">แถว 1: <b>${item.r1}</b> | แถว 2: <b>${item.r2}</b> | แถว 3: <b>${item.r3}</b></div><div class="dist-total">รวม: ${item.total} ใบ</div></div>`;
            });
         }
-        
-        // Auto-Batch Calculation for Display
-        let hlProd = getNum(d.p_in_room.hl);
-        let bhProd = getNum(d.p_in_room.bh);
-        let blProd = getNum(d.p_in_room.bl);
-        if(d.dist) {
-            d.dist.forEach(i => {
-                if(i.type === 'hl') hlProd += getNum(i.total);
-                if(i.type === 'bh') bhProd += getNum(i.total);
-                if(i.type === 'bl') blProd += getNum(i.total);
-            });
-        }
-        
-        const hlBatch = Math.ceil(hlProd / 40) * 40;
-        const crushBatch = Math.ceil((bhProd + blProd) / 40) * 40;
-        const hlUsed = hlProd;
-        const crushUsed = bhProd + blProd;
-        const hlRem = hlBatch - hlUsed;
-        const crushRem = crushBatch - crushUsed;
-
-        return `<div class="modern-card"><div class="card-header-flex"><div class="badge-box bg-prod"><span>น้ำแข็ง<br>ตก<br>(ผลิต)</span></div><input type="time" class="big-time-input" value="${d.time}" onchange="updateDropVal(${d.id}, 'time', null, this.value)"><span class="time-diff-badge">(+${diffMin} น.)</span><button class="btn-close-red" onclick="deleteDrop(${d.id})">×</button></div><div class="card-body" style="padding-top:0;">
-        <div class="sack-row">
-            <div class="sack-item"><div class="sack-label">เบิก (หลอด/บด)</div><div style="font-weight:bold; font-size:1.1rem; color:#555;" id="disp_withdraw_${d.id}">${hlBatch} / ${crushBatch}</div></div>
-            <div class="sack-item"><div class="sack-label">ใช้ (หลอด/บด)</div><div style="font-weight:bold; font-size:1.1rem;" id="disp_used_${d.id}">${hlUsed} / ${crushUsed}</div></div>
-            <div class="sack-item"><div class="sack-label">คืน (หลอด/บด)</div><div class="sack-detail"><div class="sd-hl" id="disp_rem_hl_${d.id}">หลอด: ${hlRem}</div><div class="sd-bod" id="disp_rem_bod_${d.id}">บด: ${crushRem}</div></div></div>
-        </div>
-        <div class="grid-3"><div><div class="input-label">หลอด (เข้าห้อง)</div><input type="tel" inputmode="numeric" pattern="[0-9]*" value="${getNum(d.p_in_room.hl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'hl', this.value)"></div><div><div class="input-label">หยาบ (เข้าห้อง)</div><input type="tel" inputmode="numeric" pattern="[0-9]*" value="${getNum(d.p_in_room.bh)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bh', this.value)"></div><div><div class="input-label">ละเอียด (เข้าห้อง)</div><input type="tel" inputmode="numeric" pattern="[0-9]*" value="${getNum(d.p_in_room.bl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bl', this.value)"></div></div><div class="dist-container"><div style="font-size:0.8rem; color:#90a4ae; font-weight:bold; margin-bottom:5px;">รายการจ่ายเข้ารถ</div>${distHtml}<button class="btn-add-dist" onclick="openDistModal(${d.id})">+ เพิ่มรายการส่งเข้ารถ</button></div></div></div>`;
+        return `<div class="modern-card"><div class="card-header-flex"><div class="badge-box bg-prod"><span>น้ำแข็ง<br>ตก<br>(ผลิต)</span></div><input type="time" class="big-time-input" value="${d.time}" onchange="updateDropVal(${d.id}, 'time', null, this.value)"><span class="time-diff-badge">(+${diffMin} น.)</span><button class="btn-close-red" onclick="deleteDrop(${d.id})">×</button></div><div class="card-body" style="padding-top:0;"><div class="sack-row"><div class="sack-item"><div class="sack-label">เบิกกระสอบ</div><input type="tel" inputmode="numeric" pattern="[0-9]*" value="${getNum(d.sackWithdraw)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'sackWithdraw', null, this.value)"></div><div class="sack-item"><div class="sack-label">ใช้บรรจุ</div><div class="sack-val" id="used_${d.id}">0</div></div><div class="sack-item"><div class="sack-label">เหลือคืน</div><div class="sack-val" id="rem_${d.id}">0</div></div></div><div class="grid-3"><div><div class="input-label">หลอด (เข้าห้อง)</div><input type="tel" inputmode="numeric" pattern="[0-9]*" value="${getNum(d.p_in_room.hl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'hl', this.value)"></div><div><div class="input-label">หยาบ (เข้าห้อง)</div><input type="tel" inputmode="numeric" pattern="[0-9]*" value="${getNum(d.p_in_room.bh)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bh', this.value)"></div><div><div class="input-label">ละเอียด (เข้าห้อง)</div><input type="tel" inputmode="numeric" pattern="[0-9]*" value="${getNum(d.p_in_room.bl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bl', this.value)"></div></div><div class="dist-container"><div style="font-size:0.8rem; color:#90a4ae; font-weight:bold; margin-bottom:5px;">รายการจ่ายเข้ารถ</div>${distHtml}<button class="btn-add-dist" onclick="openDistModal(${d.id})">+ เพิ่มรายการส่งเข้ารถ</button></div></div></div>`;
     }
 
+    // --- FULL HISTORY MODAL ---
     function openFullHistory() {
         const container = document.getElementById('full_history_list');
         container.innerHTML = '';
@@ -467,10 +448,15 @@
         if (sortedDrops.length === 0) {
             container.innerHTML = '<div style="text-align:center; color:#aaa;">ไม่มีประวัติ</div>';
         } else {
+            // Check if latest exists, to exclude it from history view (optional, but requested to 'not confuse')
+            // Actually, user wants to see history to edit past cards.
+            // Let's show ALL PROD DROPS here, but indicate which one is latest.
+            
             sortedDrops.forEach((d, idx) => { 
                 let distCount = d.dist ? d.dist.length : 0;
                 let prodTotal = getNum(d.p_in_room.hl) + getNum(d.p_in_room.bh) + getNum(d.p_in_room.bl);
                 if(d.dist) d.dist.forEach(i => prodTotal += getNum(i.total));
+                
                 const isLatest = (idx === 0);
                 const tag = isLatest ? '<span style="background:#e8f5e9; color:#2e7d32; padding:2px 6px; border-radius:4px; font-size:0.75rem;">ล่าสุด</span>' : '';
 
@@ -478,7 +464,7 @@
                     <div style="background:white; padding:12px; border-radius:10px; margin-bottom:10px; border:1px solid #ddd; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="openEditPast(${d.id})">
                         <div>
                             <div style="font-size:1.1rem; font-weight:bold; color:#37474f;">${d.time} ${tag}</div>
-                            <div style="font-size:0.85rem; color:#78909c;">ผลิตรวม ${prodTotal} ใบ</div>
+                            <div style="font-size:0.85rem; color:#78909c;">ผลิตรวม ${prodTotal} ใบ (เข้าห้อง ${getNum(d.p_in_room.hl)+getNum(d.p_in_room.bh)+getNum(d.p_in_room.bl)})</div>
                         </div>
                         <div style="color:#0277bd; font-weight:bold;">></div>
                     </div>
@@ -489,10 +475,14 @@
     }
     function closeFullHistory() { document.getElementById('full_history_modal').style.display = 'none'; renderDrops(); calcAll(); }
 
+    // --- EDIT PAST MODAL (Full Card) ---
     function openEditPast(id) {
         const d = DATA.drops.find(x => x.id === id);
         if(!d) return;
+        
+        // Use same generation logic but inject into modal
         const startTimeStr = document.getElementById('time_start').value;
+        // Calc diff logic needs sorted array
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
         const prodDrops = sortedDrops.filter(x => x.type === 'prod');
         let prevTime = startTimeStr;
@@ -502,10 +492,14 @@
 
         document.getElementById('edit_past_body').innerHTML = generateCardHtml(d, diffMin);
         document.getElementById('edit_past_modal').style.display = 'block';
-        closeFullHistory(); 
+        closeFullHistory(); // Close list, open card
     }
-    function closeEditPastModal() { document.getElementById('edit_past_modal').style.display = 'none'; openFullHistory(); }
+    function closeEditPastModal() { 
+        document.getElementById('edit_past_modal').style.display = 'none'; 
+        openFullHistory(); // Go back to list
+    }
 
+    // --- STOCK MANAGER ---
     function openStockManager() {
         const container = document.getElementById('stock_list_container');
         container.innerHTML = '';
@@ -531,40 +525,16 @@
         const d = DATA.drops.find(x => x.id === id);
         if(!d) return;
         if(cat === 'time') d.time = val;
+        else if(cat === 'sackWithdraw') d.sackWithdraw = getNum(val);
         else if(cat === 'p_in_room') d.p_in_room[sub] = getNum(val);
+        saveData(); calcAll(); updateStats(); 
         
-        saveData(); 
-        
-        // 🔥 DIRECT DOM UPDATE (Fastest) 🔥
-        if(cat === 'p_in_room' || cat === 'dist_update') {
-            let hlProd = getNum(d.p_in_room.hl);
-            let bhProd = getNum(d.p_in_room.bh);
-            let blProd = getNum(d.p_in_room.bl);
-            if(d.dist) {
-                d.dist.forEach(i => {
-                    if(i.type === 'hl') hlProd += getNum(i.total);
-                    if(i.type === 'bh') bhProd += getNum(i.total);
-                    if(i.type === 'bl') blProd += getNum(i.total);
-                });
-            }
-            const hlBatch = Math.ceil(hlProd / 40) * 40;
-            const crushBatch = Math.ceil((bhProd + blProd) / 40) * 40;
-            const hlRem = hlBatch - hlProd;
-            const crushRem = crushBatch - (bhProd + blProd);
-            
-            const dispW = document.getElementById(`disp_withdraw_${id}`);
-            const dispU = document.getElementById(`disp_used_${id}`);
-            const dispR1 = document.getElementById(`disp_rem_hl_${id}`);
-            const dispR2 = document.getElementById(`disp_rem_bod_${id}`);
-            
-            if(dispW) dispW.innerText = `${hlBatch} / ${crushBatch}`;
-            if(dispU) dispU.innerText = `${hlProd} / ${bhProd + blProd}`;
-            if(dispR1) dispR1.innerText = `หลอด: ${hlRem}`;
-            if(dispR2) dispR2.innerText = `บด: ${crushRem}`;
+        // Refresh Edit Modal content if open
+        if(document.getElementById('edit_past_modal').style.display === 'block') {
+             // We need to re-render the inner HTML to update sums
+             // Simple hack: Close & Reopen? No, input focus lost.
+             // Better: Just update stats. The inputs hold their own state.
         }
-        
-        // Background Full Calc (Debounce if heavy, but ok here)
-        calcAll();
     }
     
     function updateStock() {
@@ -576,11 +546,9 @@
 
     function removeDist(dropId, idx) {
         const d = DATA.drops.find(x => x.id === dropId);
-        if(d) { d.dist.splice(idx, 1); 
-            updateDropVal(dropId, 'dist_update', null, 0); 
-            saveData(); 
+        if(d) { d.dist.splice(idx, 1); saveData(); 
             if(document.getElementById('stock_manager_modal').style.display === 'block') openStockManager();
-            else if(document.getElementById('edit_past_modal').style.display === 'block') openEditPast(dropId); 
+            else if(document.getElementById('edit_past_modal').style.display === 'block') openEditPast(dropId); // Refresh modal
             else renderDrops(); 
             calcAll(); 
         }
@@ -626,8 +594,10 @@
 
     function closeDistModal() { 
         document.getElementById('dist_modal').style.display = 'none'; 
+        // Refresh context
         if(document.getElementById('stock_manager_modal').style.display === 'block') openStockManager();
         else if(document.getElementById('edit_past_modal').style.display === 'block') openEditPast(CURRENT_DROP_ID);
+        
         CURRENT_DROP_ID = null; EDITING_DIST_IDX = null; 
     }
 
@@ -668,13 +638,13 @@
         const newData = { truck: document.getElementById('wiz_truck').value, type: document.getElementById('wiz_type').value, r1: r1, r2: r2, r3: r3, total: total };
         if(EDITING_DIST_IDX !== null) { d.dist[EDITING_DIST_IDX] = newData; } 
         else { if(!d.dist) d.dist = []; d.dist.push(newData); }
-        
-        updateDropVal(CURRENT_DROP_ID, 'dist_update', null, 0);
-
         saveData(); 
+        
+        // Refresh context then close
         if(document.getElementById('stock_manager_modal').style.display === 'block') openStockManager();
         else if(document.getElementById('edit_past_modal').style.display === 'block') openEditPast(CURRENT_DROP_ID);
         else renderDrops();
+        
         closeDistModal();
         calcAll();
     }
@@ -692,16 +662,27 @@
     }
     
     function updateStats() {
-        // Stats are updated dynamically via updateDropVal direct DOM manipulation
+        DATA.drops.forEach(d => {
+            if(d.type === 'prod') {
+                let used = (getNum(d.p_in_room.hl) + getNum(d.p_in_room.bh) + getNum(d.p_in_room.bl));
+                if(d.dist) d.dist.forEach(i => used += getNum(i.total));
+                // Update elements if they exist (both main and modal)
+                const usedEl = document.getElementById(`used_${d.id}`);
+                if(usedEl) usedEl.innerText = used;
+                
+                const rem = getNum(d.sackWithdraw) - used;
+                const remEl = document.getElementById(`rem_${d.id}`);
+                if(remEl) { remEl.innerText = rem; remEl.style.color = rem < 0 ? 'red' : 'green'; }
+            }
+        });
     }
 
     function calcAll() {
         let sumP={hl:0,bh:0,bl:0}, curHL=getNum(document.getElementById('init_hl').value), curBH=getNum(document.getElementById('init_bh').value), curBL=getNum(document.getElementById('init_bl').value);
-        let totalSent=0, totalWithAll=0, totalUsedAll=0;
-        let totalRemHL=0, totalRemBod=0;
-        let totalWithHL=0, totalWithBod=0;
+        let totalSent=0, remHL=0, remBod=0, totalSackWith=0, totalSackUsed=0;
         let prodLogHtml = '', startTimeStr = document.getElementById('time_start').value;
         let lastProdTime = startTimeStr;
+        let totalWithHL = 0, totalWithBod = 0;
 
         let truckMat = {}; let truckDetail = {};
         TRUCKS.forEach((t,i) => {
@@ -714,6 +695,7 @@
 
         sortedDrops.forEach(d => {
             let p_hl=0, p_bh=0, p_bl=0;
+            let w_hl='-', w_bod='-', r_hl='-', r_bod='-';
             
             if(d.type === 'prod') {
                 p_hl = getNum(d.p_in_room.hl); p_bh = getNum(d.p_in_room.bh); p_bl = getNum(d.p_in_room.bl);
@@ -724,24 +706,20 @@
                         if(i.type==='bl') p_bl += getNum(i.total);
                     });
                 }
+                const totTube = p_hl; const totCrush = p_bh+p_bl;
+                const sack = getNum(d.sackWithdraw);
+                const used = totTube+totCrush;
+                const rem = sack - used;
+                totalSackWith += sack; totalSackUsed += used;
                 
-                const hlBatch = Math.ceil(p_hl / 40) * 40;
-                const crushBatch = Math.ceil((p_bh + p_bl) / 40) * 40;
-                const hlRem = hlBatch - p_hl;
-                const crushRem = crushBatch - (p_bh + p_bl);
-
-                totalWithHL += hlBatch;
-                totalWithBod += crushBatch;
-                totalRemHL += hlRem;
-                totalRemBod += crushRem;
-                totalWithAll += (hlBatch + crushBatch);
-                totalUsedAll += (p_hl + p_bh + p_bl);
+                if(totTube >= totCrush) { w_hl = sack; r_hl = rem; remHL += rem; totalWithHL += sack; } 
+                else { w_bod = sack; r_bod = rem; remBod += rem; totalWithBod += sack; }
 
                 sumP.hl += p_hl; sumP.bh += p_bh; sumP.bl += p_bl;
                 curHL += getNum(d.p_in_room.hl); curBH += getNum(d.p_in_room.bh); curBL += getNum(d.p_in_room.bl);
 
                 const minDiff = getMinDiff(lastProdTime, d.time); lastProdTime = d.time;
-                prodLogHtml += `<tr><td class="td-dash">${d.time}<br><small>${minDiff}น.</small></td><td class="td-withdraw-val">${hlBatch>0?hlBatch:'-'}</td><td class="td-withdraw-val">${crushBatch>0?crushBatch:'-'}</td><td class="${p_hl>0?'td-prod-val':''}">${p_hl||'-'}</td><td class="${p_bh>0?'td-prod-val':''}">${p_bh||'-'}</td><td class="${p_bl>0?'td-prod-val':''}">${p_bl||'-'}</td><td class="td-remain-val" style="color:${hlRem < 0 ? 'red' : ''}">${hlBatch>0?hlRem:'-'}</td><td class="td-remain-val" style="color:${crushRem < 0 ? 'red' : ''}">${crushBatch>0?crushRem:'-'}</td></tr>`;
+                prodLogHtml += `<tr><td class="td-dash">${d.time}<br><small>${minDiff}น.</small></td><td class="td-withdraw-val">${w_hl}</td><td class="td-withdraw-val">${w_bod}</td><td class="${p_hl>0?'td-prod-val':''}">${p_hl||'-'}</td><td class="${p_bh>0?'td-prod-val':''}">${p_bh||'-'}</td><td class="${p_bl>0?'td-prod-val':''}">${p_bl||'-'}</td><td class="td-remain-val" style="color:${r_hl<0?'red':''}">${r_hl}</td><td class="td-remain-val" style="color:${r_bod<0?'red':''}">${r_bod}</td></tr>`;
             }
 
             if(d.dist) {
@@ -778,26 +756,29 @@
         document.getElementById('rpt_bh').innerText = sumP.bh;
         document.getElementById('rpt_bl').innerText = sumP.bl;
         document.getElementById('rpt_total_prod').innerText = sumP.hl+sumP.bh+sumP.bl;
-        
         const totW = ((sumP.hl*20)+(sumP.bh*23)+(sumP.bl*24));
         document.getElementById('rpt_total_weight').innerText = totW.toLocaleString();
         document.getElementById('rpt_w_hl').innerText = (sumP.hl*20).toLocaleString();
         document.getElementById('rpt_w_bh').innerText = (sumP.bh*23).toLocaleString();
         document.getElementById('rpt_w_bl').innerText = (sumP.bl*24).toLocaleString();
-        
-        document.getElementById('rpt_rem_hl').innerText = totalRemHL;
-        document.getElementById('rpt_rem_bod').innerText = totalRemBod;
-        document.getElementById('rpt_rem_total_all').innerText = totalRemHL + totalRemBod;
+        document.getElementById('rpt_rem_hl').innerText = remHL;
+        document.getElementById('rpt_rem_bod').innerText = remBod;
+        document.getElementById('rpt_rem_total_all').innerText = remHL + remBod;
         document.getElementById('rpt_with_hl').innerText = totalWithHL;
         document.getElementById('rpt_with_bod').innerText = totalWithBod;
-        document.getElementById('rpt_sack_withdraw').innerText = totalWithAll;
-        document.getElementById('rpt_sack_used').innerText = totalUsedAll;
+        document.getElementById('rpt_sack_withdraw').innerText = totalSackWith;
+        document.getElementById('rpt_sack_used').innerText = totalSackUsed;
 
         let lastDropTimeStr = "";
         for(let i=DATA.drops.length-1; i>=0; i--) { if(DATA.drops[i].type==='prod'){ lastDropTimeStr=DATA.drops[i].time; break; } }
         let opMins = lastDropTimeStr ? getMinDiff(startTimeStr, lastDropTimeStr) : 0;
         document.getElementById('rpt_total_minutes').innerText = `${opMins} นาที`;
-        
+        const prodDropsCount = DATA.drops.filter(d => d.type==='prod').length;
+        document.getElementById('rpt_avg_time').innerText = prodDropsCount > 0 ? (opMins / prodDropsCount).toFixed(2) : 0;
+        const tonsPerDay = opMins > 0 ? ((totW * 1440) / opMins) / 1000 : 0;
+        document.getElementById('rpt_tons_day').innerText = tonsPerDay.toFixed(2);
+        document.getElementById('rpt_avg_yield').innerText = prodDropsCount > 0 ? ((sumP.hl+sumP.bh+sumP.bl) / prodDropsCount).toFixed(2) : 0;
+
         renderSummaryTable(truckMat);
         renderDetailTable(truckDetail);
         updateStats();
