@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V102 (Final Batch 40)</title>
+    <title>Smart Ice V103 (Ultimate Fix)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- Global Theme --- */
@@ -37,6 +37,8 @@
         .sack-item { text-align: center; }
         .sack-label { font-size: 0.7rem; color: #00695c; font-weight: bold; margin-bottom: 2px; }
         .sack-val { font-size: 1.4rem; font-weight: 800; color: #004d40; }
+        .sack-detail { display: flex; flex-direction: column; gap: 2px; font-size: 0.8rem; color: #555; margin-top: 2px; }
+        .sd-hl { color: #2e7d32; } .sd-bod { color: #6a1b9a; }
         .dist-container { background: #fafafa; border-radius: 12px; padding: 10px; border: 1px dashed #cfd8dc; margin-top: 15px; }
         .dist-item { background: white; padding: 10px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 8px; position: relative; }
         .dist-header { font-weight: bold; color: #0277bd; font-size: 1rem; display: flex; justify-content: space-between; align-items: center; }
@@ -80,6 +82,7 @@
         .dt-fresh { color: #2e7d32; font-weight: bold; background: #f1f8e9; }
         .dt-stock { color: #1565c0; font-weight: bold; background: #e3f2fd; }
         .dt-total { font-weight: 900; color: #37474f; background: #eceff1; }
+        .dt-row-label { font-weight: bold; color: #78909c; text-align: center; width: 20%; }
         .order-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
         .order-table th { background: #eceff1; padding: 8px; }
         .order-table td { padding: 8px 4px; border-bottom: 1px solid #eee; }
@@ -93,6 +96,7 @@
         .td-prod-val { font-weight: 800; color: #2e7d32; background: #f1f8e9; }
         .td-remain-val { font-weight: 600; color: #37474f; background: #f3e5f5; }
         .td-withdraw-val { font-weight: 600; color: #37474f; background: #e3f2fd; }
+        .btn-reset { background: #cfd8dc; color: #546e7a; border: none; padding: 10px; width: 100%; margin-top: 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .input-label { font-size: 0.75rem; color: #78909c; margin-bottom: 4px; font-weight: 600; text-align: center; }
@@ -137,7 +141,7 @@
             <h3>🚚 สั่งซื้อ (Master Order)</h3>
             <div id="order_inputs"></div>
         </div>
-        <button class="btn-reset" onclick="if(confirm('รีเซ็ตข้อมูล?')){localStorage.clear(); location.reload();}">🗑️ รีเซ็ตข้อมูล</button>
+        <button class="btn-reset" onclick="if(confirm('รีเซ็ตข้อมูลทั้งหมด?')){localStorage.clear(); location.reload();}">🗑️ รีเซ็ตข้อมูล (เริ่มใหม่)</button>
         <div style="height:50px;"></div>
     </div>
 
@@ -283,20 +287,23 @@
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
         const displayDrops = [...sortedDrops].reverse(); 
         
-        // Show ALL cards (V94 Standard) or just Latest? V94 standard showed list.
-        displayDrops.forEach(d => {
-             // Only show PROD in main list
-             if(d.type === 'prod') {
-                let prevTime = startTimeStr;
-                // Find prev time logic if needed... or just simplified
-                // ...
-                container.insertAdjacentHTML('beforeend', generateCardHtml(d));
-             }
-        });
+        const prodDrops = sortedDrops.filter(d => d.type === 'prod');
+        const latestProd = prodDrops[prodDrops.length - 1]; 
+
+        if(latestProd) {
+             const d = latestProd;
+             let prevTime = startTimeStr;
+             const idx = prodDrops.findIndex(p => p.id === d.id);
+             if(idx > 0) prevTime = prodDrops[idx-1].time;
+             const diffMin = getMinDiff(prevTime, d.time);
+             container.insertAdjacentHTML('beforeend', generateCardHtml(d, diffMin));
+        } else {
+            container.innerHTML = '<div style="text-align:center; color:#aaa; margin-top:50px;">กด + เพื่อเริ่มผลิต</div>';
+        }
         updateStats();
     }
 
-    function generateCardHtml(d) {
+    function generateCardHtml(d, diffMin) {
         let distHtml = '';
         if(d.dist) {
            d.dist.forEach((item, idx) => {
@@ -304,7 +311,6 @@
            });
         }
         
-        // Auto-Batch Calculation for Display
         let hlProd = getNum(d.p_in_room.hl);
         let bhProd = getNum(d.p_in_room.bh);
         let blProd = getNum(d.p_in_room.bl);
@@ -316,20 +322,18 @@
             });
         }
         
-        // 🔥 BATCH 40 LOGIC 🔥
         const hlBatch = Math.ceil(hlProd / 40) * 40;
         const crushBatch = Math.ceil((bhProd + blProd) / 40) * 40;
-        const totalSack = hlBatch + crushBatch;
-        
-        const used = hlProd + bhProd + blProd;
-        const rem = totalSack - used;
+        const hlUsed = hlProd;
+        const crushUsed = bhProd + blProd;
+        const hlRem = hlBatch - hlUsed;
+        const crushRem = crushBatch - crushUsed;
 
-        // V94 Card Structure with Auto-Filled Sack Input
-        return `<div class="modern-card"><div class="card-header-flex"><div class="badge-box bg-prod"><span>น้ำแข็ง<br>ตก<br>(ผลิต)</span></div><input type="time" class="big-time-input" value="${d.time}" onchange="updateDropVal(${d.id}, 'time', null, this.value)"><button class="btn-close-red" onclick="deleteDrop(${d.id})">×</button></div><div class="card-body" style="padding-top:0;">
+        return `<div class="modern-card"><div class="card-header-flex"><div class="badge-box bg-prod"><span>น้ำแข็ง<br>ตก<br>(ผลิต)</span></div><input type="time" class="big-time-input" value="${d.time}" onchange="updateDropVal(${d.id}, 'time', null, this.value)"><span class="time-diff-badge">(+${diffMin} น.)</span><button class="btn-close-red" onclick="deleteDrop(${d.id})">×</button></div><div class="card-body" style="padding-top:0;">
         <div class="sack-row">
-            <div class="sack-item"><div class="sack-label">เบิกกระสอบ (Auto)</div><input type="tel" id="sack_input_${d.id}" value="${totalSack}" readonly style="background:#eee;"></div>
-            <div class="sack-item"><div class="sack-label">ใช้บรรจุ</div><div class="sack-val" id="used_${d.id}">${used}</div></div>
-            <div class="sack-item"><div class="sack-label">เหลือคืน</div><div class="sack-val" id="rem_${d.id}">${rem}</div></div>
+            <div class="sack-item"><div class="sack-label">เบิก (หลอด/บด)</div><div style="font-weight:bold; font-size:1.1rem; color:#555;" id="disp_withdraw_${d.id}">${hlBatch} / ${crushBatch}</div></div>
+            <div class="sack-item"><div class="sack-label">ใช้ (หลอด/บด)</div><div style="font-weight:bold; font-size:1.1rem;" id="disp_used_${d.id}">${hlUsed} / ${crushUsed}</div></div>
+            <div class="sack-item"><div class="sack-label">คืน (หลอด/บด)</div><div class="sack-detail"><div class="sd-hl" id="disp_rem_hl_${d.id}">หลอด: ${hlRem}</div><div class="sd-bod" id="disp_rem_bod_${d.id}">บด: ${crushRem}</div></div></div>
         </div>
         <div class="grid-3"><div><div class="input-label">หลอด (เข้าห้อง)</div><input type="tel" inputmode="numeric" pattern="[0-9]*" value="${getNum(d.p_in_room.hl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'hl', this.value)"></div><div><div class="input-label">หยาบ (เข้าห้อง)</div><input type="tel" inputmode="numeric" pattern="[0-9]*" value="${getNum(d.p_in_room.bh)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bh', this.value)"></div><div><div class="input-label">ละเอียด (เข้าห้อง)</div><input type="tel" inputmode="numeric" pattern="[0-9]*" value="${getNum(d.p_in_room.bl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bl', this.value)"></div></div><div class="dist-container"><div style="font-size:0.8rem; color:#90a4ae; font-weight:bold; margin-bottom:5px;">รายการจ่ายเข้ารถ</div>${distHtml}<button class="btn-add-dist" onclick="openDistModal(${d.id})">+ เพิ่มรายการส่งเข้ารถ</button></div></div></div>`;
     }
@@ -340,10 +344,8 @@
         if(cat === 'time') d.time = val;
         else if(cat === 'p_in_room') d.p_in_room[sub] = getNum(val);
         
-        // No full re-render here to avoid keyboard closing, just update stats
         saveData(); 
         
-        // Direct DOM update for Sack Input & Stats
         if(cat === 'p_in_room' || cat === 'dist_update') {
             let hlProd = getNum(d.p_in_room.hl);
             let bhProd = getNum(d.p_in_room.bh);
@@ -357,23 +359,20 @@
             }
             const hlBatch = Math.ceil(hlProd / 40) * 40;
             const crushBatch = Math.ceil((bhProd + blProd) / 40) * 40;
-            const totalSack = hlBatch + crushBatch;
-            const used = hlProd + bhProd + blProd;
-            const rem = totalSack - used;
+            const hlRem = hlBatch - hlProd;
+            const crushRem = crushBatch - (bhProd + blProd);
             
-            const sackInp = document.getElementById(`sack_input_${id}`);
-            const usedEl = document.getElementById(`used_${id}`);
-            const remEl = document.getElementById(`rem_${id}`);
+            const dispW = document.getElementById(`disp_withdraw_${id}`);
+            const dispU = document.getElementById(`disp_used_${id}`);
+            const dispR1 = document.getElementById(`disp_rem_hl_${id}`);
+            const dispR2 = document.getElementById(`disp_rem_bod_${id}`);
             
-            if(sackInp) sackInp.value = totalSack;
-            if(usedEl) usedEl.innerText = used;
-            if(remEl) remEl.innerText = rem;
+            if(dispW) dispW.innerText = `${hlBatch} / ${crushBatch}`;
+            if(dispU) dispU.innerText = `${hlProd} / ${bhProd + blProd}`;
+            if(dispR1) dispR1.innerText = `หลอด: ${hlRem}`;
+            if(dispR2) dispR2.innerText = `บด: ${crushRem}`;
         }
         calcAll();
-    }
-    
-    function updateStats() {
-        // Handled in renderDrops initial pass
     }
 
     function calcAll() {
@@ -411,8 +410,10 @@
                 const hlRem = hlBatch - p_hl;
                 const crushRem = crushBatch - (p_bh + p_bl);
 
-                totalWithHL += hlBatch; totalWithBod += crushBatch;
-                totalRemHL += hlRem; totalRemBod += crushRem;
+                totalWithHL += hlBatch;
+                totalWithBod += crushBatch;
+                totalRemHL += hlRem;
+                totalRemBod += crushRem;
                 totalWithAll += (hlBatch + crushBatch);
                 totalUsedAll += (p_hl + p_bh + p_bl);
 
@@ -473,11 +474,17 @@
         for(let i=DATA.drops.length-1; i>=0; i--) { if(DATA.drops[i].type==='prod'){ lastDropTimeStr=DATA.drops[i].time; break; } }
         let opMins = lastDropTimeStr ? getMinDiff(startTimeStr, lastDropTimeStr) : 0;
         document.getElementById('rpt_total_minutes').innerText = `${opMins} นาที`;
-        
+        const prodDropsCount = DATA.drops.filter(d => d.type==='prod').length;
+        document.getElementById('rpt_avg_time').innerText = prodDropsCount > 0 ? (opMins / prodDropsCount).toFixed(2) : 0;
+        const tonsPerDay = opMins > 0 ? ((totW * 1440) / opMins) / 1000 : 0;
+        document.getElementById('rpt_tons_day').innerText = tonsPerDay.toFixed(2);
+        document.getElementById('rpt_avg_yield').innerText = prodDropsCount > 0 ? ((sumP.hl+sumP.bh+sumP.bl) / prodDropsCount).toFixed(2) : 0;
+
         renderSummaryTable(truckMat);
         renderDetailTable(truckDetail);
+        updateStats();
     }
-    
+
     function renderSummaryTable(mat) {
         let h = `<table class="truck-matrix-table"><thead><tr><th style="text-align:left;">รถ</th><th>หลอด</th><th>หยาบ</th><th>ละ..</th></tr></thead><tbody>`;
         TRUCKS.forEach((t, i) => {
@@ -500,7 +507,7 @@
         h += `</tbody></table>`;
         document.getElementById('truck_report_container').innerHTML = h;
     }
-    
+
     function renderDetailTable(det) {
         let h = '';
         TRUCKS.forEach((t, i) => {
