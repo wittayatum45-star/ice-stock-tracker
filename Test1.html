@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V105 (Focus + Detail)</title>
+    <title>Smart Ice V106 (Bug Free)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- Global Theme --- */
@@ -37,6 +37,8 @@
         .sack-item { text-align: center; }
         .sack-label { font-size: 0.65rem; color: #00695c; font-weight: bold; margin-bottom: 2px; white-space: nowrap; }
         .sack-val { font-size: 1.2rem; font-weight: 800; color: #004d40; }
+        .sack-detail { display: flex; flex-direction: column; gap: 2px; font-size: 0.8rem; color: #555; margin-top: 2px; }
+        .sd-hl { color: #2e7d32; } .sd-bod { color: #6a1b9a; }
         .dist-container { background: #fafafa; border-radius: 12px; padding: 10px; border: 1px dashed #cfd8dc; margin-top: 15px; }
         .dist-item { background: white; padding: 10px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 8px; position: relative; }
         .dist-header { font-weight: bold; color: #0277bd; font-size: 1rem; display: flex; justify-content: space-between; align-items: center; }
@@ -58,10 +60,12 @@
         .wiz-status { text-align: center; background: #e0f7fa; padding: 10px; border-radius: 8px; margin-bottom: 20px; border: 1px dashed #00acc1; }
         .wiz-status-text { font-size: 0.9rem; color: #006064; }
         .wiz-remain { font-size: 1.5rem; font-weight: 900; }
+        .st-ok { color: #2e7d32; } .st-miss { color: #d32f2f; } .st-over { color: #1565c0; } .st-none { color: #cfd8dc; font-weight: 400; font-size: 1.2rem; }
         .row-inputs { display: flex; flex-direction: column; gap: 10px; }
         .row-group { display: flex; align-items: center; gap: 10px; }
         .row-label { font-weight: bold; width: 60px; color: #546e7a; text-align: right; }
         .btn-save-dist { width: 100%; padding: 15px; background: #00c853; color: white; border: none; border-radius: 12px; font-size: 1.2rem; font-weight: bold; margin-top: 20px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,200,83,0.3); }
+        .btn-save-dist.edit-mode { background: #ff9800; box-shadow: 0 4px 10px rgba(255, 152, 0, 0.3); }
         .report-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; margin-top: 5px; table-layout: fixed; }
         .report-table th, .report-table td { border: 1px solid #cfd8dc; padding: 8px 4px; text-align: center; }
         .th-time { background: #eceff1; } .th-withdraw { background: #e3f2fd; } .th-prod { background: #e8f5e9; } .th-remain { background: #f3e5f5; }
@@ -69,8 +73,6 @@
         .truck-matrix-table th { background: #eceff1; color: #546e7a; padding: 12px 8px; font-weight: 700; border-bottom: 2px solid #cfd8dc; font-size: 0.9rem; }
         .truck-matrix-table td { border-bottom: 1px solid #f0f0f0; padding: 10px 4px; text-align: center; vertical-align: middle; }
         .truck-name-col { text-align: left; padding-left: 15px; font-weight: 800; color: #37474f; font-size: 0.95rem; }
-        .st-pill { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; min-width: 60px; }
-        .st-over { background: #e3f2fd; color: #1565c0; } .st-miss { background: #ffebee; color: #c62828; } .st-ok { background: #e8f5e9; color: #2e7d32; } .st-none { color: #cfd8dc; font-weight: 400; font-size: 1.2rem; }
         .truck-detail-block { background: white; border-radius: 12px; padding: 15px; margin-bottom: 20px; border: 2px solid #b0bec5; box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
         .truck-detail-header { font-weight: 800; color: #006064; border-bottom: 2px solid #e0f7fa; padding-bottom: 8px; margin-bottom: 12px; font-size: 1.1rem; display: flex; justify-content: space-between; align-items: center; }
         .btn-history { background: #ff9800; color: white; border: none; border-radius: 8px; padding: 4px 10px; font-size: 0.85rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 5px; }
@@ -80,6 +82,7 @@
         .dt-fresh { color: #2e7d32; font-weight: bold; background: #f1f8e9; }
         .dt-stock { color: #1565c0; font-weight: bold; background: #e3f2fd; }
         .dt-total { font-weight: 900; color: #37474f; background: #eceff1; }
+        .dt-row-label { font-weight: bold; color: #78909c; text-align: center; width: 20%; }
         .order-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
         .order-table th { background: #eceff1; padding: 8px; }
         .order-table td { padding: 8px 4px; border-bottom: 1px solid #eee; }
@@ -93,6 +96,12 @@
         .td-prod-val { font-weight: 800; color: #2e7d32; background: #f1f8e9; }
         .td-remain-val { font-weight: 600; color: #37474f; background: #f3e5f5; }
         .td-withdraw-val { font-weight: 600; color: #37474f; background: #e3f2fd; }
+        .hist-item { background: white; border: 1px solid #eee; padding: 10px; margin-bottom: 8px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .hist-info { font-size: 0.9rem; color: #333; }
+        .hist-tag { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; margin-left: 5px; font-weight: bold; }
+        .ht-fresh { background: #e8f5e9; color: #2e7d32; }
+        .ht-stock { background: #e3f2fd; color: #1565c0; }
+        .hist-actions { display: flex; gap: 5px; }
         .btn-reset { background: #cfd8dc; color: #546e7a; border: none; padding: 10px; width: 100%; margin-top: 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -460,6 +469,9 @@
         
         const totW = ((sumP.hl*20)+(sumP.bh*23)+(sumP.bl*24));
         document.getElementById('rpt_total_weight').innerText = totW.toLocaleString();
+        document.getElementById('rpt_w_hl').innerText = (sumP.hl*20).toLocaleString();
+        document.getElementById('rpt_w_bh').innerText = (sumP.bh*23).toLocaleString();
+        document.getElementById('rpt_w_bl').innerText = (sumP.bl*24).toLocaleString();
         
         document.getElementById('rpt_rem_hl').innerText = totalRemHL;
         document.getElementById('rpt_rem_bod').innerText = totalRemBod;
