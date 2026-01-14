@@ -3,34 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V113 (Final Logic Fix)</title>
+    <title>Smart Ice V117 (Reorder Page 3)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        /* --- Theme --- */
+        /* --- Global Theme --- */
         body { font-family: 'Sarabun', sans-serif; margin: 0; padding: 0; background: #f5f7fa; color: #37474f; padding-bottom: 100px; font-size: 14px; }
         * { box-sizing: border-box; }
+        
+        /* Dashboard */
         .dashboard { position: sticky; top: 0; z-index: 1000; background: #263238; color: white; padding: 12px 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; justify-content: space-around; }
         .dash-item span { font-size: 0.75rem; color: #b0bec5; display: block; margin-bottom: 2px; }
         .dash-item div { font-size: 1.3rem; font-weight: 800; color: #69f0ae; line-height: 1; }
+        
+        /* Nav & Status */
         .order-status-bar { background: #fff3e0; border-bottom: 1px solid #ffe0b2; padding: 8px; text-align: center; font-size: 0.9rem; color: #ef6c00; font-weight: bold; display: flex; justify-content: space-around; position: sticky; top: 65px; z-index: 950; }
         .nav-bar { display: flex; background: white; margin: 10px; border-radius: 50px; padding: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: sticky; top: 105px; z-index: 900; }
         .nav-btn { flex: 1; padding: 10px; text-align: center; border: none; background: none; font-weight: bold; color: #90a4ae; cursor: pointer; border-radius: 40px; transition: 0.2s; }
         .nav-btn.active { background: #0277bd; color: white; box-shadow: 0 2px 8px rgba(2,119,189,0.4); }
+        
+        /* Layout */
         .page { display: none; padding: 10px; max-width: 800px; margin: 0 auto; }
         .page.active { display: block; }
         .modern-card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); margin-bottom: 20px; overflow: hidden; border: 1px solid #fff; }
         .card-body { padding: 15px; }
+        
+        /* Inputs */
         input[type="number"], input[type="tel"] { width: 100%; padding: 12px; font-size: 1.4rem; text-align: center; font-weight: 600; border: 1px solid #e0e0e0; border-radius: 10px; background: #fff; -moz-appearance: textfield; transition: border-color 0.2s; }
         input:focus { border-color: #29b6f6; box-shadow: 0 0 0 3px rgba(41,182,246,0.1); outline: none; background: #fff; }
         input[type="time"], input[type="date"] { width: 100%; padding: 10px; border: 1px solid #cfd8dc; border-radius: 8px; text-align: center; font-size: 1.1rem; background: white; }
         
-        /* Card UI */
+        /* Card UI (Page 2) */
         .card-header-flex { display: flex; align-items: center; padding: 10px; gap: 10px; background: #f9fafb; border-bottom: 1px solid #eee; }
         .badge-box { border-radius: 12px; padding: 5px; width: 70px; text-align: center; color: white; font-weight: bold; font-size: 0.75rem; display: flex; flex-direction: column; justify-content: center; height: 50px; }
         .bg-prod { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+        .bg-stock { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; }
         .big-time-input { font-size: 1.8rem; font-weight: 800; color: #37474f; border: none; background: none; width: 100px; text-align: center; }
         .time-diff-badge { font-size: 0.85rem; color: #0277bd; font-weight: bold; background: #e1f5fe; padding: 4px 8px; border-radius: 12px; white-space: nowrap; }
         .btn-close-red { width: 35px; height: 35px; border-radius: 8px; background: #ffebee; color: #c62828; border: none; font-size: 1.2rem; font-weight: bold; cursor: pointer; margin-left: auto; }
+        
+        /* Sack Display */
         .sack-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; background: #e0f2f1; padding: 10px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #b2dfdb; }
         .sack-item { text-align: center; }
         .sack-label { font-size: 0.65rem; color: #00695c; font-weight: bold; margin-bottom: 2px; white-space: nowrap; }
@@ -38,7 +49,7 @@
         .sack-split { font-size: 0.85rem; color: #555; display: flex; justify-content: center; gap: 5px; margin-top: 2px; }
         .ss-hl { color: #2e7d32; font-weight:bold; } .ss-bod { color: #6a1b9a; font-weight:bold; }
 
-        /* Report */
+        /* Report Table */
         .paper-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 5px; border: 1px solid #546e7a; }
         .paper-table th { background: #cfd8dc; border: 1px solid #90a4ae; padding: 6px 2px; text-align: center; font-weight: bold; color: #37474f; vertical-align: middle; line-height: 1.1; }
         .paper-table td { border: 1px solid #b0bec5; padding: 8px 4px; text-align: center; vertical-align: middle; color: #263238; font-weight: 600; font-size: 0.95rem; }
@@ -47,7 +58,8 @@
         .pt-prod { background: #e8f5e9; color: #2e7d32; } 
         .pt-rem { background: #fff3e0; color: #e65100; } 
         .sub-header { font-size: 0.75rem; color: #546e7a; background: #f5f5f5; }
-        
+
+        /* Custom Report Box */
         .custom-report { border: 2px solid #546e7a; border-radius: 8px; padding: 15px; margin-top: 20px; background: #fff; }
         .cr-section { margin-bottom: 15px; border-bottom: 1px dashed #ccc; padding-bottom: 10px; }
         .cr-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
@@ -57,14 +69,19 @@
         .cr-total { color: #0277bd; font-size: 1.1rem; }
         .cr-header { font-weight: 800; color: #37474f; margin-bottom: 8px; font-size: 1.05rem; background: #eceff1; padding: 5px; border-radius: 4px; }
 
-        /* Truck Status */
+        /* Truck Matrix */
         .truck-matrix-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 5px; border: 1px solid #ddd; }
         .truck-matrix-table th { background: #eceff1; color: #546e7a; padding: 12px 8px; font-weight: 700; border-bottom: 2px solid #cfd8dc; font-size: 0.9rem; }
         .truck-matrix-table td { border-bottom: 1px solid #f0f0f0; padding: 10px 4px; text-align: center; vertical-align: middle; }
         .truck-name-col { text-align: left; padding-left: 15px; font-weight: 800; color: #37474f; font-size: 0.95rem; }
         .st-pill { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; min-width: 60px; }
         .st-over { background: #e3f2fd; color: #1565c0; } .st-miss { background: #ffebee; color: #c62828; } .st-ok { background: #e8f5e9; color: #2e7d32; } .st-none { color: #cfd8dc; font-weight: 400; font-size: 1.2rem; }
-        
+
+        /* Helpers */
+        .btn-reset { background: #cfd8dc; color: #546e7a; border: none; padding: 10px; width: 100%; margin-top: 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .input-label { font-size: 0.75rem; color: #78909c; margin-bottom: 4px; font-weight: 600; text-align: center; }
         .truck-detail-block { background: white; border-radius: 12px; padding: 15px; margin-bottom: 20px; border: 2px solid #b0bec5; box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
         .truck-detail-header { font-weight: 800; color: #006064; border-bottom: 2px solid #e0f7fa; padding-bottom: 8px; margin-bottom: 12px; font-size: 1.1rem; display: flex; justify-content: space-between; align-items: center; }
         .btn-history { background: #ff9800; color: white; border: none; border-radius: 8px; padding: 4px 10px; font-size: 0.85rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 5px; }
@@ -74,9 +91,11 @@
         .dt-fresh { color: #2e7d32; font-weight: bold; background: #f1f8e9; }
         .dt-stock { color: #1565c0; font-weight: bold; background: #e3f2fd; }
         .dt-total { font-weight: 900; color: #37474f; background: #eceff1; }
+        .order-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .order-table th { background: #eceff1; padding: 8px; }
+        .order-table td { padding: 8px 4px; border-bottom: 1px solid #eee; }
+        .order-sum-col { font-weight: bold; color: #0277bd; background: #e1f5fe; text-align: center; }
         
-        /* Others */
-        .btn-reset { background: #cfd8dc; color: #546e7a; border: none; padding: 10px; width: 100%; margin-top: 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .dist-container { background: #fafafa; border-radius: 12px; padding: 10px; border: 1px dashed #cfd8dc; margin-top: 15px; }
         .dist-item { background: white; padding: 10px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 8px; position: relative; }
         .dist-header { font-weight: bold; color: #0277bd; font-size: 1rem; display: flex; justify-content: space-between; align-items: center; }
@@ -106,13 +125,6 @@
         .btn-view-history { background: #546e7a; color: white; box-shadow: 0 4px 10px rgba(84,110,122,0.3); margin-bottom: 20px; }
         .btn-save-dist { width: 100%; padding: 15px; background: #00c853; color: white; border: none; border-radius: 12px; font-size: 1.2rem; font-weight: bold; margin-top: 20px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,200,83,0.3); }
         .btn-save-dist.edit-mode { background: #ff9800; box-shadow: 0 4px 10px rgba(255, 152, 0, 0.3); }
-        .order-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-        .order-table th { background: #eceff1; padding: 8px; }
-        .order-table td { padding: 8px 4px; border-bottom: 1px solid #eee; }
-        .order-sum-col { font-weight: bold; color: #0277bd; background: #e1f5fe; text-align: center; }
-        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .input-label { font-size: 0.75rem; color: #78909c; margin-bottom: 4px; font-weight: 600; text-align: center; }
         .hist-item { background: white; border: 1px solid #eee; padding: 10px; margin-bottom: 8px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
         .hist-info { font-size: 0.9rem; color: #333; }
         .hist-tag { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; margin-left: 5px; font-weight: bold; }
@@ -174,7 +186,11 @@
     <div class="fab-container"><button class="fab-main" onclick="addDrop('prod')">+</button></div>
 
     <div id="page-summary" class="page">
-        
+        <div class="modern-card card-body">
+             <h3>📊 สรุปสถานะรายคัน (ขาด/เกิน)</h3>
+             <div id="truck_report_container"></div>
+        </div>
+
         <div class="modern-card card-body">
             <h3>📝 บันทึกการผลิต (ตามแบบฟอร์ม)</h3>
             <div style="overflow-x:auto;">
@@ -235,11 +251,6 @@
                     <div class="cr-row" style="color:red;"><span class="cr-label">กระสอบคงเหลือ:</span> <span class="cr-val" id="rpt_rem_total_all">0</span> ใบ</div>
                 </div>
             </div>
-        </div>
-        
-        <div class="modern-card card-body">
-             <h3>📊 สรุปสถานะรายคัน (ขาด/เกิน)</h3>
-             <div id="truck_report_container"></div>
         </div>
 
         <div class="modern-card card-body">
@@ -306,12 +317,13 @@
     
     function deleteDrop(id) { if(confirm("ลบรายการนี้?")) { DATA.drops = DATA.drops.filter(d => d.id !== id); saveData(); renderDrops(); calcAll(); if(document.getElementById('stock_manager_modal').style.display === 'block') openStockManager(); } }
     
-    // 🔥 FOCUS MODE: LATEST ONLY 🔥
     function renderDrops() {
         const container = document.getElementById('drops_list');
         container.innerHTML = '';
         const startTimeStr = document.getElementById('time_start').value;
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
+        const displayDrops = [...sortedDrops].reverse(); 
+        
         const prodDrops = sortedDrops.filter(d => d.type === 'prod');
         const latestProd = prodDrops[prodDrops.length - 1]; 
 
@@ -382,61 +394,29 @@
         calcAll();
     }
 
-    // --- REBUILT CALCULATION ENGINE ---
     function calcAll() {
-        let sumP={hl:0,bh:0,bl:0};
-        let curHL=getNum(document.getElementById('init_hl').value);
-        let curBH=getNum(document.getElementById('init_bh').value);
-        let curBL=getNum(document.getElementById('init_bl').value);
-        
-        let totalSent=0;
-        let totalWithHL=0, totalWithBod=0;
-        let totalRemHL=0, totalRemBod=0;
-        let totalUsedAll=0;
-        
-        let prodLogHtml = '';
-        let startTimeStr = document.getElementById('time_start').value;
+        let sumP={hl:0,bh:0,bl:0}, curHL=getNum(document.getElementById('init_hl').value), curBH=getNum(document.getElementById('init_bh').value), curBL=getNum(document.getElementById('init_bl').value);
+        let totalSent=0, totalWithHL=0, totalWithBod=0, totalRemHL=0, totalRemBod=0, totalUsedAll=0;
+        let prodLogHtml = '', startTimeStr = document.getElementById('time_start').value;
         let lastProdTime = startTimeStr;
 
-        let truckMat = {}; 
-        let truckDetail = {};
-        
-        // Init Truck Data
-        TRUCKS.forEach((t,i) => { 
-            let tid = `t${i+1}`; 
-            truckMat[tid] = {hl:{fr:0,st:0}, bh:{fr:0,st:0}, bl:{fr:0,st:0}}; 
-            truckDetail[tid] = { hl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bh: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} } }; 
-        });
+        let truckMat = {}; let truckDetail = {};
+        TRUCKS.forEach((t,i) => { let tid = `t${i+1}`; truckMat[tid] = {hl:{fr:0,st:0}, bh:{fr:0,st:0}, bl:{fr:0,st:0}}; truckDetail[tid] = { hl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bh: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} } }; });
 
-        // 1. ITERATE DROPS
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
 
         sortedDrops.forEach(d => {
             let p_hl=0, p_bh=0, p_bl=0;
-            
-            // --- PROD LOGIC ---
             if(d.type === 'prod') {
-                p_hl = getNum(d.p_in_room.hl); 
-                p_bh = getNum(d.p_in_room.bh); 
-                p_bl = getNum(d.p_in_room.bl);
+                p_hl = getNum(d.p_in_room.hl); p_bh = getNum(d.p_in_room.bh); p_bl = getNum(d.p_in_room.bl);
+                if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') p_hl+=getNum(i.total); if(i.type==='bh') p_bh+=getNum(i.total); if(i.type==='bl') p_bl+=getNum(i.total); }); }
                 
-                if(d.dist) { 
-                    d.dist.forEach(i => { 
-                        if(i.type==='hl') p_hl+=getNum(i.total); 
-                        if(i.type==='bh') p_bh+=getNum(i.total); 
-                        if(i.type==='bl') p_bl+=getNum(i.total); 
-                    }); 
-                }
-                
-                const w_hl = Math.ceil(p_hl/40)*40; 
-                const w_bod = Math.ceil((p_bh+p_bl)/40)*40;
-                const r_hl = w_hl - p_hl; 
-                const r_bod = w_bod - (p_bh+p_bl);
+                const w_hl = Math.ceil(p_hl/40)*40; const w_bod = Math.ceil((p_bh+p_bl)/40)*40;
+                const r_hl = w_hl - p_hl; const r_bod = w_bod - (p_bh+p_bl);
 
                 totalWithHL += w_hl; totalWithBod += w_bod;
                 totalRemHL += r_hl; totalRemBod += r_bod;
                 totalUsedAll += (p_hl + p_bh + p_bl);
-                
                 sumP.hl += p_hl; sumP.bh += p_bh; sumP.bl += p_bl;
                 curHL += getNum(d.p_in_room.hl); curBH += getNum(d.p_in_room.bh); curBL += getNum(d.p_in_room.bl);
 
@@ -448,132 +428,47 @@
                     <td class="pt-rem">${w_hl>0?r_hl:'-'}</td><td class="pt-rem">${w_bod>0?r_bod:'-'}</td>
                 </tr>`;
             }
-            
-            // --- DIST LOGIC (Must run for both prod and stock drops) ---
-            if(d.dist) { 
-                d.dist.forEach(i => { 
-                    const total = getNum(i.total); 
-                    totalSent += total; 
-                    const field = d.type === 'prod' ? 'fr' : 'st'; 
-                    
-                    // Truck Matrix Accumulation
-                    if(truckMat[i.truck]) {
-                        truckMat[i.truck][i.type][field] += total; 
-                    }
-                    
-                    // Truck Detail Accumulation
-                    if(truckDetail[i.truck] && truckDetail[i.truck][i.type]) { 
-                        truckDetail[i.truck][i.type].r1[field] += getNum(i.r1); 
-                        truckDetail[i.truck][i.type].r2[field] += getNum(i.r2); 
-                        truckDetail[i.truck][i.type].r3[field] += getNum(i.r3); 
-                    } 
-                    
-                    if(d.type === 'stock') { 
-                        if(i.type==='hl') curHL -= total; 
-                        if(i.type==='bh') curBH -= total; 
-                        if(i.type==='bl') curBL -= total; 
-                    } 
-                }); 
-            }
+            if(d.dist) { d.dist.forEach(i => { const total = getNum(i.total); totalSent += total; const field = d.type === 'prod' ? 'fr' : 'st'; truckMat[i.truck][i.type][field] += total; if(truckDetail[i.truck] && truckDetail[i.truck][i.type]) { truckDetail[i.truck][i.type].r1[field] += getNum(i.r1); truckDetail[i.truck][i.type].r2[field] += getNum(i.r2); truckDetail[i.truck][i.type].r3[field] += getNum(i.r3); } if(d.type === 'stock') { if(i.type==='hl') curHL -= total; if(i.type==='bh') curBH -= total; if(i.type==='bl') curBL -= total; } }); }
         });
 
-        // 2. UPDATE DOM (Safe Check)
-        const safeSet = (id, val) => { if(document.getElementById(id)) document.getElementById(id).innerText = val; };
-
         document.getElementById('prod_log_body').innerHTML = prodLogHtml;
-        safeSet('dash_hl', curHL); safeSet('dash_bh', curBH); safeSet('dash_bl', curBL);
-        
+        document.getElementById('dash_hl').innerText = curHL; document.getElementById('dash_bh').innerText = curBH; document.getElementById('dash_bl').innerText = curBL;
         let totOrd=0; for(let k in DATA.orders) totOrd+=getNum(DATA.orders[k]);
-        safeSet('os_total', totOrd); safeSet('os_sent', totalSent); safeSet('os_remain', totOrd - totalSent);
+        document.getElementById('os_total').innerText = totOrd; document.getElementById('os_sent').innerText = totalSent; document.getElementById('os_remain').innerText = totOrd - totalSent;
 
-        // Custom Report Data Filling
-        safeSet('rpt_hl', sumP.hl); 
-        safeSet('rpt_bh', sumP.bh); 
-        safeSet('rpt_bl', sumP.bl);
-        safeSet('rpt_total_prod', sumP.hl + sumP.bh + sumP.bl);
+        document.getElementById('rpt_hl').innerText = sumP.hl; 
+        document.getElementById('rpt_bh').innerText = sumP.bh; 
+        document.getElementById('rpt_bl').innerText = sumP.bl;
+        document.getElementById('rpt_total_prod').innerText = sumP.hl + sumP.bh + sumP.bl;
         
         const totW = ((sumP.hl*20) + (sumP.bh*23) + (sumP.bl*24));
-        safeSet('rpt_total_weight', totW.toLocaleString());
-        safeSet('rpt_w_hl', (sumP.hl*20).toLocaleString());
-        safeSet('rpt_w_bh', (sumP.bh*23).toLocaleString());
-        safeSet('rpt_w_bl', (sumP.bl*24).toLocaleString());
+        document.getElementById('rpt_total_weight').innerText = totW.toLocaleString();
+        document.getElementById('rpt_w_hl').innerText = (sumP.hl*20).toLocaleString();
+        document.getElementById('rpt_w_bh').innerText = (sumP.bh*23).toLocaleString();
+        document.getElementById('rpt_w_bl').innerText = (sumP.bl*24).toLocaleString();
         
-        safeSet('rpt_with_hl', totalWithHL); 
-        safeSet('rpt_with_bod', totalWithBod);
-        safeSet('rpt_sack_withdraw', totalWithHL + totalWithBod);
-        safeSet('rpt_sack_used', totalUsedAll);
-        safeSet('rpt_rem_total_all', totalRemHL + totalRemBod);
+        document.getElementById('rpt_with_hl').innerText = totalWithHL; 
+        document.getElementById('rpt_with_bod').innerText = totalWithBod;
+        document.getElementById('rpt_sack_withdraw').innerText = totalWithHL + totalWithBod;
+        document.getElementById('rpt_sack_used').innerText = totalUsedAll;
+        document.getElementById('rpt_rem_total_all').innerText = totalRemHL + totalRemBod;
 
-        let lastDropTimeStr = ""; 
+        let lastDropTimeStr = ""; for(let i=DATA.drops.length-1; i>=0; i--) { if(DATA.drops[i].type==='prod'){ lastDropTimeStr=DATA.drops[i].time; break; } }
+        let opMins = lastDropTimeStr ? getMinDiff(startTimeStr, lastDropTimeStr) : 0;
         const prodDropsCount = DATA.drops.filter(d => d.type==='prod').length;
-        if(prodDropsCount > 0) {
-            for(let i=DATA.drops.length-1; i>=0; i--) { if(DATA.drops[i].type==='prod'){ lastDropTimeStr=DATA.drops[i].time; break; } }
-            let opMins = lastDropTimeStr ? getMinDiff(startTimeStr, lastDropTimeStr) : 0;
-            safeSet('rpt_avg_time', (opMins / prodDropsCount).toFixed(0));
-            
-            const tons = totW / 1000;
-            safeSet('rpt_tons_day', tons.toFixed(2));
-            safeSet('rpt_avg_yield', ((sumP.hl+sumP.bh+sumP.bl) / prodDropsCount).toFixed(0));
-        } else {
-            safeSet('rpt_avg_time', 0);
-            safeSet('rpt_tons_day', 0);
-            safeSet('rpt_avg_yield', 0);
-        }
+        document.getElementById('rpt_avg_time').innerText = prodDropsCount > 0 ? (opMins / prodDropsCount).toFixed(0) : 0;
+        
+        const tons = totW / 1000;
+        document.getElementById('rpt_tons_day').innerText = tons.toFixed(2);
+        
+        document.getElementById('rpt_avg_yield').innerText = prodDropsCount > 0 ? ((sumP.hl+sumP.bh+sumP.bl) / prodDropsCount).toFixed(0) : 0;
 
-        // 3. RENDER TRUCK TABLES (Crucial Step)
         renderSummaryTable(truckMat);
         renderDetailTable(truckDetail);
     }
 
-    function renderSummaryTable(mat) { 
-        let h = `<table class="truck-matrix-table"><thead><tr><th style="text-align:left;">รถ</th><th>หลอด</th><th>หยาบ</th><th>ละ..</th></tr></thead><tbody>`; 
-        TRUCKS.forEach((t, i) => { 
-            const tid = `t${i+1}`; 
-            h += `<tr><td class="truck-name-col">${t}</td>`; 
-            ICE_TYPES.forEach(ty => { 
-                const target = getNum(DATA.orders[`${tid}_${ty.id}`]); 
-                const sent = mat[tid][ty.id].fr + mat[tid][ty.id].st; 
-                let cell = `<span class="st-none">-</span>`; 
-                if(target > 0 || sent > 0) { 
-                    const rem = target - sent; 
-                    if(rem > 0) cell = `<span class="st-pill st-miss">ขาด ${rem}</span>`; 
-                    else if(rem < 0) cell = `<span class="st-pill st-over">เกิน ${Math.abs(rem)}</span>`; 
-                    else cell = `<span class="st-pill st-ok">ครบ</span>`; 
-                } 
-                h += `<td>${cell}</td>`; 
-            }); 
-            h += `</tr>`; 
-        }); 
-        h += `</tbody></table>`; 
-        document.getElementById('truck_report_container').innerHTML = h; 
-    }
-
-    function renderDetailTable(det) { 
-        let h = ''; 
-        TRUCKS.forEach((t, i) => { 
-            const tid = `t${i+1}`; 
-            if(det[tid]) { 
-                let hasData = false; 
-                let content = `<div class="truck-detail-block"><div class="truck-detail-header"><span>🚛 ${t}</span><button class="btn-history" onclick="openTruckHistory('${tid}')">🕒 ดูประวัติ</button></div>`; 
-                ICE_TYPES.forEach(ty => { 
-                    if(det[tid][ty.id]) { 
-                        const d = det[tid][ty.id]; 
-                        const t_r1 = d.r1.fr+d.r1.st; const t_r2 = d.r2.fr+d.r2.st; const t_r3 = d.r3.fr+d.r3.st; 
-                        const grand = t_r1+t_r2+t_r3; 
-                        const ordered = getNum(DATA.orders[`${tid}_${ty.id}`]); 
-                        if(grand > 0 || ordered > 0) { 
-                            hasData = true; 
-                            content += `<div style="margin-bottom:10px;"><div style="font-weight:bold; color:#0277bd;">${ty.label} <small style="color:#aaa;">(เป้า: ${ordered})</small></div><table class="detail-table"><thead><tr><th style="width:20%">แถว</th><th>เก่า</th><th>สด</th><th>รวม</th></tr></thead><tbody><tr><td>1</td><td class="dt-stock">${d.r1.st||'-'}</td><td class="dt-fresh">${d.r1.fr||'-'}</td><td>${t_r1}</td></tr><tr><td>2</td><td class="dt-stock">${d.r2.st||'-'}</td><td class="dt-fresh">${d.r2.fr||'-'}</td><td>${t_r2}</td></tr><tr><td>3</td><td class="dt-stock">${d.r3.st||'-'}</td><td class="dt-fresh">${d.r3.fr||'-'}</td><td>${t_r3}</td></tr><tr><td colspan="3" style="text-align:right; font-weight:bold;">รวม:</td><td class="dt-total">${grand}</td></tr></tbody></table></div>`; 
-                        } 
-                    } 
-                }); 
-                content += `</div>`; 
-                if(hasData) h += content; 
-            } 
-        }); 
-        if(h==='') h='<div style="text-align:center; padding:20px; color:#aaa;">ยังไม่มีข้อมูล</div>'; 
-        document.getElementById('truck_detail_container').innerHTML = h; 
-    }
+    function renderSummaryTable(mat) { let h = `<table class="truck-matrix-table"><thead><tr><th style="text-align:left;">รถ</th><th>หลอด</th><th>หยาบ</th><th>ละ..</th></tr></thead><tbody>`; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; h += `<tr><td class="truck-name-col">${t}</td>`; ICE_TYPES.forEach(ty => { const target = getNum(DATA.orders[`${tid}_${ty.id}`]); const sent = mat[tid][ty.id].fr + mat[tid][ty.id].st; let cell = `<span class="st-none">-</span>`; if(target > 0 || sent > 0) { const rem = target - sent; if(rem > 0) cell = `<span class="st-pill st-miss">ขาด ${rem}</span>`; else if(rem < 0) cell = `<span class="st-pill st-over">เกิน ${Math.abs(rem)}</span>`; else cell = `<span class="st-pill st-ok">ครบ</span>`; } h += `<td>${cell}</td>`; }); h += `</tr>`; }); h += `</tbody></table>`; document.getElementById('truck_report_container').innerHTML = h; }
+    function renderDetailTable(det) { let h = ''; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; if(det[tid]) { let hasData = false; let content = `<div class="truck-detail-block"><div class="truck-detail-header"><span>🚛 ${t}</span><button class="btn-history" onclick="openTruckHistory('${tid}')">🕒 ดูประวัติ</button></div>`; ICE_TYPES.forEach(ty => { if(det[tid][ty.id]) { const d = det[tid][ty.id]; const t_r1 = d.r1.fr+d.r1.st; const t_r2 = d.r2.fr+d.r2.st; const t_r3 = d.r3.fr+d.r3.st; const grand = t_r1+t_r2+t_r3; const ordered = getNum(DATA.orders[`${tid}_${ty.id}`]); if(grand > 0 || ordered > 0) { hasData = true; content += `<div style="margin-bottom:10px;"><div style="font-weight:bold; color:#0277bd;">${ty.label} <small style="color:#aaa;">(เป้า: ${ordered})</small></div><table class="detail-table"><thead><tr><th style="width:20%">แถว</th><th>เก่า</th><th>สด</th><th>รวม</th></tr></thead><tbody><tr><td>1</td><td class="dt-stock">${d.r1.st||'-'}</td><td class="dt-fresh">${d.r1.fr||'-'}</td><td>${t_r1}</td></tr><tr><td>2</td><td class="dt-stock">${d.r2.st||'-'}</td><td class="dt-fresh">${d.r2.fr||'-'}</td><td>${t_r2}</td></tr><tr><td>3</td><td class="dt-stock">${d.r3.st||'-'}</td><td class="dt-fresh">${d.r3.fr||'-'}</td><td>${t_r3}</td></tr><tr><td colspan="3" style="text-align:right; font-weight:bold;">รวม:</td><td class="dt-total">${grand}</td></tr></tbody></table></div>`; } } }); content += `</div>`; if(hasData) h += content; } }); if(h==='') h='<div style="text-align:center; padding:20px; color:#aaa;">ยังไม่มีข้อมูล</div>'; document.getElementById('truck_detail_container').innerHTML = h; }
     
     function updateStock() { DATA.initStock.hl = getNum(document.getElementById('init_hl').value); DATA.initStock.bh = getNum(document.getElementById('init_bh').value); DATA.initStock.bl = getNum(document.getElementById('init_bl').value); saveData(); calcAll(); }
     function updateOrder(key, val) { DATA.orders[key] = getNum(val); saveData(); calcAll(); }
