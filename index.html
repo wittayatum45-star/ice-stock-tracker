@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V111 (Custom Report)</title>
+    <title>Smart Ice V112 (Final Fix)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- Global Theme --- */
@@ -27,7 +27,7 @@
         .modern-card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); margin-bottom: 20px; overflow: hidden; border: 1px solid #fff; }
         .card-body { padding: 15px; }
         
-        /* Inputs (Zero Fix) */
+        /* Inputs */
         input[type="number"], input[type="tel"] { width: 100%; padding: 12px; font-size: 1.4rem; text-align: center; font-weight: 600; border: 1px solid #e0e0e0; border-radius: 10px; background: #fff; -moz-appearance: textfield; transition: border-color 0.2s; }
         input:focus { border-color: #29b6f6; box-shadow: 0 0 0 3px rgba(41,182,246,0.1); outline: none; background: #fff; }
         input[type="time"], input[type="date"] { width: 100%; padding: 10px; border: 1px solid #cfd8dc; border-radius: 8px; text-align: center; font-size: 1.1rem; background: white; }
@@ -67,13 +67,19 @@
         .cr-total { color: #0277bd; font-size: 1.1rem; }
         .cr-header { font-weight: 800; color: #37474f; margin-bottom: 8px; font-size: 1.05rem; background: #eceff1; padding: 5px; border-radius: 4px; }
 
-        /* Truck Matrix & Detail */
+        /* Truck Matrix */
         .truck-matrix-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 5px; border: 1px solid #ddd; }
         .truck-matrix-table th { background: #eceff1; color: #546e7a; padding: 12px 8px; font-weight: 700; border-bottom: 2px solid #cfd8dc; font-size: 0.9rem; }
         .truck-matrix-table td { border-bottom: 1px solid #f0f0f0; padding: 10px 4px; text-align: center; vertical-align: middle; }
         .truck-name-col { text-align: left; padding-left: 15px; font-weight: 800; color: #37474f; font-size: 0.95rem; }
         .st-pill { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; min-width: 60px; }
         .st-over { background: #e3f2fd; color: #1565c0; } .st-miss { background: #ffebee; color: #c62828; } .st-ok { background: #e8f5e9; color: #2e7d32; } .st-none { color: #cfd8dc; font-weight: 400; font-size: 1.2rem; }
+
+        /* Helpers */
+        .btn-reset { background: #cfd8dc; color: #546e7a; border: none; padding: 10px; width: 100%; margin-top: 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .input-label { font-size: 0.75rem; color: #78909c; margin-bottom: 4px; font-weight: 600; text-align: center; }
         .truck-detail-block { background: white; border-radius: 12px; padding: 15px; margin-bottom: 20px; border: 2px solid #b0bec5; box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
         .truck-detail-header { font-weight: 800; color: #006064; border-bottom: 2px solid #e0f7fa; padding-bottom: 8px; margin-bottom: 12px; font-size: 1.1rem; display: flex; justify-content: space-between; align-items: center; }
         .btn-history { background: #ff9800; color: white; border: none; border-radius: 8px; padding: 4px 10px; font-size: 0.85rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 5px; }
@@ -83,8 +89,11 @@
         .dt-fresh { color: #2e7d32; font-weight: bold; background: #f1f8e9; }
         .dt-stock { color: #1565c0; font-weight: bold; background: #e3f2fd; }
         .dt-total { font-weight: 900; color: #37474f; background: #eceff1; }
-
-        /* Others */
+        .order-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .order-table th { background: #eceff1; padding: 8px; }
+        .order-table td { padding: 8px 4px; border-bottom: 1px solid #eee; }
+        .order-sum-col { font-weight: bold; color: #0277bd; background: #e1f5fe; text-align: center; }
+        
         .dist-container { background: #fafafa; border-radius: 12px; padding: 10px; border: 1px dashed #cfd8dc; margin-top: 15px; }
         .dist-item { background: white; padding: 10px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 8px; position: relative; }
         .dist-header { font-weight: bold; color: #0277bd; font-size: 1rem; display: flex; justify-content: space-between; align-items: center; }
@@ -105,21 +114,12 @@
         .wiz-status { text-align: center; background: #e0f7fa; padding: 10px; border-radius: 8px; margin-bottom: 20px; border: 1px dashed #00acc1; }
         .wiz-status-text { font-size: 0.9rem; color: #006064; }
         .wiz-remain { font-size: 1.5rem; font-weight: 900; }
-        .row-inputs { display: flex; flex-direction: column; gap: 10px; }
-        .row-group { display: flex; align-items: center; gap: 10px; }
-        .row-label { font-weight: bold; width: 60px; color: #546e7a; text-align: right; }
         .btn-save-wiz { width: 100%; padding: 15px; background: #00c853; color: white; border: none; border-radius: 12px; font-size: 1.2rem; font-weight: bold; margin-top: 15px; cursor: pointer; }
         .btn-stock-manager, .btn-view-history { width: 100%; padding: 15px; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-stock-manager { background: #ff9800; color: white; box-shadow: 0 4px 10px rgba(255,152,0,0.3); }
         .btn-view-history { background: #546e7a; color: white; box-shadow: 0 4px 10px rgba(84,110,122,0.3); margin-bottom: 20px; }
-        .order-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-        .order-table th { background: #eceff1; padding: 8px; }
-        .order-table td { padding: 8px 4px; border-bottom: 1px solid #eee; }
-        .order-sum-col { font-weight: bold; color: #0277bd; background: #e1f5fe; text-align: center; }
-        .btn-reset { background: #cfd8dc; color: #546e7a; border: none; padding: 10px; width: 100%; margin-top: 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .input-label { font-size: 0.75rem; color: #78909c; margin-bottom: 4px; font-weight: 600; text-align: center; }
+        .btn-save-dist { width: 100%; padding: 15px; background: #00c853; color: white; border: none; border-radius: 12px; font-size: 1.2rem; font-weight: bold; margin-top: 20px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,200,83,0.3); }
+        .btn-save-dist.edit-mode { background: #ff9800; box-shadow: 0 4px 10px rgba(255, 152, 0, 0.3); }
         .hist-item { background: white; border: 1px solid #eee; padding: 10px; margin-bottom: 8px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
         .hist-info { font-size: 0.9rem; color: #333; }
         .hist-tag { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; margin-left: 5px; font-weight: bold; }
@@ -457,9 +457,7 @@
         const prodDropsCount = DATA.drops.filter(d => d.type==='prod').length;
         document.getElementById('rpt_avg_time').innerText = prodDropsCount > 0 ? (opMins / prodDropsCount).toFixed(0) : 0;
         
-        // Tons per Day (Assuming 24 hrs for calculation or just current progress?) 
-        // W041 paper shows "58 ตัน/วัน". This is roughly TotalWeight / 1000.
-        // Let's use simple metric: Total Weight / 1000
+        // Tons per Day
         const tons = totW / 1000;
         document.getElementById('rpt_tons_day').innerText = tons.toFixed(2);
         
