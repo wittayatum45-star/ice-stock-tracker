@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V121 (Edit Restored)</title>
+    <title>Smart Ice V122 (Esan Alert)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- Theme --- */
@@ -50,7 +50,7 @@
         .pt-rem { background: #fff3e0; color: #e65100; } 
         .sub-header { font-size: 0.75rem; color: #546e7a; background: #f5f5f5; }
         
-        /* Custom Report */
+        /* Custom Report Box */
         .custom-report { border: 2px solid #546e7a; border-radius: 8px; padding: 15px; margin-top: 20px; background: #fff; }
         .cr-section { margin-bottom: 15px; border-bottom: 1px dashed #ccc; padding-bottom: 10px; }
         .cr-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
@@ -165,7 +165,7 @@
             <h3>🚚 สั่งซื้อ (Master Order)</h3>
             <div id="order_inputs"></div>
         </div>
-        <button class="btn-reset" onclick="if(confirm('ล้างข้อมูลทั้งหมด?')){localStorage.clear(); location.reload();}">🗑️ รีเซ็ตข้อมูล (เริ่มใหม่)</button>
+        <button class="btn-reset" onclick="if(confirm('เจ้าสิล้างข้อมูลเบิดอีหลีเบาะท้าว? (เริ่มใหม่)')){localStorage.clear(); location.reload();}">🗑️ รีเซ็ตข้อมูล (เริ่มใหม่)</button>
         <div style="height:50px;"></div>
     </div>
 
@@ -178,7 +178,6 @@
     <div class="fab-container"><button class="fab-main" onclick="addDrop('prod')">+</button></div>
 
     <div id="page-summary" class="page">
-        
         <div class="modern-card card-body">
              <h3>📊 สรุปสถานะรายคัน (ขาด/เกิน)</h3>
              <div id="truck_report_container"></div>
@@ -309,7 +308,7 @@
         if(type === 'prod') setTimeout(() => window.scrollTo(0, 0), 100); else openStockManager();
     }
     
-    function deleteDrop(id) { if(confirm("ลบรายการนี้?")) { DATA.drops = DATA.drops.filter(d => d.id !== id); saveData(); renderDrops(); calcAll(); if(document.getElementById('stock_manager_modal').style.display === 'block') openStockManager(); } }
+    function deleteDrop(id) { if(confirm("เจ้าสิลบอีหลีเบาะท้าว?")) { DATA.drops = DATA.drops.filter(d => d.id !== id); saveData(); renderDrops(); calcAll(); if(document.getElementById('stock_manager_modal').style.display === 'block') openStockManager(); } }
     
     // 🔥 FOCUS MODE: LATEST ONLY 🔥
     function renderDrops() {
@@ -387,6 +386,7 @@
         calcAll();
     }
 
+    // --- GLOBAL CALC ENGINE (Fixed to read ALL data) ---
     function calcAll() {
         let sumP={hl:0,bh:0,bl:0}, curHL=getNum(document.getElementById('init_hl').value), curBH=getNum(document.getElementById('init_bh').value), curBL=getNum(document.getElementById('init_bl').value);
         let totalSent=0, totalWithHL=0, totalWithBod=0, totalRemHL=0, totalRemBod=0, totalUsedAll=0;
@@ -396,6 +396,7 @@
         let truckMat = {}; let truckDetail = {};
         TRUCKS.forEach((t,i) => { let tid = `t${i+1}`; truckMat[tid] = {hl:{fr:0,st:0}, bh:{fr:0,st:0}, bl:{fr:0,st:0}}; truckDetail[tid] = { hl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bh: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} } }; });
 
+        // Iterate ALL drops for correct calculation
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
 
         sortedDrops.forEach(d => {
