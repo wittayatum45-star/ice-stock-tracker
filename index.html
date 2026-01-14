@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V126 (Edit from Summary)</title>
+    <title>Smart Ice V127 (Auto-Save & Instant Calc)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- Theme --- */
@@ -32,8 +32,6 @@
         .big-time-input { font-size: 1.8rem; font-weight: 800; color: #37474f; border: none; background: none; width: 100px; text-align: center; }
         .time-diff-badge { font-size: 0.85rem; color: #0277bd; font-weight: bold; background: #e1f5fe; padding: 4px 8px; border-radius: 12px; white-space: nowrap; }
         .btn-close-red { width: 35px; height: 35px; border-radius: 8px; background: #ffebee; color: #c62828; border: none; font-size: 1.2rem; font-weight: bold; cursor: pointer; margin-left: auto; }
-        
-        /* Sack Display */
         .sack-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; background: #e0f2f1; padding: 10px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #b2dfdb; }
         .sack-item { text-align: center; }
         .sack-label { font-size: 0.65rem; color: #00695c; font-weight: bold; margin-bottom: 2px; white-space: nowrap; }
@@ -51,11 +49,9 @@
         .pt-rem { background: #fff3e0; color: #e65100; } 
         .sub-header { font-size: 0.75rem; color: #546e7a; background: #f5f5f5; }
         
-        /* Total Row Style */
         .total-row td { background-color: #37474f !important; color: white !important; font-weight: 900 !important; border: 1px solid #263238 !important; font-size: 1rem !important; }
         .total-label { text-align: left !important; padding-left: 5px !important; background: #263238 !important; color: #ffeb3b !important; }
         
-        /* Custom Report */
         .custom-report { border: 2px solid #546e7a; border-radius: 8px; padding: 15px; margin-top: 20px; background: #fff; }
         .cr-section { margin-bottom: 15px; border-bottom: 1px dashed #ccc; padding-bottom: 10px; }
         .cr-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
@@ -65,7 +61,6 @@
         .cr-total { color: #0277bd; font-size: 1.1rem; }
         .cr-header { font-weight: 800; color: #37474f; margin-bottom: 8px; font-size: 1.05rem; background: #eceff1; padding: 5px; border-radius: 4px; }
 
-        /* Truck Matrix */
         .truck-matrix-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 5px; border: 1px solid #ddd; }
         .truck-matrix-table th { background: #eceff1; color: #546e7a; padding: 12px 8px; font-weight: 700; border-bottom: 2px solid #cfd8dc; font-size: 0.9rem; }
         .truck-matrix-table td { border-bottom: 1px solid #f0f0f0; padding: 10px 4px; text-align: center; vertical-align: middle; }
@@ -73,7 +68,6 @@
         .st-pill { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; min-width: 60px; }
         .st-over { background: #e3f2fd; color: #1565c0; } .st-miss { background: #ffebee; color: #c62828; } .st-ok { background: #e8f5e9; color: #2e7d32; } .st-none { color: #cfd8dc; font-weight: 400; font-size: 1.2rem; }
         
-        /* Truck Details */
         .truck-detail-block { background: white; border-radius: 12px; padding: 15px; margin-bottom: 20px; border: 2px solid #b0bec5; box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
         .truck-detail-header { font-weight: 800; color: #006064; border-bottom: 2px solid #e0f7fa; padding-bottom: 8px; margin-bottom: 12px; font-size: 1.1rem; display: flex; justify-content: space-between; align-items: center; }
         .btn-history { background: #ff9800; color: white; border: none; border-radius: 8px; padding: 4px 10px; font-size: 0.85rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 5px; }
@@ -84,7 +78,6 @@
         .dt-stock { color: #1565c0; font-weight: bold; background: #e3f2fd; }
         .dt-total { font-weight: 900; color: #37474f; background: #eceff1; }
         
-        /* Helpers */
         .btn-reset { background: #cfd8dc; color: #546e7a; border: none; padding: 10px; width: 100%; margin-top: 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .dist-container { background: #fafafa; border-radius: 12px; padding: 10px; border: 1px dashed #cfd8dc; margin-top: 15px; }
         .dist-item { background: white; padding: 10px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 8px; position: relative; }
@@ -173,7 +166,7 @@
             <h3>🚚 สั่งซื้อ (Master Order)</h3>
             <div id="order_inputs"></div>
         </div>
-        <button class="btn-reset" onclick="if(confirm('เจ้าสิล้างข้อมูลเบิดอีหลีเบาะท้าว? (เริ่มใหม่)')){localStorage.clear(); location.reload();}">🗑️ รีเซ็ตข้อมูล (เริ่มใหม่)</button>
+        <button class="btn-reset" onclick="if(confirm('เจ้าสิล้างข้อมูลเบิดอีหลีเบาะท้าว? (เริ่มใหม่)')){localStorage.clear(); localStorage.removeItem('LAST_DATE'); location.reload();}">🗑️ รีเซ็ตข้อมูล (เริ่มใหม่)</button>
         <div style="height:50px;"></div>
     </div>
 
@@ -276,8 +269,10 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         const today = new Date().toISOString().split('T')[0];
-        document.getElementById('setup_date').value = today;
-        loadData(today);
+        // 1. Load Last Active Date (Fix for reset issue)
+        const savedDate = localStorage.getItem('LAST_DATE') || today;
+        document.getElementById('setup_date').value = savedDate;
+        loadData(savedDate);
         initWizard();
         renderOrderInputs();
         renderDrops();
@@ -285,13 +280,18 @@
     });
 
     function getEmptyData() { return { times: { start: "22:00", stop: "06:00" }, initStock: { hl:0, bh:0, bl:0 }, orders: {}, drops: [] }; }
+    
     function saveData() { 
         const dateKey = document.getElementById('setup_date').value;
+        // 2. Save Last Active Date
+        localStorage.setItem('LAST_DATE', dateKey); 
+        
         DATA.times.start = document.getElementById('time_start').value;
         DATA.times.stop = document.getElementById('time_stop').value;
         DATA.initStock = { hl: getNum(document.getElementById('init_hl').value), bh: getNum(document.getElementById('init_bh').value), bl: getNum(document.getElementById('init_bl').value) };
         localStorage.setItem(`ICE_DATA_${dateKey}`, JSON.stringify(DATA)); 
     }
+    
     function loadData(dateKey) {
         const d = localStorage.getItem(`ICE_DATA_${dateKey}`);
         if(d) { try { DATA = JSON.parse(d); if(!DATA.drops) DATA.drops = []; if(!DATA.orders) DATA.orders = {}; 
@@ -306,7 +306,7 @@
         document.getElementById('init_bh').value = DATA.initStock.bh;
         document.getElementById('init_bl').value = DATA.initStock.bl;
     }
-    function changeDate() { const newDate = document.getElementById('setup_date').value; loadData(newDate); renderOrderInputs(); renderDrops(); calcAll(); }
+    function changeDate() { const newDate = document.getElementById('setup_date').value; loadData(newDate); saveData(); renderOrderInputs(); renderDrops(); calcAll(); }
     function getNum(val) { return parseFloat(val) || 0; }
 
     function addDrop(type) {
@@ -319,13 +319,13 @@
     
     function deleteDrop(id) { if(confirm("เจ้าสิลบอีหลีเบาะท้าว?")) { DATA.drops = DATA.drops.filter(d => d.id !== id); saveData(); renderDrops(); calcAll(); if(document.getElementById('stock_manager_modal').style.display === 'block') openStockManager(); } }
     
-    // 🔥 FOCUS MODE: LATEST ONLY 🔥
     function renderDrops() {
         const container = document.getElementById('drops_list');
         container.innerHTML = '';
         const startTimeStr = document.getElementById('time_start').value;
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
         const prodDrops = sortedDrops.filter(d => d.type === 'prod');
+        // 🔥 SHOW LATEST CARD ONLY 🔥
         const latestProd = prodDrops[prodDrops.length - 1]; 
 
         if(latestProd) {
@@ -348,209 +348,84 @@
                distHtml += `<div class="dist-item"><div class="dist-header"><span>🚛 ${getTruckName(item.truck)} - ${getTypeName(item.type)}</span><div><button style="background:#fff9c4; border:none; padding:4px;" onclick="editDist(${d.id}, ${idx})">✏️</button><button style="background:#ffcdd2; border:none; padding:4px;" onclick="removeDist(${d.id}, ${idx})">🗑️</button></div></div><div class="dist-rows">(${item.r1}/${item.r2}/${item.r3}) = <b>${item.total}</b></div></div>`;
            });
         }
-        
-        let hlProd = getNum(d.p_in_room.hl);
-        let bhProd = getNum(d.p_in_room.bh);
-        let blProd = getNum(d.p_in_room.bl);
-        if(d.dist) {
-            d.dist.forEach(i => {
-                if(i.type === 'hl') hlProd += getNum(i.total);
-                if(i.type === 'bh') bhProd += getNum(i.total);
-                if(i.type === 'bl') blProd += getNum(i.total);
-            });
-        }
-        
-        const hlBatch = Math.ceil(hlProd / 40) * 40;
-        const crushBatch = Math.ceil((bhProd + blProd) / 40) * 40;
-        const hlRem = hlBatch - hlProd;
-        const crushRem = crushBatch - (bhProd + blProd);
-
-        return `<div class="modern-card"><div class="card-header-flex"><div class="badge-box bg-prod"><span>น้ำแข็ง<br>ตก<br>(ผลิต)</span></div><input type="time" class="big-time-input" value="${d.time}" onchange="updateDropVal(${d.id}, 'time', null, this.value)"><span class="time-diff-badge">(+${diffMin} น.)</span><button class="btn-close-red" onclick="deleteDrop(${d.id})">×</button></div><div class="card-body" style="padding-top:0;">
-        <div class="sack-row">
-            <div class="sack-item"><div class="sack-label">เบิก (หลอด/บด)</div><div class="sack-val" id="disp_withdraw_${d.id}">${hlBatch} / ${crushBatch}</div></div>
-            <div class="sack-item"><div class="sack-label">ใช้ (หลอด/บด)</div><div class="sack-val" id="disp_used_${d.id}">${hlProd} / ${bhProd+blProd}</div></div>
-            <div class="sack-item"><div class="sack-label">คืน (หลอด/บด)</div><div class="sack-split"><span class="ss-hl" id="disp_rem_hl_${d.id}">หลอด:${hlRem}</span> <span class="ss-bod" id="disp_rem_bod_${d.id}">บด:${crushRem}</span></div></div>
-        </div>
-        <div class="grid-3"><div><div class="input-label">หลอด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.hl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'hl', this.value)"></div><div><div class="input-label">หยาบ (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bh)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bh', this.value)"></div><div><div class="input-label">ละเอียด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bl', this.value)"></div></div><div class="dist-container"><div style="font-size:0.8rem; color:#90a4ae; font-weight:bold; margin-bottom:5px;">รายการจ่ายเข้ารถ</div>${distHtml}<button class="btn-add-dist" onclick="openDistModal(${d.id})">+ เพิ่มรายการส่งเข้ารถ</button></div></div></div>`;
+        let hlProd = getNum(d.p_in_room.hl); let bhProd = getNum(d.p_in_room.bh); let blProd = getNum(d.p_in_room.bl);
+        if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') hlProd+=getNum(i.total); if(i.type==='bh') bhProd+=getNum(i.total); if(i.type==='bl') blProd+=getNum(i.total); }); }
+        const hlBatch = Math.ceil(hlProd / 40) * 40; const crushBatch = Math.ceil((bhProd + blProd) / 40) * 40;
+        const hlRem = hlBatch - hlProd; const crushRem = crushBatch - (bhProd + blProd);
+        return `<div class="modern-card"><div class="card-header-flex"><div class="badge-box bg-prod"><span>น้ำแข็ง<br>ตก<br>(ผลิต)</span></div><input type="time" class="big-time-input" value="${d.time}" onchange="updateDropVal(${d.id}, 'time', null, this.value)"><span class="time-diff-badge">(+${diffMin} น.)</span><button class="btn-close-red" onclick="deleteDrop(${d.id})">×</button></div><div class="card-body" style="padding-top:0;"><div class="sack-row"><div class="sack-item"><div class="sack-label">เบิก (หลอด/บด)</div><div class="sack-val" id="disp_withdraw_${d.id}">${hlBatch} / ${crushBatch}</div></div><div class="sack-item"><div class="sack-label">ใช้ (หลอด/บด)</div><div class="sack-val" id="disp_used_${d.id}">${hlProd} / ${bhProd+blProd}</div></div><div class="sack-item"><div class="sack-label">คืน (หลอด/บด)</div><div class="sack-split"><span class="ss-hl" id="disp_rem_hl_${d.id}">หลอด:${hlRem}</span> <span class="ss-bod" id="disp_rem_bod_${d.id}">บด:${crushRem}</span></div></div></div><div class="grid-3"><div><div class="input-label">หลอด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.hl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'hl', this.value)"></div><div><div class="input-label">หยาบ (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bh)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bh', this.value)"></div><div><div class="input-label">ละเอียด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bl', this.value)"></div></div><div class="dist-container"><div style="font-size:0.8rem; color:#90a4ae; font-weight:bold; margin-bottom:5px;">รายการจ่ายเข้ารถ</div>${distHtml}<button class="btn-add-dist" onclick="openDistModal(${d.id})">+ เพิ่มรายการส่งเข้ารถ</button></div></div></div>`;
     }
 
     function updateDropVal(id, cat, sub, val) {
-        const d = DATA.drops.find(x => x.id === id);
-        if(!d) return;
-        if(cat === 'time') d.time = val;
-        else if(cat === 'p_in_room') d.p_in_room[sub] = getNum(val);
+        const d = DATA.drops.find(x => x.id === id); if(!d) return;
+        if(cat === 'time') d.time = val; else if(cat === 'p_in_room') d.p_in_room[sub] = getNum(val);
         saveData(); 
-        
         if(cat === 'p_in_room' || cat === 'dist_update') {
             let hlProd = getNum(d.p_in_room.hl); let bhProd = getNum(d.p_in_room.bh); let blProd = getNum(d.p_in_room.bl);
             if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') hlProd+=getNum(i.total); if(i.type==='bh') bhProd+=getNum(i.total); if(i.type==='bl') blProd+=getNum(i.total); }); }
             const hlBatch = Math.ceil(hlProd/40)*40; const crushBatch = Math.ceil((bhProd+blProd)/40)*40;
             const dw = document.getElementById(`disp_withdraw_${id}`); const du = document.getElementById(`disp_used_${id}`);
             const dr1 = document.getElementById(`disp_rem_hl_${id}`); const dr2 = document.getElementById(`disp_rem_bod_${id}`);
-            if(dw) dw.innerText = `${hlBatch} / ${crushBatch}`;
-            if(du) du.innerText = `${hlProd} / ${bhProd+blProd}`;
-            if(dr1) dr1.innerText = `หลอด:${hlBatch-hlProd}`;
-            if(dr2) dr2.innerText = `บด:${crushBatch-(bhProd+blProd)}`;
+            if(dw) dw.innerText = `${hlBatch} / ${crushBatch}`; if(du) du.innerText = `${hlProd} / ${bhProd+blProd}`;
+            if(dr1) dr1.innerText = `หลอด:${hlBatch-hlProd}`; if(dr2) dr2.innerText = `บด:${crushBatch-(bhProd+blProd)}`;
         }
         calcAll();
     }
 
-    // --- GLOBAL CALC ENGINE (Fixed to read ALL data) ---
     function calcAll() {
         let sumP={hl:0,bh:0,bl:0}, curHL=getNum(document.getElementById('init_hl').value), curBH=getNum(document.getElementById('init_bh').value), curBL=getNum(document.getElementById('init_bl').value);
         let totalSent=0, totalWithHL=0, totalWithBod=0, totalRemHL=0, totalRemBod=0, totalUsedAll=0;
         let prodLogHtml = '', startTimeStr = document.getElementById('time_start').value;
         let lastProdTime = startTimeStr;
-
         let truckMat = {}; let truckDetail = {};
         TRUCKS.forEach((t,i) => { let tid = `t${i+1}`; truckMat[tid] = {hl:{fr:0,st:0}, bh:{fr:0,st:0}, bl:{fr:0,st:0}}; truckDetail[tid] = { hl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bh: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} } }; });
 
-        // Iterate ALL drops for correct calculation
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
-
         sortedDrops.forEach(d => {
             let p_hl=0, p_bh=0, p_bl=0;
             if(d.type === 'prod') {
                 p_hl = getNum(d.p_in_room.hl); p_bh = getNum(d.p_in_room.bh); p_bl = getNum(d.p_in_room.bl);
                 if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') p_hl+=getNum(i.total); if(i.type==='bh') p_bh+=getNum(i.total); if(i.type==='bl') p_bl+=getNum(i.total); }); }
-                
                 const w_hl = Math.ceil(p_hl/40)*40; const w_bod = Math.ceil((p_bh+p_bl)/40)*40;
                 const r_hl = w_hl - p_hl; const r_bod = w_bod - (p_bh+p_bl);
-
-                totalWithHL += w_hl; totalWithBod += w_bod;
-                totalRemHL += r_hl; totalRemBod += r_bod;
-                totalUsedAll += (p_hl + p_bh + p_bl);
+                totalWithHL += w_hl; totalWithBod += w_bod; totalRemHL += r_hl; totalRemBod += r_bod; totalUsedAll += (p_hl + p_bh + p_bl);
                 sumP.hl += p_hl; sumP.bh += p_bh; sumP.bl += p_bl;
                 curHL += getNum(d.p_in_room.hl); curBH += getNum(d.p_in_room.bh); curBL += getNum(d.p_in_room.bl);
-
                 const minDiff = getMinDiff(lastProdTime, d.time); lastProdTime = d.time;
-                prodLogHtml += `<tr>
-                    <td class="pt-time">${d.time}<br><span style="font-size:0.75rem; color:#888;">${minDiff} นาที</span></td>
-                    <td class="pt-check">${w_hl>0?w_hl:'-'}</td><td class="pt-check">${w_bod>0?w_bod:'-'}</td>
-                    <td class="pt-prod">${p_hl||'-'}</td><td class="pt-prod">${p_bh||'-'}</td><td class="pt-prod">${p_bl||'-'}</td>
-                    <td class="pt-rem">${w_hl>0?r_hl:'-'}</td><td class="pt-rem">${w_bod>0?r_bod:'-'}</td>
-                </tr>`;
+                prodLogHtml += `<tr><td class="pt-time">${d.time}<br><span style="font-size:0.75rem; color:#888;">${minDiff} นาที</span></td><td class="pt-check">${w_hl>0?w_hl:'-'}</td><td class="pt-check">${w_bod>0?w_bod:'-'}</td><td class="pt-prod">${p_hl||'-'}</td><td class="pt-prod">${p_bh||'-'}</td><td class="pt-prod">${p_bl||'-'}</td><td class="pt-rem">${w_hl>0?r_hl:'-'}</td><td class="pt-rem">${w_bod>0?r_bod:'-'}</td></tr>`;
             }
             if(d.dist) { d.dist.forEach(i => { const total = getNum(i.total); totalSent += total; const field = d.type === 'prod' ? 'fr' : 'st'; truckMat[i.truck][i.type][field] += total; if(truckDetail[i.truck] && truckDetail[i.truck][i.type]) { truckDetail[i.truck][i.type].r1[field] += getNum(i.r1); truckDetail[i.truck][i.type].r2[field] += getNum(i.r2); truckDetail[i.truck][i.type].r3[field] += getNum(i.r3); } if(d.type === 'stock') { if(i.type==='hl') curHL -= total; if(i.type==='bh') curBH -= total; if(i.type==='bl') curBL -= total; } }); }
         });
-
-        // Add TOTAL ROW
-        prodLogHtml += `<tr class="total-row">
-            <td class="total-label">รวม</td>
-            <td>${totalWithHL}</td><td>${totalWithBod}</td>
-            <td>${sumP.hl}</td><td>${sumP.bh}</td><td>${sumP.bl}</td>
-            <td>${totalRemHL}</td><td>${totalRemBod}</td>
-        </tr>`;
+        
+        prodLogHtml += `<tr class="total-row"><td class="total-label">รวม</td><td>${totalWithHL}</td><td>${totalWithBod}</td><td>${sumP.hl}</td><td>${sumP.bh}</td><td>${sumP.bl}</td><td>${totalRemHL}</td><td>${totalRemBod}</td></tr>`;
 
         const safeSet = (id, val) => { if(document.getElementById(id)) document.getElementById(id).innerText = val; };
-
         document.getElementById('prod_log_body').innerHTML = prodLogHtml;
         safeSet('dash_hl', curHL); safeSet('dash_bh', curBH); safeSet('dash_bl', curBL);
         let totOrd=0; for(let k in DATA.orders) totOrd+=getNum(DATA.orders[k]);
         safeSet('os_total', totOrd); safeSet('os_sent', totalSent); safeSet('os_remain', totOrd - totalSent);
 
-        // Custom Report Data Filling
-        safeSet('rpt_hl', sumP.hl); 
-        safeSet('rpt_bh', sumP.bh); 
-        safeSet('rpt_bl', sumP.bl);
-        safeSet('rpt_total_prod', sumP.hl + sumP.bh + sumP.bl);
-        
+        safeSet('rpt_hl', sumP.hl); safeSet('rpt_bh', sumP.bh); safeSet('rpt_bl', sumP.bl); safeSet('rpt_total_prod', sumP.hl + sumP.bh + sumP.bl);
         const totW = ((sumP.hl*20) + (sumP.bh*23) + (sumP.bl*24));
-        safeSet('rpt_total_weight', totW.toLocaleString());
-        safeSet('rpt_w_hl', (sumP.hl*20).toLocaleString());
-        safeSet('rpt_w_bh', (sumP.bh*23).toLocaleString());
-        safeSet('rpt_w_bl', (sumP.bl*24).toLocaleString());
-        
-        safeSet('rpt_with_hl', totalWithHL); 
-        safeSet('rpt_with_bod', totalWithBod);
-        safeSet('rpt_sack_withdraw', totalWithHL + totalWithBod);
-        safeSet('rpt_sack_used', totalUsedAll);
-        safeSet('rpt_rem_total_all', totalRemHL + totalRemBod);
+        safeSet('rpt_total_weight', totW.toLocaleString()); safeSet('rpt_w_hl', (sumP.hl*20).toLocaleString()); safeSet('rpt_w_bh', (sumP.bh*23).toLocaleString()); safeSet('rpt_w_bl', (sumP.bl*24).toLocaleString());
+        safeSet('rpt_with_hl', totalWithHL); safeSet('rpt_with_bod', totalWithBod); safeSet('rpt_sack_withdraw', totalWithHL + totalWithBod); safeSet('rpt_sack_used', totalUsedAll); safeSet('rpt_rem_total_all', totalRemHL + totalRemBod);
 
-        let lastDropTimeStr = ""; 
-        const prodDropsCount = DATA.drops.filter(d => d.type==='prod').length;
-        
+        let lastDropTimeStr = ""; const prodDropsCount = DATA.drops.filter(d => d.type==='prod').length;
         if(prodDropsCount > 0) {
             for(let i=DATA.drops.length-1; i>=0; i--) { if(DATA.drops[i].type==='prod'){ lastDropTimeStr=DATA.drops[i].time; break; } }
-            // NEW FORMULA: Last Drop Time - Start Time
             let totalMins = getMinDiff(startTimeStr, lastDropTimeStr);
-            
-            safeSet('rpt_total_minutes', totalMins); // New field for Total Time
-            safeSet('rpt_avg_time', (totalMins / prodDropsCount).toFixed(0));
-            
-            // Tons per day formula
-            let tonsDay = 0;
-            if (totalMins > 0) {
-                tonsDay = (totW / totalMins) * 1440 / 1000;
-            }
-            safeSet('rpt_tons_day', tonsDay.toFixed(2));
-            safeSet('rpt_avg_yield', ((sumP.hl+sumP.bh+sumP.bl) / prodDropsCount).toFixed(0));
-        } else {
-            safeSet('rpt_total_minutes', 0);
-            safeSet('rpt_avg_time', 0);
-            safeSet('rpt_tons_day', 0);
-            safeSet('rpt_avg_yield', 0);
-        }
-
-        renderSummaryTable(truckMat);
-        renderDetailTable(truckDetail);
+            safeSet('rpt_total_minutes', totalMins); safeSet('rpt_avg_time', (totalMins / prodDropsCount).toFixed(0));
+            let tonsDay = 0; if (totalMins > 0) { tonsDay = (totW / totalMins) * 1440 / 1000; }
+            safeSet('rpt_tons_day', tonsDay.toFixed(2)); safeSet('rpt_avg_yield', ((sumP.hl+sumP.bh+sumP.bl) / prodDropsCount).toFixed(0));
+        } else { safeSet('rpt_total_minutes', 0); safeSet('rpt_avg_time', 0); safeSet('rpt_tons_day', 0); safeSet('rpt_avg_yield', 0); }
+        renderSummaryTable(truckMat); renderDetailTable(truckDetail);
     }
 
-    function renderSummaryTable(mat) { 
-        let h = `<table class="truck-matrix-table"><thead><tr><th style="text-align:left;">รถ</th><th>หลอด</th><th>หยาบ</th><th>ละ..</th></tr></thead><tbody>`; 
-        TRUCKS.forEach((t, i) => { 
-            const tid = `t${i+1}`; 
-            h += `<tr><td class="truck-name-col">${t}</td>`; 
-            ICE_TYPES.forEach(ty => { 
-                const target = getNum(DATA.orders[`${tid}_${ty.id}`]); 
-                const sent = mat[tid][ty.id].fr + mat[tid][ty.id].st; 
-                let cell = `<span class="st-none">-</span>`; 
-                if(target > 0 || sent > 0) { 
-                    const rem = target - sent; 
-                    if(rem > 0) cell = `<span class="st-pill st-miss">ขาด ${rem}</span>`; 
-                    else if(rem < 0) cell = `<span class="st-pill st-over">เกิน ${Math.abs(rem)}</span>`; 
-                    else cell = `<span class="st-pill st-ok">ครบ</span>`; 
-                } 
-                h += `<td>${cell}</td>`; 
-            }); 
-            h += `</tr>`; 
-        }); 
-        h += `</tbody></table>`; 
-        document.getElementById('truck_report_container').innerHTML = h; 
-    }
-
-    function renderDetailTable(det) { 
-        let h = ''; 
-        TRUCKS.forEach((t, i) => { 
-            const tid = `t${i+1}`; 
-            if(det[tid]) { 
-                let hasData = false; 
-                let content = `<div class="truck-detail-block"><div class="truck-detail-header"><span>🚛 ${t}</span><button class="btn-history" onclick="openTruckHistory('${tid}')">🕒 ดูประวัติ/แก้ไข</button></div>`; 
-                ICE_TYPES.forEach(ty => { 
-                    if(det[tid][ty.id]) { 
-                        const d = det[tid][ty.id]; 
-                        const t_r1 = d.r1.fr+d.r1.st; const t_r2 = d.r2.fr+d.r2.st; const t_r3 = d.r3.fr+d.r3.st; 
-                        const grand = t_r1+t_r2+t_r3; 
-                        const ordered = getNum(DATA.orders[`${tid}_${ty.id}`]); 
-                        if(grand > 0 || ordered > 0) { 
-                            hasData = true; 
-                            content += `<div style="margin-bottom:10px;"><div style="font-weight:bold; color:#0277bd;">${ty.label} <small style="color:#aaa;">(เป้า: ${ordered})</small></div><table class="detail-table"><thead><tr><th style="width:20%">แถว</th><th>เก่า</th><th>สด</th><th>รวม</th></tr></thead><tbody><tr><td>1</td><td class="dt-stock">${d.r1.st||'-'}</td><td class="dt-fresh">${d.r1.fr||'-'}</td><td>${t_r1}</td></tr><tr><td>2</td><td class="dt-stock">${d.r2.st||'-'}</td><td class="dt-fresh">${d.r2.fr||'-'}</td><td>${t_r2}</td></tr><tr><td>3</td><td class="dt-stock">${d.r3.st||'-'}</td><td class="dt-fresh">${d.r3.fr||'-'}</td><td>${t_r3}</td></tr><tr><td colspan="3" style="text-align:right; font-weight:bold;">รวม:</td><td class="dt-total">${grand}</td></tr></tbody></table></div>`; 
-                        } 
-                    } 
-                }); 
-                content += `</div>`; 
-                if(hasData) h += content; 
-            } 
-        }); 
-        if(h==='') h='<div style="text-align:center; padding:20px; color:#aaa;">ยังไม่มีข้อมูล</div>'; 
-        document.getElementById('truck_detail_container').innerHTML = h; 
-    }
+    function renderSummaryTable(mat) { let h = `<table class="truck-matrix-table"><thead><tr><th style="text-align:left;">รถ</th><th>หลอด</th><th>หยาบ</th><th>ละ..</th></tr></thead><tbody>`; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; h += `<tr><td class="truck-name-col">${t}</td>`; ICE_TYPES.forEach(ty => { const target = getNum(DATA.orders[`${tid}_${ty.id}`]); const sent = mat[tid][ty.id].fr + mat[tid][ty.id].st; let cell = `<span class="st-none">-</span>`; if(target > 0 || sent > 0) { const rem = target - sent; if(rem > 0) cell = `<span class="st-pill st-miss">ขาด ${rem}</span>`; else if(rem < 0) cell = `<span class="st-pill st-over">เกิน ${Math.abs(rem)}</span>`; else cell = `<span class="st-pill st-ok">ครบ</span>`; } h += `<td>${cell}</td>`; }); h += `</tr>`; }); h += `</tbody></table>`; document.getElementById('truck_report_container').innerHTML = h; }
+    function renderDetailTable(det) { let h = ''; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; if(det[tid]) { let hasData = false; let content = `<div class="truck-detail-block"><div class="truck-detail-header"><span>🚛 ${t}</span><button class="btn-history" onclick="openTruckHistory('${tid}')">🕒 ดูประวัติ/แก้ไข</button></div>`; ICE_TYPES.forEach(ty => { if(det[tid][ty.id]) { const d = det[tid][ty.id]; const t_r1 = d.r1.fr+d.r1.st; const t_r2 = d.r2.fr+d.r2.st; const t_r3 = d.r3.fr+d.r3.st; const grand = t_r1+t_r2+t_r3; const ordered = getNum(DATA.orders[`${tid}_${ty.id}`]); if(grand > 0 || ordered > 0) { hasData = true; content += `<div style="margin-bottom:10px;"><div style="font-weight:bold; color:#0277bd;">${ty.label} <small style="color:#aaa;">(เป้า: ${ordered})</small></div><table class="detail-table"><thead><tr><th style="width:20%">แถว</th><th>เก่า</th><th>สด</th><th>รวม</th></tr></thead><tbody><tr><td>1</td><td class="dt-stock">${d.r1.st||'-'}</td><td class="dt-fresh">${d.r1.fr||'-'}</td><td>${t_r1}</td></tr><tr><td>2</td><td class="dt-stock">${d.r2.st||'-'}</td><td class="dt-fresh">${d.r2.fr||'-'}</td><td>${t_r2}</td></tr><tr><td>3</td><td class="dt-stock">${d.r3.st||'-'}</td><td class="dt-fresh">${d.r3.fr||'-'}</td><td>${t_r3}</td></tr><tr><td colspan="3" style="text-align:right; font-weight:bold;">รวม:</td><td class="dt-total">${grand}</td></tr></tbody></table></div>`; } } }); content += `</div>`; if(hasData) h += content; } }); if(h==='') h='<div style="text-align:center; padding:20px; color:#aaa;">ยังไม่มีข้อมูล</div>'; document.getElementById('truck_detail_container').innerHTML = h; }
     
     function updateStock() { DATA.initStock.hl = getNum(document.getElementById('init_hl').value); DATA.initStock.bh = getNum(document.getElementById('init_bh').value); DATA.initStock.bl = getNum(document.getElementById('init_bl').value); saveData(); calcAll(); }
     function updateOrder(key, val) { DATA.orders[key] = getNum(val); saveData(); calcAll(); }
     function updateStats() {}
-    
-    // --- EDITED: History Logic with Edit Feature ---
     function openFullHistory() { const container = document.getElementById('full_history_list'); container.innerHTML = ''; const startTimeStr = document.getElementById('time_start').value; const sortedDrops = DATA.drops.filter(d => d.type === 'prod').sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr)).reverse(); if (sortedDrops.length === 0) { container.innerHTML = '<div style="text-align:center; color:#aaa;">ไม่มีประวัติ</div>'; } else { sortedDrops.forEach((d, idx) => { let prodTotal = getNum(d.p_in_room.hl) + getNum(d.p_in_room.bh) + getNum(d.p_in_room.bl); if(d.dist) d.dist.forEach(i => prodTotal += getNum(i.total)); const tag = (idx === 0) ? '<span class="hist-tag ht-fresh">ล่าสุด</span>' : ''; container.insertAdjacentHTML('beforeend', `<div class="hist-item" onclick="openEditPast(${d.id})" style="cursor:pointer;"><div class="hist-info"><div><b>${d.time}</b> ${tag}</div><div style="color:#666; font-size:0.85rem;">ผลิต: ${prodTotal}</div></div><div style="color:#0277bd;">></div></div>`); }); } document.getElementById('full_history_modal').style.display = 'block'; }
     function closeFullHistory() { document.getElementById('full_history_modal').style.display = 'none'; renderDrops(); calcAll(); }
     
@@ -609,7 +484,7 @@
         else { SOURCE_MODAL = null; }
         initWizard(); CURRENT_DROP_ID = dropId; EDITING_DIST_IDX = idx; const d = DATA.drops.find(x => x.id === dropId); const item = d.dist[idx]; document.getElementById('wiz_truck').value = item.truck; document.getElementById('wiz_type').value = item.type; document.getElementById('wiz_r1').value = item.r1; document.getElementById('wiz_r2').value = item.r2; document.getElementById('wiz_r3').value = item.r3; updateWizStats(); document.getElementById('wiz_title').innerText = '✏️ แก้ไขรายการ'; document.getElementById('dist_modal').style.display = 'flex'; 
     }
-    function closeDistModal() { document.getElementById('dist_modal').style.display = 'none'; CURRENT_DROP_ID = null; if(SOURCE_MODAL === 'stock') openStockManager(); }
+    function closeDistModal() { document.getElementById('dist_modal').style.display = 'none'; CURRENT_DROP_ID = null; if(SOURCE_MODAL === 'stock') openStockManager(); else if (SOURCE_MODAL === 'edit_past') openEditPast(CURRENT_DROP_ID); }
     function updateWizStats() { const tid = document.getElementById('wiz_truck').value; const typeId = document.getElementById('wiz_type').value; let totalSent = 0; DATA.drops.forEach(d => { if(d.dist) { d.dist.forEach((item, idx) => { if(d.id === CURRENT_DROP_ID && idx === EDITING_DIST_IDX) return; if(item.truck === tid && item.type === typeId) totalSent += getNum(item.total); }); } }); const r1 = getNum(document.getElementById('wiz_r1').value); const r2 = getNum(document.getElementById('wiz_r2').value); const r3 = getNum(document.getElementById('wiz_r3').value); const currentTotal = r1 + r2 + r3; const target = getNum(DATA.orders[`${tid}_${typeId}`]); const remain = target - (totalSent + currentTotal); document.getElementById('wiz_total_sum').innerText = currentTotal; const remEl = document.getElementById('wiz_remain'); if (target === 0) { remEl.innerText = "ไม่ได้สั่ง"; remEl.className = 'wiz-remain'; } else if (remain > 0) { remEl.innerText = `ขาด ${remain}`; remEl.className = 'wiz-remain st-miss'; } else if (remain < 0) { remEl.innerText = `เกิน ${Math.abs(remain)}`; remEl.className = 'wiz-remain st-over'; } else { remEl.innerText = "ครบแล้ว ✅"; remEl.className = 'wiz-remain st-ok'; } }
     function confirmDistSave() { 
         if (!CURRENT_DROP_ID) return; 
