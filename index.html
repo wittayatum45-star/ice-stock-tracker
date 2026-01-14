@@ -3,29 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V110 (Paper Form UI)</title>
+    <title>Smart Ice V111 (Custom Report)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- Global Theme --- */
         body { font-family: 'Sarabun', sans-serif; margin: 0; padding: 0; background: #f5f7fa; color: #37474f; padding-bottom: 100px; font-size: 14px; }
         * { box-sizing: border-box; }
         
-        /* Dashboard & Nav */
+        /* Dashboard */
         .dashboard { position: sticky; top: 0; z-index: 1000; background: #263238; color: white; padding: 12px 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; justify-content: space-around; }
         .dash-item span { font-size: 0.75rem; color: #b0bec5; display: block; margin-bottom: 2px; }
         .dash-item div { font-size: 1.3rem; font-weight: 800; color: #69f0ae; line-height: 1; }
+        
+        /* Nav & Status */
         .order-status-bar { background: #fff3e0; border-bottom: 1px solid #ffe0b2; padding: 8px; text-align: center; font-size: 0.9rem; color: #ef6c00; font-weight: bold; display: flex; justify-content: space-around; position: sticky; top: 65px; z-index: 950; }
         .nav-bar { display: flex; background: white; margin: 10px; border-radius: 50px; padding: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: sticky; top: 105px; z-index: 900; }
         .nav-btn { flex: 1; padding: 10px; text-align: center; border: none; background: none; font-weight: bold; color: #90a4ae; cursor: pointer; border-radius: 40px; transition: 0.2s; }
         .nav-btn.active { background: #0277bd; color: white; box-shadow: 0 2px 8px rgba(2,119,189,0.4); }
         
-        /* Page Layout */
+        /* Layout */
         .page { display: none; padding: 10px; max-width: 800px; margin: 0 auto; }
         .page.active { display: block; }
         .modern-card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); margin-bottom: 20px; overflow: hidden; border: 1px solid #fff; }
         .card-body { padding: 15px; }
         
-        /* Inputs (Zero Fix Applied) */
+        /* Inputs (Zero Fix) */
         input[type="number"], input[type="tel"] { width: 100%; padding: 12px; font-size: 1.4rem; text-align: center; font-weight: 600; border: 1px solid #e0e0e0; border-radius: 10px; background: #fff; -moz-appearance: textfield; transition: border-color 0.2s; }
         input:focus { border-color: #29b6f6; box-shadow: 0 0 0 3px rgba(41,182,246,0.1); outline: none; background: #fff; }
         input[type="time"], input[type="date"] { width: 100%; padding: 10px; border: 1px solid #cfd8dc; border-radius: 8px; text-align: center; font-size: 1.1rem; background: white; }
@@ -34,12 +36,10 @@
         .card-header-flex { display: flex; align-items: center; padding: 10px; gap: 10px; background: #f9fafb; border-bottom: 1px solid #eee; }
         .badge-box { border-radius: 12px; padding: 5px; width: 70px; text-align: center; color: white; font-weight: bold; font-size: 0.75rem; display: flex; flex-direction: column; justify-content: center; height: 50px; }
         .bg-prod { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
-        .bg-stock { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; }
         .big-time-input { font-size: 1.8rem; font-weight: 800; color: #37474f; border: none; background: none; width: 100px; text-align: center; }
         .time-diff-badge { font-size: 0.85rem; color: #0277bd; font-weight: bold; background: #e1f5fe; padding: 4px 8px; border-radius: 12px; white-space: nowrap; }
         .btn-close-red { width: 35px; height: 35px; border-radius: 8px; background: #ffebee; color: #c62828; border: none; font-size: 1.2rem; font-weight: bold; cursor: pointer; margin-left: auto; }
         
-        /* Sack Display in Card */
         .sack-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; background: #e0f2f1; padding: 10px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #b2dfdb; }
         .sack-item { text-align: center; }
         .sack-label { font-size: 0.65rem; color: #00695c; font-weight: bold; margin-bottom: 2px; white-space: nowrap; }
@@ -47,21 +47,25 @@
         .sack-split { font-size: 0.85rem; color: #555; display: flex; justify-content: center; gap: 5px; margin-top: 2px; }
         .ss-hl { color: #2e7d32; font-weight:bold; } .ss-bod { color: #6a1b9a; font-weight:bold; }
 
-        /* --- PAPER FORM TABLE (W041 Style) --- */
+        /* --- PAPER FORM TABLE --- */
         .paper-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 5px; border: 1px solid #546e7a; }
         .paper-table th { background: #cfd8dc; border: 1px solid #90a4ae; padding: 6px 2px; text-align: center; font-weight: bold; color: #37474f; vertical-align: middle; line-height: 1.1; }
         .paper-table td { border: 1px solid #b0bec5; padding: 8px 4px; text-align: center; vertical-align: middle; color: #263238; font-weight: 600; font-size: 0.95rem; }
         .pt-time { background: #eceff1; font-weight: bold; font-size: 0.8rem; }
-        .pt-check { background: #e3f2fd; color: #1565c0; } /* Withdraw */
-        .pt-prod { background: #e8f5e9; color: #2e7d32; } /* Prod */
-        .pt-rem { background: #fff3e0; color: #e65100; } /* Rem */
+        .pt-check { background: #e3f2fd; color: #1565c0; } 
+        .pt-prod { background: #e8f5e9; color: #2e7d32; } 
+        .pt-rem { background: #fff3e0; color: #e65100; } 
         .sub-header { font-size: 0.75rem; color: #546e7a; background: #f5f5f5; }
 
-        /* Paper Summary Box */
-        .paper-summary { border: 2px solid #546e7a; border-radius: 8px; padding: 15px; margin-top: 20px; background: #fff; }
-        .ps-row { display: flex; justify-content: space-between; border-bottom: 1px dotted #ccc; padding: 8px 0; font-size: 1rem; }
-        .ps-label { font-weight: bold; color: #455a64; }
-        .ps-val { font-weight: 900; color: #0277bd; font-size: 1.1rem; }
+        /* Custom Report Box */
+        .custom-report { border: 2px solid #546e7a; border-radius: 8px; padding: 15px; margin-top: 20px; background: #fff; }
+        .cr-section { margin-bottom: 15px; border-bottom: 1px dashed #ccc; padding-bottom: 10px; }
+        .cr-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .cr-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 1rem; }
+        .cr-label { font-weight: bold; color: #455a64; }
+        .cr-val { font-weight: 900; color: #263238; text-align: right; }
+        .cr-total { color: #0277bd; font-size: 1.1rem; }
+        .cr-header { font-weight: 800; color: #37474f; margin-bottom: 8px; font-size: 1.05rem; background: #eceff1; padding: 5px; border-radius: 4px; }
 
         /* Truck Matrix & Detail */
         .truck-matrix-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 5px; border: 1px solid #ddd; }
@@ -196,11 +200,9 @@
                         <tr>
                             <th class="pt-check sub-header">หลอด</th>
                             <th class="pt-check sub-header">บด</th>
-                            
                             <th class="pt-prod sub-header">หลอดใหญ่</th>
                             <th class="pt-prod sub-header">บดหยาบ</th>
                             <th class="pt-prod sub-header">บดละเอียด</th>
-                            
                             <th class="pt-rem sub-header">หลอด</th>
                             <th class="pt-rem sub-header">บด</th>
                         </tr>
@@ -209,24 +211,44 @@
                 </table>
             </div>
 
-            <div class="paper-summary">
-                <div class="ps-row"><span class="ps-label">หลอดใหญ่ (ผลิตรวม):</span> <span class="ps-val" id="rpt_hl">0</span></div>
-                <div class="ps-row"><span class="ps-label">บดหยาบ (ผลิตรวม):</span> <span class="ps-val" id="rpt_bh">0</span></div>
-                <div class="ps-row"><span class="ps-label">บดละเอียด (ผลิตรวม):</span> <span class="ps-val" id="rpt_bl">0</span></div>
-                <div class="ps-row" style="background:#e8f5e9;"><span class="ps-label">รวมผลิตทั้งหมด:</span> <span class="ps-val" id="rpt_total_prod">0</span></div>
-                
-                <div class="divider-line"></div>
-                
-                <div class="ps-row"><span class="ps-label">น้ำหนักรวม (กก.):</span> <span class="ps-val" id="rpt_total_weight">0</span></div>
-                <div class="ps-row"><span class="ps-label">เวลาเฉลี่ย (นาที/ตก):</span> <span class="ps-val" id="rpt_avg_time">0</span></div>
-                
-                <div class="divider-line"></div>
-                
-                <div class="ps-row"><span class="ps-label">เบิกกระสอบ (หลอด):</span> <span class="ps-val" id="rpt_with_hl">0</span></div>
-                <div class="ps-row"><span class="ps-label">เบิกกระสอบ (บด):</span> <span class="ps-val" id="rpt_with_bod">0</span></div>
-                <div class="ps-row" style="background:#fffde7;"><span class="ps-label">รวมเบิก:</span> <span class="ps-val" id="rpt_sack_withdraw">0</span></div>
-                <div class="ps-row"><span class="ps-label">ใช้บรรจุไป:</span> <span class="ps-val" id="rpt_sack_used">0</span></div>
-                <div class="ps-row" style="color:red;"><span class="ps-label">กระสอบคงเหลือคืน:</span> <span class="ps-val" id="rpt_rem_total_all">0</span></div>
+            <div class="custom-report">
+                <div class="cr-section">
+                    <div class="cr-header">🏭 สรุปยอดผลิต</div>
+                    <div class="cr-row"><span class="cr-label">หลอดใหญ่:</span> <span class="cr-val" id="rpt_hl">0</span> กระสอบ</div>
+                    <div class="cr-row"><span class="cr-label">บดหยาบ:</span> <span class="cr-val" id="rpt_bh">0</span> กระสอบ</div>
+                    <div class="cr-row"><span class="cr-label">บดละเอียด:</span> <span class="cr-val" id="rpt_bl">0</span> กระสอบ</div>
+                    <div class="cr-row"><span class="cr-label cr-total">รวมผลิตทั้งหมด:</span> <span class="cr-val cr-total" id="rpt_total_prod">0</span> กระสอบ</div>
+                </div>
+
+                <div class="cr-section">
+                    <div class="cr-header">⚖️ น้ำหนักเฉลี่ย (ต่อกระสอบ)</div>
+                    <div class="cr-row"><span class="cr-label">นน.เฉลี่ย หลอดใหญ่:</span> <span class="cr-val">20</span> กก.</div>
+                    <div class="cr-row"><span class="cr-label">นน.เฉลี่ย บดหยาบ:</span> <span class="cr-val">23</span> กก.</div>
+                    <div class="cr-row"><span class="cr-label">นน.เฉลี่ย บดละเอียด:</span> <span class="cr-val">24</span> กก.</div>
+                    <div class="cr-row"><span class="cr-label cr-total">นน.เฉลี่ยรวม:</span> <span class="cr-val cr-total">22</span> กก.</div>
+                </div>
+
+                <div class="cr-section">
+                    <div class="cr-header">🏋️ น้ำหนักรวม (Production Weight)</div>
+                    <div class="cr-row"><span class="cr-label">นน.รวม หลอดใหญ่:</span> <span class="cr-val" id="rpt_w_hl">0</span> กก.</div>
+                    <div class="cr-row"><span class="cr-label">นน.รวม บดหยาบ:</span> <span class="cr-val" id="rpt_w_bh">0</span> กก.</div>
+                    <div class="cr-row"><span class="cr-label">นน.รวม บดละเอียด:</span> <span class="cr-val" id="rpt_w_bl">0</span> กก.</div>
+                    <div class="cr-row"><span class="cr-label cr-total">น้ำหนักรวมทั้งหมด:</span> <span class="cr-val cr-total" id="rpt_total_weight">0</span> กก.</div>
+                </div>
+
+                <div class="cr-section">
+                    <div class="cr-header">📊 สถิติ (Performance)</div>
+                    <div class="cr-row"><span class="cr-label">เวลาเฉลี่ย:</span> <span class="cr-val" id="rpt_avg_time">0</span> นาที/ตก</div>
+                    <div class="cr-row"><span class="cr-label">น้ำหนัก (กำลังผลิต):</span> <span class="cr-val" id="rpt_tons_day">0</span> ตัน/วัน</div>
+                    <div class="cr-row"><span class="cr-label">จำนวนเฉลี่ย:</span> <span class="cr-val" id="rpt_avg_yield">0</span> กระสอบ/ตก</div>
+                </div>
+
+                <div class="cr-section">
+                    <div class="cr-header">📥 สรุปกระสอบ (Sack Audit)</div>
+                    <div class="cr-row" style="background:#fffde7; padding:5px;"><span class="cr-label cr-total">เบิกกระสอบ (รวมทุกเครื่อง):</span> <span class="cr-val cr-total" id="rpt_sack_withdraw">0</span> ใบ</div>
+                    <div class="cr-row"><span class="cr-label">กระสอบที่ใช้:</span> <span class="cr-val" id="rpt_sack_used">0</span> ใบ</div>
+                    <div class="cr-row" style="color:red;"><span class="cr-label">กระสอบคงเหลือ:</span> <span class="cr-val" id="rpt_rem_total_all">0</span> ใบ</div>
+                </div>
             </div>
         </div>
 
@@ -412,13 +434,20 @@
         let totOrd=0; for(let k in DATA.orders) totOrd+=getNum(DATA.orders[k]);
         document.getElementById('os_total').innerText = totOrd; document.getElementById('os_sent').innerText = totalSent; document.getElementById('os_remain').innerText = totOrd - totalSent;
 
-        document.getElementById('rpt_hl').innerText = sumP.hl; document.getElementById('rpt_bh').innerText = sumP.bh; document.getElementById('rpt_bl').innerText = sumP.bl;
-        document.getElementById('rpt_total_prod').innerText = sumP.hl+sumP.bh+sumP.bl;
+        // --- Custom Report Data Filling ---
+        document.getElementById('rpt_hl').innerText = sumP.hl; 
+        document.getElementById('rpt_bh').innerText = sumP.bh; 
+        document.getElementById('rpt_bl').innerText = sumP.bl;
+        document.getElementById('rpt_total_prod').innerText = sumP.hl + sumP.bh + sumP.bl;
         
-        const totW = ((sumP.hl*20)+(sumP.bh*23)+(sumP.bl*24));
+        const totW = ((sumP.hl*20) + (sumP.bh*23) + (sumP.bl*24));
         document.getElementById('rpt_total_weight').innerText = totW.toLocaleString();
+        document.getElementById('rpt_w_hl').innerText = (sumP.hl*20).toLocaleString();
+        document.getElementById('rpt_w_bh').innerText = (sumP.bh*23).toLocaleString();
+        document.getElementById('rpt_w_bl').innerText = (sumP.bl*24).toLocaleString();
         
-        document.getElementById('rpt_with_hl').innerText = totalWithHL; document.getElementById('rpt_with_bod').innerText = totalWithBod;
+        document.getElementById('rpt_with_hl').innerText = totalWithHL; 
+        document.getElementById('rpt_with_bod').innerText = totalWithBod;
         document.getElementById('rpt_sack_withdraw').innerText = totalWithHL + totalWithBod;
         document.getElementById('rpt_sack_used').innerText = totalUsedAll;
         document.getElementById('rpt_rem_total_all').innerText = totalRemHL + totalRemBod;
@@ -427,6 +456,15 @@
         let opMins = lastDropTimeStr ? getMinDiff(startTimeStr, lastDropTimeStr) : 0;
         const prodDropsCount = DATA.drops.filter(d => d.type==='prod').length;
         document.getElementById('rpt_avg_time').innerText = prodDropsCount > 0 ? (opMins / prodDropsCount).toFixed(0) : 0;
+        
+        // Tons per Day (Assuming 24 hrs for calculation or just current progress?) 
+        // W041 paper shows "58 ตัน/วัน". This is roughly TotalWeight / 1000.
+        // Let's use simple metric: Total Weight / 1000
+        const tons = totW / 1000;
+        document.getElementById('rpt_tons_day').innerText = tons.toFixed(2);
+        
+        // Avg sacks per drop
+        document.getElementById('rpt_avg_yield').innerText = prodDropsCount > 0 ? ((sumP.hl+sumP.bh+sumP.bl) / prodDropsCount).toFixed(0) : 0;
 
         renderSummaryTable(truckMat);
         renderDetailTable(truckDetail);
