@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V115 (Ultimate Fix)</title>
+    <title>Smart Ice V116 (Perfect Blend)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- Global Theme --- */
@@ -32,7 +32,7 @@
         input:focus { border-color: #29b6f6; box-shadow: 0 0 0 3px rgba(41,182,246,0.1); outline: none; background: #fff; }
         input[type="time"], input[type="date"] { width: 100%; padding: 10px; border: 1px solid #cfd8dc; border-radius: 8px; text-align: center; font-size: 1.1rem; background: white; }
         
-        /* Card UI (Page 2) */
+        /* Card UI */
         .card-header-flex { display: flex; align-items: center; padding: 10px; gap: 10px; background: #f9fafb; border-bottom: 1px solid #eee; }
         .badge-box { border-radius: 12px; padding: 5px; width: 70px; text-align: center; color: white; font-weight: bold; font-size: 0.75rem; display: flex; flex-direction: column; justify-content: center; height: 50px; }
         .bg-prod { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
@@ -49,7 +49,7 @@
         .sack-split { font-size: 0.85rem; color: #555; display: flex; justify-content: center; gap: 5px; margin-top: 2px; }
         .ss-hl { color: #2e7d32; font-weight:bold; } .ss-bod { color: #6a1b9a; font-weight:bold; }
 
-        /* Report Table (Page 3) */
+        /* --- PAPER FORM TABLE (W041 Style) --- */
         .paper-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 5px; border: 1px solid #546e7a; }
         .paper-table th { background: #cfd8dc; border: 1px solid #90a4ae; padding: 6px 2px; text-align: center; font-weight: bold; color: #37474f; vertical-align: middle; line-height: 1.1; }
         .paper-table td { border: 1px solid #b0bec5; padding: 8px 4px; text-align: center; vertical-align: middle; color: #263238; font-weight: 600; font-size: 0.95rem; }
@@ -59,7 +59,7 @@
         .pt-rem { background: #fff3e0; color: #e65100; } 
         .sub-header { font-size: 0.75rem; color: #546e7a; background: #f5f5f5; }
 
-        /* Custom Report */
+        /* Custom Report Box */
         .custom-report { border: 2px solid #546e7a; border-radius: 8px; padding: 15px; margin-top: 20px; background: #fff; }
         .cr-section { margin-bottom: 15px; border-bottom: 1px dashed #ccc; padding-bottom: 10px; }
         .cr-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
@@ -105,7 +105,6 @@
         .btn-add-dist { width: 100%; padding: 12px; background: #eceff1; color: #546e7a; border: 1px dashed #90a4ae; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .fab-container { position: fixed; bottom: 25px; right: 20px; z-index: 2000; }
         .fab-main { width: 65px; height: 65px; border-radius: 50%; background: #00c853; color: white; border: none; font-size: 32px; box-shadow: 0 6px 20px rgba(0,200,83,0.4); cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        
         .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; overflow: hidden; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(3px); }
         .modal-content { background-color: #f5f7fa; margin: 5% auto; border-radius: 16px; width: 95%; max-width: 600px; max-height: 90vh; box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: flex; flex-direction: column; position: relative; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #fff; border-bottom: 2px solid #e0e0e0; flex-shrink: 0; border-radius: 16px 16px 0 0; }
@@ -165,9 +164,9 @@
         <div class="modern-card card-body">
             <h3>📦 สต็อกยกมา</h3>
             <div class="grid-3">
-                <div><div class="input-label">หลอด</div><input type="tel" id="init_hl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateStock()"></div>
-                <div><div class="input-label">หยาบ</div><input type="tel" id="init_bh" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateStock()"></div>
-                <div><div class="input-label">ละเอียด</div><input type="tel" id="init_bl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateStock()"></div>
+                <div><div class="input-label">หลอด</div><input type="tel" id="init_hl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" onchange="updateStock()"></div>
+                <div><div class="input-label">หยาบ</div><input type="tel" id="init_bh" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" onchange="updateStock()"></div>
+                <div><div class="input-label">ละเอียด</div><input type="tel" id="init_bl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" onchange="updateStock()"></div>
             </div>
         </div>
         <div class="modern-card card-body">
@@ -187,7 +186,6 @@
     <div class="fab-container"><button class="fab-main" onclick="addDrop('prod')">+</button></div>
 
     <div id="page-summary" class="page">
-        
         <div class="modern-card card-body">
             <h3>📝 บันทึกการผลิต (ตามแบบฟอร์ม)</h3>
             <div style="overflow-x:auto;">
@@ -395,7 +393,6 @@
         calcAll();
     }
 
-    // 🔥 GLOBAL CALC ENGINE (Fixed to read ALL data) 🔥
     function calcAll() {
         let sumP={hl:0,bh:0,bl:0}, curHL=getNum(document.getElementById('init_hl').value), curBH=getNum(document.getElementById('init_bh').value), curBL=getNum(document.getElementById('init_bl').value);
         let totalSent=0, totalWithHL=0, totalWithBod=0, totalRemHL=0, totalRemBod=0, totalUsedAll=0;
@@ -405,7 +402,6 @@
         let truckMat = {}; let truckDetail = {};
         TRUCKS.forEach((t,i) => { let tid = `t${i+1}`; truckMat[tid] = {hl:{fr:0,st:0}, bh:{fr:0,st:0}, bl:{fr:0,st:0}}; truckDetail[tid] = { hl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bh: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} } }; });
 
-        // Iterate ALL drops for correct calculation
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
 
         sortedDrops.forEach(d => {
@@ -439,7 +435,7 @@
         let totOrd=0; for(let k in DATA.orders) totOrd+=getNum(DATA.orders[k]);
         document.getElementById('os_total').innerText = totOrd; document.getElementById('os_sent').innerText = totalSent; document.getElementById('os_remain').innerText = totOrd - totalSent;
 
-        // Custom Report Update
+        // --- Custom Report Data Filling ---
         document.getElementById('rpt_hl').innerText = sumP.hl; 
         document.getElementById('rpt_bh').innerText = sumP.bh; 
         document.getElementById('rpt_bl').innerText = sumP.bl;
