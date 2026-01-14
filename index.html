@@ -2,50 +2,52 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>Production & Distribution</title>
+<title>Production / Distribution System</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-body { font-family: system-ui; background:#f5f7fa; margin:0; padding:12px }
-.modern-card {
-  background:#fff; border-radius:12px;
+body{font-family:system-ui;background:#f4f6f8;margin:0;padding:12px}
+h2{margin-top:24px}
+.modern-card{
+  background:#fff;border-radius:12px;
   box-shadow:0 2px 6px rgba(0,0,0,.08);
-  margin-bottom:12px; overflow:hidden
+  margin-bottom:12px;overflow:hidden
 }
-.card-header-flex {
-  display:flex; justify-content:space-between; align-items:center;
-  background:#e3f2fd; font-weight:700
+.card-header-flex{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:8px 12px;background:#e3f2fd;font-weight:700
 }
-.card-body { padding:12px }
-button { border:none; border-radius:8px; padding:6px 10px; cursor:pointer }
-.btn { background:#1976d2; color:#fff }
-.btn-add { background:#2e7d32; color:#fff }
-.btn-edit-mini { background:#ffa000; color:#fff }
-.btn-del-mini { background:#d32f2f; color:#fff }
-input, select {
-  width:100%; padding:6px; margin:4px 0;
-  border-radius:6px; border:1px solid #ccc
+.card-body{padding:12px}
+button{
+  border:none;border-radius:8px;
+  padding:6px 10px;cursor:pointer
 }
-.modal {
-  position:fixed; inset:0; background:rgba(0,0,0,.4);
-  display:none; align-items:center; justify-content:center
+.btn{background:#1976d2;color:#fff}
+.btn-add{background:#2e7d32;color:#fff}
+.btn-edit-mini{background:#ffa000;color:#fff}
+.btn-del-mini{background:#d32f2f;color:#fff}
+input,select{
+  width:100%;padding:6px;margin:4px 0;
+  border-radius:6px;border:1px solid #ccc
 }
-.modal-content {
-  background:#fff; width:90%; max-width:360px;
-  border-radius:12px; padding:12px
+.modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.4);
+  display:none;align-items:center;justify-content:center
+}
+.modal-content{
+  background:#fff;width:90%;max-width:360px;
+  border-radius:12px;padding:12px
 }
 </style>
 </head>
 
 <body>
 
-<h2>📦 Production</h2>
+<h2>🏭 รอบการผลิต</h2>
 <div id="dropList"></div>
-
 <button class="btn-add" onclick="addDrop()">➕ เพิ่มรอบผลิต</button>
 
-<hr>
-<h2>📊 Summary</h2>
+<h2>📊 สรุปยอด</h2>
 <div class="modern-card">
   <div class="card-body">
     ใช้ไปทั้งหมด: <b id="rpt_sack_used">0</b> กระสอบ<br>
@@ -56,19 +58,28 @@ input, select {
 <!-- MODAL -->
 <div class="modal" id="distModal">
   <div class="modal-content">
-    <h3>จ่ายเข้ารถ</h3>
+    <h3>🚛 จ่ายเข้ารถ</h3>
+
+    <label>รถ</label>
     <select id="wiz_truck">
       <option value="T1">รถ 1</option>
       <option value="T2">รถ 2</option>
     </select>
+
+    <label>ประเภท</label>
     <select id="wiz_type">
       <option value="HL">หลอด</option>
       <option value="BOD">บด</option>
     </select>
-    แถว 1 <input id="wiz_r1" type="number" value="0">
-    แถว 2 <input id="wiz_r2" type="number" value="0">
-    แถว 3 <input id="wiz_r3" type="number" value="0">
-    <br>
+
+    <label>แถว 1</label>
+    <input id="wiz_r1" type="number" value="0">
+    <label>แถว 2</label>
+    <input id="wiz_r2" type="number" value="0">
+    <label>แถว 3</label>
+    <input id="wiz_r3" type="number" value="0">
+
+    <br><br>
     <button class="btn" onclick="confirmDistSave()">บันทึก</button>
     <button onclick="closeDistModal()">ยกเลิก</button>
   </div>
@@ -77,31 +88,34 @@ input, select {
 <script>
 /* ================= DATA ================= */
 let DATA = {
-  drops: [],
-  initStock: 0
+  initStock: 0,
+  drops: []
 };
 let CURRENT_DROP_ID = null;
 let EDITING_DIST_IDX = null;
 
 /* ================= UTIL ================= */
-function getNum(v){ return parseInt(v)||0 }
-function saveData(){ localStorage.setItem('prod_data', JSON.stringify(DATA)) }
-function loadData(){
-  const d = localStorage.getItem('prod_data');
-  if(d) DATA = JSON.parse(d)
+const $ = id => document.getElementById(id);
+const num = v => parseInt(v)||0;
+
+function saveData(){
+  localStorage.setItem('prod_main_data', JSON.stringify(DATA));
 }
-function getTruckName(v){ return v }
-function getTypeName(v){ return v }
+function loadData(){
+  const d = localStorage.getItem('prod_main_data');
+  if(d) DATA = JSON.parse(d);
+}
 
 /* ================= DROP ================= */
 function addDrop(){
   DATA.drops.push({
     id: Date.now(),
     time: new Date().toLocaleTimeString(),
-    prod: 0,
     dist:[]
   });
-  saveData(); renderDrops()
+  saveData();
+  renderDrops();
+  calcAll();
 }
 
 /* ================= DIST ================= */
@@ -109,25 +123,26 @@ function openDistModal(dropId, idx=null){
   CURRENT_DROP_ID = dropId;
   EDITING_DIST_IDX = idx;
 
-  document.getElementById('wiz_r1').value = 0;
-  document.getElementById('wiz_r2').value = 0;
-  document.getElementById('wiz_r3').value = 0;
+  $('wiz_r1').value = 0;
+  $('wiz_r2').value = 0;
+  $('wiz_r3').value = 0;
 
   if(idx !== null){
     const d = DATA.drops.find(x=>x.id===dropId).dist[idx];
-    wiz_truck.value = d.truck;
-    wiz_type.value = d.type;
-    wiz_r1.value = d.r1;
-    wiz_r2.value = d.r2;
-    wiz_r3.value = d.r3;
+    $('wiz_truck').value = d.truck;
+    $('wiz_type').value = d.type;
+    $('wiz_r1').value = d.r1;
+    $('wiz_r2').value = d.r2;
+    $('wiz_r3').value = d.r3;
   }
 
-  distModal.style.display='flex'
+  $('distModal').style.display='flex';
 }
+
 function closeDistModal(){
-  distModal.style.display='none';
-  CURRENT_DROP_ID=null;
-  EDITING_DIST_IDX=null
+  $('distModal').style.display='none';
+  CURRENT_DROP_ID = null;
+  EDITING_DIST_IDX = null;
 }
 
 function confirmDistSave(){
@@ -135,73 +150,87 @@ function confirmDistSave(){
   const d = DATA.drops.find(x=>x.id===CURRENT_DROP_ID);
   if(!d) return;
 
-  const r1=getNum(wiz_r1.value),
-        r2=getNum(wiz_r2.value),
-        r3=getNum(wiz_r3.value);
+  const r1 = num($('wiz_r1').value);
+  const r2 = num($('wiz_r2').value);
+  const r3 = num($('wiz_r3').value);
   const total = r1+r2+r3;
-  if(total===0){ alert('ใส่อย่างน้อย 1 แถว'); return }
+
+  if(total === 0){
+    alert('กรุณาใส่อย่างน้อย 1 แถว');
+    return;
+  }
 
   const item = {
-    truck:wiz_truck.value,
-    type:wiz_type.value,
+    truck:$('wiz_truck').value,
+    type:$('wiz_type').value,
     r1,r2,r3,total
   };
 
-  if(EDITING_DIST_IDX!==null) d.dist[EDITING_DIST_IDX]=item;
-  else d.dist.push(item);
+  if(EDITING_DIST_IDX !== null)
+    d.dist[EDITING_DIST_IDX] = item;
+  else
+    d.dist.push(item);
 
-  saveData(); closeDistModal(); renderDrops(); calcAll()
+  saveData();
+  closeDistModal();
+  renderDrops();
+  calcAll();
 }
 
-function editDist(dropId, idx){ openDistModal(dropId, idx) }
+function editDist(dropId, idx){ openDistModal(dropId, idx); }
 function removeDist(dropId, idx){
   if(!confirm('ลบรายการนี้?')) return;
   const d = DATA.drops.find(x=>x.id===dropId);
   d.dist.splice(idx,1);
-  saveData(); renderDrops(); calcAll()
+  saveData();
+  renderDrops();
+  calcAll();
 }
 
 /* ================= RENDER ================= */
 function renderDrops(){
-  dropList.innerHTML='';
+  $('dropList').innerHTML='';
   DATA.drops.forEach(d=>{
     let distHtml='';
-    d.dist.forEach((item,idx)=>{
+    d.dist.forEach((x,idx)=>{
       distHtml+=`
       <div class="modern-card">
         <div class="card-header-flex">
-          🚛 ${item.truck} • ${item.type}
+          🚛 ${x.truck} • ${x.type}
           <span>
             <button class="btn-edit-mini" onclick="editDist(${d.id},${idx})">✏️</button>
             <button class="btn-del-mini" onclick="removeDist(${d.id},${idx})">🗑️</button>
           </span>
         </div>
         <div class="card-body">
-          แถว: ${item.r1}/${item.r2}/${item.r3}<br>
-          <b>${item.total}</b> กระสอบ
+          แถว: ${x.r1}/${x.r2}/${x.r3}<br>
+          <b>${x.total}</b> กระสอบ
         </div>
       </div>`;
     });
 
-    dropList.innerHTML+=`
+    $('dropList').innerHTML += `
     <div class="modern-card">
       <div class="card-header-flex">
         รอบ ${d.time}
         <button class="btn" onclick="openDistModal(${d.id})">➕ จ่าย</button>
       </div>
-      <div class="card-body">${distHtml || 'ยังไม่มีการจ่าย'}</div>
+      <div class="card-body">
+        ${distHtml || '<i>ยังไม่มีการจ่าย</i>'}
+      </div>
     </div>`;
   });
 }
 
 /* ================= SUMMARY ================= */
 function calcAll(){
-  let used=0;
+  let used = 0;
   DATA.drops.forEach(d=>{
-    d.dist.forEach(x=>used+=x.total)
+    d.dist.forEach(x=>used += x.total);
   });
-  rpt_sack_used.innerText = used;
-  rpt_rem_total_all.innerText = DATA.initStock - used;
+
+  $('rpt_sack_used').innerText = used;
+  $('rpt_rem_total_all').innerText = DATA.initStock - used;
 }
 
 /* ================= INIT ================= */
@@ -209,5 +238,6 @@ loadData();
 renderDrops();
 calcAll();
 </script>
+
 </body>
 </html>
