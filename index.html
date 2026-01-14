@@ -2,679 +2,432 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ice Stock Tracker (AjarnG Edition)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Smart Ice V109 (Paper Form Layout)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        /* สไตล์เบื้องต้นให้ดูเหมือนแอปมือถือ */
-        body { 
-            font-family: sans-serif; 
-            margin: 0; 
-            padding: 15px; 
-            background: #f4f4f9; 
-        }
-        h1 { 
-            color: #007bff; 
-            text-align: center; 
-            margin-bottom: 25px;
-        }
-        .stock-display, .log-area, .transaction-form { 
-            margin-bottom: 20px; 
-            padding: 15px; 
-            background: white; 
-            border-radius: 8px; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
-        }
-        .stock-item { 
-            display: flex; 
-            justify-content: space-between; 
-            padding: 8px 0; 
-            border-bottom: 1px solid #eee; 
-            font-size: 1.1em;
-        }
-        .form-control { 
-            margin-bottom: 10px; 
-        }
-        .form-control label { 
-            display: block; 
-            font-weight: bold; 
-            margin-bottom: 5px; 
-        }
-        select, input[type="number"] {
-            width: 100%;
-            padding: 10px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 16px;
-        }
-        button { 
-            padding: 12px 15px; 
-            background: #28a745; 
-            color: white; 
-            border: none; 
-            border-radius: 5px; 
-            cursor: pointer; 
-            width: 100%; 
-            margin-top: 15px; 
-            font-size: 18px;
-            font-weight: bold;
-        }
-        .log-list { 
-            max-height: 350px; 
-            overflow-y: scroll; 
-            border: 1px solid #ccc; 
-            border-radius: 4px;
-            padding: 10px; 
-        }
-        .log-entry { 
-            display: flex; 
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 8px; 
-            border-bottom: 1px dotted #ccc; 
-            padding-bottom: 8px; 
-            font-size: 0.95em; 
-        }
-        .log-date-header {
-            font-weight: bold;
-            background: #e9ecef;
-            padding: 5px 10px;
-            margin: 5px -10px;
-            border-radius: 4px;
-            font-size: 1em;
-            text-align: center;
-            border-top: 1px solid #ccc;
-        }
-        .delete-btn {
-            background: #ff5050; 
-            color: white;
-            border: none;
-            padding: 3px 8px;
-            font-size: 0.8em;
-            border-radius: 4px;
-            cursor: pointer;
-            width: auto; 
-            margin: 0;
-            margin-left: 10px;
-        }
-        .log-details { 
-            flex-grow: 1;
-        }
-        .log-note { 
-            font-size: 0.9em;
-            color: #777;
-            margin-top: 3px;
-            display: block; 
-        }
+        /* --- Global Theme --- */
+        body { font-family: 'Sarabun', sans-serif; margin: 0; padding: 0; background: #f5f7fa; color: #37474f; padding-bottom: 100px; font-size: 14px; }
+        * { box-sizing: border-box; }
+        
+        /* Dashboard */
+        .dashboard { position: sticky; top: 0; z-index: 1000; background: #263238; color: white; padding: 12px 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; justify-content: space-around; }
+        .dash-item span { font-size: 0.75rem; color: #b0bec5; display: block; margin-bottom: 2px; }
+        .dash-item div { font-size: 1.3rem; font-weight: 800; color: #69f0ae; line-height: 1; }
+        
+        /* Status Bar & Nav */
+        .order-status-bar { background: #fff3e0; border-bottom: 1px solid #ffe0b2; padding: 8px; text-align: center; font-size: 0.9rem; color: #ef6c00; font-weight: bold; display: flex; justify-content: space-around; position: sticky; top: 65px; z-index: 950; }
+        .nav-bar { display: flex; background: white; margin: 10px; border-radius: 50px; padding: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: sticky; top: 105px; z-index: 900; }
+        .nav-btn { flex: 1; padding: 10px; text-align: center; border: none; background: none; font-weight: bold; color: #90a4ae; cursor: pointer; border-radius: 40px; transition: 0.2s; }
+        .nav-btn.active { background: #0277bd; color: white; box-shadow: 0 2px 8px rgba(2,119,189,0.4); }
+        
+        /* Content & Inputs */
+        .page { display: none; padding: 10px; max-width: 800px; margin: 0 auto; }
+        .page.active { display: block; }
+        .modern-card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); margin-bottom: 20px; overflow: hidden; border: 1px solid #fff; }
+        .card-body { padding: 15px; }
+        input[type="number"], input[type="tel"] { width: 100%; padding: 12px; font-size: 1.4rem; text-align: center; font-weight: 600; border: 1px solid #e0e0e0; border-radius: 10px; background: #fff; }
+        input:focus { border-color: #29b6f6; outline: none; }
+        input[type="time"], input[type="date"] { width: 100%; padding: 10px; border: 1px solid #cfd8dc; border-radius: 8px; text-align: center; font-size: 1.1rem; background: white; }
+        
+        /* Buttons */
+        .btn-stock-manager { width: 100%; padding: 15px; background: #ff9800; color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
+        .btn-view-history { width: 100%; padding: 15px; background: #546e7a; color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-bottom: 20px; }
+        .btn-reset { background: #cfd8dc; color: #546e7a; border: none; padding: 10px; width: 100%; margin-top: 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        
+        /* Card UI (Page 2) */
+        .card-header-flex { display: flex; align-items: center; padding: 10px; gap: 10px; background: #f9fafb; border-bottom: 1px solid #eee; }
+        .badge-box { border-radius: 12px; padding: 5px; width: 70px; text-align: center; color: white; font-weight: bold; font-size: 0.75rem; display: flex; flex-direction: column; justify-content: center; height: 50px; }
+        .bg-prod { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+        .big-time-input { font-size: 1.8rem; font-weight: 800; color: #37474f; border: none; background: none; width: 100px; text-align: center; }
+        .btn-close-red { width: 35px; height: 35px; border-radius: 8px; background: #ffebee; color: #c62828; border: none; font-size: 1.2rem; font-weight: bold; cursor: pointer; margin-left: auto; }
+        
+        .sack-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; background: #e0f2f1; padding: 10px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #b2dfdb; }
+        .sack-item { text-align: center; }
+        .sack-label { font-size: 0.65rem; color: #00695c; font-weight: bold; margin-bottom: 2px; white-space: nowrap; }
+        .sack-val { font-size: 1.2rem; font-weight: 800; color: #004d40; }
+        .sack-split { font-size: 0.85rem; color: #555; display: flex; justify-content: center; gap: 5px; margin-top: 2px; }
+        .ss-hl { color: #2e7d32; font-weight:bold; } .ss-bod { color: #6a1b9a; font-weight:bold; }
+
+        .dist-container { background: #fafafa; border-radius: 12px; padding: 10px; border: 1px dashed #cfd8dc; margin-top: 15px; }
+        .dist-item { background: white; padding: 10px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 8px; }
+        .dist-header { font-weight: bold; color: #0277bd; font-size: 1rem; display: flex; justify-content: space-between; align-items: center; }
+        .dist-rows { font-size: 0.85rem; color: #546e7a; margin-top: 5px; background: #f1f8e9; padding: 5px; border-radius: 6px; }
+        .btn-add-dist { width: 100%; padding: 12px; background: #eceff1; color: #546e7a; border: 1px dashed #90a4ae; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        
+        .fab-container { position: fixed; bottom: 25px; right: 20px; z-index: 2000; }
+        .fab-main { width: 65px; height: 65px; border-radius: 50%; background: #00c853; color: white; border: none; font-size: 32px; box-shadow: 0 6px 20px rgba(0,200,83,0.4); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+        /* --- PAPER FORM TABLE STYLES --- */
+        .paper-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-top: 5px; border: 2px solid #546e7a; }
+        .paper-table th { background: #cfd8dc; border: 1px solid #90a4ae; padding: 8px 2px; text-align: center; font-weight: bold; color: #37474f; vertical-align: middle; }
+        .paper-table td { border: 1px solid #b0bec5; padding: 6px 2px; text-align: center; vertical-align: middle; color: #263238; }
+        .pt-time { background: #eceff1; font-weight: bold; width: 15%; }
+        .pt-check { background: #e3f2fd; } /* Withdraw */
+        .pt-prod { background: #e8f5e9; font-weight: bold; color: #1b5e20; } /* Prod */
+        .pt-rem { background: #fff3e0; color: #e65100; font-weight: bold; } /* Remaining */
+        .sub-header { font-size: 0.75rem; color: #546e7a; }
+
+        /* Report Summary Box (Right side of paper sim) */
+        .paper-summary { border: 2px solid #546e7a; border-radius: 8px; padding: 10px; margin-top: 20px; background: #fff; }
+        .ps-row { display: flex; justify-content: space-between; border-bottom: 1px dotted #ccc; padding: 6px 0; }
+        .ps-label { font-weight: bold; color: #455a64; }
+        .ps-val { font-weight: 900; color: #0277bd; font-size: 1.1rem; }
+
+        /* Truck Matrix */
+        .truck-matrix-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 5px; border: 1px solid #ddd; }
+        .truck-matrix-table th { background: #eceff1; padding: 10px 5px; border-bottom: 2px solid #cfd8dc; font-size: 0.9rem; }
+        .truck-matrix-table td { border-bottom: 1px solid #f0f0f0; padding: 8px 4px; text-align: center; }
+        .st-pill { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 700; min-width: 50px; }
+        .st-over { background: #e3f2fd; color: #1565c0; } .st-miss { background: #ffebee; color: #c62828; } .st-ok { background: #e8f5e9; color: #2e7d32; }
+
+        /* Modals & Helpers */
+        .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); }
+        .modal-content { background-color: #f5f7fa; margin: 5% auto; width: 95%; max-width: 600px; max-height: 90vh; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; }
+        .modal-header { padding: 15px; background: #fff; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 1.2rem; }
+        .modal-body { overflow-y: auto; padding: 15px; flex: 1; }
+        .btn-save-wiz { width: 100%; padding: 15px; background: #00c853; color: white; border: none; border-radius: 12px; font-size: 1.2rem; font-weight: bold; margin-top: 15px; }
+        
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-bottom: 10px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .input-label { font-size: 0.75rem; color: #78909c; text-align: center; margin-bottom: 3px; }
     </style>
 </head>
 <body>
 
-    <h1>❄️ Ice Stock Tracker</h1>
-
-    <div class="stock-display" id="current-stock">
-        <h2>สต๊อกปัจจุบัน (กระสอบ)</h2>
-    </div>
-
-    <div class="transaction-form" id="adjustment-area">
-        <h2>แก้ไข/ปรับปรุงสต๊อก (Admin)</h2>
-        <div class="form-control">
-            <label for="adj-ice-type">ประเภท:</label>
-            <select id="adj-ice-type">
-                <option value="หลอด">หลอด</option><option value="บดหยาบ">บดหยาบ</option><option value="บดละเอียด">บดละเอียด</option>
-            </select>
-        </div>
-        <div class="form-control">
-            <label for="adj-quantity">จำนวนที่เพิ่ม/ลด (+/-):</label>
-            <input type="number" id="adj-quantity" value="1" placeholder="เช่น 50 หรือ -10">
-        </div>
-        <button onclick="adjustStock()" style="background: #ffc107; color: black; margin-top: 5px;">ปรับปรุงสต๊อก</button>
+    <div class="dashboard">
+        <div class="dash-item"><span>🧊 หลอด</span><div id="dash_hl">0</div></div>
+        <div class="dash-item"><span>🔨 หยาบ</span><div id="dash_bh">0</div></div>
+        <div class="dash-item"><span>❄️ ละเอียด</span><div id="dash_bl">0</div></div>
     </div>
     
-    <div class="transaction-form">
-        <h2>บันทึกรายการ (ขายหน้าโรงงาน)</h2>
-        <div class="form-control">
-            <label for="factory-ice-type">ประเภทน้ำแข็ง:</label>
-            <select id="factory-ice-type">
-                <option value="หลอด">หลอด</option><option value="บดหยาบ">บดหยาบ</option><option value="บดละเอียด">บดละเอียด</option>
-            </select>
-        </div>
-        <div class="form-control">
-            <label for="factory-quantity">จำนวนกระสอบ:</label>
-            <input type="number" id="factory-quantity" min="1" value="1">
-        </div>
-        <button onclick="recordFactorySale()">บันทึกขายหน้าโรงงาน</button>
-    </div>
-    
-    <div class="transaction-form">
-        <h2>บันทึกรายการ (รถออก/เข้า)</h2>
-        <div class="form-control">
-            <label for="truck-id">หมายเลขรถ:</label>
-            <select id="truck-id">
-                <option value="1">รถ 1</option><option value="2">รถ 2</option><option value="3">รถ 3</option>
-                <option value="4">รถ 4</option><option value="5">รถ 5</option><option value="6">รถ 6</option>
-                <option value="7">รถ 7</option><option value="8">รถ 8</option><option value="9">รถ 9</option>
-            </select>
-        </div>
-        <div class="form-control">
-            <label for="ice-type">ประเภทน้ำแข็ง:</label>
-            <select id="ice-type">
-                <option value="หลอด">หลอด</option><option value="บดหยาบ">บดหยาบ</option><option value="บดละเอียด">บดละเอียด</option>
-            </select>
-        </div>
-        <div class="form-control">
-            <label for="quantity">จำนวนกระสอบ (รวมที่นำกลับ):</label>
-            <input type="number" id="quantity" min="1" value="1">
-        </div>
-        <div class="form-control">
-            <label for="action-type">การกระทำ:</label>
-            <select id="action-type" onchange="toggleSpoiledField()">
-                <option value="OUT">นำออก (ไปส่ง)</option><option value="IN">นำเข้า (กลับสต๊อก)</option>
-            </select>
-        </div>
-
-        <div class="form-control" id="spoiled-field" style="display: none;">
-            <label for="spoiled-quantity">จำนวนกระสอบที่เสีย/ถูกตีกลับ:</label>
-            <input type="number" id="spoiled-quantity" min="0" value="0">
-        </div>
-
-        <button onclick="recordTransaction()">บันทึกรายการ</button>
+    <div class="order-status-bar">
+        <div class="os-item">สั่งรวม: <span id="os_total">0</span></div>
+        <div class="os-item">ส่งแล้ว: <span id="os_sent">0</span></div>
+        <div class="os-item">ค้างส่ง: <b id="os_remain">0</b></div>
     </div>
 
-    <div class="log-area">
-        <h2>ประวัติการเคลื่อนไหวทั้งหมด</h2>
-        <div class="log-list" id="transaction-log">
+    <div class="nav-bar">
+        <button class="nav-btn active" onclick="switchPage('setup')">1. ตั้งค่า</button>
+        <button class="nav-btn" onclick="switchPage('production')">2. ผลิต/จ่าย</button>
+        <button class="nav-btn" onclick="switchPage('summary')">3. สรุปยอด</button>
+    </div>
+
+    <div id="page-setup" class="page active">
+        <div class="modern-card card-body">
+            <h3>⚙️ ตั้งค่าประจำวัน</h3>
+            <label>วันที่</label><input type="date" id="setup_date" onchange="changeDate()">
+            <div class="grid-2" style="margin-top:10px;">
+                <div><label>🟢 เปิด</label><input type="time" id="time_start" value="22:00" onchange="saveData()"></div>
+                <div><label>🔴 ปิด</label><input type="time" id="time_stop" value="06:00" onchange="saveData()"></div>
             </div>
-        <button onclick="exportLogToCSV()" style="background: #007bff; font-size: 16px; margin-top: 5px;">
-            Export Log (สำรองข้อมูล CSV)
-        </button>
-        <button onclick="clearLogHistory()" style="background: #dc3545; font-size: 16px; margin-top: 5px;">
-            ล้างประวัติทั้งหมด (ฉุกเฉิน)
-        </button>
+        </div>
+        <div class="modern-card card-body">
+            <h3>📦 สต็อกยกมา</h3>
+            <div class="grid-3">
+                <div><div class="input-label">หลอด</div><input type="tel" id="init_hl" value="0" onchange="updateStock()"></div>
+                <div><div class="input-label">หยาบ</div><input type="tel" id="init_bh" value="0" onchange="updateStock()"></div>
+                <div><div class="input-label">ละเอียด</div><input type="tel" id="init_bl" value="0" onchange="updateStock()"></div>
+            </div>
+        </div>
+        <div class="modern-card card-body">
+            <h3>🚚 สั่งซื้อ (Master Order)</h3>
+            <div id="order_inputs"></div>
+        </div>
+        <button class="btn-reset" onclick="if(confirm('ล้างข้อมูลทั้งหมด?')){localStorage.clear(); location.reload();}">🗑️ รีเซ็ตข้อมูล (เริ่มใหม่)</button>
+        <div style="height:50px;"></div>
     </div>
 
-    <script>
-        const INITIAL_STOCK = { "หลอด": 100, "บดหยาบ": 50, "บดละเอียด": 30 };
-        const STOCK_KEY = 'ajarnG_ice_stock';
-        const LOG_KEY = 'ajarnG_ice_log';
-
-        // ----------------------------------------------------
-        // 1. ฟังก์ชันจัดการข้อมูล (Data Handlers)
-        // ----------------------------------------------------
-
-        function getStock() {
-            const stockData = localStorage.getItem(STOCK_KEY);
-            return stockData ? JSON.parse(stockData) : INITIAL_STOCK;
-        }
-
-        function saveStock(stock) {
-            localStorage.setItem(STOCK_KEY, JSON.stringify(stock));
-        }
-
-        function getLog() {
-            const logData = localStorage.getItem(LOG_KEY);
-            let log = logData ? JSON.parse(logData) : [];
-            return log.sort((a, b) => b.timestamp - a.timestamp); 
-        }
-
-        function addLog(newEntry) {
-            const log = getLog();
-            newEntry.id = Date.now() + Math.random().toString(16).slice(2); 
-            log.push(newEntry);
-            localStorage.setItem(LOG_KEY, JSON.stringify(log)); 
-        }
+    <div id="page-production" class="page">
+        <button class="btn-stock-manager" onclick="openStockManager()">📦 จัดการเบิกของเก่า (ห้องเย็น)</button>
+        <button class="btn-view-history" onclick="openFullHistory()">🕒 ดูรายการผลิตย้อนหลัง</button>
         
-        function deleteLogEntry(logId) {
-            if (!confirm('ยืนยันลบรายการนี้? การลบไม่สามารถย้อนกลับได้และจะกู้คืนสต๊อกนะ!')) {
-                return;
-            }
-            let log = getLog();
-            const deletedEntry = log.find(entry => entry.id === logId);
+        <div id="drops_list"></div> <div style="height: 100px;"></div>
+    </div>
 
-            if (!deletedEntry) {
-                alert('หารายการที่จะลบไม่เจอ!');
-                return;
-            }
+    <div class="fab-container"><button class="fab-main" onclick="addDrop('prod')">+</button></div>
 
-            let currentStock = getStock();
-            const type = deletedEntry.ice_type;
-            const quantity = deletedEntry.quantity;
-            const action = deletedEntry.action;
+    <div id="page-summary" class="page">
+        
+        <div class="modern-card card-body">
+             <h3>📊 สรุปสถานะรายคัน (ขาด/เกิน)</h3>
+             <div id="truck_report_container"></div>
+        </div>
 
-            if (action === 'OUT' || action === 'FSALE') {
-                currentStock[type] += quantity;
-            } else if (action === 'IN') {
-                currentStock[type] -= quantity;
-            } else if (action === 'ADJ') {
-                currentStock[type] -= quantity;
-            } 
-            
-            if (currentStock[type] < 0) {
-                 alert('ไม่สามารถลบได้! การลบจะทำให้สต๊อกปัจจุบันติดลบ (กรุณาปรับปรุงสต๊อกด้วย Admin ก่อนลบ)!');
-                 return;
-            }
-            
-            saveStock(currentStock);
+        <div class="modern-card card-body">
+            <h3>📝 บันทึกการผลิต (แบบฟอร์ม)</h3>
+            <div style="overflow-x:auto;">
+                <table class="paper-table">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" class="pt-time" style="width:15%">เวลา</th>
+                            <th colspan="2" class="pt-check" style="width:20%">เบิกกระสอบ</th>
+                            <th colspan="3" class="pt-prod" style="width:40%">ผลการผลิต</th>
+                            <th colspan="2" class="pt-rem" style="width:25%">คงเหลือ</th>
+                        </tr>
+                        <tr>
+                            <th class="pt-check sub-header">หลอด</th>
+                            <th class="pt-check sub-header">บด</th>
+                            <th class="pt-prod sub-header">หลอด</th>
+                            <th class="pt-prod sub-header">หยาบ</th>
+                            <th class="pt-prod sub-header">ละเอียด</th>
+                            <th class="pt-rem sub-header">หลอด</th>
+                            <th class="pt-rem sub-header">บด</th>
+                        </tr>
+                    </thead>
+                    <tbody id="prod_log_body"></tbody>
+                </table>
+            </div>
 
-            let logIdsToDelete = [logId];
-            if (action === 'IN') {
-                 const spoiledEntry = log.find(
-                    entry => 
-                    entry.action === 'SPOIL' && 
-                    entry.truck_id === deletedEntry.truck_id &&
-                    entry.ice_type === deletedEntry.ice_type &&
-                    (entry.timestamp === deletedEntry.timestamp || entry.timestamp === deletedEntry.timestamp + 1)
-                );
-                if(spoiledEntry) {
-                    logIdsToDelete.push(spoiledEntry.id);
-                }
-            } else if (action === 'SPOIL') {
-                // ถ้าลบ Log เสีย เราไม่ทำอะไรกับ Log IN
-            }
-            
-            log = log.filter(entry => !logIdsToDelete.includes(entry.id));
-            localStorage.setItem(LOG_KEY, JSON.stringify(log)); 
-
-            renderStock();
-            renderLog();
-            alert('ลบรายการสำเร็จและปรับปรุงสต๊อกแล้ว!');
-        }
-
-
-        // ----------------------------------------------------
-        // 2. ฟังก์ชันแสดงผล (Render Functions)
-        // ----------------------------------------------------
-
-        function renderStock() {
-            const stock = getStock();
-            const stockContainer = document.getElementById('current-stock');
-            stockContainer.innerHTML = '<h2>สต๊อกปัจจุบัน (กระสอบ)</h2>'; 
-            for (const type in stock) {
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'stock-item';
-                itemDiv.innerHTML = `<strong>${type}:</strong><span>${stock[type]} กระสอบ</span>`;
-                stockContainer.appendChild(itemDiv);
-            }
-        }
-
-        function renderLog() {
-            const allLog = getLog();
-            const logContainer = document.getElementById('transaction-log');
-            logContainer.innerHTML = ''; 
-
-            let lastDate = ''; 
-            const renderedLogIds = new Set(); 
-
-            allLog.forEach((entry, index) => {
-                if (renderedLogIds.has(entry.id)) {
-                    return; 
-                }
+            <div class="paper-summary">
+                <div class="ps-row"><span class="ps-label">หลอดใหญ่ (ผลิตรวม):</span> <span class="ps-val" id="rpt_hl">0</span></div>
+                <div class="ps-row"><span class="ps-label">บดหยาบ (ผลิตรวม):</span> <span class="ps-val" id="rpt_bh">0</span></div>
+                <div class="ps-row"><span class="ps-label">บดละเอียด (ผลิตรวม):</span> <span class="ps-val" id="rpt_bl">0</span></div>
+                <div class="ps-row" style="background:#e8f5e9;"><span class="ps-label">รวมผลิตทั้งหมด:</span> <span class="ps-val" id="rpt_total_prod">0</span></div>
                 
-                const date = new Date(entry.timestamp);
-                const dateStr = date.toLocaleDateString('th-TH');
+                <div class="divider-line"></div>
+                
+                <div class="ps-row"><span class="ps-label">น้ำหนักรวม (กก.):</span> <span class="ps-val" id="rpt_total_weight">0</span></div>
+                <div class="ps-row"><span class="ps-label">เวลาเฉลี่ย (นาที/ตก):</span> <span class="ps-val" id="rpt_avg_time">0</span></div>
+                
+                <div class="divider-line"></div>
+                
+                <div class="ps-row"><span class="ps-label">เบิกกระสอบ (หลอด):</span> <span class="ps-val" id="rpt_with_hl">0</span></div>
+                <div class="ps-row"><span class="ps-label">เบิกกระสอบ (บด):</span> <span class="ps-val" id="rpt_with_bod">0</span></div>
+                <div class="ps-row" style="background:#fffde7;"><span class="ps-label">รวมเบิก:</span> <span class="ps-val" id="rpt_sack_withdraw">0</span></div>
+                <div class="ps-row"><span class="ps-label">ใช้บรรจุไป:</span> <span class="ps-val" id="rpt_sack_used">0</span></div>
+                <div class="ps-row" style="color:red;"><span class="ps-label">กระสอบคงเหลือคืน:</span> <span class="ps-val" id="rpt_rem_total_all">0</span></div>
+            </div>
+        </div>
 
-                // 1. การจัดกลุ่มตามวัน
-                if (dateStr !== lastDate) {
-                    const dateHeader = document.createElement('div');
-                    dateHeader.className = 'log-date-header';
-                    dateHeader.innerHTML = `--- 📅 ${dateStr} ---`;
-                    logContainer.appendChild(dateHeader);
-                    lastDate = dateStr;
-                }
-                
-                // 2. รายละเอียด Log
-                const timeStr = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                
-                let actionText;
-                let truckInfo;
-                let extraNote = '';
-                let displayQuantity = entry.quantity;
+        <div class="modern-card card-body">
+             <h3>📋 รายละเอียดการขึ้นของ</h3>
+             <div id="truck_detail_container"></div>
+        </div>
+    </div>
 
-                // ตรวจสอบการรวม Log "นำเข้า (ของดี)" กับ "น้ำแข็งเสีย"
-                if (entry.action === 'IN') {
-                    const spoiledEntry = allLog.slice(index + 1).find(
-                        nextEntry => 
-                        nextEntry.action === 'SPOIL' && 
-                        nextEntry.truck_id === entry.truck_id &&
-                        nextEntry.ice_type === entry.ice_type &&
-                        (nextEntry.timestamp === entry.timestamp || nextEntry.timestamp === entry.timestamp + 1)
-                    );
-                    
-                    if (spoiledEntry) {
-                        // **พบรายการเสีย:** รวม Log เข้าด้วยกัน
-                        const totalQuantity = entry.quantity + spoiledEntry.quantity; 
-                        
-                        actionText = `<strong style="color: green;">นำเข้า</strong>`;
-                        // ข้อความรวมที่ถูกต้อง
-                        extraNote = `<span class="log-note">รวมทั้งหมด: ${totalQuantity} กระสอบ (ดี: ${entry.quantity} | <strong style="color: purple;">เสีย: ${spoiledEntry.quantity}</strong>)</span>`;
-                        displayQuantity = totalQuantity; // แสดงยอดรวม
-                        renderedLogIds.add(spoiledEntry.id); // ซ่อน Log เสียจาก Log list
-                    } else {
-                        // ไม่พบรายการเสีย: แสดง Log ของดีปกติ
-                        actionText = `<strong style="color: green;">นำเข้า (ของดี)</strong>`;
-                        extraNote = `<span class="log-note">เข้าสต๊อกจริง ${entry.quantity} กระสอบ</span>`;
-                        displayQuantity = entry.quantity;
-                    }
-                } else if (entry.action === 'OUT') {
-                    actionText = `<strong style="color: red;">นำออก</strong>`;
-                    displayQuantity = entry.quantity;
-                } else if (entry.action === 'ADJ') {
-                    actionText = `<strong style="color: orange;">ปรับปรุง</strong>`;
-                    extraNote = `<span class="log-note">ยอดปรับ: ${entry.quantity > 0 ? '+' : ''}${entry.quantity} กระสอบ</span>`;
-                    displayQuantity = Math.abs(entry.quantity);
-                } else if (entry.action === 'SPOIL') {
-                    // Log เสียที่ไม่ได้ถูกรวม
-                    actionText = `<strong style="color: purple;">น้ำแข็งเสีย</strong>`; 
-                    displayQuantity = entry.quantity;
-                } else if (entry.action === 'FSALE') {
-                    actionText = `<strong style="color: blue;">ขายหน้าโรงงาน</strong>`; 
-                    displayQuantity = entry.quantity;
-                }
+    <div id="dist_modal" class="modal"><div class="modal-content"><div class="modal-header"><div class="modal-title" id="wiz_title">🚛 จ่ายเข้ารถ</div><button class="btn-close-modal" onclick="closeDistModal()">×</button></div><div class="modal-body"><div class="wiz-controls"><div style="flex:1;"><label>เลือกคันรถ</label><select id="wiz_truck" class="wiz-select" onchange="updateWizStats()"></select></div><div style="flex:1;"><label>ประเภท</label><select id="wiz_type" class="wiz-select" onchange="updateWizStats()"></select></div></div><div class="wiz-status"><div class="wiz-status-text">ยอดคงเหลือ</div><div class="wiz-remain" id="wiz_remain">0</div></div><div class="row-inputs"><div class="row-group"><div class="row-label">แถว 1</div><input type="tel" id="wiz_r1" placeholder="0" oninput="updateWizStats()"></div><div class="row-group"><div class="row-label">แถว 2</div><input type="tel" id="wiz_r2" placeholder="0" oninput="updateWizStats()"></div><div class="row-group"><div class="row-label">แถว 3</div><input type="tel" id="wiz_r3" placeholder="0" oninput="updateWizStats()"></div></div><button class="btn-save-wiz" onclick="confirmDistSave()">💾 บันทึก</button><div style="text-align:center; margin-top:10px;">รวม: <span id="wiz_total_sum">0</span></div><div style="height:200px;"></div></div></div></div>
+    <div id="stock_manager_modal" class="modal"><div class="modal-content"><div class="modal-header"><div class="modal-title">📦 จัดการเบิกของเก่า</div><button class="btn-close-modal" onclick="closeStockManager()">×</button></div><div class="modal-body"><button class="btn-save-dist" style="width:100%; margin-bottom:15px;" onclick="addDrop('stock'); closeStockManager(); openDistModal(DATA.drops[DATA.drops.length-1].id)">+ เพิ่มรายการเบิก</button><div id="stock_list_container"></div><div style="height:50px;"></div></div></div></div>
+    <div id="full_history_modal" class="modal"><div class="modal-content"><div class="modal-header"><div class="modal-title">🕒 ประวัติย้อนหลัง</div><button class="btn-close-modal" onclick="closeFullHistory()">×</button></div><div class="modal-body"><div id="full_history_list"></div><div style="height:50px;"></div></div></div></div>
+    <div id="history_modal" class="modal"><div class="modal-content"><div class="modal-header"><div class="modal-title" id="hist_title">🕒 ประวัติ</div><button class="btn-close-modal" onclick="closeHistoryModal()">×</button></div><div class="modal-body"><div id="history_list"></div><div style="height:50px;"></div></div></div></div>
 
-                // ข้อมูลรถ
-                if (entry.truck_id === 'ADMIN') {
-                    truckInfo = '[ADMIN]';
-                } else if (entry.truck_id === 'FACTORY') {
-                    truckInfo = '[หน้าโรงงาน]';
-                } else {
-                    truckInfo = `รถ ${entry.truck_id}`;
-                }
-                
-                const logEntry = document.createElement('div');
-                logEntry.className = 'log-entry';
-                
-                let entryDetails = `
-                    <div class="log-details">
-                        [${timeStr}] 
-                        ${truckInfo} 
-                        ${actionText} ${displayQuantity} กระสอบ (${entry.ice_type})
-                        ${extraNote}
-                    </div>
-                    <button class="delete-btn" onclick="deleteLogEntry('${entry.id}')">ลบ</button>
-                `;
-                
-                logEntry.innerHTML = entryDetails;
-                logContainer.appendChild(logEntry);
+<script>
+    const TRUCKS = ["รถ 1", "รถ 2", "รถ 3", "รถ 4", "รถ 5", "รถ 6", "รถ 7", "รถ 8", "รถ 9"];
+    const ICE_TYPES = [ { id: 'hl', label: 'หลอด' }, { id: 'bh', label: 'หยาบ' }, { id: 'bl', label: 'ละเอียด' } ];
+    let DATA = getEmptyData();
+    let CURRENT_DROP_ID = null;
+    let EDITING_DIST_IDX = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('setup_date').value = today;
+        loadData(today);
+        initWizard();
+        renderOrderInputs();
+        renderDrops();
+        calcAll();
+    });
+
+    function getEmptyData() { return { times: { start: "22:00", stop: "06:00" }, initStock: { hl:0, bh:0, bl:0 }, orders: {}, drops: [] }; }
+    function saveData() { 
+        const dateKey = document.getElementById('setup_date').value;
+        DATA.times.start = document.getElementById('time_start').value;
+        DATA.times.stop = document.getElementById('time_stop').value;
+        DATA.initStock = { hl: getNum(document.getElementById('init_hl').value), bh: getNum(document.getElementById('init_bh').value), bl: getNum(document.getElementById('init_bl').value) };
+        localStorage.setItem(`ICE_DATA_${dateKey}`, JSON.stringify(DATA)); 
+    }
+    function loadData(dateKey) {
+        const d = localStorage.getItem(`ICE_DATA_${dateKey}`);
+        if(d) { try { DATA = JSON.parse(d); if(!DATA.drops) DATA.drops = []; if(!DATA.orders) DATA.orders = {}; 
+            DATA.drops.forEach(drop => {
+               if(drop.dist) drop.dist.forEach(i => i.total = getNum(i.r1)+getNum(i.r2)+getNum(i.r3));
             });
+        } catch(e) { DATA = getEmptyData(); } } else { DATA = getEmptyData(); }
+        document.getElementById('time_start').value = DATA.times.start;
+        document.getElementById('time_stop').value = DATA.times.stop;
+        document.getElementById('init_hl').value = DATA.initStock.hl;
+        document.getElementById('init_bh').value = DATA.initStock.bh;
+        document.getElementById('init_bl').value = DATA.initStock.bl;
+    }
+    function changeDate() { const newDate = document.getElementById('setup_date').value; loadData(newDate); renderOrderInputs(); renderDrops(); calcAll(); }
+    function getNum(val) { return parseFloat(val) || 0; }
 
-            if (allLog.length === 0) {
-                logContainer.innerHTML = '<p style="text-align: center; color: #6c757d;">ยังไม่มีรายการเคลื่อนไหว</p>';
-            }
+    function addDrop(type) {
+        const now = new Date();
+        const timeStr = now.toTimeString().substring(0, 5);
+        DATA.drops.push({ id: Date.now(), type: type, time: timeStr, sackWithdraw: 0, p_in_room: { hl:0, bh:0, bl:0 }, dist: [] });
+        saveData(); renderDrops(); calcAll();
+        if(type === 'prod') setTimeout(() => window.scrollTo(0, 0), 100); else openStockManager();
+    }
+    
+    function deleteDrop(id) { if(confirm("ลบรายการนี้?")) { DATA.drops = DATA.drops.filter(d => d.id !== id); saveData(); renderDrops(); calcAll(); if(document.getElementById('stock_manager_modal').style.display === 'block') openStockManager(); } }
+    
+    function renderDrops() {
+        const container = document.getElementById('drops_list');
+        container.innerHTML = '';
+        const startTimeStr = document.getElementById('time_start').value;
+        const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
+        const displayDrops = [...sortedDrops].reverse(); 
+        
+        const prodDrops = sortedDrops.filter(d => d.type === 'prod');
+        const latestProd = prodDrops[prodDrops.length - 1]; 
+
+        if(latestProd) {
+             const d = latestProd;
+             let prevTime = startTimeStr;
+             const idx = prodDrops.findIndex(p => p.id === d.id);
+             if(idx > 0) prevTime = prodDrops[idx-1].time;
+             const diffMin = getMinDiff(prevTime, d.time);
+             container.insertAdjacentHTML('beforeend', generateCardHtml(d, diffMin));
+        } else {
+            container.innerHTML = '<div style="text-align:center; color:#aaa; margin-top:50px;">กด + เพื่อเริ่มผลิต</div>';
+        }
+        updateStats();
+    }
+
+    function generateCardHtml(d, diffMin) {
+        let distHtml = '';
+        if(d.dist) {
+           d.dist.forEach((item, idx) => {
+               distHtml += `<div class="dist-item"><div class="dist-header"><span>🚛 ${getTruckName(item.truck)} - ${getTypeName(item.type)}</span><div><button style="background:#fff9c4; border:none; padding:4px;" onclick="editDist(${d.id}, ${idx})">✏️</button><button style="background:#ffcdd2; border:none; padding:4px;" onclick="removeDist(${d.id}, ${idx})">🗑️</button></div></div><div class="dist-rows">(${item.r1}/${item.r2}/${item.r3}) = <b>${item.total}</b></div></div>`;
+           });
         }
         
-        // ----------------------------------------------------
-        // 7. ฟังก์ชัน: ควบคุมการแสดงผลช่องน้ำแข็งเสีย
-        // ----------------------------------------------------
-        function toggleSpoiledField() {
-            const action = document.getElementById('action-type').value;
-            const spoiledField = document.getElementById('spoiled-field');
-            
-            if (action === 'IN') {
-                spoiledField.style.display = 'block';
-            } else {
-                spoiledField.style.display = 'none';
-                document.getElementById('spoiled-quantity').value = 0; 
-            }
-        }
-        
-        // ----------------------------------------------------
-        // 3. ฟังก์ชันบันทึกรายการ (Transaction Logic)
-        // ----------------------------------------------------
-
-        function recordFactorySale() {
-            const iceType = document.getElementById('factory-ice-type').value;
-            const quantityInput = document.getElementById('factory-quantity');
-            const quantity = parseInt(quantityInput.value);
-
-            if (quantity <= 0 || isNaN(quantity)) {
-                alert('จำนวนกระสอบต้องมากกว่า 0 นะ');
-                return;
-            }
-            
-            let currentStock = getStock();
-
-            if (currentStock[iceType] < quantity) {
-                alert(`น้ำแข็ง ${iceType} ไม่พอสำหรับขายหน้าโรงงาน! มีแค่ ${currentStock[iceType]} กระสอบ`);
-                return; 
-            }
-            currentStock[iceType] -= quantity;
-            
-            saveStock(currentStock);
-            const logEntry = {
-                timestamp: Date.now(), 
-                truck_id: 'FACTORY', 
-                ice_type: iceType,
-                quantity: quantity,
-                action: 'FSALE' 
-            };
-            addLog(logEntry);
-
-            renderStock();
-            renderLog();
-            alert(`บันทึกขายหน้าโรงงานสำเร็จ! นำออก ${quantity} กระสอบ (${iceType})`);
-            
-            quantityInput.value = 1;
-        }
-
-
-        function recordTransaction() {
-            const truckId = document.getElementById('truck-id').value;
-            const iceType = document.getElementById('ice-type').value;
-            const quantityInput = document.getElementById('quantity');
-            const quantity = parseInt(quantityInput.value); 
-            const action = document.getElementById('action-type').value;
-
-            let spoiledQuantity = 0;
-            if (action === 'IN') {
-                 spoiledQuantity = parseInt(document.getElementById('spoiled-quantity').value);
-                 if (isNaN(spoiledQuantity)) spoiledQuantity = 0;
-            }
-            
-            let actualInStock = quantity - spoiledQuantity; 
-
-            if (quantity <= 0 || isNaN(quantity)) {
-                alert('ลูกศิษย์! จำนวนกระสอบ (รวมที่นำเข้า/ออก) ต้องมากกว่า 0 นะ');
-                return;
-            }
-            if (spoiledQuantity < 0 || spoiledQuantity > quantity) {
-                alert('จำนวนเสียต้องไม่ติดลบ และต้องไม่มากกว่าจำนวนที่นำกลับมาทั้งหมด!');
-                return;
-            }
-
-            let currentStock = getStock();
-
-            if (action === 'OUT') {
-                if (currentStock[iceType] < quantity) {
-                    alert(`น้ำแข็ง ${iceType} ไม่พอ! มีแค่ ${currentStock[iceType]} กระสอบ`);
-                    return; 
-                }
-                currentStock[iceType] -= quantity;
-                
-                const logEntry = {
-                    timestamp: Date.now(), 
-                    truck_id: truckId,
-                    ice_type: iceType,
-                    quantity: quantity,
-                    action: action
-                };
-                addLog(logEntry);
-
-            } else { 
-                // นำเข้า (IN) 
-                
-                currentStock[iceType] += actualInStock;
-
-                // 2. บันทึก Log การนำเข้า (ของดี)
-                if (actualInStock >= 0) { 
-                    const goodLogEntry = {
-                        timestamp: Date.now(), 
-                        truck_id: truckId,
-                        ice_type: iceType,
-                        quantity: actualInStock,
-                        action: action 
-                    };
-                    addLog(goodLogEntry);
-                }
-
-                // 3. บันทึก Log การสูญเสีย (ของเสีย)
-                if (spoiledQuantity > 0) {
-                    const spoiledLogEntry = {
-                        timestamp: Date.now() + 1, 
-                        truck_id: truckId,
-                        ice_type: iceType,
-                        quantity: spoiledQuantity,
-                        action: 'SPOIL' 
-                    };
-                    addLog(spoiledLogEntry);
-                }
-            }
-
-            saveStock(currentStock);
-            renderStock();
-            renderLog();
-
-            // **ข้อความ Alert ตามรูปแรก**
-            let alertMsg = `บันทึกรายการสำเร็จ! รถ ${truckId} นำเข้า ${quantity} กระสอบ`;
-            if (action === 'IN' && spoiledQuantity > 0) {
-                alertMsg = `บันทึกรายการสำเร็จ! รถ ${truckId} นำเข้า ${quantity} กระสอบ (เข้าสต๊อกจริง ${actualInStock} เสีย ${spoiledQuantity})!`;
-            } else if (action === 'OUT') {
-                alertMsg = `บันทึกรายการสำเร็จ! รถ ${truckId} นำออก ${quantity} กระสอบ!`;
-            }
-            alert(alertMsg);
-            
-            quantityInput.value = 1;
-            document.getElementById('spoiled-quantity').value = 0;
-            toggleSpoiledField();
-        }
-
-
-        // ----------------------------------------------------
-        // 4. ฟังก์ชัน: ปรับปรุงสต๊อกโดยตรง
-        // ----------------------------------------------------
-
-        function adjustStock() {
-            const iceType = document.getElementById('adj-ice-type').value;
-            const quantity = parseInt(document.getElementById('adj-quantity').value);
-
-            if (isNaN(quantity) || quantity === 0) {
-                alert('กรุณาระบุจำนวนที่เพิ่ม/ลด (+/-) เช่น 50 หรือ -10!');
-                return;
-            }
-
-            let currentStock = getStock();
-            currentStock[iceType] += quantity;
-
-            if (currentStock[iceType] < 0) {
-                alert(`สต๊อก ${iceType} ไม่สามารถติดลบได้!`);
-                currentStock[iceType] -= quantity; 
-                document.getElementById('adj-quantity').value = 1; 
-                return;
-            }
-
-            saveStock(currentStock);
-
-            const logEntry = {
-                timestamp: Date.now(),
-                truck_id: 'ADMIN',
-                ice_type: iceType,
-                quantity: quantity,
-                action: 'ADJ', 
-            };
-            addLog(logEntry);
-
-            renderStock();
-            renderLog();
-
-            alert(`ปรับปรุงสต๊อกสำเร็จ! ${iceType} เปลี่ยนไป ${quantity} กระสอบ (ยอดปัจจุบัน: ${currentStock[iceType]})`);
-            document.getElementById('adj-quantity').value = 1; 
-        }
-
-        // ----------------------------------------------------
-        // 5. ฟังก์ชัน: ล้างประวัติทั้งหมด
-        // ----------------------------------------------------
-
-        function clearLogHistory() {
-            if (confirm('ลูกศิษย์! ยืนยันที่จะล้างประวัติการเคลื่อนไหวทั้งหมดจริงหรือ? ข้อมูลนี้จะหายไปถาวรนะ!')) {
-                localStorage.removeItem(LOG_KEY);
-                renderLog();
-                alert('ประวัติการเคลื่อนไหวถูกล้างทั้งหมดแล้ว!');
-            }
-        }
-        
-        // ----------------------------------------------------
-        // 8. ฟังก์ชัน: Export Log (สำรองข้อมูล) - **ลบคอลัมน์ของเสีย**
-        // ----------------------------------------------------
-        function exportLogToCSV() {
-            const log = getLog();
-            if (log.length === 0) {
-                alert('ไม่มีข้อมูลในประวัติให้ส่งออก!');
-                return;
-            }
-
-            // **ลบคอลัมน์ "ของเสีย" ออกจาก Header**
-            let csv = 'Log_ID,Time_ms,วันที่,เวลา,หมายเลขรถ,ประเภทน้ำแข็ง,จำนวน,การกระทำ\n';
-
-            let tempLog = getLog();
-            let exportedIds = new Set();
-
-            tempLog.forEach(entry => {
-                if (exportedIds.has(entry.id)) return;
-
-                const date = new Date(entry.timestamp);
-                const dateStr = date.toLocaleDateString('th-TH');
-                const timeStr = date.toLocaleTimeString('th-TH');
-                
-                let quantity = entry.quantity;
-                let action = entry.action;
-                
-                if (entry.action === 'IN') {
-                    // ตรวจสอบและรวม Log SPOIL เข้าไปใน Log IN เพื่อให้ยอดรวมชัดเจนใน CSV
-                    const spoiledEntry = tempLog.find(
-                        nextEntry => 
-                        nextEntry.action === 'SPOIL' && 
-                        nextEntry.truck_id === entry.truck_id &&
-                        nextEntry.ice_type === entry.ice_type &&
-                        (nextEntry.timestamp === entry.timestamp || nextEntry.timestamp === entry.timestamp + 1) &&
-                        !exportedIds.has(nextEntry.id)
-                    );
-
-                    if (spoiledEntry) {
-                        quantity += spoiledEntry.quantity; // ยอดรวม
-                        action = 'IN_TOTAL'; // บ่งชี้ว่าคือนำเข้ารวม (ของดี + ของเสีย)
-                        exportedIds.add(spoiledEntry.id);
-                    }
-                }
-
-                // บันทึก Log
-                csv += `${entry.id},${entry.timestamp},"${dateStr}","${timeStr}",${entry.truck_id},${entry.ice_type},${quantity},${action}\n`;
-                exportedIds.add(entry.id);
+        let hlProd = getNum(d.p_in_room.hl);
+        let bhProd = getNum(d.p_in_room.bh);
+        let blProd = getNum(d.p_in_room.bl);
+        if(d.dist) {
+            d.dist.forEach(i => {
+                if(i.type === 'hl') hlProd += getNum(i.total);
+                if(i.type === 'bh') bhProd += getNum(i.total);
+                if(i.type === 'bl') blProd += getNum(i.total);
             });
-
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            
-            link.setAttribute('href', URL.createObjectURL(blob));
-            link.setAttribute('download', `ice_stock_backup_${new Date().toISOString().slice(0, 10)}.csv`);
-
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            alert('ส่งออกข้อมูล Log สำเร็จ! เช็คในไฟล์ดาวน์โหลดของมือถือได้เลย!');
         }
+        
+        const hlBatch = Math.ceil(hlProd / 40) * 40;
+        const crushBatch = Math.ceil((bhProd + blProd) / 40) * 40;
+        const hlRem = hlBatch - hlProd;
+        const crushRem = crushBatch - (bhProd + blProd);
 
-        // ----------------------------------------------------
-        // 6. การเริ่มต้นระบบ (Initialization)
-        // ----------------------------------------------------
+        return `<div class="modern-card"><div class="card-header-flex"><div class="badge-box bg-prod"><span>น้ำแข็ง<br>ตก<br>(ผลิต)</span></div><input type="time" class="big-time-input" value="${d.time}" onchange="updateDropVal(${d.id}, 'time', null, this.value)"><span class="time-diff-badge">(+${diffMin} น.)</span><button class="btn-close-red" onclick="deleteDrop(${d.id})">×</button></div><div class="card-body" style="padding-top:0;">
+        <div class="sack-row">
+            <div class="sack-item"><div class="sack-label">เบิก (หลอด/บด)</div><div class="sack-val" id="disp_withdraw_${d.id}">${hlBatch} / ${crushBatch}</div></div>
+            <div class="sack-item"><div class="sack-label">ใช้ (หลอด/บด)</div><div class="sack-val" id="disp_used_${d.id}">${hlProd} / ${bhProd+blProd}</div></div>
+            <div class="sack-item"><div class="sack-label">คืน (หลอด/บด)</div><div class="sack-split"><span class="ss-hl" id="disp_rem_hl_${d.id}">หลอด:${hlRem}</span> <span class="ss-bod" id="disp_rem_bod_${d.id}">บด:${crushRem}</span></div></div>
+        </div>
+        <div class="grid-3"><div><div class="input-label">หลอด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.hl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'hl', this.value)"></div><div><div class="input-label">หยาบ (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bh)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bh', this.value)"></div><div><div class="input-label">ละเอียด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bl', this.value)"></div></div><div class="dist-container"><div style="font-size:0.8rem; color:#90a4ae; font-weight:bold; margin-bottom:5px;">รายการจ่ายเข้ารถ</div>${distHtml}<button class="btn-add-dist" onclick="openDistModal(${d.id})">+ เพิ่มรายการส่งเข้ารถ</button></div></div></div>`;
+    }
 
-        if (!localStorage.getItem(STOCK_KEY)) {
-            saveStock(INITIAL_STOCK);
+    function updateDropVal(id, cat, sub, val) {
+        const d = DATA.drops.find(x => x.id === id);
+        if(!d) return;
+        if(cat === 'time') d.time = val;
+        else if(cat === 'p_in_room') d.p_in_room[sub] = getNum(val);
+        saveData(); 
+        
+        if(cat === 'p_in_room' || cat === 'dist_update') {
+            let hlProd = getNum(d.p_in_room.hl); let bhProd = getNum(d.p_in_room.bh); let blProd = getNum(d.p_in_room.bl);
+            if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') hlProd+=getNum(i.total); if(i.type==='bh') bhProd+=getNum(i.total); if(i.type==='bl') blProd+=getNum(i.total); }); }
+            const hlBatch = Math.ceil(hlProd/40)*40; const crushBatch = Math.ceil((bhProd+blProd)/40)*40;
+            const dw = document.getElementById(`disp_withdraw_${id}`); const du = document.getElementById(`disp_used_${id}`);
+            const dr1 = document.getElementById(`disp_rem_hl_${id}`); const dr2 = document.getElementById(`disp_rem_bod_${id}`);
+            if(dw) dw.innerText = `${hlBatch} / ${crushBatch}`;
+            if(du) du.innerText = `${hlProd} / ${bhProd+blProd}`;
+            if(dr1) dr1.innerText = `หลอด:${hlBatch-hlProd}`;
+            if(dr2) dr2.innerText = `บด:${crushBatch-(bhProd+blProd)}`;
         }
+        calcAll();
+    }
 
-        renderStock();
-        renderLog();
-        toggleSpoiledField(); 
+    function calcAll() {
+        let sumP={hl:0,bh:0,bl:0}, curHL=getNum(document.getElementById('init_hl').value), curBH=getNum(document.getElementById('init_bh').value), curBL=getNum(document.getElementById('init_bl').value);
+        let totalSent=0, totalWithHL=0, totalWithBod=0, totalRemHL=0, totalRemBod=0, totalUsedAll=0;
+        let prodLogHtml = '', startTimeStr = document.getElementById('time_start').value;
+        let lastProdTime = startTimeStr;
 
-    </script>
+        let truckMat = {}; let truckDetail = {};
+        TRUCKS.forEach((t,i) => { let tid = `t${i+1}`; truckMat[tid] = {hl:{fr:0,st:0}, bh:{fr:0,st:0}, bl:{fr:0,st:0}}; truckDetail[tid] = { hl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bh: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} } }; });
+
+        const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
+
+        sortedDrops.forEach(d => {
+            let p_hl=0, p_bh=0, p_bl=0;
+            if(d.type === 'prod') {
+                p_hl = getNum(d.p_in_room.hl); p_bh = getNum(d.p_in_room.bh); p_bl = getNum(d.p_in_room.bl);
+                if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') p_hl+=getNum(i.total); if(i.type==='bh') p_bh+=getNum(i.total); if(i.type==='bl') p_bl+=getNum(i.total); }); }
+                
+                const w_hl = Math.ceil(p_hl/40)*40; const w_bod = Math.ceil((p_bh+p_bl)/40)*40;
+                const r_hl = w_hl - p_hl; const r_bod = w_bod - (p_bh+p_bl);
+
+                totalWithHL += w_hl; totalWithBod += w_bod;
+                totalRemHL += r_hl; totalRemBod += r_bod;
+                totalUsedAll += (p_hl + p_bh + p_bl);
+                sumP.hl += p_hl; sumP.bh += p_bh; sumP.bl += p_bl;
+                curHL += getNum(d.p_in_room.hl); curBH += getNum(d.p_in_room.bh); curBL += getNum(d.p_in_room.bl);
+
+                const minDiff = getMinDiff(lastProdTime, d.time); lastProdTime = d.time;
+                prodLogHtml += `<tr>
+                    <td class="pt-time">${d.time}<br><span style="font-size:0.75rem; color:#888;">${minDiff} นาที</span></td>
+                    <td class="pt-check">${w_hl>0?w_hl:'-'}</td><td class="pt-check">${w_bod>0?w_bod:'-'}</td>
+                    <td class="pt-prod">${p_hl||'-'}</td><td class="pt-prod">${p_bh||'-'}</td><td class="pt-prod">${p_bl||'-'}</td>
+                    <td class="pt-rem">${w_hl>0?r_hl:'-'}</td><td class="pt-rem">${w_bod>0?r_bod:'-'}</td>
+                </tr>`;
+            }
+            if(d.dist) { d.dist.forEach(i => { const total = getNum(i.total); totalSent += total; const field = d.type === 'prod' ? 'fr' : 'st'; truckMat[i.truck][i.type][field] += total; if(truckDetail[i.truck] && truckDetail[i.truck][i.type]) { truckDetail[i.truck][i.type].r1[field] += getNum(i.r1); truckDetail[i.truck][i.type].r2[field] += getNum(i.r2); truckDetail[i.truck][i.type].r3[field] += getNum(i.r3); } if(d.type === 'stock') { if(i.type==='hl') curHL -= total; if(i.type==='bh') curBH -= total; if(i.type==='bl') curBL -= total; } }); }
+        });
+
+        document.getElementById('prod_log_body').innerHTML = prodLogHtml;
+        document.getElementById('dash_hl').innerText = curHL; document.getElementById('dash_bh').innerText = curBH; document.getElementById('dash_bl').innerText = curBL;
+        let totOrd=0; for(let k in DATA.orders) totOrd+=getNum(DATA.orders[k]);
+        document.getElementById('os_total').innerText = totOrd; document.getElementById('os_sent').innerText = totalSent; document.getElementById('os_remain').innerText = totOrd - totalSent;
+
+        document.getElementById('rpt_hl').innerText = sumP.hl; document.getElementById('rpt_bh').innerText = sumP.bh; document.getElementById('rpt_bl').innerText = sumP.bl;
+        document.getElementById('rpt_total_prod').innerText = sumP.hl+sumP.bh+sumP.bl;
+        
+        const totW = ((sumP.hl*20)+(sumP.bh*23)+(sumP.bl*24));
+        document.getElementById('rpt_total_weight').innerText = totW.toLocaleString();
+        
+        document.getElementById('rpt_with_hl').innerText = totalWithHL; document.getElementById('rpt_with_bod').innerText = totalWithBod;
+        document.getElementById('rpt_sack_withdraw').innerText = totalWithHL + totalWithBod;
+        document.getElementById('rpt_sack_used').innerText = totalUsedAll;
+        document.getElementById('rpt_rem_total_all').innerText = totalRemHL + totalRemBod;
+
+        let lastDropTimeStr = ""; for(let i=DATA.drops.length-1; i>=0; i--) { if(DATA.drops[i].type==='prod'){ lastDropTimeStr=DATA.drops[i].time; break; } }
+        let opMins = lastDropTimeStr ? getMinDiff(startTimeStr, lastDropTimeStr) : 0;
+        const prodDropsCount = DATA.drops.filter(d => d.type==='prod').length;
+        document.getElementById('rpt_avg_time').innerText = prodDropsCount > 0 ? (opMins / prodDropsCount).toFixed(0) : 0;
+
+        renderSummaryTable(truckMat);
+        renderDetailTable(truckDetail);
+    }
+
+    function renderSummaryTable(mat) { let h = `<table class="truck-matrix-table"><thead><tr><th style="text-align:left;">รถ</th><th>หลอด</th><th>หยาบ</th><th>ละ..</th></tr></thead><tbody>`; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; h += `<tr><td class="truck-name-col">${t}</td>`; ICE_TYPES.forEach(ty => { const target = getNum(DATA.orders[`${tid}_${ty.id}`]); const sent = mat[tid][ty.id].fr + mat[tid][ty.id].st; let cell = `<span class="st-none">-</span>`; if(target > 0 || sent > 0) { const rem = target - sent; if(rem > 0) cell = `<span class="st-pill st-miss">ขาด ${rem}</span>`; else if(rem < 0) cell = `<span class="st-pill st-over">เกิน ${Math.abs(rem)}</span>`; else cell = `<span class="st-pill st-ok">ครบ</span>`; } h += `<td>${cell}</td>`; }); h += `</tr>`; }); h += `</tbody></table>`; document.getElementById('truck_report_container').innerHTML = h; }
+    function renderDetailTable(det) { let h = ''; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; if(det[tid]) { let hasData = false; let content = `<div class="truck-detail-block"><div class="truck-detail-header"><span>🚛 ${t}</span><button class="btn-history" onclick="openTruckHistory('${tid}')">🕒 ดูประวัติ</button></div>`; ICE_TYPES.forEach(ty => { if(det[tid][ty.id]) { const d = det[tid][ty.id]; const t_r1 = d.r1.fr+d.r1.st; const t_r2 = d.r2.fr+d.r2.st; const t_r3 = d.r3.fr+d.r3.st; const grand = t_r1+t_r2+t_r3; const ordered = getNum(DATA.orders[`${tid}_${ty.id}`]); if(grand > 0 || ordered > 0) { hasData = true; content += `<div style="margin-bottom:10px;"><div style="font-weight:bold; color:#0277bd;">${ty.label} <small style="color:#aaa;">(เป้า: ${ordered})</small></div><table class="detail-table"><thead><tr><th style="width:20%">แถว</th><th>เก่า</th><th>สด</th><th>รวม</th></tr></thead><tbody><tr><td>1</td><td class="dt-stock">${d.r1.st||'-'}</td><td class="dt-fresh">${d.r1.fr||'-'}</td><td>${t_r1}</td></tr><tr><td>2</td><td class="dt-stock">${d.r2.st||'-'}</td><td class="dt-fresh">${d.r2.fr||'-'}</td><td>${t_r2}</td></tr><tr><td>3</td><td class="dt-stock">${d.r3.st||'-'}</td><td class="dt-fresh">${d.r3.fr||'-'}</td><td>${t_r3}</td></tr><tr><td colspan="3" style="text-align:right; font-weight:bold;">รวม:</td><td class="dt-total">${grand}</td></tr></tbody></table></div>`; } } }); content += `</div>`; if(hasData) h += content; } }); if(h==='') h='<div style="text-align:center; padding:20px; color:#aaa;">ยังไม่มีข้อมูล</div>'; document.getElementById('truck_detail_container').innerHTML = h; }
+    
+    function updateStock() { DATA.initStock.hl = getNum(document.getElementById('init_hl').value); DATA.initStock.bh = getNum(document.getElementById('init_bh').value); DATA.initStock.bl = getNum(document.getElementById('init_bl').value); saveData(); calcAll(); }
+    function updateOrder(key, val) { DATA.orders[key] = getNum(val); saveData(); calcAll(); }
+    function updateStats() {}
+    function openFullHistory() { const container = document.getElementById('full_history_list'); container.innerHTML = ''; const startTimeStr = document.getElementById('time_start').value; const sortedDrops = DATA.drops.filter(d => d.type === 'prod').sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr)).reverse(); if (sortedDrops.length === 0) { container.innerHTML = '<div style="text-align:center; color:#aaa;">ไม่มีประวัติ</div>'; } else { sortedDrops.forEach((d, idx) => { let prodTotal = getNum(d.p_in_room.hl) + getNum(d.p_in_room.bh) + getNum(d.p_in_room.bl); if(d.dist) d.dist.forEach(i => prodTotal += getNum(i.total)); const tag = (idx === 0) ? '<span class="hist-tag ht-fresh">ล่าสุด</span>' : ''; container.insertAdjacentHTML('beforeend', `<div class="hist-item" onclick="openEditPast(${d.id})" style="cursor:pointer;"><div class="hist-info"><div><b>${d.time}</b> ${tag}</div><div style="color:#666; font-size:0.85rem;">ผลิต: ${prodTotal}</div></div><div style="color:#0277bd;">></div></div>`); }); } document.getElementById('full_history_modal').style.display = 'block'; }
+    function closeFullHistory() { document.getElementById('full_history_modal').style.display = 'none'; renderDrops(); calcAll(); }
+    function openEditPast(id) { const d = DATA.drops.find(x => x.id === id); if(!d) return; const startTimeStr = document.getElementById('time_start').value; const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr)); const prodDrops = sortedDrops.filter(x => x.type === 'prod'); let prevTime = startTimeStr; const idx = prodDrops.findIndex(p => p.id === d.id); if(idx > 0) prevTime = prodDrops[idx-1].time; const diffMin = getMinDiff(prevTime, d.time); document.getElementById('edit_past_body').innerHTML = generateCardHtml(d, diffMin); document.getElementById('edit_past_modal').style.display = 'block'; closeFullHistory(); }
+    function closeEditPastModal() { document.getElementById('edit_past_modal').style.display = 'none'; openFullHistory(); }
+    function openStockManager() { const container = document.getElementById('stock_list_container'); container.innerHTML = ''; const stockDrops = DATA.drops.filter(d => d.type === 'stock').reverse(); if(stockDrops.length === 0) { container.innerHTML = '<div style="text-align:center; color:#aaa; margin-top:20px;">ไม่มีรายการเบิกของเก่า</div>'; } else { stockDrops.forEach(d => { let details = ''; if(d.dist) { d.dist.forEach((item, idx) => { details += `<div style="background:white; padding:5px; border-radius:4px; margin-top:5px; font-size:0.85rem;">🚛 ${getTruckName(item.truck)} (${getTypeName(item.type)}) : <b>${item.total}</b></div>`; }); } container.insertAdjacentHTML('beforeend', `<div style="background:#fff3e0; padding:10px; border-radius:8px; margin-bottom:10px;"><div style="display:flex; justify-content:space-between; font-weight:bold; color:#ef6c00;"><span>📦 เบิก ${d.time}</span><button class="btn-del-mini" onclick="deleteDrop(${d.id})">ลบ</button></div>${details}<button class="btn-add-dist" style="background:white; margin-top:5px; padding:5px; font-size:0.8rem;" onclick="openDistModal(${d.id})">+ เพิ่มจ่าย</button></div>`); }); } document.getElementById('stock_manager_modal').style.display = 'block'; }
+    function closeStockManager() { document.getElementById('stock_manager_modal').style.display = 'none'; renderDrops(); calcAll(); }
+    function removeDist(dropId, idx) { const d = DATA.drops.find(x => x.id === dropId); if(d) { d.dist.splice(idx, 1); updateDropVal(dropId, 'dist_update', null, 0); saveData(); if(document.getElementById('stock_manager_modal').style.display === 'block') openStockManager(); else if(document.getElementById('edit_past_modal').style.display === 'block') openEditPast(dropId); else renderDrops(); calcAll(); } }
+    function initWizard() { const tSel = document.getElementById('wiz_truck'); const tySel = document.getElementById('wiz_type'); tSel.innerHTML = TRUCKS.map((t,i) => `<option value="t${i+1}">${t}</option>`).join(''); tySel.innerHTML = ICE_TYPES.map(ty => `<option value="${ty.id}">${ty.label}</option>`).join(''); }
+    function openDistModal(dropId) { initWizard(); CURRENT_DROP_ID = dropId; EDITING_DIST_IDX = null; const d = DATA.drops.find(x => x.id === dropId); document.getElementById('wiz_r1').value = ''; document.getElementById('wiz_r2').value = ''; document.getElementById('wiz_r3').value = ''; updateWizStats(); document.getElementById('wiz_title').innerText = d.type === 'prod' ? '🚛 จ่ายของผลิตใหม่' : '📦 จ่ายของเก่า'; document.getElementById('dist_modal').style.display = 'block'; }
+    function editDist(dropId, idx) { initWizard(); CURRENT_DROP_ID = dropId; EDITING_DIST_IDX = idx; const d = DATA.drops.find(x => x.id === dropId); const item = d.dist[idx]; document.getElementById('wiz_truck').value = item.truck; document.getElementById('wiz_type').value = item.type; document.getElementById('wiz_r1').value = item.r1; document.getElementById('wiz_r2').value = item.r2; document.getElementById('wiz_r3').value = item.r3; updateWizStats(); document.getElementById('wiz_title').innerText = '✏️ แก้ไขรายการ'; document.getElementById('dist_modal').style.display = 'block'; }
+    function closeDistModal() { document.getElementById('dist_modal').style.display = 'none'; CURRENT_DROP_ID = null; if(document.getElementById('stock_manager_modal').style.display === 'block') openStockManager(); else if(document.getElementById('edit_past_modal').style.display === 'block') openEditPast(CURRENT_DROP_ID); }
+    function updateWizStats() { const tid = document.getElementById('wiz_truck').value; const typeId = document.getElementById('wiz_type').value; let totalSent = 0; DATA.drops.forEach(d => { if(d.dist) { d.dist.forEach((item, idx) => { if(d.id === CURRENT_DROP_ID && idx === EDITING_DIST_IDX) return; if(item.truck === tid && item.type === typeId) totalSent += getNum(item.total); }); } }); const r1 = getNum(document.getElementById('wiz_r1').value); const r2 = getNum(document.getElementById('wiz_r2').value); const r3 = getNum(document.getElementById('wiz_r3').value); const currentTotal = r1 + r2 + r3; const target = getNum(DATA.orders[`${tid}_${typeId}`]); const remain = target - (totalSent + currentTotal); document.getElementById('wiz_total_sum').innerText = currentTotal; const remEl = document.getElementById('wiz_remain'); if(target===0){remEl.innerText="ไม่ได้สั่ง"; remEl.className="wiz-remain";} else if(remain>0){remEl.innerText=`ขาด ${remain}`; remEl.className="wiz-remain st-miss";} else {remEl.innerText=`เกิน ${Math.abs(remain)}`; remEl.className="wiz-remain st-over";} }
+    function confirmDistSave() { if (!CURRENT_DROP_ID) return; const d = DATA.drops.find(x => x.id === CURRENT_DROP_ID); const r1 = getNum(document.getElementById('wiz_r1').value); const r2 = getNum(document.getElementById('wiz_r2').value); const r3 = getNum(document.getElementById('wiz_r3').value); const total = r1 + r2 + r3; if (total === 0) { alert('กรุณาใส่จำนวน'); return; } const newData = { truck: document.getElementById('wiz_truck').value, type: document.getElementById('wiz_type').value, r1: r1, r2: r2, r3: r3, total: total }; if(EDITING_DIST_IDX !== null) { d.dist[EDITING_DIST_IDX] = newData; } else { if(!d.dist) d.dist = []; d.dist.push(newData); } updateDropVal(CURRENT_DROP_ID, 'dist_update', null, 0); if(document.getElementById('stock_manager_modal').style.display === 'block') openStockManager(); else if(document.getElementById('edit_past_modal').style.display === 'block') openEditPast(CURRENT_DROP_ID); else renderDrops(); closeDistModal(); calcAll(); }
+    function renderOrderInputs() { const c = document.getElementById('order_inputs'); let h = '<table class="order-table"><thead><tr><th>รถ</th><th>หลอด</th><th>หยาบ</th><th>ละเอียด</th><th class="col-total">รวม</th></tr></thead><tbody>'; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; const hl = DATA.orders[tid+'_hl']||0; const bh = DATA.orders[tid+'_bh']||0; const bl = DATA.orders[tid+'_bl']||0; const total = hl + bh + bl; h += `<tr><td>${t}</td><td><input type="tel" value="${hl}" onchange="updateOrder('${tid}_hl',this.value)"></td><td><input type="tel" value="${bh}" onchange="updateOrder('${tid}_bh',this.value)"></td><td><input type="tel" value="${bl}" onchange="updateOrder('${tid}_bl',this.value)"></td><td class="order-sum-col" id="ord_sum_${tid}">${total}</td></tr>`; }); h += '</tbody></table>'; c.innerHTML = h; }
+    function openTruckHistory(tid) { const container = document.getElementById('history_list'); container.innerHTML = ''; document.getElementById('hist_title').innerText = `🕒 ประวัติ ${getTruckName(tid)}`; const startTimeStr = document.getElementById('time_start').value; const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr)); sortedDrops.forEach(d => { if(d.dist) { d.dist.forEach((item, idx) => { if(item.truck === tid) { const typeName = getTypeName(item.type); const typeLabel = d.type === 'prod' ? '<span class="hist-tag ht-fresh">ผลิต</span>' : '<span class="hist-tag ht-stock">ห้อง</span>'; container.insertAdjacentHTML('beforeend', `<div class="hist-item"><div class="hist-info"><div><b>${d.time}</b> ${typeLabel} : ${typeName}</div><div style="color:#666;">(${item.r1}/${item.r2}/${item.r3}) = <b>${item.total}</b></div></div></div>`); } }); } }); document.getElementById('history_modal').style.display = 'block'; }
+    function closeHistoryModal() { document.getElementById('history_modal').style.display = 'none'; }
+    function getTruckName(id) { return TRUCKS[parseInt(id.replace('t',''))-1]; }
+    function getTypeName(id) { return ICE_TYPES.find(x=>x.id===id).label; }
+    function getAdjustedMinutes(timeStr, startStr) { if(!timeStr || !startStr) return 0; let [h, m] = timeStr.split(':').map(Number); let [sh, sm] = startStr.split(':').map(Number); let mins = h * 60 + m; let sMins = sh * 60 + sm; if (mins < sMins) mins += 1440; return mins; }
+    function getMinDiff(start, end) { const anchor = document.getElementById('time_start').value; const mStart = getAdjustedMinutes(start, anchor); const mEnd = getAdjustedMinutes(end, anchor); return mEnd - mStart; }
+    function switchPage(id) { document.querySelectorAll('.page').forEach(x=>x.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active')); document.getElementById('page-'+id).classList.add('active'); const map={setup:0,production:1,summary:2}; document.querySelectorAll('.nav-btn')[map[id]].classList.add('active'); if(id==='summary'){calcAll(); window.scrollTo(0,0);} }
+</script>
 </body>
 </html>
