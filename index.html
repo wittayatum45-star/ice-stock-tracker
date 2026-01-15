@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V125 (Modal Stacking Fixed)</title>
+    <title>Smart Ice V130 (Edit History Fixed)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- Theme --- */
@@ -50,11 +50,9 @@
         .pt-prod { background: #e8f5e9; color: #2e7d32; } 
         .pt-rem { background: #fff3e0; color: #e65100; } 
         .sub-header { font-size: 0.75rem; color: #546e7a; background: #f5f5f5; }
-        
-        /* Total Row Style */
         .total-row td { background-color: #37474f !important; color: white !important; font-weight: 900 !important; border: 1px solid #263238 !important; font-size: 1rem !important; }
         .total-label { text-align: left !important; padding-left: 5px !important; background: #263238 !important; color: #ffeb3b !important; }
-        
+
         /* Custom Report */
         .custom-report { border: 2px solid #546e7a; border-radius: 8px; padding: 15px; margin-top: 20px; background: #fff; }
         .cr-section { margin-bottom: 15px; border-bottom: 1px dashed #ccc; padding-bottom: 10px; }
@@ -96,10 +94,10 @@
         .fab-container { position: fixed; bottom: 25px; right: 20px; z-index: 2000; }
         .fab-main { width: 65px; height: 65px; border-radius: 50%; background: #00c853; color: white; border: none; font-size: 32px; box-shadow: 0 6px 20px rgba(0,200,83,0.4); cursor: pointer; display: flex; align-items: center; justify-content: center; }
         
-        /* 🔥 MODAL FIX: Z-INDEX & DISPLAY 🔥 */
+        /* 🔥 MODAL FIX: CENTER SCREEN & Z-INDEX 🔥 */
         .modal { display: none; position: fixed; z-index: 5000; left: 0; top: 0; width: 100%; height: 100%; overflow: hidden; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(3px); align-items: center; justify-content: center; }
         .modal-content { background-color: #f5f7fa; margin: 0; border-radius: 16px; width: 95%; max-width: 500px; max-height: 90vh; box-shadow: 0 10px 30px rgba(0,0,0,0.4); display: flex; flex-direction: column; position: relative; }
-        /* High Z-Index for the Distribution Modal (Little one) */
+        /* High Z-Index for the Edit Modal */
         #dist_modal { z-index: 6000; }
 
         .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #fff; border-bottom: 2px solid #e0e0e0; flex-shrink: 0; border-radius: 16px 16px 0 0; }
@@ -175,7 +173,7 @@
             <h3>🚚 สั่งซื้อ (Master Order)</h3>
             <div id="order_inputs"></div>
         </div>
-        <button class="btn-reset" onclick="if(confirm('เจ้าสิล้างข้อมูลเบิดอีหลีเบาะท้าว? (เริ่มใหม่)')){localStorage.clear(); location.reload();}">🗑️ รีเซ็ตข้อมูล (เริ่มใหม่)</button>
+        <button class="btn-reset" onclick="if(confirm('เจ้าสิล้างข้อมูลเบิดอีหลีเบาะท้าว? (เริ่มใหม่)')){localStorage.clear(); localStorage.removeItem('LAST_DATE'); location.reload();}">🗑️ รีเซ็ตข้อมูล (เริ่มใหม่)</button>
         <div style="height:50px;"></div>
     </div>
 
@@ -255,7 +253,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="modern-card card-body">
              <h3>📋 รายละเอียดการขึ้นของ</h3>
              <div id="truck_detail_container"></div>
@@ -274,27 +272,31 @@
     let DATA = getEmptyData();
     let CURRENT_DROP_ID = null;
     let EDITING_DIST_IDX = null;
-    // Flag to know where we came from (to re-open)
-    let SOURCE_MODAL = null; // 'edit_past' or 'stock_manager' or 'history'
+    let SOURCE_MODAL = null;
 
     document.addEventListener('DOMContentLoaded', () => {
         const today = new Date().toISOString().split('T')[0];
-        document.getElementById('setup_date').value = today;
-        loadData(today);
+        const savedDate = localStorage.getItem('LAST_DATE') || today;
+        document.getElementById('setup_date').value = savedDate;
+        loadData(savedDate);
         initWizard();
         renderOrderInputs();
         renderDrops();
-        calcAll();
+        setTimeout(() => { calcAll(); }, 100);
     });
 
     function getEmptyData() { return { times: { start: "22:00", stop: "06:00" }, initStock: { hl:0, bh:0, bl:0 }, orders: {}, drops: [] }; }
+    
     function saveData() { 
         const dateKey = document.getElementById('setup_date').value;
+        localStorage.setItem('LAST_DATE', dateKey); 
         DATA.times.start = document.getElementById('time_start').value;
         DATA.times.stop = document.getElementById('time_stop').value;
         DATA.initStock = { hl: getNum(document.getElementById('init_hl').value), bh: getNum(document.getElementById('init_bh').value), bl: getNum(document.getElementById('init_bl').value) };
         localStorage.setItem(`ICE_DATA_${dateKey}`, JSON.stringify(DATA)); 
+        calcAll(); // Auto calc on save
     }
+    
     function loadData(dateKey) {
         const d = localStorage.getItem(`ICE_DATA_${dateKey}`);
         if(d) { try { DATA = JSON.parse(d); if(!DATA.drops) DATA.drops = []; if(!DATA.orders) DATA.orders = {}; 
@@ -303,14 +305,16 @@
                if(drop.dist) drop.dist.forEach(i => i.total = getNum(i.r1)+getNum(i.r2)+getNum(i.r3));
             });
         } catch(e) { DATA = getEmptyData(); } } else { DATA = getEmptyData(); }
-        document.getElementById('time_start').value = DATA.times.start;
-        document.getElementById('time_stop').value = DATA.times.stop;
-        document.getElementById('init_hl').value = DATA.initStock.hl;
-        document.getElementById('init_bh').value = DATA.initStock.bh;
-        document.getElementById('init_bl').value = DATA.initStock.bl;
+        document.getElementById('time_start').value = DATA.times.start || "22:00";
+        document.getElementById('time_stop').value = DATA.times.stop || "06:00";
+        document.getElementById('init_hl').value = DATA.initStock.hl || 0;
+        document.getElementById('init_bh').value = DATA.initStock.bh || 0;
+        document.getElementById('init_bl').value = DATA.initStock.bl || 0;
     }
-    function changeDate() { const newDate = document.getElementById('setup_date').value; loadData(newDate); renderOrderInputs(); renderDrops(); calcAll(); }
+
+    function changeDate() { const newDate = document.getElementById('setup_date').value; loadData(newDate); saveData(); renderOrderInputs(); renderDrops(); calcAll(); }
     function getNum(val) { return parseFloat(val) || 0; }
+    function updateStock() { saveData(); }
 
     function addDrop(type) {
         const now = new Date();
@@ -322,7 +326,6 @@
     
     function deleteDrop(id) { if(confirm("เจ้าสิลบอีหลีเบาะท้าว?")) { DATA.drops = DATA.drops.filter(d => d.id !== id); saveData(); renderDrops(); calcAll(); if(document.getElementById('stock_manager_modal').style.display === 'block') openStockManager(); } }
     
-    // 🔥 FOCUS MODE: LATEST ONLY 🔥
     function renderDrops() {
         const container = document.getElementById('drops_list');
         container.innerHTML = '';
@@ -333,55 +336,31 @@
 
         if(latestProd) {
              const d = latestProd;
-             let prevTime = startTimeStr;
-             const idx = prodDrops.findIndex(p => p.id === d.id);
-             if(idx > 0) prevTime = prodDrops[idx-1].time;
-             const diffMin = getMinDiff(prevTime, d.time);
+             const diffMin = getMinDiff(startTimeStr, d.time);
              container.insertAdjacentHTML('beforeend', generateCardHtml(d, diffMin));
         } else {
             container.innerHTML = '<div style="text-align:center; color:#aaa; margin-top:50px;">กด + เพื่อเริ่มผลิต</div>';
         }
-        updateStats();
     }
 
     function generateCardHtml(d, diffMin) {
         let distHtml = '';
         if(d.dist) {
            d.dist.forEach((item, idx) => {
-               distHtml += `<div class="dist-item"><div class="dist-header"><span>🚛 ${getTruckName(item.truck)} - ${getTypeName(item.type)}</span><div><button style="background:#fff9c4; border:none; padding:4px;" onclick="SOURCE_MODAL=null; editDist(${d.id}, ${idx})">✏️</button><button style="background:#ffcdd2; border:none; padding:4px;" onclick="removeDist(${d.id}, ${idx})">🗑️</button></div></div><div class="dist-rows">(${item.r1}/${item.r2}/${item.r3}) = <b>${item.total}</b></div></div>`;
+               distHtml += `<div class="dist-item"><div class="dist-header"><span>🚛 ${getTruckName(item.truck)} - ${getTypeName(item.type)}</span><div><button style="background:#fff9c4; border:none; padding:4px;" onclick="editDist(${d.id}, ${idx})">✏️</button><button style="background:#ffcdd2; border:none; padding:4px;" onclick="removeDist(${d.id}, ${idx})">🗑️</button></div></div><div class="dist-rows">(${item.r1}/${item.r2}/${item.r3}) = <b>${item.total}</b></div></div>`;
            });
         }
-        
-        let hlProd = getNum(d.p_in_room.hl);
-        let bhProd = getNum(d.p_in_room.bh);
-        let blProd = getNum(d.p_in_room.bl);
-        if(d.dist) {
-            d.dist.forEach(i => {
-                if(i.type === 'hl') hlProd += getNum(i.total);
-                if(i.type === 'bh') bhProd += getNum(i.total);
-                if(i.type === 'bl') blProd += getNum(i.total);
-            });
-        }
-        
-        const hlBatch = Math.ceil(hlProd / 40) * 40;
-        const crushBatch = Math.ceil((bhProd + blProd) / 40) * 40;
-        const hlRem = hlBatch - hlProd;
-        const crushRem = crushBatch - (bhProd + blProd);
+        let hlProd = getNum(d.p_in_room.hl); let bhProd = getNum(d.p_in_room.bh); let blProd = getNum(d.p_in_room.bl);
+        if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') hlProd+=getNum(i.total); if(i.type==='bh') bhProd+=getNum(i.total); if(i.type==='bl') blProd+=getNum(i.total); }); }
+        const hlBatch = Math.ceil(hlProd / 40) * 40; const crushBatch = Math.ceil((bhProd + blProd) / 40) * 40;
+        const hlRem = hlBatch - hlProd; const crushRem = crushBatch - (bhProd + blProd);
 
-        return `<div class="modern-card"><div class="card-header-flex"><div class="badge-box bg-prod"><span>น้ำแข็ง<br>ตก<br>(ผลิต)</span></div><input type="time" class="big-time-input" value="${d.time}" onchange="updateDropVal(${d.id}, 'time', null, this.value)"><span class="time-diff-badge">(+${diffMin} น.)</span><button class="btn-close-red" onclick="deleteDrop(${d.id})">×</button></div><div class="card-body" style="padding-top:0;">
-        <div class="sack-row">
-            <div class="sack-item"><div class="sack-label">เบิก (หลอด/บด)</div><div class="sack-val" id="disp_withdraw_${d.id}">${hlBatch} / ${crushBatch}</div></div>
-            <div class="sack-item"><div class="sack-label">ใช้ (หลอด/บด)</div><div class="sack-val" id="disp_used_${d.id}">${hlProd} / ${bhProd+blProd}</div></div>
-            <div class="sack-item"><div class="sack-label">คืน (หลอด/บด)</div><div class="sack-split"><span class="ss-hl" id="disp_rem_hl_${d.id}">หลอด:${hlRem}</span> <span class="ss-bod" id="disp_rem_bod_${d.id}">บด:${crushRem}</span></div></div>
-        </div>
-        <div class="grid-3"><div><div class="input-label">หลอด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.hl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'hl', this.value)"></div><div><div class="input-label">หยาบ (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bh)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bh', this.value)"></div><div><div class="input-label">ละเอียด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bl', this.value)"></div></div><div class="dist-container"><div style="font-size:0.8rem; color:#90a4ae; font-weight:bold; margin-bottom:5px;">รายการจ่ายเข้ารถ</div>${distHtml}<button class="btn-add-dist" onclick="openDistModal(${d.id})">+ เพิ่มรายการส่งเข้ารถ</button></div></div></div>`;
+        return `<div class="modern-card"><div class="card-header-flex"><div class="badge-box bg-prod"><span>น้ำแข็ง<br>ตก<br>(ผลิต)</span></div><input type="time" class="big-time-input" value="${d.time}" onchange="updateDropVal(${d.id}, 'time', null, this.value)"><span class="time-diff-badge">(+${diffMin} น.)</span><button class="btn-close-red" onclick="deleteDrop(${d.id})">×</button></div><div class="card-body" style="padding-top:0;"><div class="sack-row"><div class="sack-item"><div class="sack-label">เบิก (หลอด/บด)</div><div class="sack-val" id="disp_withdraw_${d.id}">${hlBatch} / ${crushBatch}</div></div><div class="sack-item"><div class="sack-label">ใช้ (หลอด/บด)</div><div class="sack-val" id="disp_used_${d.id}">${hlProd} / ${bhProd+blProd}</div></div><div class="sack-item"><div class="sack-label">คืน (หลอด/บด)</div><div class="sack-split"><span class="ss-hl" id="disp_rem_hl_${d.id}">หลอด:${hlRem}</span> <span class="ss-bod" id="disp_rem_bod_${d.id}">บด:${crushRem}</span></div></div></div><div class="grid-3"><div><div class="input-label">หลอด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.hl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'hl', this.value)"></div><div><div class="input-label">หยาบ (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bh)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bh', this.value)"></div><div><div class="input-label">ละเอียด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bl', this.value)"></div></div><div class="dist-container"><div style="font-size:0.8rem; color:#90a4ae; font-weight:bold; margin-bottom:5px;">รายการจ่ายเข้ารถ</div>${distHtml}<button class="btn-add-dist" onclick="openDistModal(${d.id})">+ เพิ่มรายการส่งเข้ารถ</button></div></div></div>`;
     }
 
     function updateDropVal(id, cat, sub, val) {
-        const d = DATA.drops.find(x => x.id === id);
-        if(!d) return;
-        if(cat === 'time') d.time = val;
-        else if(cat === 'p_in_room') d.p_in_room[sub] = getNum(val);
+        const d = DATA.drops.find(x => x.id === id); if(!d) return;
+        if(cat === 'time') d.time = val; else if(cat === 'p_in_room') d.p_in_room[sub] = getNum(val);
         saveData(); 
         if(cat === 'p_in_room' || cat === 'dist_update') {
             let hlProd = getNum(d.p_in_room.hl); let bhProd = getNum(d.p_in_room.bh); let blProd = getNum(d.p_in_room.bl);
@@ -389,26 +368,21 @@
             const hlBatch = Math.ceil(hlProd/40)*40; const crushBatch = Math.ceil((bhProd+blProd)/40)*40;
             const dw = document.getElementById(`disp_withdraw_${id}`); const du = document.getElementById(`disp_used_${id}`);
             const dr1 = document.getElementById(`disp_rem_hl_${id}`); const dr2 = document.getElementById(`disp_rem_bod_${id}`);
-            if(dw) dw.innerText = `${hlBatch} / ${crushBatch}`;
-            if(du) du.innerText = `${hlProd} / ${bhProd+blProd}`;
-            if(dr1) dr1.innerText = `หลอด:${hlBatch-hlProd}`;
-            if(dr2) dr2.innerText = `บด:${crushBatch-(bhProd+blProd)}`;
+            if(dw) dw.innerText = `${hlBatch} / ${crushBatch}`; if(du) du.innerText = `${hlProd} / ${bhProd+blProd}`;
+            if(dr1) dr1.innerText = `หลอด:${hlBatch-hlProd}`; if(dr2) dr2.innerText = `บด:${crushBatch-(bhProd+blProd)}`;
         }
         calcAll();
     }
 
-    // --- GLOBAL CALC ENGINE ---
     function calcAll() {
         let sumP={hl:0,bh:0,bl:0}, curHL=getNum(document.getElementById('init_hl').value), curBH=getNum(document.getElementById('init_bh').value), curBL=getNum(document.getElementById('init_bl').value);
         let totalSent=0, totalWithHL=0, totalWithBod=0, totalRemHL=0, totalRemBod=0, totalUsedAll=0;
         let prodLogHtml = '', startTimeStr = document.getElementById('time_start').value;
         let lastProdTime = startTimeStr;
-
         let truckMat = {}; let truckDetail = {};
         TRUCKS.forEach((t,i) => { let tid = `t${i+1}`; truckMat[tid] = {hl:{fr:0,st:0}, bh:{fr:0,st:0}, bl:{fr:0,st:0}}; truckDetail[tid] = { hl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bh: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} } }; });
 
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
-
         sortedDrops.forEach(d => {
             let p_hl=0, p_bh=0, p_bl=0;
             if(d.type === 'prod') {
@@ -424,7 +398,7 @@
             }
             if(d.dist) { d.dist.forEach(i => { const total = getNum(i.total); totalSent += total; const field = d.type === 'prod' ? 'fr' : 'st'; truckMat[i.truck][i.type][field] += total; if(truckDetail[i.truck] && truckDetail[i.truck][i.type]) { truckDetail[i.truck][i.type].r1[field] += getNum(i.r1); truckDetail[i.truck][i.type].r2[field] += getNum(i.r2); truckDetail[i.truck][i.type].r3[field] += getNum(i.r3); } if(d.type === 'stock') { if(i.type==='hl') curHL -= total; if(i.type==='bh') curBH -= total; if(i.type==='bl') curBL -= total; } }); }
         });
-
+        
         prodLogHtml += `<tr class="total-row"><td class="total-label">รวม</td><td>${totalWithHL}</td><td>${totalWithBod}</td><td>${sumP.hl}</td><td>${sumP.bh}</td><td>${sumP.bl}</td><td>${totalRemHL}</td><td>${totalRemBod}</td></tr>`;
 
         const safeSet = (id, val) => { if(document.getElementById(id)) document.getElementById(id).innerText = val; };
@@ -448,179 +422,25 @@
         } else { safeSet('rpt_total_minutes', 0); safeSet('rpt_avg_time', 0); safeSet('rpt_tons_day', 0); safeSet('rpt_avg_yield', 0); }
         renderSummaryTable(truckMat); renderDetailTable(truckDetail);
     }
-
-    function renderSummaryTable(mat) { let h = `<table class="truck-matrix-table"><thead><tr><th style="text-align:left;">รถ</th><th>หลอด</th><th>หยาบ</th><th>ละ..</th></tr></thead><tbody>`; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; h += `<tr><td class="truck-name-col">${t}</td>`; ICE_TYPES.forEach(ty => { const target = getNum(DATA.orders[`${tid}_${ty.id}`]); const sent = mat[tid][ty.id].fr + mat[tid][ty.id].st; let cell = `<span class="st-none">-</span>`; if(target > 0 || sent > 0) { const rem = target - sent; if(rem > 0) cell = `<span class="st-pill st-miss">ขาด ${rem}</span>`; else if(rem < 0) cell = `<span class="st-pill st-over">เกิน ${Math.abs(rem)}</span>`; else cell = `<span class="st-pill st-ok">ครบ</span>`; } h += `<td>${cell}</td>`; }); h += `</tr>`; }); h += `</tbody></table>`; document.getElementById('truck_report_container').innerHTML = h; }
-    function renderDetailTable(det) { let h = ''; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; if(det[tid]) { let hasData = false; let content = `<div class="truck-detail-block"><div class="truck-detail-header"><span>🚛 ${t}</span><button class="btn-history" onclick="openTruckHistory('${tid}')">🕒 ดูประวัติ</button></div>`; ICE_TYPES.forEach(ty => { if(det[tid][ty.id]) { const d = det[tid][ty.id]; const t_r1 = d.r1.fr+d.r1.st; const t_r2 = d.r2.fr+d.r2.st; const t_r3 = d.r3.fr+d.r3.st; const grand = t_r1+t_r2+t_r3; const ordered = getNum(DATA.orders[`${tid}_${ty.id}`]); if(grand > 0 || ordered > 0) { hasData = true; content += `<div style="margin-bottom:10px;"><div style="font-weight:bold; color:#0277bd;">${ty.label} <small style="color:#aaa;">(เป้า: ${ordered})</small></div><table class="detail-table"><thead><tr><th style="width:20%">แถว</th><th>เก่า</th><th>สด</th><th>รวม</th></tr></thead><tbody><tr><td>1</td><td class="dt-stock">${d.r1.st||'-'}</td><td class="dt-fresh">${d.r1.fr||'-'}</td><td>${t_r1}</td></tr><tr><td>2</td><td class="dt-stock">${d.r2.st||'-'}</td><td class="dt-fresh">${d.r2.fr||'-'}</td><td>${t_r2}</td></tr><tr><td>3</td><td class="dt-stock">${d.r3.st||'-'}</td><td class="dt-fresh">${d.r3.fr||'-'}</td><td>${t_r3}</td></tr><tr><td colspan="3" style="text-align:right; font-weight:bold;">รวม:</td><td class="dt-total">${grand}</td></tr></tbody></table></div>`; } } }); content += `</div>`; if(hasData) h += content; } }); if(h==='') h='<div style="text-align:center; padding:20px; color:#aaa;">ยังไม่มีข้อมูล</div>'; document.getElementById('truck_detail_container').innerHTML = h; }
     
-    function updateStock() { DATA.initStock.hl = getNum(document.getElementById('init_hl').value); DATA.initStock.bh = getNum(document.getElementById('init_bh').value); DATA.initStock.bl = getNum(document.getElementById('init_bl').value); saveData(); calcAll(); }
+    function renderSummaryTable(mat) { let h = `<table class="truck-matrix-table"><thead><tr><th style="text-align:left;">รถ</th><th>หลอด</th><th>หยาบ</th><th>ละ..</th></tr></thead><tbody>`; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; h += `<tr><td class="truck-name-col">${t}</td>`; ICE_TYPES.forEach(ty => { const target = getNum(DATA.orders[`${tid}_${ty.id}`]); const sent = mat[tid][ty.id].fr + mat[tid][ty.id].st; let cell = `<span class="st-none">-</span>`; if(target > 0 || sent > 0) { const rem = target - sent; if(rem > 0) cell = `<span class="st-pill st-miss">ขาด ${rem}</span>`; else if(rem < 0) cell = `<span class="st-pill st-over">เกิน ${Math.abs(rem)}</span>`; else cell = `<span class="st-pill st-ok">ครบ</span>`; } h += `<td>${cell}</td>`; }); h += `</tr>`; }); h += `</tbody></table>`; document.getElementById('truck_report_container').innerHTML = h; }
+    function renderDetailTable(det) { let h = ''; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; if(det[tid]) { let hasData = false; let content = `<div class="truck-detail-block"><div class="truck-detail-header"><span>🚛 ${t}</span><button class="btn-history" onclick="openTruckHistory('${tid}')">🕒 ดูประวัติ/แก้ไข</button></div>`; ICE_TYPES.forEach(ty => { if(det[tid][ty.id]) { const d = det[tid][ty.id]; const t_r1 = d.r1.fr+d.r1.st; const t_r2 = d.r2.fr+d.r2.st; const t_r3 = d.r3.fr+d.r3.st; const grand = t_r1+t_r2+t_r3; const ordered = getNum(DATA.orders[`${tid}_${ty.id}`]); if(grand > 0 || ordered > 0) { hasData = true; content += `<div style="margin-bottom:10px;"><div style="font-weight:bold; color:#0277bd;">${ty.label} <small style="color:#aaa;">(เป้า: ${ordered})</small></div><table class="detail-table"><thead><tr><th style="width:20%">แถว</th><th>เก่า</th><th>สด</th><th>รวม</th></tr></thead><tbody><tr><td>1</td><td class="dt-stock">${d.r1.st||'-'}</td><td class="dt-fresh">${d.r1.fr||'-'}</td><td>${t_r1}</td></tr><tr><td>2</td><td class="dt-stock">${d.r2.st||'-'}</td><td class="dt-fresh">${d.r2.fr||'-'}</td><td>${t_r2}</td></tr><tr><td>3</td><td class="dt-stock">${d.r3.st||'-'}</td><td class="dt-fresh">${d.r3.fr||'-'}</td><td>${t_r3}</td></tr><tr><td colspan="3" style="text-align:right; font-weight:bold;">รวม:</td><td class="dt-total">${grand}</td></tr></tbody></table></div>`; } } }); content += `</div>`; if(hasData) h += content; } }); if(h==='') h='<div style="text-align:center; padding:20px; color:#aaa;">ยังไม่มีข้อมูล</div>'; document.getElementById('truck_detail_container').innerHTML = h; }
     function updateOrder(key, val) { DATA.orders[key] = getNum(val); saveData(); calcAll(); }
-    function updateStats() {}
     function openFullHistory() { const container = document.getElementById('full_history_list'); container.innerHTML = ''; const startTimeStr = document.getElementById('time_start').value; const sortedDrops = DATA.drops.filter(d => d.type === 'prod').sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr)).reverse(); if (sortedDrops.length === 0) { container.innerHTML = '<div style="text-align:center; color:#aaa;">ไม่มีประวัติ</div>'; } else { sortedDrops.forEach((d, idx) => { let prodTotal = getNum(d.p_in_room.hl) + getNum(d.p_in_room.bh) + getNum(d.p_in_room.bl); if(d.dist) d.dist.forEach(i => prodTotal += getNum(i.total)); const tag = (idx === 0) ? '<span class="hist-tag ht-fresh">ล่าสุด</span>' : ''; container.insertAdjacentHTML('beforeend', `<div class="hist-item" onclick="openEditPast(${d.id})" style="cursor:pointer;"><div class="hist-info"><div><b>${d.time}</b> ${tag}</div><div style="color:#666; font-size:0.85rem;">ผลิต: ${prodTotal}</div></div><div style="color:#0277bd;">></div></div>`); }); } document.getElementById('full_history_modal').style.display = 'block'; }
     function closeFullHistory() { document.getElementById('full_history_modal').style.display = 'none'; renderDrops(); calcAll(); }
-    
-    // --- EDITED MODAL LOGIC (Fix Overlay) ---
-    function openEditPast(id) { 
-        // Hide whatever modal might be open (Full History OR Stock Manager) to prevent overlay issues
-        document.getElementById('full_history_modal').style.display = 'none';
-        document.getElementById('stock_manager_modal').style.display = 'none';
-
-        const d = DATA.drops.find(x => x.id === id); 
-        if(!d) return; 
-        
-        // Determine source to re-open later
-        if(document.getElementById('stock_manager_modal').style.display === 'block') SOURCE_MODAL = 'stock';
-        else if(document.getElementById('full_history_modal').style.display === 'block') SOURCE_MODAL = 'history';
-        else SOURCE_MODAL = null;
-
-        const startTimeStr = document.getElementById('time_start').value; 
-        // Note: Sort order doesn't matter for finding prevTime logic here as we just need visual diff
-        // But for consistency let's just calc diff from start for simple
-        const diffMin = getMinDiff(startTimeStr, d.time); 
-
-        document.getElementById('edit_past_body').innerHTML = generateCardHtml(d, diffMin); 
-        document.getElementById('edit_past_modal').style.display = 'flex'; 
-    }
-    
-    function closeEditPastModal() { 
-        document.getElementById('edit_past_modal').style.display = 'none'; 
-        // Re-open previous modal if needed
-        if(SOURCE_MODAL === 'history') openFullHistory();
-        else if(SOURCE_MODAL === 'stock') openStockManager();
-        else {
-             // If opened from card, just refresh drops
-             renderDrops();
-        }
-        calcAll();
-    }
-    
-    function openStockManager() { 
-        // ... (Same content as V124 but ensure SOURCE_MODAL is set)
-        SOURCE_MODAL = 'stock';
-        const container = document.getElementById('stock_list_container'); container.innerHTML = ''; const stockDrops = DATA.drops.filter(d => d.type === 'stock').reverse(); if(stockDrops.length === 0) { container.innerHTML = '<div style="text-align:center; color:#aaa; margin-top:20px;">ไม่มีรายการเบิกของเก่า</div>'; } else { stockDrops.forEach(d => { let details = ''; if(d.dist) { d.dist.forEach((item, idx) => { details += `<div style="background:white; padding:5px; border-radius:4px; margin-top:5px; font-size:0.85rem;">🚛 ${getTruckName(item.truck)} (${getTypeName(item.type)}) : <b>${item.total}</b></div>`; }); } container.insertAdjacentHTML('beforeend', `<div style="background:#fff3e0; padding:10px; border-radius:8px; margin-bottom:10px;"><div style="display:flex; justify-content:space-between; font-weight:bold; color:#ef6c00;"><span>📦 เบิก ${d.time}</span><button class="btn-del-mini" onclick="deleteDrop(${d.id})">ลบ</button></div>${details}<button class="btn-add-dist" style="background:white; margin-top:5px; padding:5px; font-size:0.8rem;" onclick="openDistModal(${d.id})">+ เพิ่มจ่าย</button></div>`); }); } document.getElementById('stock_manager_modal').style.display = 'block'; 
-    }
-    
-    function closeStockManager() { document.getElementById('stock_manager_modal').style.display = 'none'; renderDrops(); calcAll(); }
-    
-    function removeDist(dropId, idx) { 
-        const d = DATA.drops.find(x => x.id === dropId); 
-        if(d) { 
-            d.dist.splice(idx, 1); 
-            updateDropVal(dropId, 'dist_update', null, 0); 
-            saveData(); 
-            // Re-render the correct view
-            if(document.getElementById('edit_past_modal').style.display === 'flex') {
-                 // Refresh the edit modal content
-                 const startTimeStr = document.getElementById('time_start').value;
-                 const diffMin = getMinDiff(startTimeStr, d.time);
-                 document.getElementById('edit_past_body').innerHTML = generateCardHtml(d, diffMin); 
-            } else if(document.getElementById('stock_manager_modal').style.display === 'block') {
-                 openStockManager(); 
-            } else {
-                 renderDrops(); 
-            }
-            calcAll(); 
-        } 
-    }
-    
-    function initWizard() { const tSel = document.getElementById('wiz_truck'); const tySel = document.getElementById('wiz_type'); tSel.innerHTML = TRUCKS.map((t,i) => `<option value="t${i+1}">${t}</option>`).join(''); tySel.innerHTML = ICE_TYPES.map(ty => `<option value="${ty.id}">${ty.label}</option>`).join(''); }
-    
-    function openDistModal(dropId) { 
-        // If coming from Edit Past Modal, hide it temporarily
-        if(document.getElementById('edit_past_modal').style.display === 'flex') {
-            document.getElementById('edit_past_modal').style.display = 'none';
-            SOURCE_MODAL = 'edit_past'; // Mark to return
-        } else if (document.getElementById('stock_manager_modal').style.display === 'block') {
-            document.getElementById('stock_manager_modal').style.display = 'none';
-            SOURCE_MODAL = 'stock';
-        } else {
-            SOURCE_MODAL = null;
-        }
-
-        initWizard(); CURRENT_DROP_ID = dropId; EDITING_DIST_IDX = null; const d = DATA.drops.find(x => x.id === dropId); document.getElementById('wiz_r1').value = ''; document.getElementById('wiz_r2').value = ''; document.getElementById('wiz_r3').value = ''; updateWizStats(); document.getElementById('wiz_title').innerText = d.type === 'prod' ? '🚛 จ่ายของผลิตใหม่' : '📦 จ่ายของเก่า'; document.getElementById('dist_modal').style.display = 'flex'; 
-    }
-    
-    function editDist(dropId, idx) { 
-        // Same hide logic
-        if(document.getElementById('edit_past_modal').style.display === 'flex') {
-            document.getElementById('edit_past_modal').style.display = 'none';
-            SOURCE_MODAL = 'edit_past';
-        } else if (document.getElementById('stock_manager_modal').style.display === 'block') {
-            document.getElementById('stock_manager_modal').style.display = 'none';
-            SOURCE_MODAL = 'stock';
-        } else {
-            SOURCE_MODAL = null;
-        }
-
-        initWizard(); CURRENT_DROP_ID = dropId; EDITING_DIST_IDX = idx; const d = DATA.drops.find(x => x.id === dropId); const item = d.dist[idx]; document.getElementById('wiz_truck').value = item.truck; document.getElementById('wiz_type').value = item.type; document.getElementById('wiz_r1').value = item.r1; document.getElementById('wiz_r2').value = item.r2; document.getElementById('wiz_r3').value = item.r3; updateWizStats(); document.getElementById('wiz_title').innerText = '✏️ แก้ไขรายการ'; document.getElementById('dist_modal').style.display = 'flex'; 
-    }
-    
-    function closeDistModal() { 
-        document.getElementById('dist_modal').style.display = 'none'; 
-        CURRENT_DROP_ID = null; 
-        
-        // Return to previous modal
-        if(SOURCE_MODAL === 'edit_past') {
-             // Refresh edit past modal data first? Actually openEditPast re-renders.
-             // We need ID. CURRENT_DROP_ID was set before closing? No, we set it null.
-             // We need to capture ID before setting null.
-             // Wait, logic flaw: openEditPast needs ID.
-             // Fix: Don't set CURRENT_DROP_ID to null yet or store it.
-             // But openEditPast calls generateCardHtml which uses DATA.
-             // Let's use a temp var.
-        }
-        // Easier: The calling functions set CURRENT_DROP_ID.
-        // We can re-open the edit past modal with the ID that was being edited.
-        // But we just nulled it. 
-        // Let's rely on the fact that if we just saved, the data is updated.
-        // If we cancelled, nothing changed.
-        
-        if(SOURCE_MODAL === 'edit_past') {
-            // Re-open edit past modal. We need the ID.
-            // Let's find the last drop or pass ID globally.
-            // Actually, `openEditPast` takes an ID. 
-            // In `confirmDistSave`, we know the ID. But in `close` (cancel), we lost it.
-            // Simplest fix: Just reload the page logic or re-render based on context.
-            // Better: Store `ACTIVE_EDIT_ID` globally.
-        }
-        
-        // Revised Strategy: 
-        // The previous screen will be restored in confirmDistSave.
-        // If cancel, we need to know where to go back.
-        // For simplicity in V125, let's just close. 
-        // If user wants to go back, they click history again. (Minor UX tradeoff for stability).
-        // BUT, for "edit_past", we REALLY want to go back.
-        
-        // Let's fix confirmDistSave to handle the navigation back correctly.
-        if (SOURCE_MODAL === 'stock') openStockManager();
-        // For edit_past, we can't easily re-open without ID. 
-        // User will have to click history again.
-    }
-    
-    function updateWizStats() { const tid = document.getElementById('wiz_truck').value; const typeId = document.getElementById('wiz_type').value; let totalSent = 0; DATA.drops.forEach(d => { if(d.dist) { d.dist.forEach((item, idx) => { if(d.id === CURRENT_DROP_ID && idx === EDITING_DIST_IDX) return; if(item.truck === tid && item.type === typeId) totalSent += getNum(item.total); }); } }); const r1 = getNum(document.getElementById('wiz_r1').value); const r2 = getNum(document.getElementById('wiz_r2').value); const r3 = getNum(document.getElementById('wiz_r3').value); const currentTotal = r1 + r2 + r3; const target = getNum(DATA.orders[`${tid}_${typeId}`]); const remain = target - (totalSent + currentTotal); document.getElementById('wiz_total_sum').innerText = currentTotal; const remEl = document.getElementById('wiz_remain'); if (target === 0) { remEl.innerText = "ไม่ได้สั่ง"; remEl.className = 'wiz-remain'; } else if (remain > 0) { remEl.innerText = `ขาด ${remain}`; remEl.className = 'wiz-remain st-miss'; } else if (remain < 0) { remEl.innerText = `เกิน ${Math.abs(remain)}`; remEl.className = 'wiz-remain st-over'; } else { remEl.innerText = "ครบแล้ว ✅"; remEl.className = 'wiz-remain st-ok'; } }
-    
-    function confirmDistSave() { 
-        if (!CURRENT_DROP_ID) return; 
-        const d = DATA.drops.find(x => x.id === CURRENT_DROP_ID); 
-        const r1 = getNum(document.getElementById('wiz_r1').value); const r2 = getNum(document.getElementById('wiz_r2').value); const r3 = getNum(document.getElementById('wiz_r3').value); const total = r1 + r2 + r3; if (total === 0) { alert('กรุณาใส่จำนวน'); return; } const newData = { truck: document.getElementById('wiz_truck').value, type: document.getElementById('wiz_type').value, r1: r1, r2: r2, r3: r3, total: total }; 
-        if(EDITING_DIST_IDX !== null) { d.dist[EDITING_DIST_IDX] = newData; } else { if(!d.dist) d.dist = []; d.dist.push(newData); } 
-        updateDropVal(CURRENT_DROP_ID, 'dist_update', null, 0); 
-        
-        document.getElementById('dist_modal').style.display = 'none';
-        
-        if (SOURCE_MODAL === 'edit_past') {
-             openEditPast(CURRENT_DROP_ID); // Re-open the edit modal for this drop
-        } else if (SOURCE_MODAL === 'stock') {
-             openStockManager();
-        } else {
-             renderDrops(); // Refresh main view
-        }
-        
-        CURRENT_DROP_ID = null;
-        calcAll(); 
-    }
-    function renderOrderInputs() { const c = document.getElementById('order_inputs'); let h = '<table class="order-table"><thead><tr><th>รถ</th><th>หลอด</th><th>หยาบ</th><th>ละเอียด</th><th class="col-total">รวม</th></tr></thead><tbody>'; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; const hl = DATA.orders[tid+'_hl']||0; const bh = DATA.orders[tid+'_bh']||0; const bl = DATA.orders[tid+'_bl']||0; const total = hl + bh + bl; h += `<tr><td>${t}</td><td><input type="tel" value="${hl}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" onchange="updateOrder('${tid}_hl',this.value)"></td><td><input type="tel" value="${bh}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" onchange="updateOrder('${tid}_bh',this.value)"></td><td><input type="tel" value="${bl}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" onchange="updateOrder('${tid}_bl',this.value)"></td><td class="order-sum-col" id="ord_sum_${tid}">${total}</td></tr>`; }); h += '</tbody></table>'; c.innerHTML = h; }
-    function openTruckHistory(tid) { const container = document.getElementById('history_list'); container.innerHTML = ''; document.getElementById('hist_title').innerText = `🕒 ประวัติ ${getTruckName(tid)}`; const startTimeStr = document.getElementById('time_start').value; const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr)); sortedDrops.forEach(d => { if(d.dist) { d.dist.forEach((item, idx) => { if(item.truck === tid) { const typeName = getTypeName(item.type); const typeLabel = d.type === 'prod' ? '<span class="hist-tag ht-fresh">ผลิต</span>' : '<span class="hist-tag ht-stock">ห้อง</span>'; container.insertAdjacentHTML('beforeend', `<div class="hist-item"><div class="hist-info"><div><b>${d.time}</b> ${typeLabel} : ${typeName}</div><div style="color:#666;">(${item.r1}/${item.r2}/${item.r3}) = <b>${item.total}</b></div></div></div>`); } }); } }); document.getElementById('history_modal').style.display = 'block'; }
+    function openTruckHistory(tid) { const container = document.getElementById('history_list'); container.innerHTML = ''; document.getElementById('hist_title').innerText = `🕒 ประวัติ ${getTruckName(tid)}`; const startTimeStr = document.getElementById('time_start').value; const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr)); let hasData = false; sortedDrops.forEach(d => { if(d.dist) { d.dist.forEach((item, idx) => { if(item.truck === tid) { hasData = true; const typeName = getTypeName(item.type); const typeLabel = d.type === 'prod' ? '<span class="hist-tag ht-fresh">ผลิต</span>' : '<span class="hist-tag ht-stock">ห้อง</span>'; container.insertAdjacentHTML('beforeend', `<div class="hist-item"><div class="hist-info"><div><b>${d.time}</b> ${typeLabel} : ${typeName}</div><div style="color:#666;">(${item.r1}/${item.r2}/${item.r3}) = <b>${item.total}</b></div></div><div class="hist-actions"><button class="btn-edit-mini" onclick="closeHistoryModal(); SOURCE_MODAL=null; editDist(${d.id}, ${idx})">✏️ แก้</button><button class="btn-del-mini" onclick="removeDist(${d.id}, ${idx}); closeHistoryModal();">ลบ</button></div></div>`); } }); } }); if(!hasData) container.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">ไม่มีประวัติสำหรับรถคันนี้</div>'; document.getElementById('history_modal').style.display = 'block'; }
     function closeHistoryModal() { document.getElementById('history_modal').style.display = 'none'; }
+    function openEditPast(id) { const d = DATA.drops.find(x => x.id === id); if(!d) return; document.getElementById('full_history_modal').style.display = 'none'; document.getElementById('stock_manager_modal').style.display = 'none'; if(document.getElementById('stock_manager_modal').style.display === 'block') SOURCE_MODAL = 'stock'; else if(document.getElementById('full_history_modal').style.display === 'block') SOURCE_MODAL = 'history'; else SOURCE_MODAL = null; const startTimeStr = document.getElementById('time_start').value; const diffMin = getMinDiff(startTimeStr, d.time); document.getElementById('edit_past_body').innerHTML = generateCardHtml(d, diffMin); document.getElementById('edit_past_modal').style.display = 'flex'; }
+    function closeEditPastModal() { document.getElementById('edit_past_modal').style.display = 'none'; if(SOURCE_MODAL === 'history') openFullHistory(); else if(SOURCE_MODAL === 'stock') openStockManager(); else renderDrops(); calcAll(); }
+    function openStockManager() { const container = document.getElementById('stock_list_container'); container.innerHTML = ''; const stockDrops = DATA.drops.filter(d => d.type === 'stock').reverse(); if(stockDrops.length === 0) { container.innerHTML = '<div style="text-align:center; color:#aaa; margin-top:20px;">ไม่มีรายการเบิกของเก่า</div>'; } else { stockDrops.forEach(d => { let details = ''; if(d.dist) { d.dist.forEach((item, idx) => { details += `<div style="background:white; padding:5px; border-radius:4px; margin-top:5px; font-size:0.85rem;">🚛 ${getTruckName(item.truck)} (${getTypeName(item.type)}) : <b>${item.total}</b></div>`; }); } container.insertAdjacentHTML('beforeend', `<div style="background:#fff3e0; padding:10px; border-radius:8px; margin-bottom:10px;"><div style="display:flex; justify-content:space-between; font-weight:bold; color:#ef6c00;"><span>📦 เบิก ${d.time}</span><button class="btn-del-mini" onclick="deleteDrop(${d.id})">ลบ</button></div>${details}<button class="btn-add-dist" style="background:white; margin-top:5px; padding:5px; font-size:0.8rem;" onclick="openDistModal(${d.id})">+ เพิ่มจ่าย</button></div>`); }); } document.getElementById('stock_manager_modal').style.display = 'block'; }
+    function closeStockManager() { document.getElementById('stock_manager_modal').style.display = 'none'; renderDrops(); calcAll(); }
+    function removeDist(dropId, idx) { const d = DATA.drops.find(x => x.id === dropId); if(d) { d.dist.splice(idx, 1); updateDropVal(dropId, 'dist_update', null, 0); saveData(); if(document.getElementById('stock_manager_modal').style.display === 'block') openStockManager(); else if(document.getElementById('edit_past_modal').style.display === 'flex') openEditPast(dropId); else renderDrops(); calcAll(); } }
+    function initWizard() { const tSel = document.getElementById('wiz_truck'); const tySel = document.getElementById('wiz_type'); tSel.innerHTML = TRUCKS.map((t,i) => `<option value="t${i+1}">${t}</option>`).join(''); tySel.innerHTML = ICE_TYPES.map(ty => `<option value="${ty.id}">${ty.label}</option>`).join(''); }
+    function openDistModal(dropId) { if(document.getElementById('edit_past_modal').style.display === 'flex') { document.getElementById('edit_past_modal').style.display = 'none'; SOURCE_MODAL = 'edit_past'; } else if (document.getElementById('stock_manager_modal').style.display === 'block') { document.getElementById('stock_manager_modal').style.display = 'none'; SOURCE_MODAL = 'stock'; } else { SOURCE_MODAL = null; } initWizard(); CURRENT_DROP_ID = dropId; EDITING_DIST_IDX = null; const d = DATA.drops.find(x => x.id === dropId); document.getElementById('wiz_r1').value = ''; document.getElementById('wiz_r2').value = ''; document.getElementById('wiz_r3').value = ''; updateWizStats(); document.getElementById('wiz_title').innerText = d.type === 'prod' ? '🚛 จ่ายของผลิตใหม่' : '📦 จ่ายของเก่า'; document.getElementById('dist_modal').style.display = 'flex'; }
+    function editDist(dropId, idx) { if(document.getElementById('edit_past_modal').style.display === 'flex') { document.getElementById('edit_past_modal').style.display = 'none'; SOURCE_MODAL = 'edit_past'; } else if (document.getElementById('stock_manager_modal').style.display === 'block') { document.getElementById('stock_manager_modal').style.display = 'none'; SOURCE_MODAL = 'stock'; } else { SOURCE_MODAL = null; } initWizard(); CURRENT_DROP_ID = dropId; EDITING_DIST_IDX = idx; const d = DATA.drops.find(x => x.id === dropId); const item = d.dist[idx]; document.getElementById('wiz_truck').value = item.truck; document.getElementById('wiz_type').value = item.type; document.getElementById('wiz_r1').value = item.r1; document.getElementById('wiz_r2').value = item.r2; document.getElementById('wiz_r3').value = item.r3; updateWizStats(); document.getElementById('wiz_title').innerText = '✏️ แก้ไขรายการ'; document.getElementById('dist_modal').style.display = 'flex'; }
+    function closeDistModal() { document.getElementById('dist_modal').style.display = 'none'; CURRENT_DROP_ID = null; if(SOURCE_MODAL === 'stock') openStockManager(); else if (SOURCE_MODAL === 'edit_past') openEditPast(CURRENT_DROP_ID); }
+    function updateWizStats() { const tid = document.getElementById('wiz_truck').value; const typeId = document.getElementById('wiz_type').value; let totalSent = 0; DATA.drops.forEach(d => { if(d.dist) { d.dist.forEach((item, idx) => { if(d.id === CURRENT_DROP_ID && idx === EDITING_DIST_IDX) return; if(item.truck === tid && item.type === typeId) totalSent += getNum(item.total); }); } }); const r1 = getNum(document.getElementById('wiz_r1').value); const r2 = getNum(document.getElementById('wiz_r2').value); const r3 = getNum(document.getElementById('wiz_r3').value); const currentTotal = r1 + r2 + r3; const target = getNum(DATA.orders[`${tid}_${typeId}`]); const remain = target - (totalSent + currentTotal); document.getElementById('wiz_total_sum').innerText = currentTotal; const remEl = document.getElementById('wiz_remain'); if (target === 0) { remEl.innerText = "ไม่ได้สั่ง"; remEl.className = 'wiz-remain'; } else if (remain > 0) { remEl.innerText = `ขาด ${remain}`; remEl.className = 'wiz-remain st-miss'; } else if (remain < 0) { remEl.innerText = `เกิน ${Math.abs(remain)}`; remEl.className = 'wiz-remain st-over'; } else { remEl.innerText = "ครบแล้ว ✅"; remEl.className = 'wiz-remain st-ok'; } }
+    function confirmDistSave() { if (!CURRENT_DROP_ID) return; const d = DATA.drops.find(x => x.id === CURRENT_DROP_ID); const r1 = getNum(document.getElementById('wiz_r1').value); const r2 = getNum(document.getElementById('wiz_r2').value); const r3 = getNum(document.getElementById('wiz_r3').value); const total = r1 + r2 + r3; if (total === 0) { alert('กรุณาใส่จำนวน'); return; } const newData = { truck: document.getElementById('wiz_truck').value, type: document.getElementById('wiz_type').value, r1: r1, r2: r2, r3: r3, total: total }; if(EDITING_DIST_IDX !== null) { d.dist[EDITING_DIST_IDX] = newData; } else { if(!d.dist) d.dist = []; d.dist.push(newData); } updateDropVal(CURRENT_DROP_ID, 'dist_update', null, 0); document.getElementById('dist_modal').style.display = 'none'; if (SOURCE_MODAL === 'edit_past') { openEditPast(CURRENT_DROP_ID); } else if (SOURCE_MODAL === 'stock') { openStockManager(); } else { renderDrops(); } CURRENT_DROP_ID = null; calcAll(); }
     function getTruckName(id) { return TRUCKS[parseInt(id.replace('t',''))-1]; }
     function getTypeName(id) { return ICE_TYPES.find(x=>x.id===id).label; }
     function getAdjustedMinutes(timeStr, startStr) { if(!timeStr || !startStr) return 0; let [h, m] = timeStr.split(':').map(Number); let [sh, sm] = startStr.split(':').map(Number); let mins = h * 60 + m; let sMins = sh * 60 + sm; if (mins < sMins) mins += 1440; return mins; }
