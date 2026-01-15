@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V130 (Master Order Fixed)</title>
+    <title>Smart Ice V131 (Total & Master Fixed)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- Theme --- */
@@ -32,8 +32,6 @@
         .big-time-input { font-size: 1.8rem; font-weight: 800; color: #37474f; border: none; background: none; width: 100px; text-align: center; }
         .time-diff-badge { font-size: 0.85rem; color: #0277bd; font-weight: bold; background: #e1f5fe; padding: 4px 8px; border-radius: 12px; white-space: nowrap; }
         .btn-close-red { width: 35px; height: 35px; border-radius: 8px; background: #ffebee; color: #c62828; border: none; font-size: 1.2rem; font-weight: bold; cursor: pointer; margin-left: auto; }
-        
-        /* Sack Display */
         .sack-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; background: #e0f2f1; padding: 10px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #b2dfdb; }
         .sack-item { text-align: center; }
         .sack-label { font-size: 0.65rem; color: #00695c; font-weight: bold; margin-bottom: 2px; white-space: nowrap; }
@@ -51,9 +49,10 @@
         .pt-rem { background: #fff3e0; color: #e65100; } 
         .sub-header { font-size: 0.75rem; color: #546e7a; background: #f5f5f5; }
         
-        .total-row td { background-color: #37474f !important; color: white !important; font-weight: 900 !important; border: 1px solid #263238 !important; font-size: 1rem !important; }
-        .total-label { text-align: left !important; padding-left: 5px !important; background: #263238 !important; color: #ffeb3b !important; }
-        
+        /* Total Row Style - Ensure it sticks out */
+        .total-row td { background-color: #37474f !important; color: #ffffff !important; font-weight: 900 !important; border: 1px solid #263238 !important; font-size: 1rem !important; }
+        .total-label { text-align: center !important; background: #263238 !important; color: #ffeb3b !important; }
+
         /* Custom Report */
         .custom-report { border: 2px solid #546e7a; border-radius: 8px; padding: 15px; margin-top: 20px; background: #fff; }
         .cr-section { margin-bottom: 15px; border-bottom: 1px dashed #ccc; padding-bottom: 10px; }
@@ -71,18 +70,7 @@
         .truck-name-col { text-align: left; padding-left: 15px; font-weight: 800; color: #37474f; font-size: 0.95rem; }
         .st-pill { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; min-width: 60px; }
         .st-over { background: #e3f2fd; color: #1565c0; } .st-miss { background: #ffebee; color: #c62828; } .st-ok { background: #e8f5e9; color: #2e7d32; } .st-none { color: #cfd8dc; font-weight: 400; font-size: 1.2rem; }
-        
-        /* Truck Details */
-        .truck-detail-block { background: white; border-radius: 12px; padding: 15px; margin-bottom: 20px; border: 2px solid #b0bec5; box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
-        .truck-detail-header { font-weight: 800; color: #006064; border-bottom: 2px solid #e0f7fa; padding-bottom: 8px; margin-bottom: 12px; font-size: 1.1rem; display: flex; justify-content: space-between; align-items: center; }
-        .btn-history { background: #ff9800; color: white; border: none; border-radius: 8px; padding: 4px 10px; font-size: 0.85rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 5px; }
-        .detail-table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 0.9rem; }
-        .detail-table th { background: #fafafa; padding: 8px; border-bottom: 1px solid #ddd; }
-        .detail-table td { padding: 8px; border-bottom: 1px solid #eee; text-align: center; }
-        .dt-fresh { color: #2e7d32; font-weight: bold; background: #f1f8e9; }
-        .dt-stock { color: #1565c0; font-weight: bold; background: #e3f2fd; }
-        .dt-total { font-weight: 900; color: #37474f; background: #eceff1; }
-        
+
         /* Helpers */
         .btn-reset { background: #cfd8dc; color: #546e7a; border: none; padding: 10px; width: 100%; margin-top: 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .dist-container { background: #fafafa; border-radius: 12px; padding: 10px; border: 1px dashed #cfd8dc; margin-top: 15px; }
@@ -94,9 +82,9 @@
         .btn-add-dist { width: 100%; padding: 12px; background: #eceff1; color: #546e7a; border: 1px dashed #90a4ae; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .fab-container { position: fixed; bottom: 25px; right: 20px; z-index: 2000; }
         .fab-main { width: 65px; height: 65px; border-radius: 50%; background: #00c853; color: white; border: none; font-size: 32px; box-shadow: 0 6px 20px rgba(0,200,83,0.4); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        
         .modal { display: none; position: fixed; z-index: 5000; left: 0; top: 0; width: 100%; height: 100%; overflow: hidden; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(3px); align-items: center; justify-content: center; }
         .modal-content { background-color: #f5f7fa; margin: 0; border-radius: 16px; width: 95%; max-width: 500px; max-height: 90vh; box-shadow: 0 10px 30px rgba(0,0,0,0.4); display: flex; flex-direction: column; position: relative; }
-        /* High Z-Index for the Edit Modal */
         #dist_modal { z-index: 6000; }
 
         .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #fff; border-bottom: 2px solid #e0e0e0; flex-shrink: 0; border-radius: 16px 16px 0 0; }
@@ -124,6 +112,15 @@
         .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .input-label { font-size: 0.75rem; color: #78909c; margin-bottom: 4px; font-weight: 600; text-align: center; }
+        .truck-detail-block { background: white; border-radius: 12px; padding: 15px; margin-bottom: 20px; border: 2px solid #b0bec5; box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
+        .truck-detail-header { font-weight: 800; color: #006064; border-bottom: 2px solid #e0f7fa; padding-bottom: 8px; margin-bottom: 12px; font-size: 1.1rem; display: flex; justify-content: space-between; align-items: center; }
+        .btn-history { background: #ff9800; color: white; border: none; border-radius: 8px; padding: 4px 10px; font-size: 0.85rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 5px; }
+        .detail-table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 0.9rem; }
+        .detail-table th { background: #fafafa; padding: 8px; border-bottom: 1px solid #ddd; }
+        .detail-table td { padding: 8px; border-bottom: 1px solid #eee; text-align: center; }
+        .dt-fresh { color: #2e7d32; font-weight: bold; background: #f1f8e9; }
+        .dt-stock { color: #1565c0; font-weight: bold; background: #e3f2fd; }
+        .dt-total { font-weight: 900; color: #37474f; background: #eceff1; }
         .hist-item { background: white; border: 1px solid #eee; padding: 10px; margin-bottom: 8px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
         .hist-info { font-size: 0.9rem; color: #333; }
         .hist-tag { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; margin-left: 5px; font-weight: bold; }
@@ -163,9 +160,9 @@
         <div class="modern-card card-body">
             <h3>📦 สต็อกยกมา</h3>
             <div class="grid-3">
-                <div><div class="input-label">หลอด</div><input type="tel" id="init_hl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateStock()"></div>
-                <div><div class="input-label">หยาบ</div><input type="tel" id="init_bh" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateStock()"></div>
-                <div><div class="input-label">ละเอียด</div><input type="tel" id="init_bl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateStock()"></div>
+                <div><div class="input-label">หลอด</div><input type="tel" id="init_hl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" onchange="updateStock()"></div>
+                <div><div class="input-label">หยาบ</div><input type="tel" id="init_bh" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" onchange="updateStock()"></div>
+                <div><div class="input-label">ละเอียด</div><input type="tel" id="init_bl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" onchange="updateStock()"></div>
             </div>
         </div>
         <div class="modern-card card-body">
@@ -185,7 +182,6 @@
     <div class="fab-container"><button class="fab-main" onclick="addDrop('prod')">+</button></div>
 
     <div id="page-summary" class="page">
-        
         <div class="modern-card card-body">
              <h3>📊 สรุปสถานะรายคัน (ขาด/เกิน)</h3>
              <div id="truck_report_container"></div>
@@ -313,13 +309,8 @@
     }
 
     function changeDate() { const newDate = document.getElementById('setup_date').value; loadData(newDate); saveData(); renderOrderInputs(); renderDrops(); calcAll(); }
-    
     function getNum(val) { return parseFloat(val) || 0; }
-    
-    function updateStock() { 
-        // Called by oninput/onchange
-        saveData(); 
-    }
+    function updateStock() { saveData(); }
 
     function addDrop(type) {
         const now = new Date();
@@ -346,13 +337,10 @@
         } else {
             container.innerHTML = '<div style="text-align:center; color:#aaa; margin-top:50px;">กด + เพื่อเริ่มผลิต</div>';
         }
-        // No need to call updateStats here, calcAll does it
     }
 
     function generateCardHtml(d, diffMin) {
-        // ... (Same card HTML generation)
-        // Ensure inputs call updateDropVal on input
-         let distHtml = '';
+        let distHtml = '';
         if(d.dist) {
            d.dist.forEach((item, idx) => {
                distHtml += `<div class="dist-item"><div class="dist-header"><span>🚛 ${getTruckName(item.truck)} - ${getTypeName(item.type)}</span><div><button style="background:#fff9c4; border:none; padding:4px;" onclick="editDist(${d.id}, ${idx})">✏️</button><button style="background:#ffcdd2; border:none; padding:4px;" onclick="removeDist(${d.id}, ${idx})">🗑️</button></div></div><div class="dist-rows">(${item.r1}/${item.r2}/${item.r3}) = <b>${item.total}</b></div></div>`;
@@ -370,41 +358,29 @@
         const d = DATA.drops.find(x => x.id === id); if(!d) return;
         if(cat === 'time') d.time = val; else if(cat === 'p_in_room') d.p_in_room[sub] = getNum(val);
         saveData(); 
-        // Instant visual update for card numbers
-         if(cat === 'p_in_room' || cat === 'dist_update') {
+        if(cat === 'p_in_room' || cat === 'dist_update') {
             let hlProd = getNum(d.p_in_room.hl); let bhProd = getNum(d.p_in_room.bh); let blProd = getNum(d.p_in_room.bl);
             if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') hlProd+=getNum(i.total); if(i.type==='bh') bhProd+=getNum(i.total); if(i.type==='bl') blProd+=getNum(i.total); }); }
             const hlBatch = Math.ceil(hlProd/40)*40; const crushBatch = Math.ceil((bhProd+blProd)/40)*40;
-            
-            const dw = document.getElementById(`disp_withdraw_${id}`); 
-            const du = document.getElementById(`disp_used_${id}`);
-            const dr1 = document.getElementById(`disp_rem_hl_${id}`);
-            const dr2 = document.getElementById(`disp_rem_bod_${id}`);
-            
+            const dw = document.getElementById(`disp_withdraw_${id}`); const du = document.getElementById(`disp_used_${id}`);
+            const dr1 = document.getElementById(`disp_rem_hl_${id}`); const dr2 = document.getElementById(`disp_rem_bod_${id}`);
             if(dw) dw.innerText = `${hlBatch} / ${crushBatch}`; 
             if(du) du.innerText = `${hlProd} / ${bhProd+blProd}`;
             if(dr1) dr1.innerText = `หลอด:${hlBatch-hlProd}`; 
             if(dr2) dr2.innerText = `บด:${crushBatch-(bhProd+blProd)}`;
         }
+        calcAll();
     }
 
     function calcAll() {
-        // Recalculate ALL totals based on DATA
-        let sumP={hl:0,bh:0,bl:0};
-        // Read directly from DATA to ensure we don't rely on potentially empty DOM
-        let curHL = DATA.initStock.hl || 0;
-        let curBH = DATA.initStock.bh || 0;
-        let curBL = DATA.initStock.bl || 0;
-        
+        let sumP={hl:0,bh:0,bl:0}, curHL=getNum(document.getElementById('init_hl').value), curBH=getNum(document.getElementById('init_bh').value), curBL=getNum(document.getElementById('init_bl').value);
         let totalSent=0, totalWithHL=0, totalWithBod=0, totalRemHL=0, totalRemBod=0, totalUsedAll=0;
         let prodLogHtml = '', startTimeStr = document.getElementById('time_start').value;
         let lastProdTime = startTimeStr;
         let truckMat = {}; let truckDetail = {};
-        
         TRUCKS.forEach((t,i) => { let tid = `t${i+1}`; truckMat[tid] = {hl:{fr:0,st:0}, bh:{fr:0,st:0}, bl:{fr:0,st:0}}; truckDetail[tid] = { hl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bh: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} } }; });
 
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
-
         sortedDrops.forEach(d => {
             let p_hl=0, p_bh=0, p_bl=0;
             if(d.type === 'prod') {
@@ -445,19 +421,24 @@
         renderSummaryTable(truckMat); renderDetailTable(truckDetail);
     }
     
-    // ... (Keep existing Helper functions: renderSummaryTable, renderDetailTable, openTruckHistory, etc. exactly as V128)
     function renderSummaryTable(mat) { let h = `<table class="truck-matrix-table"><thead><tr><th style="text-align:left;">รถ</th><th>หลอด</th><th>หยาบ</th><th>ละ..</th></tr></thead><tbody>`; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; h += `<tr><td class="truck-name-col">${t}</td>`; ICE_TYPES.forEach(ty => { const target = getNum(DATA.orders[`${tid}_${ty.id}`]); const sent = mat[tid][ty.id].fr + mat[tid][ty.id].st; let cell = `<span class="st-none">-</span>`; if(target > 0 || sent > 0) { const rem = target - sent; if(rem > 0) cell = `<span class="st-pill st-miss">ขาด ${rem}</span>`; else if(rem < 0) cell = `<span class="st-pill st-over">เกิน ${Math.abs(rem)}</span>`; else cell = `<span class="st-pill st-ok">ครบ</span>`; } h += `<td>${cell}</td>`; }); h += `</tr>`; }); h += `</tbody></table>`; document.getElementById('truck_report_container').innerHTML = h; }
     function renderDetailTable(det) { let h = ''; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; if(det[tid]) { let hasData = false; let content = `<div class="truck-detail-block"><div class="truck-detail-header"><span>🚛 ${t}</span><button class="btn-history" onclick="openTruckHistory('${tid}')">🕒 ดูประวัติ/แก้ไข</button></div>`; ICE_TYPES.forEach(ty => { if(det[tid][ty.id]) { const d = det[tid][ty.id]; const t_r1 = d.r1.fr+d.r1.st; const t_r2 = d.r2.fr+d.r2.st; const t_r3 = d.r3.fr+d.r3.st; const grand = t_r1+t_r2+t_r3; const ordered = getNum(DATA.orders[`${tid}_${ty.id}`]); if(grand > 0 || ordered > 0) { hasData = true; content += `<div style="margin-bottom:10px;"><div style="font-weight:bold; color:#0277bd;">${ty.label} <small style="color:#aaa;">(เป้า: ${ordered})</small></div><table class="detail-table"><thead><tr><th style="width:20%">แถว</th><th>เก่า</th><th>สด</th><th>รวม</th></tr></thead><tbody><tr><td>1</td><td class="dt-stock">${d.r1.st||'-'}</td><td class="dt-fresh">${d.r1.fr||'-'}</td><td>${t_r1}</td></tr><tr><td>2</td><td class="dt-stock">${d.r2.st||'-'}</td><td class="dt-fresh">${d.r2.fr||'-'}</td><td>${t_r2}</td></tr><tr><td>3</td><td class="dt-stock">${d.r3.st||'-'}</td><td class="dt-fresh">${d.r3.fr||'-'}</td><td>${t_r3}</td></tr><tr><td colspan="3" style="text-align:right; font-weight:bold;">รวม:</td><td class="dt-total">${grand}</td></tr></tbody></table></div>`; } } }); content += `</div>`; if(hasData) h += content; } }); if(h==='') h='<div style="text-align:center; padding:20px; color:#aaa;">ยังไม่มีข้อมูล</div>'; document.getElementById('truck_detail_container').innerHTML = h; }
+    
     function updateOrder(key, val) { DATA.orders[key] = getNum(val); saveData(); calcAll(); }
+    
     function openFullHistory() { const container = document.getElementById('full_history_list'); container.innerHTML = ''; const startTimeStr = document.getElementById('time_start').value; const sortedDrops = DATA.drops.filter(d => d.type === 'prod').sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr)).reverse(); if (sortedDrops.length === 0) { container.innerHTML = '<div style="text-align:center; color:#aaa;">ไม่มีประวัติ</div>'; } else { sortedDrops.forEach((d, idx) => { let prodTotal = getNum(d.p_in_room.hl) + getNum(d.p_in_room.bh) + getNum(d.p_in_room.bl); if(d.dist) d.dist.forEach(i => prodTotal += getNum(i.total)); const tag = (idx === 0) ? '<span class="hist-tag ht-fresh">ล่าสุด</span>' : ''; container.insertAdjacentHTML('beforeend', `<div class="hist-item" onclick="openEditPast(${d.id})" style="cursor:pointer;"><div class="hist-info"><div><b>${d.time}</b> ${tag}</div><div style="color:#666; font-size:0.85rem;">ผลิต: ${prodTotal}</div></div><div style="color:#0277bd;">></div></div>`); }); } document.getElementById('full_history_modal').style.display = 'block'; }
     function closeFullHistory() { document.getElementById('full_history_modal').style.display = 'none'; renderDrops(); calcAll(); }
     function openTruckHistory(tid) { const container = document.getElementById('history_list'); container.innerHTML = ''; document.getElementById('hist_title').innerText = `🕒 ประวัติ ${getTruckName(tid)}`; const startTimeStr = document.getElementById('time_start').value; const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr)); let hasData = false; sortedDrops.forEach(d => { if(d.dist) { d.dist.forEach((item, idx) => { if(item.truck === tid) { hasData = true; const typeName = getTypeName(item.type); const typeLabel = d.type === 'prod' ? '<span class="hist-tag ht-fresh">ผลิต</span>' : '<span class="hist-tag ht-stock">ห้อง</span>'; container.insertAdjacentHTML('beforeend', `<div class="hist-item"><div class="hist-info"><div><b>${d.time}</b> ${typeLabel} : ${typeName}</div><div style="color:#666;">(${item.r1}/${item.r2}/${item.r3}) = <b>${item.total}</b></div></div><div class="hist-actions"><button class="btn-edit-mini" onclick="closeHistoryModal(); SOURCE_MODAL=null; editDist(${d.id}, ${idx})">✏️ แก้</button><button class="btn-del-mini" onclick="removeDist(${d.id}, ${idx}); closeHistoryModal();">ลบ</button></div></div>`); } }); } }); if(!hasData) container.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">ไม่มีประวัติสำหรับรถคันนี้</div>'; document.getElementById('history_modal').style.display = 'block'; }
     function closeHistoryModal() { document.getElementById('history_modal').style.display = 'none'; }
+    
     function openEditPast(id) { const d = DATA.drops.find(x => x.id === id); if(!d) return; document.getElementById('full_history_modal').style.display = 'none'; document.getElementById('stock_manager_modal').style.display = 'none'; if(document.getElementById('stock_manager_modal').style.display === 'block') SOURCE_MODAL = 'stock'; else if(document.getElementById('full_history_modal').style.display === 'block') SOURCE_MODAL = 'history'; else SOURCE_MODAL = null; const startTimeStr = document.getElementById('time_start').value; const diffMin = getMinDiff(startTimeStr, d.time); document.getElementById('edit_past_body').innerHTML = generateCardHtml(d, diffMin); document.getElementById('edit_past_modal').style.display = 'flex'; }
     function closeEditPastModal() { document.getElementById('edit_past_modal').style.display = 'none'; if(SOURCE_MODAL === 'history') openFullHistory(); else if(SOURCE_MODAL === 'stock') openStockManager(); else renderDrops(); calcAll(); }
+    
     function openStockManager() { const container = document.getElementById('stock_list_container'); container.innerHTML = ''; const stockDrops = DATA.drops.filter(d => d.type === 'stock').reverse(); if(stockDrops.length === 0) { container.innerHTML = '<div style="text-align:center; color:#aaa; margin-top:20px;">ไม่มีรายการเบิกของเก่า</div>'; } else { stockDrops.forEach(d => { let details = ''; if(d.dist) { d.dist.forEach((item, idx) => { details += `<div style="background:white; padding:5px; border-radius:4px; margin-top:5px; font-size:0.85rem;">🚛 ${getTruckName(item.truck)} (${getTypeName(item.type)}) : <b>${item.total}</b></div>`; }); } container.insertAdjacentHTML('beforeend', `<div style="background:#fff3e0; padding:10px; border-radius:8px; margin-bottom:10px;"><div style="display:flex; justify-content:space-between; font-weight:bold; color:#ef6c00;"><span>📦 เบิก ${d.time}</span><button class="btn-del-mini" onclick="deleteDrop(${d.id})">ลบ</button></div>${details}<button class="btn-add-dist" style="background:white; margin-top:5px; padding:5px; font-size:0.8rem;" onclick="openDistModal(${d.id})">+ เพิ่มจ่าย</button></div>`); }); } document.getElementById('stock_manager_modal').style.display = 'block'; }
     function closeStockManager() { document.getElementById('stock_manager_modal').style.display = 'none'; renderDrops(); calcAll(); }
+    
     function removeDist(dropId, idx) { const d = DATA.drops.find(x => x.id === dropId); if(d) { d.dist.splice(idx, 1); updateDropVal(dropId, 'dist_update', null, 0); saveData(); if(document.getElementById('stock_manager_modal').style.display === 'block') openStockManager(); else if(document.getElementById('edit_past_modal').style.display === 'flex') openEditPast(dropId); else renderDrops(); calcAll(); } }
+    
     function initWizard() { const tSel = document.getElementById('wiz_truck'); const tySel = document.getElementById('wiz_type'); tSel.innerHTML = TRUCKS.map((t,i) => `<option value="t${i+1}">${t}</option>`).join(''); tySel.innerHTML = ICE_TYPES.map(ty => `<option value="${ty.id}">${ty.label}</option>`).join(''); }
     function openDistModal(dropId) { if(document.getElementById('edit_past_modal').style.display === 'flex') { document.getElementById('edit_past_modal').style.display = 'none'; SOURCE_MODAL = 'edit_past'; } else if (document.getElementById('stock_manager_modal').style.display === 'block') { document.getElementById('stock_manager_modal').style.display = 'none'; SOURCE_MODAL = 'stock'; } else { SOURCE_MODAL = null; } initWizard(); CURRENT_DROP_ID = dropId; EDITING_DIST_IDX = null; const d = DATA.drops.find(x => x.id === dropId); document.getElementById('wiz_r1').value = ''; document.getElementById('wiz_r2').value = ''; document.getElementById('wiz_r3').value = ''; updateWizStats(); document.getElementById('wiz_title').innerText = d.type === 'prod' ? '🚛 จ่ายของผลิตใหม่' : '📦 จ่ายของเก่า'; document.getElementById('dist_modal').style.display = 'flex'; }
     function editDist(dropId, idx) { if(document.getElementById('edit_past_modal').style.display === 'flex') { document.getElementById('edit_past_modal').style.display = 'none'; SOURCE_MODAL = 'edit_past'; } else if (document.getElementById('stock_manager_modal').style.display === 'block') { document.getElementById('stock_manager_modal').style.display = 'none'; SOURCE_MODAL = 'stock'; } else { SOURCE_MODAL = null; } initWizard(); CURRENT_DROP_ID = dropId; EDITING_DIST_IDX = idx; const d = DATA.drops.find(x => x.id === dropId); const item = d.dist[idx]; document.getElementById('wiz_truck').value = item.truck; document.getElementById('wiz_type').value = item.type; document.getElementById('wiz_r1').value = item.r1; document.getElementById('wiz_r2').value = item.r2; document.getElementById('wiz_r3').value = item.r3; updateWizStats(); document.getElementById('wiz_title').innerText = '✏️ แก้ไขรายการ'; document.getElementById('dist_modal').style.display = 'flex'; }
@@ -470,6 +451,23 @@
         if (SOURCE_MODAL === 'edit_past') { openEditPast(CURRENT_DROP_ID); } else if (SOURCE_MODAL === 'stock') { openStockManager(); } else { renderDrops(); }
         CURRENT_DROP_ID = null; calcAll(); 
     }
+    
+    // --- RENDER MASTER ORDER INPUTS (FIXED) ---
+    function renderOrderInputs() { 
+        const c = document.getElementById('order_inputs'); 
+        let h = '<table class="order-table"><thead><tr><th>รถ</th><th>หลอด</th><th>หยาบ</th><th>ละเอียด</th><th class="col-total">รวม</th></tr></thead><tbody>'; 
+        TRUCKS.forEach((t, i) => { 
+            const tid = `t${i+1}`; 
+            const hl = DATA.orders[tid+'_hl']||0; 
+            const bh = DATA.orders[tid+'_bh']||0; 
+            const bl = DATA.orders[tid+'_bl']||0; 
+            const total = hl + bh + bl; 
+            h += `<tr><td>${t}</td><td><input type="tel" value="${hl}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_hl',this.value)"></td><td><input type="tel" value="${bh}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_bh',this.value)"></td><td><input type="tel" value="${bl}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_bl',this.value)"></td><td class="order-sum-col" id="ord_sum_${tid}">${total}</td></tr>`; 
+        }); 
+        h += '</tbody></table>'; 
+        c.innerHTML = h; 
+    }
+
     function getTruckName(id) { return TRUCKS[parseInt(id.replace('t',''))-1]; }
     function getTypeName(id) { return ICE_TYPES.find(x=>x.id===id).label; }
     function getAdjustedMinutes(timeStr, startStr) { if(!timeStr || !startStr) return 0; let [h, m] = timeStr.split(':').map(Number); let [sh, sm] = startStr.split(':').map(Number); let mins = h * 60 + m; let sMins = sh * 60 + sm; if (mins < sMins) mins += 1440; return mins; }
