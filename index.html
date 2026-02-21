@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V135 (Add Duration Column)</title>
+    <title>Smart Ice V136 (Add Drop Number)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- Theme --- */
@@ -44,7 +44,7 @@
         .paper-table th { background: #cfd8dc; border: 1px solid #90a4ae; padding: 6px 2px; text-align: center; font-weight: bold; color: #37474f; vertical-align: middle; line-height: 1.1; }
         .paper-table td { border: 1px solid #b0bec5; padding: 8px 2px; text-align: center; vertical-align: middle; color: #263238; font-weight: 600; font-size: 0.95rem; }
         .pt-time { background: #eceff1; font-weight: bold; font-size: 0.8rem; }
-        .pt-duration { background: #f5f5f5; font-weight: normal; font-size: 0.8rem; color: #666; } /* New style for duration column */
+        .pt-duration { background: #f5f5f5; font-weight: normal; font-size: 0.8rem; color: #666; } 
         .pt-check { background: #e3f2fd; color: #1565c0; } 
         .pt-prod { background: #e8f5e9; color: #2e7d32; } 
         .pt-rem { background: #fff3e0; color: #e65100; } 
@@ -194,10 +194,12 @@
                 <table class="paper-table">
                     <thead>
                         <tr>
+                            <th rowspan="2" class="pt-time" style="width:8%">ลำดับ</th>
                             <th rowspan="2" class="pt-time" style="width:12%">เวลา</th>
-                            <th rowspan="2" class="pt-duration" style="width:10%">นาที/ตก</th> <th colspan="2" class="pt-check" style="width:20%">เบิกกระสอบ</th>
-                            <th colspan="3" class="pt-prod" style="width:34%">ผลการผลิต</th>
-                            <th colspan="2" class="pt-rem" style="width:24%">กระสอบคงเหลือ</th>
+                            <th rowspan="2" class="pt-duration" style="width:10%">นาที/ตก</th>
+                            <th colspan="2" class="pt-check" style="width:20%">เบิกกระสอบ</th>
+                            <th colspan="3" class="pt-prod" style="width:30%">ผลการผลิต</th>
+                            <th colspan="2" class="pt-rem" style="width:20%">กระสอบคงเหลือ</th>
                         </tr>
                         <tr>
                             <th class="pt-check sub-header">หลอด</th>
@@ -416,9 +418,12 @@
         TRUCKS.forEach((t,i) => { let tid = `t${i+1}`; truckMat[tid] = {hl:{fr:0,st:0}, bh:{fr:0,st:0}, bl:{fr:0,st:0}}; truckDetail[tid] = { hl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bh: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} } }; });
 
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
+        let dropCount = 0; // ตัวนับลำดับตก
+
         sortedDrops.forEach(d => {
             let p_hl=0, p_bh=0, p_bl=0;
             if(d.type === 'prod') {
+                dropCount++; // เพิ่มลำดับ
                 p_hl = getNum(d.p_in_room.hl); p_bh = getNum(d.p_in_room.bh); p_bl = getNum(d.p_in_room.bl);
                 if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') p_hl+=getNum(i.total); if(i.type==='bh') p_bh+=getNum(i.total); if(i.type==='bl') p_bl+=getNum(i.total); }); }
                 const w_hl = Math.ceil(p_hl/40)*40; const w_bod = Math.ceil((p_bh+p_bl)/40)*40;
@@ -426,17 +431,40 @@
                 totalWithHL += w_hl; totalWithBod += w_bod; totalRemHL += r_hl; totalRemBod += r_bod; totalUsedAll += (p_hl + p_bh + p_bl);
                 sumP.hl += p_hl; sumP.bh += p_bh; sumP.bl += p_bl;
                 curHL += getNum(d.p_in_room.hl); curBH += getNum(d.p_in_room.bh); curBL += getNum(d.p_in_room.bl);
+                
                 const minDiff = getMinDiff(lastProdTime, d.time); 
                 totalDuration += minDiff;
                 lastProdTime = d.time;
-                // Add the duration column here
-                prodLogHtml += `<tr><td class="pt-time">${d.time}</td><td class="pt-duration">${minDiff}</td><td class="pt-check">${w_hl>0?w_hl:'-'}</td><td class="pt-check">${w_bod>0?w_bod:'-'}</td><td class="pt-prod">${p_hl||'-'}</td><td class="pt-prod">${p_bh||'-'}</td><td class="pt-prod">${p_bl||'-'}</td><td class="pt-rem">${w_hl>0?r_hl:'-'}</td><td class="pt-rem">${w_bod>0?r_bod:'-'}</td></tr>`;
+                
+                // เพิ่ม <td> สำหรับแสดงลำดับ
+                prodLogHtml += `<tr>
+                    <td style="font-weight:bold; color:#546e7a; text-align:center; background:#eceff1;">${dropCount}</td>
+                    <td class="pt-time">${d.time}</td>
+                    <td class="pt-duration">${minDiff}</td>
+                    <td class="pt-check">${w_hl>0?w_hl:'-'}</td>
+                    <td class="pt-check">${w_bod>0?w_bod:'-'}</td>
+                    <td class="pt-prod">${p_hl||'-'}</td>
+                    <td class="pt-prod">${p_bh||'-'}</td>
+                    <td class="pt-prod">${p_bl||'-'}</td>
+                    <td class="pt-rem">${w_hl>0?r_hl:'-'}</td>
+                    <td class="pt-rem">${w_bod>0?r_bod:'-'}</td>
+                </tr>`;
             }
             if(d.dist) { d.dist.forEach(i => { const total = getNum(i.total); totalSent += total; const field = d.type === 'prod' ? 'fr' : 'st'; truckMat[i.truck][i.type][field] += total; if(truckDetail[i.truck] && truckDetail[i.truck][i.type]) { truckDetail[i.truck][i.type].r1[field] += getNum(i.r1); truckDetail[i.truck][i.type].r2[field] += getNum(i.r2); truckDetail[i.truck][i.type].r3[field] += getNum(i.r3); } if(d.type === 'stock') { if(i.type==='hl') curHL -= total; if(i.type==='bh') curBH -= total; if(i.type==='bl') curBL -= total; } }); }
         });
         
-        // Add TOTAL ROW
-        prodLogHtml += `<tr class="total-row"><td class="total-label">รวม</td><td>${totalDuration}</td><td>${totalWithHL}</td><td>${totalWithBod}</td><td>${sumP.hl}</td><td>${sumP.bh}</td><td>${sumP.bl}</td><td>${totalRemHL}</td><td>${totalRemBod}</td></tr>`;
+        // ปรับแถวรวมให้ข้ามไป 2 คอลัมน์ (ลำดับ + เวลา)
+        prodLogHtml += `<tr class="total-row">
+            <td class="total-label" colspan="2">รวม</td>
+            <td>${totalDuration}</td>
+            <td>${totalWithHL}</td>
+            <td>${totalWithBod}</td>
+            <td>${sumP.hl}</td>
+            <td>${sumP.bh}</td>
+            <td>${sumP.bl}</td>
+            <td>${totalRemHL}</td>
+            <td>${totalRemBod}</td>
+        </tr>`;
 
         const safeSet = (id, val) => { if(document.getElementById(id)) document.getElementById(id).innerText = val; };
         document.getElementById('prod_log_body').innerHTML = prodLogHtml;
@@ -500,25 +528,20 @@
         else if (SOURCE_MODAL === 'edit_past') { /* Will just close, user can reopen history */ }
     }
     
-    // 🔥 UPDATED: ROW CAPACITY CALCULATION (MIXED TYPES) 🔥
     function updateWizStats() { 
         const tid = document.getElementById('wiz_truck').value; 
         const typeId = document.getElementById('wiz_type').value; 
         
-        let totalSent = 0; // ยอดรวมของ "ชนิดน้ำแข็ง" นี้เท่านั้น (เพื่อเช็คเป้า)
-        let sumR = [0, 0, 0]; // ยอดรวม "ทุกชนิด" ในแต่ละแถวของรถคันนี้ (เพื่อเช็คพื้นที่กายภาพ)
+        let totalSent = 0; 
+        let sumR = [0, 0, 0]; 
         
         DATA.drops.forEach(d => { 
             if(d.dist) { 
                 d.dist.forEach((item, idx) => { 
-                    if(d.id === CURRENT_DROP_ID && idx === EDITING_DIST_IDX) return; // ไม่เอาค่าที่กำลังแก้มาคิด
-                    
-                    // 1. คำนวณเป้าหมาย (เอาเฉพาะชนิดที่เลือก)
+                    if(d.id === CURRENT_DROP_ID && idx === EDITING_DIST_IDX) return; 
                     if(item.truck === tid && item.type === typeId) { 
                         totalSent += getNum(item.total); 
                     } 
-                    
-                    // 2. คำนวณพื้นที่แถว (เอา "ทุกชนิดน้ำแข็ง" ที่อยู่บนรถคันนี้)
                     if(item.truck === tid) {
                         sumR[0] += getNum(item.r1);
                         sumR[1] += getNum(item.r2);
@@ -533,7 +556,6 @@
         const r3 = getNum(document.getElementById('wiz_r3').value); 
         const currentTotal = r1 + r2 + r3; 
         
-        // --- ส่วนอัปเดตเป้าหมาย (ชนิดใครชนิดมัน) ---
         const target = getNum(DATA.orders[`${tid}_${typeId}`]); 
         const remain = target - (totalSent + currentTotal); 
         
@@ -544,7 +566,6 @@
         else if (remain < 0) { remEl.innerText = `เกิน ${Math.abs(remain)}`; remEl.className = 'wiz-remain st-over'; } 
         else { remEl.innerText = "ครบแล้ว ✅"; remEl.className = 'wiz-remain st-ok'; } 
 
-        // --- ส่วนอัปเดตพื้นที่แถว (รวมทุกชนิด) ---
         const updateRowUI = (idx, currentInput) => {
             const el = document.getElementById(`wiz_info_r${idx+1}`);
             const totalInRow = sumR[idx] + currentInput;
