@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V133 (Mixed-Type Row Capacity)</title>
+    <title>Smart Ice V134 (Row Layout Fixed)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- Theme --- */
@@ -105,9 +105,13 @@
         .wiz-status { text-align: center; background: #e0f7fa; padding: 10px; border-radius: 8px; margin-bottom: 20px; border: 1px dashed #00acc1; }
         .wiz-status-text { font-size: 0.9rem; color: #006064; }
         .wiz-remain { font-size: 1.5rem; font-weight: 900; }
+        
+        /* 🔥 FIXED: Row Inputs Layout 🔥 */
         .row-inputs { display: flex; flex-direction: column; gap: 15px; } 
         .row-group { display: flex; align-items: center; gap: 10px; }
-        .row-label { font-weight: bold; width: 100px; color: #546e7a; text-align: left; } 
+        /* ขยาย width ให้กว้างพอสำหรับข้อความยาวๆ และใส่ flex-shrink: 0 ไม่ให้โดนช่องกรอกบีบ */
+        .row-label { font-weight: bold; width: 145px; color: #546e7a; text-align: left; flex-shrink: 0; } 
+        
         .btn-save-wiz { width: 100%; padding: 15px; background: #00c853; color: white; border: none; border-radius: 12px; font-size: 1.2rem; font-weight: bold; margin-top: 15px; cursor: pointer; }
         .btn-stock-manager, .btn-view-history { width: 100%; padding: 15px; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-stock-manager { background: #ff9800; color: white; box-shadow: 0 4px 10px rgba(255,152,0,0.3); }
