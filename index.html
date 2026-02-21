@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V132 (Row Capacity Info)</title>
+    <title>Smart Ice V133 (Mixed-Type Row Capacity)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- Theme --- */
@@ -48,11 +48,10 @@
         .pt-prod { background: #e8f5e9; color: #2e7d32; } 
         .pt-rem { background: #fff3e0; color: #e65100; } 
         .sub-header { font-size: 0.75rem; color: #546e7a; background: #f5f5f5; }
-        
         .total-row td { background-color: #37474f !important; color: white !important; font-weight: 900 !important; border: 1px solid #263238 !important; font-size: 1rem !important; }
         .total-label { text-align: left !important; padding-left: 5px !important; background: #263238 !important; color: #ffeb3b !important; }
-        
-        /* Custom Report */
+
+        /* Custom Report Box */
         .custom-report { border: 2px solid #546e7a; border-radius: 8px; padding: 15px; margin-top: 20px; background: #fff; }
         .cr-section { margin-bottom: 15px; border-bottom: 1px dashed #ccc; padding-bottom: 10px; }
         .cr-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
@@ -106,9 +105,9 @@
         .wiz-status { text-align: center; background: #e0f7fa; padding: 10px; border-radius: 8px; margin-bottom: 20px; border: 1px dashed #00acc1; }
         .wiz-status-text { font-size: 0.9rem; color: #006064; }
         .wiz-remain { font-size: 1.5rem; font-weight: 900; }
-        .row-inputs { display: flex; flex-direction: column; gap: 15px; } /* Added more gap for new info */
+        .row-inputs { display: flex; flex-direction: column; gap: 15px; } 
         .row-group { display: flex; align-items: center; gap: 10px; }
-        .row-label { font-weight: bold; width: 100px; color: #546e7a; text-align: left; } /* Widened for info */
+        .row-label { font-weight: bold; width: 100px; color: #546e7a; text-align: left; } 
         .btn-save-wiz { width: 100%; padding: 15px; background: #00c853; color: white; border: none; border-radius: 12px; font-size: 1.2rem; font-weight: bold; margin-top: 15px; cursor: pointer; }
         .btn-stock-manager, .btn-view-history { width: 100%; padding: 15px; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-stock-manager { background: #ff9800; color: white; box-shadow: 0 4px 10px rgba(255,152,0,0.3); }
@@ -368,7 +367,6 @@
 
         if(latestProd) {
              const d = latestProd;
-             // Calculate diff from previous drop or start time
              const prevTime = prodDrops.length > 1 ? prodDrops[prodDrops.length - 2].time : startTimeStr;
              const diffMin = getMinDiff(prevTime, d.time);
              container.insertAdjacentHTML('beforeend', generateCardHtml(d, diffMin));
@@ -477,14 +475,12 @@
     function removeDist(dropId, idx) { const d = DATA.drops.find(x => x.id === dropId); if(d) { d.dist.splice(idx, 1); updateDropVal(dropId, 'dist_update', null, 0); saveData(); if(document.getElementById('stock_manager_modal').style.display === 'block') openStockManager(); else if(document.getElementById('edit_past_modal').style.display === 'flex') openEditPast(dropId); else renderDrops(); calcAll(); } }
     
     function initWizard() { const tSel = document.getElementById('wiz_truck'); const tySel = document.getElementById('wiz_type'); tSel.innerHTML = TRUCKS.map((t,i) => `<option value="t${i+1}">${t}</option>`).join(''); tySel.innerHTML = ICE_TYPES.map(ty => `<option value="${ty.id}">${ty.label}</option>`).join(''); }
-    
     function openDistModal(dropId) { 
         if(document.getElementById('edit_past_modal').style.display === 'flex') { document.getElementById('edit_past_modal').style.display = 'none'; SOURCE_MODAL = 'edit_past'; } 
         else if (document.getElementById('stock_manager_modal').style.display === 'block') { document.getElementById('stock_manager_modal').style.display = 'none'; SOURCE_MODAL = 'stock'; } 
         else { SOURCE_MODAL = null; } 
         initWizard(); CURRENT_DROP_ID = dropId; EDITING_DIST_IDX = null; const d = DATA.drops.find(x => x.id === dropId); document.getElementById('wiz_r1').value = ''; document.getElementById('wiz_r2').value = ''; document.getElementById('wiz_r3').value = ''; updateWizStats(); document.getElementById('wiz_title').innerText = d.type === 'prod' ? '🚛 จ่ายของผลิตใหม่' : '📦 จ่ายของเก่า'; document.getElementById('dist_modal').style.display = 'flex'; 
     }
-    
     function editDist(dropId, idx) { 
         if(document.getElementById('edit_past_modal').style.display === 'flex') { document.getElementById('edit_past_modal').style.display = 'none'; SOURCE_MODAL = 'edit_past'; } 
         else if (document.getElementById('history_modal').style.display === 'block') { document.getElementById('history_modal').style.display = 'none'; SOURCE_MODAL = 'truck_history'; }
@@ -492,7 +488,6 @@
         else { SOURCE_MODAL = null; } 
         initWizard(); CURRENT_DROP_ID = dropId; EDITING_DIST_IDX = idx; const d = DATA.drops.find(x => x.id === dropId); const item = d.dist[idx]; document.getElementById('wiz_truck').value = item.truck; document.getElementById('wiz_type').value = item.type; document.getElementById('wiz_r1').value = item.r1; document.getElementById('wiz_r2').value = item.r2; document.getElementById('wiz_r3').value = item.r3; updateWizStats(); document.getElementById('wiz_title').innerText = '✏️ แก้ไขรายการ'; document.getElementById('dist_modal').style.display = 'flex'; 
     }
-    
     function closeDistModal() { 
         document.getElementById('dist_modal').style.display = 'none'; 
         CURRENT_DROP_ID = null; 
@@ -500,24 +495,30 @@
         else if (SOURCE_MODAL === 'edit_past') { /* Will just close, user can reopen history */ }
     }
     
-    // 🔥 NEW: ROW CAPACITY CALCULATION 🔥
+    // 🔥 UPDATED: ROW CAPACITY CALCULATION (MIXED TYPES) 🔥
     function updateWizStats() { 
         const tid = document.getElementById('wiz_truck').value; 
         const typeId = document.getElementById('wiz_type').value; 
         
-        let totalSent = 0; 
-        let sumR = [0, 0, 0]; // Sums for Row 1, 2, 3
+        let totalSent = 0; // ยอดรวมของ "ชนิดน้ำแข็ง" นี้เท่านั้น (เพื่อเช็คเป้า)
+        let sumR = [0, 0, 0]; // ยอดรวม "ทุกชนิด" ในแต่ละแถวของรถคันนี้ (เพื่อเช็คพื้นที่กายภาพ)
         
         DATA.drops.forEach(d => { 
             if(d.dist) { 
                 d.dist.forEach((item, idx) => { 
-                    if(d.id === CURRENT_DROP_ID && idx === EDITING_DIST_IDX) return; // Skip current editing item
+                    if(d.id === CURRENT_DROP_ID && idx === EDITING_DIST_IDX) return; // ไม่เอาค่าที่กำลังแก้มาคิด
+                    
+                    // 1. คำนวณเป้าหมาย (เอาเฉพาะชนิดที่เลือก)
                     if(item.truck === tid && item.type === typeId) { 
                         totalSent += getNum(item.total); 
+                    } 
+                    
+                    // 2. คำนวณพื้นที่แถว (เอา "ทุกชนิดน้ำแข็ง" ที่อยู่บนรถคันนี้)
+                    if(item.truck === tid) {
                         sumR[0] += getNum(item.r1);
                         sumR[1] += getNum(item.r2);
                         sumR[2] += getNum(item.r3);
-                    } 
+                    }
                 }); 
             } 
         }); 
@@ -526,6 +527,8 @@
         const r2 = getNum(document.getElementById('wiz_r2').value); 
         const r3 = getNum(document.getElementById('wiz_r3').value); 
         const currentTotal = r1 + r2 + r3; 
+        
+        // --- ส่วนอัปเดตเป้าหมาย (ชนิดใครชนิดมัน) ---
         const target = getNum(DATA.orders[`${tid}_${typeId}`]); 
         const remain = target - (totalSent + currentTotal); 
         
@@ -536,18 +539,18 @@
         else if (remain < 0) { remEl.innerText = `เกิน ${Math.abs(remain)}`; remEl.className = 'wiz-remain st-over'; } 
         else { remEl.innerText = "ครบแล้ว ✅"; remEl.className = 'wiz-remain st-ok'; } 
 
-        // Update Row Capacity Info
+        // --- ส่วนอัปเดตพื้นที่แถว (รวมทุกชนิด) ---
         const updateRowUI = (idx, currentInput) => {
             const el = document.getElementById(`wiz_info_r${idx+1}`);
             const totalInRow = sumR[idx] + currentInput;
             const diff = 36 - totalInRow;
             
             if (totalInRow === 0) {
-                el.innerHTML = `<span style="color:#78909c;">(มี 0 ขาด 36)</span>`;
+                el.innerHTML = `<span style="color:#78909c;">(ว่าง ขาด 36)</span>`;
             } else if (diff > 0) {
-                el.innerHTML = `<span style="color:#0277bd;">(มีรวม ${totalInRow} ขาด ${diff})</span>`;
+                el.innerHTML = `<span style="color:#0277bd;">(รวมทุกชนิด ${totalInRow} ขาด ${diff})</span>`;
             } else if (diff < 0) {
-                el.innerHTML = `<span style="color:#c62828;">(มีรวม ${totalInRow} เกิน ${Math.abs(diff)}!)</span>`;
+                el.innerHTML = `<span style="color:#c62828;">(รวมทุกชนิด ${totalInRow} เกิน ${Math.abs(diff)}!)</span>`;
             } else {
                 el.innerHTML = `<span style="color:#2e7d32;">(ครบ 36 ใบ ✅)</span>`;
             }
