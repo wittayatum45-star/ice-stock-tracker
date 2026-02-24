@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V137 (Master Order Totals)</title>
+    <title>Smart Ice V140 (Compact Header)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- Theme --- */
@@ -117,7 +117,7 @@
         .btn-save-dist.edit-mode { background: #ff9800; box-shadow: 0 4px 10px rgba(255, 152, 0, 0.3); }
         .order-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
         .order-table th { background: #eceff1; padding: 8px; }
-        .order-table td { padding: 4px; border-bottom: 1px solid #eee; text-align: center;} /* Adjusted padding for better fit */
+        .order-table td { padding: 4px; border-bottom: 1px solid #eee; text-align: center;}
         .order-sum-col { font-weight: bold; color: #0277bd; background: #e1f5fe; text-align: center; }
         .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -161,9 +161,9 @@
         <div class="modern-card card-body">
             <h3>📦 สต็อกยกมา</h3>
             <div class="grid-3">
-                <div><div class="input-label">หลอด</div><input type="tel" id="init_hl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" onchange="updateStock()"></div>
-                <div><div class="input-label">หยาบ</div><input type="tel" id="init_bh" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" onchange="updateStock()"></div>
-                <div><div class="input-label">ละเอียด</div><input type="tel" id="init_bl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" onchange="updateStock()"></div>
+                <div><div class="input-label">หลอด</div><input type="tel" id="init_hl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateStock()"></div>
+                <div><div class="input-label">หยาบ</div><input type="tel" id="init_bh" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateStock()"></div>
+                <div><div class="input-label">ละเอียด</div><input type="tel" id="init_bl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateStock()"></div>
             </div>
         </div>
         <div class="modern-card card-body">
@@ -194,21 +194,23 @@
                 <table class="paper-table">
                     <thead>
                         <tr>
-                            <th rowspan="2" class="pt-time" style="width:8%">ลำดับ</th>
-                            <th rowspan="2" class="pt-time" style="width:12%">เวลา</th>
-                            <th rowspan="2" class="pt-duration" style="width:10%">นาที/ตก</th>
+                            <th rowspan="3" class="pt-time" style="width:8%">ลำดับ</th>
+                            <th class="pt-time" style="width:12%; border-bottom:none; padding-bottom:0;">เวลา</th> <th rowspan="3" class="pt-duration" style="width:10%">นาที/ตก</th>
                             <th colspan="2" class="pt-check" style="width:20%">เบิกกระสอบ</th>
                             <th colspan="3" class="pt-prod" style="width:30%">ผลการผลิต</th>
                             <th colspan="2" class="pt-rem" style="width:20%">กระสอบคงเหลือ</th>
                         </tr>
                         <tr>
-                            <th class="pt-check sub-header">หลอด</th>
-                            <th class="pt-check sub-header">บด</th>
-                            <th class="pt-prod sub-header">หลอดใหญ่</th>
-                            <th class="pt-prod sub-header">บดหยาบ</th>
-                            <th class="pt-prod sub-header">บดละเอียด</th>
-                            <th class="pt-rem sub-header">หลอด</th>
-                            <th class="pt-rem sub-header">บด</th>
+                            <th class="pt-time sub-header" style="font-size:0.7rem; border-top:none; border-bottom:none; padding:0;">เปิดเครื่อง</th> <th rowspan="2" class="pt-check sub-header">หลอด</th>
+                            <th rowspan="2" class="pt-check sub-header">บด</th>
+                            <th rowspan="2" class="pt-prod sub-header">หลอดใหญ่</th>
+                            <th rowspan="2" class="pt-prod sub-header">บดหยาบ</th>
+                            <th rowspan="2" class="pt-prod sub-header">บดละเอียด</th>
+                            <th rowspan="2" class="pt-rem sub-header">หลอด</th>
+                            <th rowspan="2" class="pt-rem sub-header">บด</th>
+                        </tr>
+                        <tr>
+                            <th id="header_start_time" class="pt-time" style="color:#ef6c00; font-weight:900; border-top:none; padding-top:0;">-</th>
                         </tr>
                     </thead>
                     <tbody id="prod_log_body"></tbody>
@@ -420,6 +422,11 @@
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
         let dropCount = 0;
 
+        // --- 🔥 UPDATE HEADER START TIME VALUE 🔥 ---
+        if(document.getElementById('header_start_time')) {
+            document.getElementById('header_start_time').innerText = startTimeStr + ' น.';
+        }
+
         sortedDrops.forEach(d => {
             let p_hl=0, p_bh=0, p_bl=0;
             if(d.type === 'prod') {
@@ -489,80 +496,8 @@
     function renderSummaryTable(mat) { let h = `<table class="truck-matrix-table"><thead><tr><th style="text-align:left;">รถ</th><th>หลอด</th><th>หยาบ</th><th>ละ..</th></tr></thead><tbody>`; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; h += `<tr><td class="truck-name-col">${t}</td>`; ICE_TYPES.forEach(ty => { const target = getNum(DATA.orders[`${tid}_${ty.id}`]); const sent = mat[tid][ty.id].fr + mat[tid][ty.id].st; let cell = `<span class="st-none">-</span>`; if(target > 0 || sent > 0) { const rem = target - sent; if(rem > 0) cell = `<span class="st-pill st-miss">ขาด ${rem}</span>`; else if(rem < 0) cell = `<span class="st-pill st-over">เกิน ${Math.abs(rem)}</span>`; else cell = `<span class="st-pill st-ok">ครบ</span>`; } h += `<td>${cell}</td>`; }); h += `</tr>`; }); h += `</tbody></table>`; document.getElementById('truck_report_container').innerHTML = h; }
     function renderDetailTable(det) { let h = ''; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; if(det[tid]) { let hasData = false; let content = `<div class="truck-detail-block"><div class="truck-detail-header"><span>🚛 ${t}</span><button class="btn-history" onclick="openTruckHistory('${tid}')">🕒 ดูประวัติ/แก้ไข</button></div>`; ICE_TYPES.forEach(ty => { if(det[tid][ty.id]) { const d = det[tid][ty.id]; const t_r1 = d.r1.fr+d.r1.st; const t_r2 = d.r2.fr+d.r2.st; const t_r3 = d.r3.fr+d.r3.st; const grand = t_r1+t_r2+t_r3; const ordered = getNum(DATA.orders[`${tid}_${ty.id}`]); if(grand > 0 || ordered > 0) { hasData = true; content += `<div style="margin-bottom:10px;"><div style="font-weight:bold; color:#0277bd;">${ty.label} <small style="color:#aaa;">(เป้า: ${ordered})</small></div><table class="detail-table"><thead><tr><th style="width:20%">แถว</th><th>เก่า</th><th>สด</th><th>รวม</th></tr></thead><tbody><tr><td>1</td><td class="dt-stock">${d.r1.st||'-'}</td><td class="dt-fresh">${d.r1.fr||'-'}</td><td>${t_r1}</td></tr><tr><td>2</td><td class="dt-stock">${d.r2.st||'-'}</td><td class="dt-fresh">${d.r2.fr||'-'}</td><td>${t_r2}</td></tr><tr><td>3</td><td class="dt-stock">${d.r3.st||'-'}</td><td class="dt-fresh">${d.r3.fr||'-'}</td><td>${t_r3}</td></tr><tr><td colspan="3" style="text-align:right; font-weight:bold;">รวม:</td><td class="dt-total">${grand}</td></tr></tbody></table></div>`; } } }); content += `</div>`; if(hasData) h += content; } }); if(h==='') h='<div style="text-align:center; padding:20px; color:#aaa;">ยังไม่มีข้อมูล</div>'; document.getElementById('truck_detail_container').innerHTML = h; }
     
-    // --- 🔥 MASTER ORDER RENDER & TOTAL UPDATE 🔥 ---
-    function renderOrderInputs() { 
-        const c = document.getElementById('order_inputs'); 
-        let h = '<table class="order-table"><thead><tr><th>รถ</th><th>หลอด</th><th>หยาบ</th><th>ละเอียด</th><th class="col-total">รวม</th></tr></thead><tbody>'; 
-        
-        let sumAllHl = 0;
-        let sumAllBh = 0;
-        let sumAllBl = 0;
-        let grandTotal = 0;
-
-        TRUCKS.forEach((t, i) => { 
-            const tid = `t${i+1}`; 
-            const hl = DATA.orders[tid+'_hl']||0; 
-            const bh = DATA.orders[tid+'_bh']||0; 
-            const bl = DATA.orders[tid+'_bl']||0; 
-            const total = getNum(hl) + getNum(bh) + getNum(bl); 
-            
-            sumAllHl += getNum(hl);
-            sumAllBh += getNum(bh);
-            sumAllBl += getNum(bl);
-            grandTotal += total;
-
-            h += `<tr>
-                <td>${t}</td>
-                <td><input type="tel" value="${hl}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_hl',this.value)"></td>
-                <td><input type="tel" value="${bh}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_bh',this.value)"></td>
-                <td><input type="tel" value="${bl}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_bl',this.value)"></td>
-                <td class="order-sum-col" id="ord_sum_${tid}">${total}</td>
-            </tr>`; 
-        }); 
-
-        // Add Total Row
-        h += `<tr class="total-row">
-                <td class="total-label">รวม</td>
-                <td id="master_sum_hl">${sumAllHl}</td>
-                <td id="master_sum_bh">${sumAllBh}</td>
-                <td id="master_sum_bl">${sumAllBl}</td>
-                <td id="master_grand_total" style="color:#69f0ae;">${grandTotal}</td>
-              </tr>`;
-
-        h += '</tbody></table>'; 
-        c.innerHTML = h; 
-    }
-    
-    function updateOrder(key, val) { 
-        DATA.orders[key] = getNum(val); 
-        saveData(); // This calls calcAll() for Page 3
-        
-        // 1. Update Row Total
-        const tid = key.split('_')[0] + '_' + key.split('_')[1]; 
-        const hl = getNum(DATA.orders[tid+'_hl']); 
-        const bh = getNum(DATA.orders[tid+'_bh']); 
-        const bl = getNum(DATA.orders[tid+'_bl']); 
-        const sumEl = document.getElementById('ord_sum_'+tid); 
-        if(sumEl) sumEl.innerText = hl+bh+bl;
-
-        // 2. Update Column Totals
-        let sumAllHl = 0, sumAllBh = 0, sumAllBl = 0;
-        TRUCKS.forEach((t, i) => {
-            let id = `t${i+1}`;
-            sumAllHl += getNum(DATA.orders[id+'_hl']);
-            sumAllBh += getNum(DATA.orders[id+'_bh']);
-            sumAllBl += getNum(DATA.orders[id+'_bl']);
-        });
-
-        const mHl = document.getElementById('master_sum_hl');
-        const mBh = document.getElementById('master_sum_bh');
-        const mBl = document.getElementById('master_sum_bl');
-        const mGrand = document.getElementById('master_grand_total');
-
-        if(mHl) mHl.innerText = sumAllHl;
-        if(mBh) mBh.innerText = sumAllBh;
-        if(mBl) mBl.innerText = sumAllBl;
-        if(mGrand) mGrand.innerText = sumAllHl + sumAllBh + sumAllBl;
+    function updateOrder(key, val) { DATA.orders[key] = getNum(val); saveData(); calcAll(); 
+        const tid = key.split('_')[0] + '_' + key.split('_')[1]; const hl = getNum(DATA.orders[tid+'_hl']); const bh = getNum(DATA.orders[tid+'_bh']); const bl = getNum(DATA.orders[tid+'_bl']); const sumEl = document.getElementById('ord_sum_'+tid); if(sumEl) sumEl.innerText = hl+bh+bl;
     }
     
     function openFullHistory() { const container = document.getElementById('full_history_list'); container.innerHTML = ''; const startTimeStr = document.getElementById('time_start').value; const sortedDrops = DATA.drops.filter(d => d.type === 'prod').sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr)).reverse(); if (sortedDrops.length === 0) { container.innerHTML = '<div style="text-align:center; color:#aaa;">ไม่มีประวัติ</div>'; } else { sortedDrops.forEach((d, idx) => { let prodTotal = getNum(d.p_in_room.hl) + getNum(d.p_in_room.bh) + getNum(d.p_in_room.bl); if(d.dist) d.dist.forEach(i => prodTotal += getNum(i.total)); const tag = (idx === 0) ? '<span class="hist-tag ht-fresh">ล่าสุด</span>' : ''; container.insertAdjacentHTML('beforeend', `<div class="hist-item" onclick="openEditPast(${d.id})" style="cursor:pointer;"><div class="hist-info"><div><b>${d.time}</b> ${tag}</div><div style="color:#666; font-size:0.85rem;">ผลิต: ${prodTotal}</div></div><div style="color:#0277bd;">></div></div>`); }); } document.getElementById('full_history_modal').style.display = 'block'; }
@@ -666,6 +601,48 @@
         document.getElementById('dist_modal').style.display = 'none'; 
         if (SOURCE_MODAL === 'edit_past') { openEditPast(CURRENT_DROP_ID); } else if (SOURCE_MODAL === 'stock') { openStockManager(); } else if (SOURCE_MODAL === 'truck_history') { openTruckHistory(newData.truck); } else { renderDrops(); } 
         CURRENT_DROP_ID = null; calcAll(); 
+    }
+    
+    function renderOrderInputs() { 
+        const c = document.getElementById('order_inputs'); 
+        let h = '<table class="order-table"><thead><tr><th>รถ</th><th>หลอด</th><th>หยาบ</th><th>ละเอียด</th><th class="col-total">รวม</th></tr></thead><tbody>'; 
+        
+        let sumAllHl = 0;
+        let sumAllBh = 0;
+        let sumAllBl = 0;
+        let grandTotal = 0;
+
+        TRUCKS.forEach((t, i) => { 
+            const tid = `t${i+1}`; 
+            const hl = DATA.orders[tid+'_hl']||0; 
+            const bh = DATA.orders[tid+'_bh']||0; 
+            const bl = DATA.orders[tid+'_bl']||0; 
+            const total = getNum(hl) + getNum(bh) + getNum(bl); 
+            
+            sumAllHl += getNum(hl);
+            sumAllBh += getNum(bh);
+            sumAllBl += getNum(bl);
+            grandTotal += total;
+
+            h += `<tr>
+                <td>${t}</td>
+                <td><input type="tel" value="${hl}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_hl',this.value)"></td>
+                <td><input type="tel" value="${bh}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_bh',this.value)"></td>
+                <td><input type="tel" value="${bl}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_bl',this.value)"></td>
+                <td class="order-sum-col" id="ord_sum_${tid}">${total}</td>
+            </tr>`; 
+        }); 
+
+        h += `<tr class="total-row">
+                <td class="total-label">รวม</td>
+                <td id="master_sum_hl">${sumAllHl}</td>
+                <td id="master_sum_bh">${sumAllBh}</td>
+                <td id="master_sum_bl">${sumAllBl}</td>
+                <td id="master_grand_total" style="color:#69f0ae;">${grandTotal}</td>
+              </tr>`;
+
+        h += '</tbody></table>'; 
+        c.innerHTML = h; 
     }
     
     function getTruckName(id) { return TRUCKS[parseInt(id.replace('t',''))-1]; }
