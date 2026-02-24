@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V138 (Start Time Row)</title>
+    <title>Smart Ice V139 (Paper-Match Table)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- Theme --- */
@@ -161,9 +161,9 @@
         <div class="modern-card card-body">
             <h3>📦 สต็อกยกมา</h3>
             <div class="grid-3">
-                <div><div class="input-label">หลอด</div><input type="tel" id="init_hl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" onchange="updateStock()"></div>
-                <div><div class="input-label">หยาบ</div><input type="tel" id="init_bh" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" onchange="updateStock()"></div>
-                <div><div class="input-label">ละเอียด</div><input type="tel" id="init_bl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" onchange="updateStock()"></div>
+                <div><div class="input-label">หลอด</div><input type="tel" id="init_hl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateStock()"></div>
+                <div><div class="input-label">หยาบ</div><input type="tel" id="init_bh" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateStock()"></div>
+                <div><div class="input-label">ละเอียด</div><input type="tel" id="init_bl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateStock()"></div>
             </div>
         </div>
         <div class="modern-card card-body">
@@ -195,13 +195,14 @@
                     <thead>
                         <tr>
                             <th rowspan="2" class="pt-time" style="width:8%">ลำดับ</th>
-                            <th rowspan="2" class="pt-time" style="width:12%">เวลา</th>
+                            <th class="pt-time" style="width:12%">เวลา</th>
                             <th rowspan="2" class="pt-duration" style="width:10%">นาที/ตก</th>
                             <th colspan="2" class="pt-check" style="width:20%">เบิกกระสอบ</th>
                             <th colspan="3" class="pt-prod" style="width:30%">ผลการผลิต</th>
                             <th colspan="2" class="pt-rem" style="width:20%">กระสอบคงเหลือ</th>
                         </tr>
                         <tr>
+                            <th class="pt-time sub-header" style="font-size:0.7rem;">เปิดเครื่อง</th>
                             <th class="pt-check sub-header">หลอด</th>
                             <th class="pt-check sub-header">บด</th>
                             <th class="pt-prod sub-header">หลอดใหญ่</th>
@@ -420,14 +421,14 @@
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
         let dropCount = 0;
 
-        // --- ADD START TIME ROW ---
-        prodLogHtml += `<tr style="background-color: #fffde7;">
-            <td style="font-size:0.7rem; font-weight:bold; color:#795548; background:#efebe9;">เปิดเครื่อง</td>
-            <td class="pt-time" style="color:#e65100; font-weight:900;">${startTimeStr}</td>
-            <td class="pt-duration">-</td>
-            <td class="pt-check">-</td><td class="pt-check">-</td>
-            <td class="pt-prod">-</td><td class="pt-prod">-</td><td class="pt-prod">-</td>
-            <td class="pt-rem">-</td><td class="pt-rem">-</td>
+        // --- 🔥 PAPER-MATCH START TIME ROW 🔥 ---
+        prodLogHtml += `<tr>
+            <td style="background:#eceff1;"></td>
+            <td class="pt-time" style="font-size:0.95rem; font-weight:800; color:#d84315;">${startTimeStr}</td>
+            <td></td>
+            <td class="pt-check"></td><td class="pt-check"></td>
+            <td class="pt-prod"></td><td class="pt-prod"></td><td class="pt-prod"></td>
+            <td class="pt-rem"></td><td class="pt-rem"></td>
         </tr>`;
 
         sortedDrops.forEach(d => {
