@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V141 (Smart Forecast)</title>
+    <title>Smart Ice V142 (Compact Header)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- Theme --- */
@@ -41,15 +41,15 @@
 
         /* Report Table */
         .paper-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 5px; border: 1px solid #546e7a; }
-        .paper-table th { background: #cfd8dc; border: 1px solid #90a4ae; padding: 6px 2px; text-align: center; font-weight: bold; color: #37474f; vertical-align: middle; line-height: 1.1; }
-        .paper-table td { border: 1px solid #b0bec5; padding: 8px 2px; text-align: center; vertical-align: middle; color: #263238; font-weight: 600; font-size: 0.95rem; }
+        .paper-table th { background: #cfd8dc; border: 1px solid #90a4ae; padding: 4px 2px; text-align: center; font-weight: bold; color: #37474f; vertical-align: middle; line-height: 1.1; }
+        .paper-table td { border: 1px solid #b0bec5; padding: 6px 2px; text-align: center; vertical-align: middle; color: #263238; font-weight: 600; font-size: 0.95rem; }
         .pt-time { background: #eceff1; font-weight: bold; font-size: 0.8rem; }
         .pt-duration { background: #f5f5f5; font-weight: normal; font-size: 0.8rem; color: #666; } 
         .pt-check { background: #e3f2fd; color: #1565c0; } 
         .pt-prod { background: #e8f5e9; color: #2e7d32; } 
         .pt-rem { background: #fff3e0; color: #e65100; } 
         .sub-header { font-size: 0.75rem; color: #546e7a; background: #f5f5f5; }
-        .total-row td { background-color: #37474f !important; color: white !important; font-weight: 900 !important; border: 1px solid #263238 !important; font-size: 0.9rem !important; text-align: center; padding: 10px 4px; }
+        .total-row td { background-color: #37474f !important; color: white !important; font-weight: 900 !important; border: 1px solid #263238 !important; font-size: 0.9rem !important; text-align: center; padding: 8px 4px; }
         .total-label { text-align: center !important; background: #263238 !important; color: #ffeb3b !important; }
 
         /* Custom Report Box */
@@ -218,25 +218,25 @@
                 <table class="paper-table">
                     <thead>
                         <tr>
-                            <th rowspan="3" class="pt-time" style="width:8%">ลำดับ</th>
-                            <th class="pt-time" style="width:12%; border-bottom:none; padding-bottom:0;">เวลา</th>
-                            <th rowspan="3" class="pt-duration" style="width:10%">นาที/ตก</th>
+                            <th rowspan="3" class="pt-time" style="width:6%; padding:2px; font-size:0.75rem; white-space:nowrap;">ลำดับ</th>
+                            <th class="pt-time" style="width:14%; border-bottom:none; padding:4px 2px 2px 2px; font-size:0.75rem; white-space:nowrap; line-height:1;">เวลา</th>
+                            <th rowspan="3" class="pt-duration" style="width:8%; padding:2px; font-size:0.7rem; white-space:nowrap; line-height:1.2;">นาที/<br>ตก</th>
                             <th colspan="2" class="pt-check" style="width:20%">เบิกกระสอบ</th>
                             <th colspan="3" class="pt-prod" style="width:30%">ผลการผลิต</th>
-                            <th colspan="2" class="pt-rem" style="width:20%">กระสอบคงเหลือ</th>
+                            <th colspan="2" class="pt-rem" style="width:22%">กระสอบคงเหลือ</th>
                         </tr>
                         <tr>
-                            <th class="pt-time sub-header" style="font-size:0.7rem; border-top:none; border-bottom:none; padding:0;">เปิดเครื่อง</th>
-                            <th rowspan="2" class="pt-check sub-header">หลอด</th>
-                            <th rowspan="2" class="pt-check sub-header">บด</th>
-                            <th rowspan="2" class="pt-prod sub-header">หลอดใหญ่</th>
-                            <th rowspan="2" class="pt-prod sub-header">บดหยาบ</th>
-                            <th rowspan="2" class="pt-prod sub-header">บดละเอียด</th>
-                            <th rowspan="2" class="pt-rem sub-header">หลอด</th>
-                            <th rowspan="2" class="pt-rem sub-header">บด</th>
+                            <th class="pt-time sub-header" style="font-size:0.65rem; border-top:none; border-bottom:none; padding:0; line-height:1; white-space:nowrap;">เปิดเครื่อง</th>
+                            <th rowspan="2" class="pt-check sub-header" style="font-size:0.75rem;">หลอด</th>
+                            <th rowspan="2" class="pt-check sub-header" style="font-size:0.75rem;">บด</th>
+                            <th rowspan="2" class="pt-prod sub-header" style="font-size:0.7rem;">หลอด<br>ใหญ่</th>
+                            <th rowspan="2" class="pt-prod sub-header" style="font-size:0.7rem;">บด<br>หยาบ</th>
+                            <th rowspan="2" class="pt-prod sub-header" style="font-size:0.7rem;">บด<br>ละเอียด</th>
+                            <th rowspan="2" class="pt-rem sub-header" style="font-size:0.75rem;">หลอด</th>
+                            <th rowspan="2" class="pt-rem sub-header" style="font-size:0.75rem;">บด</th>
                         </tr>
                         <tr>
-                            <th id="header_start_time" class="pt-time" style="color:#ef6c00; font-weight:900; border-top:none; padding-top:0;">-</th>
+                            <th id="header_start_time" class="pt-time" style="color:#ef6c00; font-size:0.8rem; font-weight:900; border-top:none; padding:2px 0 4px 0; line-height:1; white-space:nowrap;">-</th>
                         </tr>
                     </thead>
                     <tbody id="prod_log_body"></tbody>
@@ -472,6 +472,7 @@
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
         let dropCount = 0;
 
+        // --- UPDATE HEADER START TIME ---
         if(document.getElementById('header_start_time')) {
             document.getElementById('header_start_time').innerText = startTimeStr + ' น.';
         }
@@ -549,7 +550,7 @@
         safeSet('rpt_with_hl', totalWithHL); safeSet('rpt_with_bod', totalWithBod); safeSet('rpt_sack_withdraw', totalWithHL + totalWithBod); safeSet('rpt_sack_used', totalUsedAll); safeSet('rpt_rem_total_all', totalRemHL + totalRemBod);
 
         let lastDropTimeStr = ""; const prodDropsCount = DATA.drops.filter(d => d.type==='prod').length;
-        let avgTime = 38, avgY_HL = 70, avgY_BH = 45, avgY_BL = 15; // Defaults
+        let avgTime = 38, avgY_HL = 70, avgY_BH = 45, avgY_BL = 15;
         
         if(prodDropsCount > 0) {
             for(let i=DATA.drops.length-1; i>=0; i--) { if(DATA.drops[i].type==='prod'){ lastDropTimeStr=DATA.drops[i].time; break; } }
@@ -573,7 +574,6 @@
         let tarBH = DATA.targetReserve ? DATA.targetReserve.bh : 0;
         let tarBL = DATA.targetReserve ? DATA.targetReserve.bl : 0;
 
-        // คำนวณยอดสุทธิที่ต้องผลิต (ยอดสั่ง - ยอดส่งแล้ว - ของในห้อง + เผื่อสต็อก)
         let needHL = Math.max(0, ordHL - sentHL - curHL + tarHL);
         let needBH = Math.max(0, ordBH - sentBH - curBH + tarBH);
         let needBL = Math.max(0, ordBL - sentBL - curBL + tarBL);
