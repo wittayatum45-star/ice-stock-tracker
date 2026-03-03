@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V142 (Compact Header)</title>
+    <title>Smart Ice V143 (Combined Forecast)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- Theme --- */
@@ -472,7 +472,6 @@
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
         let dropCount = 0;
 
-        // --- UPDATE HEADER START TIME ---
         if(document.getElementById('header_start_time')) {
             document.getElementById('header_start_time').innerText = startTimeStr + ' น.';
         }
@@ -550,15 +549,17 @@
         safeSet('rpt_with_hl', totalWithHL); safeSet('rpt_with_bod', totalWithBod); safeSet('rpt_sack_withdraw', totalWithHL + totalWithBod); safeSet('rpt_sack_used', totalUsedAll); safeSet('rpt_rem_total_all', totalRemHL + totalRemBod);
 
         let lastDropTimeStr = ""; const prodDropsCount = DATA.drops.filter(d => d.type==='prod').length;
-        let avgTime = 38, avgY_HL = 70, avgY_BH = 45, avgY_BL = 15;
+        
+        // --- 🔥 V143: COMBINED CRUSHED ICE FORECAST 🔥 ---
+        let avgTime = 38, avgY_HL = 70, avgY_BOD = 62; // Default 62 for combined crushed
         
         if(prodDropsCount > 0) {
             for(let i=DATA.drops.length-1; i>=0; i--) { if(DATA.drops[i].type==='prod'){ lastDropTimeStr=DATA.drops[i].time; break; } }
             let totalMins = getMinDiff(startTimeStr, lastDropTimeStr);
+            
             avgTime = Math.round(totalMins / prodDropsCount) || 38;
             avgY_HL = sumP.hl / prodDropsCount || 70;
-            avgY_BH = sumP.bh / prodDropsCount || 45;
-            avgY_BL = sumP.bl / prodDropsCount || 15;
+            avgY_BOD = (sumP.bh + sumP.bl) / prodDropsCount || 62; // Combine BH + BL
             
             safeSet('rpt_total_minutes', totalMins); 
             safeSet('rpt_avg_time', avgTime);
@@ -569,7 +570,6 @@
             safeSet('rpt_total_minutes', 0); safeSet('rpt_avg_time', 0); safeSet('rpt_tons_day', 0); safeSet('rpt_avg_yield', 0); 
         }
 
-        // --- 🔮 FORECASTING LOGIC 🔮 ---
         let tarHL = DATA.targetReserve ? DATA.targetReserve.hl : 0;
         let tarBH = DATA.targetReserve ? DATA.targetReserve.bh : 0;
         let tarBL = DATA.targetReserve ? DATA.targetReserve.bl : 0;
@@ -577,11 +577,12 @@
         let needHL = Math.max(0, ordHL - sentHL - curHL + tarHL);
         let needBH = Math.max(0, ordBH - sentBH - curBH + tarBH);
         let needBL = Math.max(0, ordBL - sentBL - curBL + tarBL);
+        let totalNeedBOD = needBH + needBL; // Combine crushed needs
 
         let reqDropsHL = Math.ceil(needHL / avgY_HL);
-        let reqDropsBH = Math.ceil(needBH / avgY_BH);
-        let reqDropsBL = Math.ceil(needBL / avgY_BL);
-        let maxDropsNeeded = Math.max(reqDropsHL, reqDropsBH, reqDropsBL);
+        let reqDropsBOD = Math.ceil(totalNeedBOD / avgY_BOD); // Use combined average
+        
+        let maxDropsNeeded = Math.max(reqDropsHL, reqDropsBOD);
 
         safeSet('fc_need_text', `หลอด ${needHL} | หยาบ ${needBH} | ละเอียด ${needBL}`);
         
