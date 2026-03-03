@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V144 (AI Historical Forecast)</title>
+    <title>Smart Ice V145 (True Forecast Math)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- Theme --- */
@@ -458,7 +458,6 @@
         const currentDateStr = document.getElementById('setup_date').value;
         if(!currentDateStr) return { avgHL: 70, avgBOD: 62 }; 
         
-        // Parse date safely to avoid timezone bugs
         let parts = currentDateStr.split('-');
         let d = new Date(parts[0], parts[1]-1, parts[2]);
 
@@ -487,12 +486,10 @@
                                 
                                 let bod_sum = p_bh + p_bl;
                                 
-                                // Pure Crushed
                                 if(p_hl === 0 && bod_sum > 0) {
                                     totalBOD += bod_sum;
                                     countBOD++;
                                 }
-                                // Pure Tube
                                 if(bod_sum === 0 && p_hl > 0) {
                                     totalHL += p_hl;
                                     countHL++;
@@ -610,7 +607,7 @@
         safeSet('rpt_with_hl', totalWithHL); safeSet('rpt_with_bod', totalWithBod); safeSet('rpt_sack_withdraw', totalWithHL + totalWithBod); safeSet('rpt_sack_used', totalUsedAll); safeSet('rpt_rem_total_all', totalRemHL + totalRemBod);
 
         let lastDropTimeStr = ""; const prodDropsCount = DATA.drops.filter(d => d.type==='prod').length;
-        let avgTime = 38;
+        let avgTime = 38; 
         
         if(prodDropsCount > 0) {
             for(let i=DATA.drops.length-1; i>=0; i--) { if(DATA.drops[i].type==='prod'){ lastDropTimeStr=DATA.drops[i].time; break; } }
@@ -627,31 +624,39 @@
             safeSet('rpt_total_minutes', 0); safeSet('rpt_avg_time', 0); safeSet('rpt_tons_day', 0); safeSet('rpt_avg_yield', 0); 
         }
 
-        // --- 🔮 V144: AI HISTORICAL FORECASTING LOGIC 🔮 ---
+        // --- 🔮 V145: TRUE FORECAST MATH (ADDITIVE DROPS) 🔮 ---
         let tarHL = DATA.targetReserve ? DATA.targetReserve.hl : 0;
         let tarBH = DATA.targetReserve ? DATA.targetReserve.bh : 0;
         let tarBL = DATA.targetReserve ? DATA.targetReserve.bl : 0;
 
-        let needHL = Math.max(0, ordHL - sentHL - curHL + tarHL);
-        let needBH = Math.max(0, ordBH - sentBH - curBH + tarBH);
-        let needBL = Math.max(0, ordBL - sentBL - curBL + tarBL);
-        let totalNeedBOD = needBH + needBL; 
+        // หาว่าค้างส่งจริงเท่าไหร่ (ถ้าส่งเกินแล้ว ให้ถือว่าค้างส่ง=0 จะได้ไม่ไปดึงยอดเผื่อสต็อกลดลง)
+        let remHL = Math.max(0, ordHL - sentHL);
+        let remBH = Math.max(0, ordBH - sentBH);
+        let remBL = Math.max(0, ordBL - sentBL);
+
+        // หาว่าต้องผลิตเพิ่มเท่าไหร่ = (ค้างส่ง + อยากเผื่อสต็อก) - ของในห้องตอนนี้
+        let needHL = Math.max(0, (remHL + tarHL) - curHL);
+        let needBH = Math.max(0, (remBH + tarBH) - curBH);
+        let needBL = Math.max(0, (remBL + tarBL) - curBL);
+        let totalNeedBOD = needBH + needBL; // รวมหยาบกับละเอียดเข้าด้วยกัน
 
         // ดึงสถิติย้อนหลัง 3 วันสำหรับตกล้วน (Pure Drop)
         let histAvg = getHistoricalAverages();
         
-        let reqDropsHL = Math.ceil(needHL / histAvg.avgHL);
-        let reqDropsBOD = Math.ceil(totalNeedBOD / histAvg.avgBOD); 
+        // คำนวณจำนวนตกแบบแยกอิสระ (ทศนิยม)
+        let dropsForHL = needHL / histAvg.avgHL;
+        let dropsForBOD = totalNeedBOD / histAvg.avgBOD; 
         
-        let maxDropsNeeded = Math.max(reqDropsHL, reqDropsBOD);
+        // 🔥 เปลี่ยนจาก Math.max เป็นการ "บวกกัน" เพราะเครื่องต้องสลับกันทำ! 🔥
+        let totalDropsNeeded = Math.ceil(dropsForHL + dropsForBOD);
 
         safeSet('fc_need_text', `หลอด ${needHL} | หยาบ ${needBH} | ละเอียด ${needBL}`);
         
-        if (maxDropsNeeded > 0) {
-            let addMins = maxDropsNeeded * avgTime;
+        if (totalDropsNeeded > 0) {
+            let addMins = totalDropsNeeded * avgTime;
             let hrs = Math.floor(addMins / 60);
             let mins = Math.round(addMins % 60);
-            safeSet('fc_duration_text', `${maxDropsNeeded} ตก (ประมาณ ${hrs} ชม. ${mins} น.)`);
+            safeSet('fc_duration_text', `${totalDropsNeeded} ตก (ประมาณ ${hrs} ชม. ${mins} น.)`);
             
             let baseTimeStr = lastDropTimeStr || startTimeStr || "00:00";
             let [bh, bm] = baseTimeStr.split(':').map(Number);
