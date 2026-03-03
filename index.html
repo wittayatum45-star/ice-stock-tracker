@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V143 (Combined Forecast)</title>
+    <title>Smart Ice V144 (AI Historical Forecast)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- Theme --- */
@@ -49,7 +49,7 @@
         .pt-prod { background: #e8f5e9; color: #2e7d32; } 
         .pt-rem { background: #fff3e0; color: #e65100; } 
         .sub-header { font-size: 0.75rem; color: #546e7a; background: #f5f5f5; }
-        .total-row td { background-color: #37474f !important; color: white !important; font-weight: 900 !important; border: 1px solid #263238 !important; font-size: 0.9rem !important; text-align: center; padding: 8px 4px; }
+        .total-row td { background-color: #37474f !important; color: white !important; font-weight: 900 !important; border: 1px solid #263238 !important; font-size: 0.9rem !important; text-align: center; padding: 10px 4px; }
         .total-label { text-align: center !important; background: #263238 !important; color: #ffeb3b !important; }
 
         /* Custom Report Box */
@@ -204,6 +204,7 @@
                 <div class="cr-row"><span class="cr-label">ใช้เวลาอีกประมาณ:</span> <span class="cr-val" id="fc_duration_text">-</span></div>
                 <div style="text-align:center; margin-top:10px; font-weight:bold; color:#455a64;">คาดว่าจะเสร็จเวลา</div>
                 <div class="fc-highlight" id="fc_finish_time">--:-- น.</div>
+                <div id="fc_stat_info" style="font-size:0.75rem; color:#888; text-align:center; margin-top:10px; border-top:1px dashed #e1bee7; padding-top:8px;"></div>
             </div>
         </div>
 
@@ -449,6 +450,66 @@
         calcAll();
     }
 
+    // --- V144: AI Historical Averages (Past 4 days including today) ---
+    function getHistoricalAverages() {
+        let totalBOD = 0, countBOD = 0;
+        let totalHL = 0, countHL = 0;
+        
+        const currentDateStr = document.getElementById('setup_date').value;
+        if(!currentDateStr) return { avgHL: 70, avgBOD: 62 }; 
+        
+        // Parse date safely to avoid timezone bugs
+        let parts = currentDateStr.split('-');
+        let d = new Date(parts[0], parts[1]-1, parts[2]);
+
+        for(let i=0; i<=3; i++) {
+            let checkDate = new Date(d);
+            checkDate.setDate(d.getDate() - i);
+            let dateKey = checkDate.getFullYear() + '-' + String(checkDate.getMonth()+1).padStart(2,'0') + '-' + String(checkDate.getDate()).padStart(2,'0');
+            
+            let pastDataStr = localStorage.getItem(`ICE_DATA_${dateKey}`);
+            if(pastDataStr) {
+                try {
+                    let pastData = JSON.parse(pastDataStr);
+                    if(pastData && pastData.drops) {
+                        pastData.drops.forEach(drop => {
+                            if(drop.type === 'prod') {
+                                let p_hl = getNum(drop.p_in_room?.hl);
+                                let p_bh = getNum(drop.p_in_room?.bh);
+                                let p_bl = getNum(drop.p_in_room?.bl);
+                                if(drop.dist) {
+                                    drop.dist.forEach(distItem => {
+                                        if(distItem.type === 'hl') p_hl += getNum(distItem.total);
+                                        if(distItem.type === 'bh') p_bh += getNum(distItem.total);
+                                        if(distItem.type === 'bl') p_bl += getNum(distItem.total);
+                                    });
+                                }
+                                
+                                let bod_sum = p_bh + p_bl;
+                                
+                                // Pure Crushed
+                                if(p_hl === 0 && bod_sum > 0) {
+                                    totalBOD += bod_sum;
+                                    countBOD++;
+                                }
+                                // Pure Tube
+                                if(bod_sum === 0 && p_hl > 0) {
+                                    totalHL += p_hl;
+                                    countHL++;
+                                }
+                            }
+                        });
+                    }
+                } catch(e) {}
+            }
+        }
+
+        return {
+            avgHL: countHL > 0 ? (totalHL / countHL) : 70,
+            avgBOD: countBOD > 0 ? (totalBOD / countBOD) : 62
+        };
+    }
+
     function calcAll() {
         let sumP={hl:0,bh:0,bl:0}, curHL=getNum(document.getElementById('init_hl').value), curBH=getNum(document.getElementById('init_bh').value), curBL=getNum(document.getElementById('init_bl').value);
         let totalSent=0, sentHL=0, sentBH=0, sentBL=0; 
@@ -549,17 +610,13 @@
         safeSet('rpt_with_hl', totalWithHL); safeSet('rpt_with_bod', totalWithBod); safeSet('rpt_sack_withdraw', totalWithHL + totalWithBod); safeSet('rpt_sack_used', totalUsedAll); safeSet('rpt_rem_total_all', totalRemHL + totalRemBod);
 
         let lastDropTimeStr = ""; const prodDropsCount = DATA.drops.filter(d => d.type==='prod').length;
-        
-        // --- 🔥 V143: COMBINED CRUSHED ICE FORECAST 🔥 ---
-        let avgTime = 38, avgY_HL = 70, avgY_BOD = 62; // Default 62 for combined crushed
+        let avgTime = 38;
         
         if(prodDropsCount > 0) {
             for(let i=DATA.drops.length-1; i>=0; i--) { if(DATA.drops[i].type==='prod'){ lastDropTimeStr=DATA.drops[i].time; break; } }
             let totalMins = getMinDiff(startTimeStr, lastDropTimeStr);
             
             avgTime = Math.round(totalMins / prodDropsCount) || 38;
-            avgY_HL = sumP.hl / prodDropsCount || 70;
-            avgY_BOD = (sumP.bh + sumP.bl) / prodDropsCount || 62; // Combine BH + BL
             
             safeSet('rpt_total_minutes', totalMins); 
             safeSet('rpt_avg_time', avgTime);
@@ -570,6 +627,7 @@
             safeSet('rpt_total_minutes', 0); safeSet('rpt_avg_time', 0); safeSet('rpt_tons_day', 0); safeSet('rpt_avg_yield', 0); 
         }
 
+        // --- 🔮 V144: AI HISTORICAL FORECASTING LOGIC 🔮 ---
         let tarHL = DATA.targetReserve ? DATA.targetReserve.hl : 0;
         let tarBH = DATA.targetReserve ? DATA.targetReserve.bh : 0;
         let tarBL = DATA.targetReserve ? DATA.targetReserve.bl : 0;
@@ -577,10 +635,13 @@
         let needHL = Math.max(0, ordHL - sentHL - curHL + tarHL);
         let needBH = Math.max(0, ordBH - sentBH - curBH + tarBH);
         let needBL = Math.max(0, ordBL - sentBL - curBL + tarBL);
-        let totalNeedBOD = needBH + needBL; // Combine crushed needs
+        let totalNeedBOD = needBH + needBL; 
 
-        let reqDropsHL = Math.ceil(needHL / avgY_HL);
-        let reqDropsBOD = Math.ceil(totalNeedBOD / avgY_BOD); // Use combined average
+        // ดึงสถิติย้อนหลัง 3 วันสำหรับตกล้วน (Pure Drop)
+        let histAvg = getHistoricalAverages();
+        
+        let reqDropsHL = Math.ceil(needHL / histAvg.avgHL);
+        let reqDropsBOD = Math.ceil(totalNeedBOD / histAvg.avgBOD); 
         
         let maxDropsNeeded = Math.max(reqDropsHL, reqDropsBOD);
 
@@ -601,6 +662,10 @@
         } else {
             safeSet('fc_duration_text', "ไม่ต้องตกเพิ่มแล้ว");
             safeSet('fc_finish_time', "เสร็จสิ้นตามเป้า! 🎉");
+        }
+        
+        if(document.getElementById('fc_stat_info')) {
+             document.getElementById('fc_stat_info').innerText = `*อ้างอิงสถิติผลิตล้วน 3 วันย้อนหลัง: หลอด ≈${Math.round(histAvg.avgHL)} ใบ/ตก, บด ≈${Math.round(histAvg.avgBOD)} ใบ/ตก`;
         }
 
         renderSummaryTable(truckMat); renderDetailTable(truckDetail);
