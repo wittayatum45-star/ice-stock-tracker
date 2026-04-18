@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V152 (Fix Downtime & Auto-Pull)</title>
+    <title>Smart Ice V153 (24h+ Timeline Fix)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- Theme --- */
@@ -61,6 +61,12 @@
         .cr-val { font-weight: 900; color: #263238; text-align: right; }
         .cr-total { color: #0277bd; font-size: 1.1rem; }
         .cr-header { font-weight: 800; color: #37474f; margin-bottom: 8px; font-size: 1.05rem; background: #eceff1; padding: 5px; border-radius: 4px; }
+
+        /* Forecast Card */
+        .forecast-card { background: linear-gradient(135deg, #e8eaf6 0%, #f3e5f5 100%); border: 2px solid #9c27b0; }
+        .fc-header { font-weight: 800; color: #6a1b9a; font-size: 1.1rem; border-bottom: 2px dashed #ce93d8; padding-bottom: 8px; margin-bottom: 15px; display:flex; justify-content:space-between; }
+        .fc-result { background: #fff; border-radius: 8px; padding: 12px; margin-top: 15px; border: 1px solid #e1bee7; }
+        .fc-highlight { font-size: 1.5rem; font-weight: 900; color: #d84315; text-align: center; margin-top: 5px; }
 
         /* Truck Matrix & Detail */
         .truck-matrix-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 5px; border: 1px solid #ddd; }
@@ -189,6 +195,24 @@
 
     <div id="page-summary" class="page">
         
+        <div class="modern-card card-body forecast-card">
+            <div class="fc-header"><span>🔮 พยากรณ์การผลิต (Smart Forecast)</span></div>
+            <div style="font-size:0.85rem; color:#666; margin-bottom:10px;">กรอกจำนวนที่ต้องการเผื่อไว้ในห้องเย็น (หลังส่งของเสร็จ)</div>
+            <div class="grid-3">
+                <div><div class="input-label">เผื่อหลอด</div><input type="tel" id="fc_tar_hl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="saveData()"></div>
+                <div><div class="input-label">เผื่อหยาบ</div><input type="tel" id="fc_tar_bh" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="saveData()"></div>
+                <div><div class="input-label">เผื่อละเอียด</div><input type="tel" id="fc_tar_bl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="saveData()"></div>
+            </div>
+            
+            <div class="fc-result">
+                <div class="cr-row"><span class="cr-label">ขาด (ต้องผลิตเพิ่ม):</span> <span class="cr-val" id="fc_need_text" style="color:#c62828;">-</span></div>
+                <div class="cr-row"><span class="cr-label">ใช้เวลาอีกประมาณ:</span> <span class="cr-val" id="fc_duration_text">-</span></div>
+                <div style="text-align:center; margin-top:10px; font-weight:bold; color:#455a64;">คาดว่าจะเสร็จเวลา</div>
+                <div class="fc-highlight" id="fc_finish_time">--:-- น.</div>
+                <div id="fc_stat_info" style="font-size:0.75rem; color:#888; text-align:center; margin-top:10px; border-top:1px dashed #e1bee7; padding-top:8px;"></div>
+            </div>
+        </div>
+
         <div class="modern-card card-body">
              <h3>📊 สรุปสถานะรายคัน (ขาด/เกิน)</h3>
              <div id="truck_report_container"></div>
@@ -328,7 +352,7 @@
         setTimeout(() => { calcAll(); }, 100);
     });
 
-    function getEmptyData() { return { times: { start: "22:00", stop: "06:00" }, initStock: { hl:0, bh:0, bl:0 }, orders: {}, drops: [] }; }
+    function getEmptyData() { return { times: { start: "22:00", stop: "06:00" }, initStock: { hl:0, bh:0, bl:0 }, targetReserve: { hl:0, bh:0, bl:0 }, orders: {}, drops: [] }; }
     
     function saveData() { 
         const dateKey = document.getElementById('setup_date').value;
@@ -336,6 +360,12 @@
         DATA.times.start = document.getElementById('time_start').value;
         DATA.times.stop = document.getElementById('time_stop').value;
         DATA.initStock = { hl: getNum(document.getElementById('init_hl').value), bh: getNum(document.getElementById('init_bh').value), bl: getNum(document.getElementById('init_bl').value) };
+        
+        if(!DATA.targetReserve) DATA.targetReserve = {hl:0, bh:0, bl:0};
+        DATA.targetReserve.hl = getNum(document.getElementById('fc_tar_hl').value);
+        DATA.targetReserve.bh = getNum(document.getElementById('fc_tar_bh').value);
+        DATA.targetReserve.bl = getNum(document.getElementById('fc_tar_bl').value);
+
         localStorage.setItem(`ICE_DATA_${dateKey}`, JSON.stringify(DATA)); 
         calcAll(); 
     }
@@ -349,6 +379,9 @@
                 DATA = JSON.parse(d); 
                 if(!DATA.drops) DATA.drops = []; 
                 if(!DATA.orders) DATA.orders = {}; 
+                if(!DATA.targetReserve) DATA.targetReserve = {hl:0, bh:0, bl:0};
+                if(!DATA.initStock) DATA.initStock = {hl:0, bh:0, bl:0};
+                
                 DATA.drops.forEach(drop => {
                    if(!drop.p_in_room) drop.p_in_room = {hl:0,bh:0,bl:0};
                    if(drop.dist) drop.dist.forEach(i => i.total = getNum(i.r1)+getNum(i.r2)+getNum(i.r3));
@@ -378,8 +411,6 @@
                         if (pastD && pastD.orders && Object.keys(pastD.orders).some(k => getNum(pastD.orders[k]) > 0)) {
                             // Clone ONLY orders
                             DATA.orders = JSON.parse(JSON.stringify(pastD.orders));
-                            // Force init stock to 0 for new day
-                            DATA.initStock = { hl: 0, bh: 0, bl: 0 };
                             break;
                         }
                     } catch(e) {}
@@ -392,6 +423,12 @@
         document.getElementById('init_hl').value = DATA.initStock.hl || 0;
         document.getElementById('init_bh').value = DATA.initStock.bh || 0;
         document.getElementById('init_bl').value = DATA.initStock.bl || 0;
+        
+        if(document.getElementById('fc_tar_hl')) {
+            document.getElementById('fc_tar_hl').value = DATA.targetReserve.hl || 0;
+            document.getElementById('fc_tar_bh').value = DATA.targetReserve.bh || 0;
+            document.getElementById('fc_tar_bl').value = DATA.targetReserve.bl || 0;
+        }
     }
 
     function changeDate() { const newDate = document.getElementById('setup_date').value; loadData(newDate); saveData(); renderOrderInputs(); renderDrops(); calcAll(); }
@@ -413,24 +450,69 @@
     
     function deleteDrop(id) { if(confirm("เจ้าสิลบอีหลีเบาะท้าว?")) { DATA.drops = DATA.drops.filter(d => d.id !== id); saveData(); renderDrops(); calcAll(); if(document.getElementById('stock_manager_modal').style.display === 'block') openStockManager(); } }
     
+    // --- 🔥 NEW: V153 24H+ TIMELINE ENGINE 🔥 ---
+    function getProcessedDrops() {
+        const startTimeStr = document.getElementById('time_start').value || "22:00";
+        let [sh, sm] = startTimeStr.split(':').map(Number);
+        let startRawMins = sh * 60 + sm;
+        
+        let offset = 0;
+        let lastRaw = startRawMins;
+        
+        // เรียงตามเวลาที่ถูกสร้าง (id) เพื่อจำลองไทม์ไลน์ตามการกรอกจริง
+        let sortedById = DATA.drops.slice().sort((a, b) => a.id - b.id);
+        
+        sortedById.forEach(d => {
+            let [h, m] = (d.time || "00:00").split(':').map(Number);
+            let raw = h * 60 + m;
+            
+            let diff = raw - lastRaw;
+            if (diff < -300) { offset += 1440; } // เวลาย้อนหลังเกิน 5 ชม. = ข้ามวัน
+            else if (diff > 1080) { offset -= 1440; } // เวลาเดินหน้าเกิน 18 ชม. = ถอยกลับ 1 วัน (กรณีคีย์ย้อนหลัง)
+            
+            d._absMins = raw + offset;
+            lastRaw = raw;
+
+            if (d.type === 'downtime') {
+                let [eh, em] = (d.time_end || d.time).split(':').map(Number);
+                let eRaw = eh * 60 + em;
+                let eDiff = eRaw - lastRaw;
+                
+                if (eDiff < -300) { offset += 1440; }
+                else if (eDiff > 1080) { offset -= 1440; }
+                
+                d._absEndMins = eRaw + offset;
+                lastRaw = eRaw;
+            }
+        });
+        
+        // ส่งกลับ Array ที่เรียงตาม "นาทีสัมบูรณ์" แล้ว
+        return sortedById.sort((a, b) => a._absMins - b._absMins);
+    }
+    
     function renderDrops() {
         const container = document.getElementById('drops_list');
         container.innerHTML = '';
-        const startTimeStr = document.getElementById('time_start').value;
-        const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
         
+        const startTimeStr = document.getElementById('time_start').value || "22:00";
+        let [sh, sm] = startTimeStr.split(':').map(Number);
+        let startAbsMins = sh * 60 + sm;
+
+        const sortedDrops = getProcessedDrops();
         const prodDrops = sortedDrops.filter(d => d.type === 'prod');
         const latestProd = prodDrops[prodDrops.length - 1]; 
         
         if(latestProd) {
-             let prevTime = prodDrops.length > 1 ? prodDrops[prodDrops.length - 2].time : startTimeStr;
+             let prevProd = prodDrops.length > 1 ? prodDrops[prodDrops.length - 2] : null;
+             let prevAbsMins = prevProd ? prevProd._absMins : startAbsMins;
+             
              let dtToSubtract = 0;
              sortedDrops.forEach(td => {
-                 if(td.type === 'downtime' && getAdjustedMinutes(td.time, startTimeStr) >= getAdjustedMinutes(prevTime, startTimeStr) && getAdjustedMinutes(td.time, startTimeStr) <= getAdjustedMinutes(latestProd.time, startTimeStr)) {
-                     dtToSubtract += getMinDiff(td.time, td.time_end || td.time);
+                 if(td.type === 'downtime' && td._absMins >= prevAbsMins && td._absMins <= latestProd._absMins) {
+                     dtToSubtract += (td._absEndMins - td._absMins);
                  }
              });
-             const grossDiff = getMinDiff(prevTime, latestProd.time);
+             const grossDiff = latestProd._absMins - prevAbsMins;
              const netDiff = Math.max(0, grossDiff - dtToSubtract);
              
              container.insertAdjacentHTML('beforeend', generateCardHtml(latestProd, netDiff));
@@ -440,8 +522,8 @@
 
         sortedDrops.forEach(d => {
             if(d.type === 'downtime') {
-                if(!latestProd || getAdjustedMinutes(d.time, startTimeStr) >= getAdjustedMinutes(latestProd.time, startTimeStr)) {
-                    let dtMins = getMinDiff(d.time, d.time_end || d.time);
+                if(!latestProd || d._absMins >= latestProd._absMins) {
+                    let dtMins = d._absEndMins - d._absMins;
                     container.insertAdjacentHTML('beforeend', `
                     <div class="modern-card" style="border: 2px dashed #f44336; margin-top:20px;">
                         <div class="card-header-flex" style="background:#ffebee;">
@@ -493,17 +575,89 @@
         calcAll();
     }
 
+    function getHistoricalAverages() {
+        let totalBOD = 0, countBOD = 0;
+        let totalHL = 0, countHL = 0;
+        
+        const currentDateStr = document.getElementById('setup_date').value;
+        if(!currentDateStr) return { avgHL: 70, avgBOD: 62 }; 
+        
+        let parts = currentDateStr.split('-');
+        let d = new Date(parts[0], parts[1]-1, parts[2]);
+
+        for(let i=0; i<=3; i++) {
+            let checkDate = new Date(d);
+            checkDate.setDate(d.getDate() - i);
+            let dateKey = checkDate.getFullYear() + '-' + String(checkDate.getMonth()+1).padStart(2,'0') + '-' + String(checkDate.getDate()).padStart(2,'0');
+            
+            let pastDataStr = localStorage.getItem(`ICE_DATA_${dateKey}`);
+            if(pastDataStr) {
+                try {
+                    let pastData = JSON.parse(pastDataStr);
+                    if(pastData && pastData.drops) {
+                        pastData.drops.forEach(drop => {
+                            if(drop.type === 'prod') {
+                                let p_hl = getNum(drop.p_in_room?.hl);
+                                let p_bh = getNum(drop.p_in_room?.bh);
+                                let p_bl = getNum(drop.p_in_room?.bl);
+                                if(drop.dist) {
+                                    drop.dist.forEach(distItem => {
+                                        if(distItem.type === 'hl') p_hl += getNum(distItem.total);
+                                        if(distItem.type === 'bh') p_bh += getNum(distItem.total);
+                                        if(distItem.type === 'bl') p_bl += getNum(distItem.total);
+                                    });
+                                }
+                                
+                                let bod_sum = p_bh + p_bl;
+                                
+                                if(p_hl === 0 && bod_sum > 0) {
+                                    totalBOD += bod_sum;
+                                    countBOD++;
+                                }
+                                if(bod_sum === 0 && p_hl > 0) {
+                                    totalHL += p_hl;
+                                    countHL++;
+                                }
+                            }
+                        });
+                    }
+                } catch(e) {}
+            }
+        }
+
+        return {
+            avgHL: countHL > 0 ? (totalHL / countHL) : 70,
+            avgBOD: countBOD > 0 ? (totalBOD / countBOD) : 62
+        };
+    }
+
     function calcAll() {
         let sumP={hl:0,bh:0,bl:0}, curHL=getNum(document.getElementById('init_hl').value), curBH=getNum(document.getElementById('init_bh').value), curBL=getNum(document.getElementById('init_bl').value);
-        let totalSent=0, totalWithHL=0, totalWithBod=0, totalRemHL=0, totalRemBod=0, totalUsedAll=0, totalDuration=0;
-        let prodLogHtml = '', startTimeStr = document.getElementById('time_start').value;
-        let lastProdTime = startTimeStr;
+        let totalSent=0, sentHL=0, sentBH=0, sentBL=0; 
+        let totalWithHL=0, totalWithBod=0, totalRemHL=0, totalRemBod=0, totalUsedAll=0, totalDuration=0;
+        let prodLogHtml = '';
+        
+        const startTimeStr = document.getElementById('time_start').value || "22:00";
+        let [sh, sm] = startTimeStr.split(':').map(Number);
+        let startAbsMins = sh * 60 + sm;
+        
+        let lastAbsMins = startAbsMins;
         let pendingDowntime = 0;
         let truckMat = {}; let truckDetail = {};
         
-        TRUCKS.forEach((t,i) => { let tid = `t${i+1}`; truckMat[tid] = {hl:{fr:0,st:0}, bh:{fr:0,st:0}, bl:{fr:0,st:0}}; truckDetail[tid] = { hl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bh: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} } }; });
+        let ordHL = 0, ordBH = 0, ordBL = 0, totOrd = 0;
+        
+        TRUCKS.forEach((t,i) => { 
+            let tid = `t${i+1}`; 
+            truckMat[tid] = {hl:{fr:0,st:0}, bh:{fr:0,st:0}, bl:{fr:0,st:0}}; 
+            truckDetail[tid] = { hl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bh: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} } }; 
+            ordHL += getNum(DATA.orders[`${tid}_hl`]);
+            ordBH += getNum(DATA.orders[`${tid}_bh`]);
+            ordBL += getNum(DATA.orders[`${tid}_bl`]);
+        });
+        totOrd = ordHL + ordBH + ordBL;
 
-        const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
+        const sortedDrops = getProcessedDrops();
         let dropCount = 0;
 
         if(document.getElementById('header_start_time')) {
@@ -512,7 +666,7 @@
 
         sortedDrops.forEach(d => {
             if(d.type === 'downtime') {
-                pendingDowntime += getMinDiff(d.time, d.time_end || d.time);
+                pendingDowntime += (d._absEndMins - d._absMins);
             } 
             else if(d.type === 'prod') {
                 dropCount++; 
@@ -525,11 +679,11 @@
                 sumP.hl += p_hl; sumP.bh += p_bh; sumP.bl += p_bl;
                 curHL += getNum(d.p_in_room.hl); curBH += getNum(d.p_in_room.bh); curBL += getNum(d.p_in_room.bl);
                 
-                // 🔥 CALCULATE NET TIME (Deducting Downtime) 🔥
-                let grossDiff = getMinDiff(lastProdTime, d.time);
+                // 🔥 CALCULATE NET TIME 🔥
+                let grossDiff = d._absMins - lastAbsMins;
                 let netDiff = Math.max(0, grossDiff - pendingDowntime);
                 totalDuration += netDiff;
-                lastProdTime = d.time;
+                lastAbsMins = d._absMins;
                 
                 let dtNote = pendingDowntime > 0 ? `<br><span style="font-size:0.6rem; color:#d32f2f;">(หักดับ ${pendingDowntime}น.)</span>` : '';
                 pendingDowntime = 0;
@@ -547,10 +701,27 @@
                     <td class="pt-rem">${w_bod>0?r_bod:'-'}</td>
                 </tr>`;
             }
-            if(d.dist) { d.dist.forEach(i => { const total = getNum(i.total); totalSent += total; const field = d.type === 'prod' ? 'fr' : 'st'; truckMat[i.truck][i.type][field] += total; if(truckDetail[i.truck] && truckDetail[i.truck][i.type]) { truckDetail[i.truck][i.type].r1[field] += getNum(i.r1); truckDetail[i.truck][i.type].r2[field] += getNum(i.r2); truckDetail[i.truck][i.type].r3[field] += getNum(i.r3); } if(d.type === 'stock') { if(i.type==='hl') curHL -= total; if(i.type==='bh') curBH -= total; if(i.type==='bl') curBL -= total; } }); }
+            if(d.dist) { d.dist.forEach(i => { 
+                const total = getNum(i.total); 
+                totalSent += total; 
+                if(i.type === 'hl') sentHL += total;
+                if(i.type === 'bh') sentBH += total;
+                if(i.type === 'bl') sentBL += total;
+                const field = d.type === 'prod' ? 'fr' : 'st'; 
+                truckMat[i.truck][i.type][field] += total; 
+                if(truckDetail[i.truck] && truckDetail[i.truck][i.type]) { 
+                    truckDetail[i.truck][i.type].r1[field] += getNum(i.r1); 
+                    truckDetail[i.truck][i.type].r2[field] += getNum(i.r2); 
+                    truckDetail[i.truck][i.type].r3[field] += getNum(i.r3); 
+                } 
+                if(d.type === 'stock') { 
+                    if(i.type==='hl') curHL -= total; 
+                    if(i.type==='bh') curBH -= total; 
+                    if(i.type==='bl') curBL -= total; 
+                } 
+            }); }
         });
         
-        // 🔥 FIXED: TOTAL DURATION IN THE TABLE ROW 🔥
         prodLogHtml += `<tr class="total-row">
             <td class="total-label" colspan="2">รวม</td>
             <td>${totalDuration}</td>
@@ -566,7 +737,6 @@
         const safeSet = (id, val) => { if(document.getElementById(id)) document.getElementById(id).innerText = val; };
         document.getElementById('prod_log_body').innerHTML = prodLogHtml;
         safeSet('dash_hl', curHL); safeSet('dash_bh', curBH); safeSet('dash_bl', curBL);
-        let totOrd=0; for(let k in DATA.orders) totOrd+=getNum(DATA.orders[k]);
         safeSet('os_total', totOrd); safeSet('os_sent', totalSent); safeSet('os_remain', totOrd - totalSent);
 
         safeSet('rpt_hl', sumP.hl); safeSet('rpt_bh', sumP.bh); safeSet('rpt_bl', sumP.bl); safeSet('rpt_total_prod', sumP.hl + sumP.bh + sumP.bl);
@@ -575,11 +745,63 @@
         safeSet('rpt_with_hl', totalWithHL); safeSet('rpt_with_bod', totalWithBod); safeSet('rpt_sack_withdraw', totalWithHL + totalWithBod); safeSet('rpt_sack_used', totalUsedAll); safeSet('rpt_rem_total_all', totalRemHL + totalRemBod);
 
         const prodDropsCount = DATA.drops.filter(d => d.type==='prod').length;
+        let avgTime = 38; 
+        
         if(prodDropsCount > 0) {
-            safeSet('rpt_avg_time', (totalDuration / prodDropsCount).toFixed(0));
+            avgTime = Math.round(totalDuration / prodDropsCount) || 38;
+            safeSet('rpt_avg_time', avgTime);
             let tonsDay = 0; if (totalDuration > 0) { tonsDay = (totW / totalDuration) * 1440 / 1000; }
-            safeSet('rpt_tons_day', tonsDay.toFixed(2)); safeSet('rpt_avg_yield', ((sumP.hl+sumP.bh+sumP.bl) / prodDropsCount).toFixed(0));
-        } else { safeSet('rpt_avg_time', 0); safeSet('rpt_tons_day', 0); safeSet('rpt_avg_yield', 0); }
+            safeSet('rpt_tons_day', tonsDay.toFixed(2)); 
+            safeSet('rpt_avg_yield', Math.round((sumP.hl+sumP.bh+sumP.bl) / prodDropsCount));
+        } else { 
+            safeSet('rpt_avg_time', 0); safeSet('rpt_tons_day', 0); safeSet('rpt_avg_yield', 0); 
+        }
+
+        // --- 🔮 FORECASTING LOGIC 🔮 ---
+        let tarHL = DATA.targetReserve ? DATA.targetReserve.hl : 0;
+        let tarBH = DATA.targetReserve ? DATA.targetReserve.bh : 0;
+        let tarBL = DATA.targetReserve ? DATA.targetReserve.bl : 0;
+
+        let remHL = Math.max(0, ordHL - sentHL);
+        let remBH = Math.max(0, ordBH - sentBH);
+        let remBL = Math.max(0, ordBL - sentBL);
+
+        let needHL = Math.max(0, (remHL + tarHL) - curHL);
+        let needBH = Math.max(0, (remBH + tarBH) - curBH);
+        let needBL = Math.max(0, (remBL + tarBL) - curBL);
+        let totalNeedBOD = needBH + needBL; 
+
+        let histAvg = getHistoricalAverages();
+        
+        let dropsForHL = needHL / histAvg.avgHL;
+        let dropsForBOD = totalNeedBOD / histAvg.avgBOD; 
+        
+        let totalDropsNeeded = Math.ceil(dropsForHL + dropsForBOD);
+
+        safeSet('fc_need_text', `หลอด ${needHL} | หยาบ ${needBH} | ละเอียด ${needBL}`);
+        
+        if (totalDropsNeeded > 0) {
+            let addMins = totalDropsNeeded * avgTime;
+            let hrs = Math.floor(addMins / 60);
+            let mins = Math.round(addMins % 60);
+            safeSet('fc_duration_text', `${totalDropsNeeded} ตก (ประมาณ ${hrs} ชม. ${mins} น.)`);
+            
+            // Forecast based on the very last drop (prod or downtime)
+            let baseAbsMins = sortedDrops.length > 0 ? sortedDrops[sortedDrops.length-1]._absEndMins || sortedDrops[sortedDrops.length-1]._absMins : startAbsMins;
+            let totalFinishMins = baseAbsMins + addMins;
+            
+            let fh = Math.floor(totalFinishMins / 60) % 24;
+            let fm = Math.floor(totalFinishMins % 60);
+            safeSet('fc_finish_time', `${String(fh).padStart(2, '0')}:${String(fm).padStart(2, '0')} น.`);
+        } else {
+            safeSet('fc_duration_text', "ไม่ต้องตกเพิ่มแล้ว");
+            safeSet('fc_finish_time', "เสร็จสิ้นตามเป้า! 🎉");
+        }
+        
+        if(document.getElementById('fc_stat_info')) {
+             document.getElementById('fc_stat_info').innerText = `*อ้างอิงสถิติผลิตล้วน 3 วันย้อนหลัง: หลอด ≈${Math.round(histAvg.avgHL)} ใบ/ตก, บด ≈${Math.round(histAvg.avgBOD)} ใบ/ตก`;
+        }
+
         renderSummaryTable(truckMat); renderDetailTable(truckDetail);
     }
     
@@ -590,26 +812,51 @@
         const tid = key.split('_')[0] + '_' + key.split('_')[1]; const hl = getNum(DATA.orders[tid+'_hl']); const bh = getNum(DATA.orders[tid+'_bh']); const bl = getNum(DATA.orders[tid+'_bl']); const sumEl = document.getElementById('ord_sum_'+tid); if(sumEl) sumEl.innerText = hl+bh+bl;
     }
     
-    function openFullHistory() { const container = document.getElementById('full_history_list'); container.innerHTML = ''; const startTimeStr = document.getElementById('time_start').value; const sortedDrops = DATA.drops.filter(d => d.type === 'prod' || d.type === 'downtime').sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr)).reverse(); if (sortedDrops.length === 0) { container.innerHTML = '<div style="text-align:center; color:#aaa;">ไม่มีประวัติ</div>'; } else { sortedDrops.forEach((d, idx) => { 
+    function openFullHistory() { const container = document.getElementById('full_history_list'); container.innerHTML = ''; 
+        const sortedDrops = getProcessedDrops().reverse(); 
+        if (sortedDrops.length === 0) { container.innerHTML = '<div style="text-align:center; color:#aaa;">ไม่มีประวัติ</div>'; } else { sortedDrops.forEach((d, idx) => { 
         if(d.type === 'prod') {
             let prodTotal = getNum(d.p_in_room.hl) + getNum(d.p_in_room.bh) + getNum(d.p_in_room.bl); if(d.dist) d.dist.forEach(i => prodTotal += getNum(i.total)); const tag = (idx === 0) ? '<span class="hist-tag ht-fresh">ล่าสุด</span>' : ''; container.insertAdjacentHTML('beforeend', `<div class="hist-item" onclick="openEditPast(${d.id})" style="cursor:pointer;"><div class="hist-info"><div><b>${d.time}</b> ${tag}</div><div style="color:#666; font-size:0.85rem;">ผลิต: ${prodTotal}</div></div><div style="color:#0277bd;">></div></div>`); 
         } else if (d.type === 'downtime') {
-            let dt = getMinDiff(d.time, d.time_end);
+            let dt = d._absEndMins - d._absMins;
             container.insertAdjacentHTML('beforeend', `<div class="hist-item" style="border-left: 4px solid #f44336; cursor:pointer;" onclick="openEditPast(${d.id})"><div class="hist-info"><div><b style="color:#d32f2f;">${d.time} - ${d.time_end}</b></div><div style="color:#c62828; font-size:0.85rem;">หยุดเครื่อง/ไฟดับ (${dt} น.)</div></div><div style="color:#f44336;">></div></div>`);
         }
     }); } document.getElementById('full_history_modal').style.display = 'block'; }
     function closeFullHistory() { document.getElementById('full_history_modal').style.display = 'none'; renderDrops(); calcAll(); }
-    function openTruckHistory(tid) { const container = document.getElementById('history_list'); container.innerHTML = ''; document.getElementById('hist_title').innerText = `🕒 ประวัติ ${getTruckName(tid)}`; const startTimeStr = document.getElementById('time_start').value; const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr)); let hasData = false; sortedDrops.forEach(d => { if(d.dist) { d.dist.forEach((item, idx) => { if(item.truck === tid) { hasData = true; const typeName = getTypeName(item.type); const typeLabel = d.type === 'prod' ? '<span class="hist-tag ht-fresh">ผลิต</span>' : '<span class="hist-tag ht-stock">ห้อง</span>'; container.insertAdjacentHTML('beforeend', `<div class="hist-item"><div class="hist-info"><div><b>${d.time}</b> ${typeLabel} : ${typeName}</div><div style="color:#666;">(${item.r1}/${item.r2}/${item.r3}) = <b>${item.total}</b></div></div><div class="hist-actions"><button class="btn-edit-mini" onclick="closeHistoryModal(); SOURCE_MODAL='truck_history'; editDist(${d.id}, ${idx})">✏️ แก้</button><button class="btn-del-mini" onclick="removeDist(${d.id}, ${idx}); closeHistoryModal();">ลบ</button></div></div>`); } }); } }); if(!hasData) container.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">ไม่มีประวัติสำหรับรถคันนี้</div>'; document.getElementById('history_modal').style.display = 'block'; }
+    
+    function openTruckHistory(tid) { const container = document.getElementById('history_list'); container.innerHTML = ''; document.getElementById('hist_title').innerText = `🕒 ประวัติ ${getTruckName(tid)}`; 
+        const sortedDrops = getProcessedDrops(); 
+        let hasData = false; sortedDrops.forEach(d => { if(d.dist) { d.dist.forEach((item, idx) => { if(item.truck === tid) { hasData = true; const typeName = getTypeName(item.type); const typeLabel = d.type === 'prod' ? '<span class="hist-tag ht-fresh">ผลิต</span>' : '<span class="hist-tag ht-stock">ห้อง</span>'; container.insertAdjacentHTML('beforeend', `<div class="hist-item"><div class="hist-info"><div><b>${d.time}</b> ${typeLabel} : ${typeName}</div><div style="color:#666;">(${item.r1}/${item.r2}/${item.r3}) = <b>${item.total}</b></div></div><div class="hist-actions"><button class="btn-edit-mini" onclick="closeHistoryModal(); SOURCE_MODAL='truck_history'; editDist(${d.id}, ${idx})">✏️ แก้</button><button class="btn-del-mini" onclick="removeDist(${d.id}, ${idx}); closeHistoryModal();">ลบ</button></div></div>`); } }); } }); if(!hasData) container.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">ไม่มีประวัติสำหรับรถคันนี้</div>'; document.getElementById('history_modal').style.display = 'block'; }
     function closeHistoryModal() { document.getElementById('history_modal').style.display = 'none'; }
     
-    function openEditPast(id) { const d = DATA.drops.find(x => x.id === id); if(!d) return; document.getElementById('full_history_modal').style.display = 'none'; document.getElementById('stock_manager_modal').style.display = 'none'; if(document.getElementById('stock_manager_modal').style.display === 'block') SOURCE_MODAL = 'stock'; else if(document.getElementById('full_history_modal').style.display === 'block') SOURCE_MODAL = 'history'; else SOURCE_MODAL = null; const startTimeStr = document.getElementById('time_start').value; const diffMin = getMinDiff(startTimeStr, d.time); 
+    function openEditPast(id) { 
+        const processed = getProcessedDrops();
+        const idx = processed.findIndex(x => x.id === id);
+        const d = processed[idx];
+        if(!d) return; 
+        
+        document.getElementById('full_history_modal').style.display = 'none'; document.getElementById('stock_manager_modal').style.display = 'none'; if(document.getElementById('stock_manager_modal').style.display === 'block') SOURCE_MODAL = 'stock'; else if(document.getElementById('full_history_modal').style.display === 'block') SOURCE_MODAL = 'history'; else SOURCE_MODAL = null; 
     
-    if(d.type === 'prod') { document.getElementById('edit_past_body').innerHTML = generateCardHtml(d, diffMin); }
-    else if(d.type === 'downtime') { 
-        document.getElementById('edit_past_body').innerHTML = `<div class="modern-card" style="border: 2px dashed #f44336;"><div class="card-header-flex" style="background:#ffebee;"><div class="badge-box" style="background:#d32f2f; color:white;"><span>หยุด<br>เครื่อง</span></div><div style="flex:1; display:flex; align-items:center; justify-content:center; gap:5px;"><div style="text-align:center;"><div style="font-size:0.7rem; color:#d32f2f; font-weight:bold;">เวลาดับ</div><input type="time" class="big-time-input" value="${d.time}" style="color:#d32f2f; width:85px; font-size:1.3rem; padding:0;" onchange="updateDropVal(${d.id}, 'time', null, this.value)"></div><span style="color:#c62828; font-weight:bold;">➡</span><div style="text-align:center;"><div style="font-size:0.7rem; color:#2e7d32; font-weight:bold;">เวลาติด</div><input type="time" class="big-time-input" value="${d.time_end}" style="color:#2e7d32; width:85px; font-size:1.3rem; padding:0;" onchange="updateDropVal(${d.id}, 'time_end', null, this.value)"></div></div><button class="btn-close-red" onclick="deleteDrop(${d.id}); closeEditPastModal();">×</button></div></div>`;
+        if(d.type === 'prod') { 
+            let startTimeStr = document.getElementById('time_start').value || "22:00";
+            let [sh, sm] = startTimeStr.split(':').map(Number);
+            let startAbsMins = sh * 60 + sm;
+            
+            let prevProdIdx = -1;
+            for(let i=idx-1; i>=0; i--) { if(processed[i].type === 'prod') { prevProdIdx = i; break; } }
+            let prevAbs = prevProdIdx >= 0 ? processed[prevProdIdx]._absMins : startAbsMins;
+            let dtSub = 0;
+            for(let i=prevProdIdx+1; i<idx; i++) { if(processed[i].type==='downtime') dtSub += (processed[i]._absEndMins - processed[i]._absMins); }
+            let netDiff = Math.max(0, d._absMins - prevAbs - dtSub);
+            document.getElementById('edit_past_body').innerHTML = generateCardHtml(d, netDiff); 
+        }
+        else if(d.type === 'downtime') { 
+            document.getElementById('edit_past_body').innerHTML = `<div class="modern-card" style="border: 2px dashed #f44336;"><div class="card-header-flex" style="background:#ffebee;"><div class="badge-box" style="background:#d32f2f; color:white;"><span>หยุด<br>เครื่อง</span></div><div style="flex:1; display:flex; align-items:center; justify-content:center; gap:5px;"><div style="text-align:center;"><div style="font-size:0.7rem; color:#d32f2f; font-weight:bold;">เวลาดับ</div><input type="time" class="big-time-input" value="${d.time}" style="color:#d32f2f; width:85px; font-size:1.3rem; padding:0;" onchange="updateDropVal(${d.id}, 'time', null, this.value)"></div><span style="color:#c62828; font-weight:bold;">➡</span><div style="text-align:center;"><div style="font-size:0.7rem; color:#2e7d32; font-weight:bold;">เวลาติด</div><input type="time" class="big-time-input" value="${d.time_end}" style="color:#2e7d32; width:85px; font-size:1.3rem; padding:0;" onchange="updateDropVal(${d.id}, 'time_end', null, this.value)"></div></div><button class="btn-close-red" onclick="deleteDrop(${d.id}); closeEditPastModal();">×</button></div></div>`;
+        }
+    
+        document.getElementById('edit_past_modal').style.display = 'flex'; 
     }
     
-    document.getElementById('edit_past_modal').style.display = 'flex'; }
     function closeEditPastModal() { document.getElementById('edit_past_modal').style.display = 'none'; if(SOURCE_MODAL === 'history') openFullHistory(); else if(SOURCE_MODAL === 'stock') openStockManager(); else renderDrops(); calcAll(); }
     
     function openStockManager() { const container = document.getElementById('stock_list_container'); container.innerHTML = ''; const stockDrops = DATA.drops.filter(d => d.type === 'stock').reverse(); if(stockDrops.length === 0) { container.innerHTML = '<div style="text-align:center; color:#aaa; margin-top:20px;">ไม่มีรายการเบิกของเก่า</div>'; } else { stockDrops.forEach(d => { let details = ''; if(d.dist) { d.dist.forEach((item, idx) => { details += `<div style="background:white; padding:5px; border-radius:4px; margin-top:5px; font-size:0.85rem;">🚛 ${getTruckName(item.truck)} (${getTypeName(item.type)}) : <b>${item.total}</b></div>`; }); } container.insertAdjacentHTML('beforeend', `<div style="background:#fff3e0; padding:10px; border-radius:8px; margin-bottom:10px;"><div style="display:flex; justify-content:space-between; font-weight:bold; color:#ef6c00;"><span>📦 เบิก ${d.time}</span><button class="btn-del-mini" onclick="deleteDrop(${d.id})">ลบ</button></div>${details}<button class="btn-add-dist" style="background:white; margin-top:5px; padding:5px; font-size:0.8rem;" onclick="openDistModal(${d.id})">+ เพิ่มจ่าย</button></div>`); }); } document.getElementById('stock_manager_modal').style.display = 'block'; }
@@ -751,8 +998,6 @@
     
     function getTruckName(id) { return TRUCKS[parseInt(id.replace('t',''))-1]; }
     function getTypeName(id) { return ICE_TYPES.find(x=>x.id===id).label; }
-    function getAdjustedMinutes(timeStr, startStr) { if(!timeStr || !startStr) return 0; let [h, m] = timeStr.split(':').map(Number); let [sh, sm] = startStr.split(':').map(Number); let mins = h * 60 + m; let sMins = sh * 60 + sm; if (mins < sMins) mins += 1440; return mins; }
-    function getMinDiff(start, end) { const anchor = document.getElementById('time_start').value; const mStart = getAdjustedMinutes(start, anchor); const mEnd = getAdjustedMinutes(end, anchor); return mEnd - mStart; }
     function switchPage(id) { document.querySelectorAll('.page').forEach(x=>x.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active')); document.getElementById('page-'+id).classList.add('active'); const map={setup:0,production:1,summary:2}; document.querySelectorAll('.nav-btn')[map[id]].classList.add('active'); if(id==='summary'){calcAll(); window.scrollTo(0,0);} }
 </script>
 </body>
