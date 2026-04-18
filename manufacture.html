@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V140.1 (Removed Total Mins in Stats)</title>
+    <title>Smart Ice V147 (Downtime Deduction)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- Theme --- */
@@ -110,8 +110,9 @@
         .row-group { display: flex; align-items: center; gap: 10px; }
         .row-label { font-weight: bold; width: 145px; color: #546e7a; text-align: left; flex-shrink: 0; } 
         .btn-save-wiz { width: 100%; padding: 15px; background: #00c853; color: white; border: none; border-radius: 12px; font-size: 1.2rem; font-weight: bold; margin-top: 15px; cursor: pointer; }
-        .btn-stock-manager, .btn-view-history { width: 100%; padding: 15px; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-stock-manager, .btn-view-history, .btn-downtime { width: 100%; padding: 15px; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-stock-manager { background: #ff9800; color: white; box-shadow: 0 4px 10px rgba(255,152,0,0.3); }
+        .btn-downtime { background: #f44336; color: white; box-shadow: 0 4px 10px rgba(244,67,54,0.3); }
         .btn-view-history { background: #546e7a; color: white; box-shadow: 0 4px 10px rgba(84,110,122,0.3); margin-bottom: 20px; }
         .btn-save-dist { width: 100%; padding: 15px; background: #00c853; color: white; border: none; border-radius: 12px; font-size: 1.2rem; font-weight: bold; margin-top: 20px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,200,83,0.3); }
         .btn-save-dist.edit-mode { background: #ff9800; box-shadow: 0 4px 10px rgba(255, 152, 0, 0.3); }
@@ -175,15 +176,16 @@
     </div>
 
     <div id="page-production" class="page">
+        <button class="btn-downtime" onclick="addDrop('downtime')">⚡ บันทึกไฟดับ / พักเครื่อง</button>
         <button class="btn-stock-manager" onclick="openStockManager()">📦 จัดการเบิกของเก่า (ห้องเย็น)</button>
         <button class="btn-view-history" onclick="openFullHistory()">🕒 ดูรายการผลิตย้อนหลัง</button>
+        
         <div id="drops_list"></div>
         <div style="height: 100px;"></div>
     </div>
     <div class="fab-container"><button class="fab-main" onclick="addDrop('prod')">+</button></div>
 
     <div id="page-summary" class="page">
-        
         <div class="modern-card card-body">
              <h3>📊 สรุปสถานะรายคัน (ขาด/เกิน)</h3>
              <div id="truck_report_container"></div>
@@ -341,6 +343,8 @@
             DATA.drops.forEach(drop => {
                if(!drop.p_in_room) drop.p_in_room = {hl:0,bh:0,bl:0};
                if(drop.dist) drop.dist.forEach(i => i.total = getNum(i.r1)+getNum(i.r2)+getNum(i.r3));
+               // Ensure downtime drops have time_end
+               if(drop.type === 'downtime' && !drop.time_end) drop.time_end = drop.time; 
             });
         } catch(e) { DATA = getEmptyData(); } } else { DATA = getEmptyData(); }
         document.getElementById('time_start').value = DATA.times.start || "22:00";
@@ -357,9 +361,14 @@
     function addDrop(type) {
         const now = new Date();
         const timeStr = now.toTimeString().substring(0, 5);
-        DATA.drops.push({ id: Date.now(), type: type, time: timeStr, sackWithdraw: 0, p_in_room: { hl:0, bh:0, bl:0 }, dist: [] });
+        if(type === 'downtime') {
+            DATA.drops.push({ id: Date.now(), type: type, time: timeStr, time_end: timeStr });
+        } else {
+            DATA.drops.push({ id: Date.now(), type: type, time: timeStr, sackWithdraw: 0, p_in_room: { hl:0, bh:0, bl:0 }, dist: [] });
+        }
         saveData(); renderDrops(); calcAll();
-        if(type === 'prod') setTimeout(() => window.scrollTo(0, 0), 100); else openStockManager();
+        if(type === 'prod' || type === 'downtime') setTimeout(() => window.scrollTo(0, 0), 100); 
+        else openStockManager();
     }
     
     function deleteDrop(id) { if(confirm("เจ้าสิลบอีหลีเบาะท้าว?")) { DATA.drops = DATA.drops.filter(d => d.id !== id); saveData(); renderDrops(); calcAll(); if(document.getElementById('stock_manager_modal').style.display === 'block') openStockManager(); } }
@@ -369,20 +378,93 @@
         container.innerHTML = '';
         const startTimeStr = document.getElementById('time_start').value;
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
+        
+        // Find latest prod drop to calculate diff
+        let pendingDowntime = 0;
+        let lastProdTime = startTimeStr;
+        
+        let htmlBuffer = [];
+
+        sortedDrops.forEach(d => {
+            if(d.type === 'downtime') {
+                let dtMins = getMinDiff(d.time, d.time_end || d.time);
+                pendingDowntime += dtMins;
+                htmlBuffer.push(`
+                <div class="modern-card" style="border: 2px dashed #f44336;">
+                    <div class="card-header-flex" style="background:#ffebee;">
+                        <div class="badge-box" style="background:#d32f2f; color:white;"><span>หยุด<br>เครื่อง</span></div>
+                        <div style="flex:1; display:flex; align-items:center; justify-content:center; gap:5px;">
+                            <div style="text-align:center;"><div style="font-size:0.7rem; color:#d32f2f; font-weight:bold;">เวลาดับ</div><input type="time" class="big-time-input" value="${d.time}" style="color:#d32f2f; width:85px; font-size:1.3rem; padding:0;" onchange="updateDropVal(${d.id}, 'time', null, this.value)"></div>
+                            <span style="color:#c62828; font-weight:bold;">➡</span>
+                            <div style="text-align:center;"><div style="font-size:0.7rem; color:#2e7d32; font-weight:bold;">เวลาติด</div><input type="time" class="big-time-input" value="${d.time_end || d.time}" style="color:#2e7d32; width:85px; font-size:1.3rem; padding:0;" onchange="updateDropVal(${d.id}, 'time_end', null, this.value)"></div>
+                        </div>
+                        <span class="time-diff-badge" style="background:#ffcdd2; color:#c62828;">(พัก ${dtMins} น.)</span>
+                        <button class="btn-close-red" onclick="deleteDrop(${d.id})">×</button>
+                    </div>
+                </div>`);
+            } else if (d.type === 'prod') {
+                let grossMins = getMinDiff(lastProdTime, d.time);
+                let netMins = Math.max(0, grossMins - pendingDowntime);
+                lastProdTime = d.time;
+                pendingDowntime = 0; // reset
+                
+                // Only show the last prod drop (as before, but we push the html logic)
+                if(d === DATA.drops.filter(x=>x.type==='prod').pop()) {
+                    htmlBuffer.push(generateCardHtml(d, netMins));
+                }
+            }
+        });
+
+        // Display logic: We want to show all downtimes that happen AFTER the last prod drop, AND the last prod drop itself.
+        // To keep UI clean like V140, we only render the latest Prod drop + any downtimes that haven't been "consumed" yet.
+        
+        container.innerHTML = '';
+        
+        // Render only the latest prod drop
         const prodDrops = sortedDrops.filter(d => d.type === 'prod');
         const latestProd = prodDrops[prodDrops.length - 1]; 
-
+        
         if(latestProd) {
-             const d = latestProd;
-             const prevTime = prodDrops.length > 1 ? prodDrops[prodDrops.length - 2].time : startTimeStr;
-             const diffMin = getMinDiff(prevTime, d.time);
-             container.insertAdjacentHTML('beforeend', generateCardHtml(d, diffMin));
+             let prevTime = prodDrops.length > 1 ? prodDrops[prodDrops.length - 2].time : startTimeStr;
+             // Calculate how much downtime happened between prevTime and latestProd.time
+             let dtToSubtract = 0;
+             sortedDrops.forEach(td => {
+                 if(td.type === 'downtime' && getAdjustedMinutes(td.time, startTimeStr) >= getAdjustedMinutes(prevTime, startTimeStr) && getAdjustedMinutes(td.time, startTimeStr) <= getAdjustedMinutes(latestProd.time, startTimeStr)) {
+                     dtToSubtract += getMinDiff(td.time, td.time_end);
+                 }
+             });
+             const grossDiff = getMinDiff(prevTime, latestProd.time);
+             const netDiff = Math.max(0, grossDiff - dtToSubtract);
+             
+             container.insertAdjacentHTML('beforeend', generateCardHtml(latestProd, netDiff));
         } else {
-            container.innerHTML = '<div style="text-align:center; color:#aaa; margin-top:50px;">กด + เพื่อเริ่มผลิต</div>';
+             container.innerHTML = '<div style="text-align:center; color:#aaa; margin-top:20px;">กด + เพื่อเริ่มผลิต</div>';
         }
+
+        // Render any downtimes that happen AFTER the latest prod drop
+        sortedDrops.forEach(d => {
+            if(d.type === 'downtime') {
+                if(!latestProd || getAdjustedMinutes(d.time, startTimeStr) >= getAdjustedMinutes(latestProd.time, startTimeStr)) {
+                    let dtMins = getMinDiff(d.time, d.time_end || d.time);
+                    container.insertAdjacentHTML('beforeend', `
+                    <div class="modern-card" style="border: 2px dashed #f44336; margin-top:20px;">
+                        <div class="card-header-flex" style="background:#ffebee;">
+                            <div class="badge-box" style="background:#d32f2f; color:white;"><span>หยุด<br>เครื่อง</span></div>
+                            <div style="flex:1; display:flex; align-items:center; justify-content:center; gap:5px;">
+                                <div style="text-align:center;"><div style="font-size:0.7rem; color:#d32f2f; font-weight:bold;">เวลาดับ</div><input type="time" class="big-time-input" value="${d.time}" style="color:#d32f2f; width:85px; font-size:1.3rem; padding:0;" onchange="updateDropVal(${d.id}, 'time', null, this.value)"></div>
+                                <span style="color:#c62828; font-weight:bold;">➡</span>
+                                <div style="text-align:center;"><div style="font-size:0.7rem; color:#2e7d32; font-weight:bold;">เวลาติด</div><input type="time" class="big-time-input" value="${d.time_end || d.time}" style="color:#2e7d32; width:85px; font-size:1.3rem; padding:0;" onchange="updateDropVal(${d.id}, 'time_end', null, this.value)"></div>
+                            </div>
+                            <span class="time-diff-badge" style="background:#ffcdd2; color:#c62828;">(พัก ${dtMins} น.)</span>
+                            <button class="btn-close-red" onclick="deleteDrop(${d.id})">×</button>
+                        </div>
+                    </div>`);
+                }
+            }
+        });
     }
 
-    function generateCardHtml(d, diffMin) {
+    function generateCardHtml(d, netDiff) {
         let distHtml = '';
         if(d.dist) {
            d.dist.forEach((item, idx) => {
@@ -394,12 +476,14 @@
         const hlBatch = Math.ceil(hlProd / 40) * 40; const crushBatch = Math.ceil((bhProd + blProd) / 40) * 40;
         const hlRem = hlBatch - hlProd; const crushRem = crushBatch - (bhProd + blProd);
 
-        return `<div class="modern-card"><div class="card-header-flex"><div class="badge-box bg-prod"><span>น้ำแข็ง<br>ตก<br>(ผลิต)</span></div><input type="time" class="big-time-input" value="${d.time}" onchange="updateDropVal(${d.id}, 'time', null, this.value)"><span class="time-diff-badge">(+${diffMin} น.)</span><button class="btn-close-red" onclick="deleteDrop(${d.id})">×</button></div><div class="card-body" style="padding-top:0;"><div class="sack-row"><div class="sack-item"><div class="sack-label">เบิก (หลอด/บด)</div><div class="sack-val" id="disp_withdraw_${d.id}">${hlBatch} / ${crushBatch}</div></div><div class="sack-item"><div class="sack-label">ใช้ (หลอด/บด)</div><div class="sack-val" id="disp_used_${d.id}">${hlProd} / ${bhProd+blProd}</div></div><div class="sack-item"><div class="sack-label">คืน (หลอด/บด)</div><div class="sack-split"><span class="ss-hl" id="disp_rem_hl_${d.id}">หลอด:${hlRem}</span> <span class="ss-bod" id="disp_rem_bod_${d.id}">บด:${crushRem}</span></div></div></div><div class="grid-3"><div><div class="input-label">หลอด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.hl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'hl', this.value)"></div><div><div class="input-label">หยาบ (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bh)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bh', this.value)"></div><div><div class="input-label">ละเอียด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bl', this.value)"></div></div><div class="dist-container"><div style="font-size:0.8rem; color:#90a4ae; font-weight:bold; margin-bottom:5px;">รายการจ่ายเข้ารถ</div>${distHtml}<button class="btn-add-dist" onclick="openDistModal(${d.id})">+ เพิ่มรายการส่งเข้ารถ</button></div></div></div>`;
+        return `<div class="modern-card"><div class="card-header-flex"><div class="badge-box bg-prod"><span>น้ำแข็ง<br>ตก<br>(ผลิต)</span></div><input type="time" class="big-time-input" value="${d.time}" onchange="updateDropVal(${d.id}, 'time', null, this.value)"><span class="time-diff-badge">(+${netDiff} น.)</span><button class="btn-close-red" onclick="deleteDrop(${d.id})">×</button></div><div class="card-body" style="padding-top:0;"><div class="sack-row"><div class="sack-item"><div class="sack-label">เบิก (หลอด/บด)</div><div class="sack-val" id="disp_withdraw_${d.id}">${hlBatch} / ${crushBatch}</div></div><div class="sack-item"><div class="sack-label">ใช้ (หลอด/บด)</div><div class="sack-val" id="disp_used_${d.id}">${hlProd} / ${bhProd+blProd}</div></div><div class="sack-item"><div class="sack-label">คืน (หลอด/บด)</div><div class="sack-split"><span class="ss-hl" id="disp_rem_hl_${d.id}">หลอด:${hlRem}</span> <span class="ss-bod" id="disp_rem_bod_${d.id}">บด:${crushRem}</span></div></div></div><div class="grid-3"><div><div class="input-label">หลอด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.hl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'hl', this.value)"></div><div><div class="input-label">หยาบ (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bh)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bh', this.value)"></div><div><div class="input-label">ละเอียด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bl', this.value)"></div></div><div class="dist-container"><div style="font-size:0.8rem; color:#90a4ae; font-weight:bold; margin-bottom:5px;">รายการจ่ายเข้ารถ</div>${distHtml}<button class="btn-add-dist" onclick="openDistModal(${d.id})">+ เพิ่มรายการส่งเข้ารถ</button></div></div></div>`;
     }
 
     function updateDropVal(id, cat, sub, val) {
         const d = DATA.drops.find(x => x.id === id); if(!d) return;
-        if(cat === 'time') d.time = val; else if(cat === 'p_in_room') d.p_in_room[sub] = getNum(val);
+        if(cat === 'time') d.time = val; 
+        else if (cat === 'time_end') d.time_end = val;
+        else if(cat === 'p_in_room') d.p_in_room[sub] = getNum(val);
         saveData(); 
         if(cat === 'p_in_room' || cat === 'dist_update') {
             let hlProd = getNum(d.p_in_room.hl); let bhProd = getNum(d.p_in_room.bh); let blProd = getNum(d.p_in_room.bl);
@@ -415,7 +499,7 @@
 
     function calcAll() {
         let sumP={hl:0,bh:0,bl:0}, curHL=getNum(document.getElementById('init_hl').value), curBH=getNum(document.getElementById('init_bh').value), curBL=getNum(document.getElementById('init_bl').value);
-        let totalSent=0, totalWithHL=0, totalWithBod=0, totalRemHL=0, totalRemBod=0, totalUsedAll=0, totalDuration=0;
+        let totalSent=0, totalWithHL=0, totalWithBod=0, totalRemHL=0, totalRemBod=0, totalUsedAll=0;
         let prodLogHtml = '', startTimeStr = document.getElementById('time_start').value;
         let lastProdTime = startTimeStr;
         let truckMat = {}; let truckDetail = {};
@@ -423,16 +507,19 @@
 
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
         let dropCount = 0;
+        let pendingDowntime = 0; // Track downtime between prods
 
         if(document.getElementById('header_start_time')) {
             document.getElementById('header_start_time').innerText = startTimeStr + ' น.';
         }
 
         sortedDrops.forEach(d => {
-            let p_hl=0, p_bh=0, p_bl=0;
-            if(d.type === 'prod') {
+            if(d.type === 'downtime') {
+                pendingDowntime += getMinDiff(d.time, d.time_end || d.time);
+            } 
+            else if(d.type === 'prod') {
                 dropCount++; 
-                p_hl = getNum(d.p_in_room.hl); p_bh = getNum(d.p_in_room.bh); p_bl = getNum(d.p_in_room.bl);
+                let p_hl = getNum(d.p_in_room.hl); let p_bh = getNum(d.p_in_room.bh); let p_bl = getNum(d.p_in_room.bl);
                 if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') p_hl+=getNum(i.total); if(i.type==='bh') p_bh+=getNum(i.total); if(i.type==='bl') p_bl+=getNum(i.total); }); }
                 const w_hl = Math.ceil(p_hl/40)*40; const w_bod = Math.ceil((p_bh+p_bl)/40)*40;
                 const r_hl = w_hl - p_hl; const r_bod = w_bod - (p_bh+p_bl);
@@ -440,14 +527,19 @@
                 sumP.hl += p_hl; sumP.bh += p_bh; sumP.bl += p_bl;
                 curHL += getNum(d.p_in_room.hl); curBH += getNum(d.p_in_room.bh); curBL += getNum(d.p_in_room.bl);
                 
-                const minDiff = getMinDiff(lastProdTime, d.time); 
-                totalDuration += minDiff;
+                // 🔥 CALCULATE NET TIME 🔥
+                let grossDiff = getMinDiff(lastProdTime, d.time); 
+                let netDiff = Math.max(0, grossDiff - pendingDowntime);
                 lastProdTime = d.time;
+                
+                // Add note if downtime occurred
+                let dtNote = pendingDowntime > 0 ? `<br><span style="font-size:0.6rem; color:#d32f2f;">(หักดับ ${pendingDowntime}น.)</span>` : '';
+                pendingDowntime = 0; // reset after applying
                 
                 prodLogHtml += `<tr>
                     <td style="font-weight:bold; color:#546e7a; text-align:center; background:#eceff1;">${dropCount}</td>
                     <td class="pt-time">${d.time}</td>
-                    <td class="pt-duration">${minDiff}</td>
+                    <td class="pt-duration" style="line-height:1;">${netDiff}${dtNote}</td>
                     <td class="pt-check">${w_hl>0?w_hl:'-'}</td>
                     <td class="pt-check">${w_bod>0?w_bod:'-'}</td>
                     <td class="pt-prod">${p_hl||'-'}</td>
@@ -460,9 +552,10 @@
             if(d.dist) { d.dist.forEach(i => { const total = getNum(i.total); totalSent += total; const field = d.type === 'prod' ? 'fr' : 'st'; truckMat[i.truck][i.type][field] += total; if(truckDetail[i.truck] && truckDetail[i.truck][i.type]) { truckDetail[i.truck][i.type].r1[field] += getNum(i.r1); truckDetail[i.truck][i.type].r2[field] += getNum(i.r2); truckDetail[i.truck][i.type].r3[field] += getNum(i.r3); } if(d.type === 'stock') { if(i.type==='hl') curHL -= total; if(i.type==='bh') curBH -= total; if(i.type==='bl') curBL -= total; } }); }
         });
         
+        // Remove Total Duration Value
         prodLogHtml += `<tr class="total-row">
             <td class="total-label" colspan="2">รวม</td>
-            <td>${totalDuration}</td>
+            <td>-</td>
             <td>${totalWithHL}</td>
             <td>${totalWithBod}</td>
             <td>${sumP.hl}</td>
@@ -483,12 +576,24 @@
         safeSet('rpt_total_weight', totW.toLocaleString()); safeSet('rpt_w_hl', (sumP.hl*20).toLocaleString()); safeSet('rpt_w_bh', (sumP.bh*23).toLocaleString()); safeSet('rpt_w_bl', (sumP.bl*24).toLocaleString());
         safeSet('rpt_with_hl', totalWithHL); safeSet('rpt_with_bod', totalWithBod); safeSet('rpt_sack_withdraw', totalWithHL + totalWithBod); safeSet('rpt_sack_used', totalUsedAll); safeSet('rpt_rem_total_all', totalRemHL + totalRemBod);
 
-        let lastDropTimeStr = ""; const prodDropsCount = DATA.drops.filter(d => d.type==='prod').length;
+        // Calculate Averages based on NET time
+        let totalNetMins = 0;
+        let lastPTime = startTimeStr;
+        let accumDTime = 0;
+        sortedDrops.forEach(d => {
+            if(d.type === 'downtime') {
+                accumDTime += getMinDiff(d.time, d.time_end || d.time);
+            } else if (d.type === 'prod') {
+                totalNetMins += Math.max(0, getMinDiff(lastPTime, d.time) - accumDTime);
+                lastPTime = d.time;
+                accumDTime = 0;
+            }
+        });
+
+        const prodDropsCount = DATA.drops.filter(d => d.type==='prod').length;
         if(prodDropsCount > 0) {
-            for(let i=DATA.drops.length-1; i>=0; i--) { if(DATA.drops[i].type==='prod'){ lastDropTimeStr=DATA.drops[i].time; break; } }
-            let totalMins = getMinDiff(startTimeStr, lastDropTimeStr);
-            safeSet('rpt_avg_time', (totalMins / prodDropsCount).toFixed(0));
-            let tonsDay = 0; if (totalMins > 0) { tonsDay = (totW / totalMins) * 1440 / 1000; }
+            safeSet('rpt_avg_time', (totalNetMins / prodDropsCount).toFixed(0));
+            let tonsDay = 0; if (totalNetMins > 0) { tonsDay = (totW / totalNetMins) * 1440 / 1000; }
             safeSet('rpt_tons_day', tonsDay.toFixed(2)); safeSet('rpt_avg_yield', ((sumP.hl+sumP.bh+sumP.bl) / prodDropsCount).toFixed(0));
         } else { safeSet('rpt_avg_time', 0); safeSet('rpt_tons_day', 0); safeSet('rpt_avg_yield', 0); }
         renderSummaryTable(truckMat); renderDetailTable(truckDetail);
@@ -501,12 +606,26 @@
         const tid = key.split('_')[0] + '_' + key.split('_')[1]; const hl = getNum(DATA.orders[tid+'_hl']); const bh = getNum(DATA.orders[tid+'_bh']); const bl = getNum(DATA.orders[tid+'_bl']); const sumEl = document.getElementById('ord_sum_'+tid); if(sumEl) sumEl.innerText = hl+bh+bl;
     }
     
-    function openFullHistory() { const container = document.getElementById('full_history_list'); container.innerHTML = ''; const startTimeStr = document.getElementById('time_start').value; const sortedDrops = DATA.drops.filter(d => d.type === 'prod').sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr)).reverse(); if (sortedDrops.length === 0) { container.innerHTML = '<div style="text-align:center; color:#aaa;">ไม่มีประวัติ</div>'; } else { sortedDrops.forEach((d, idx) => { let prodTotal = getNum(d.p_in_room.hl) + getNum(d.p_in_room.bh) + getNum(d.p_in_room.bl); if(d.dist) d.dist.forEach(i => prodTotal += getNum(i.total)); const tag = (idx === 0) ? '<span class="hist-tag ht-fresh">ล่าสุด</span>' : ''; container.insertAdjacentHTML('beforeend', `<div class="hist-item" onclick="openEditPast(${d.id})" style="cursor:pointer;"><div class="hist-info"><div><b>${d.time}</b> ${tag}</div><div style="color:#666; font-size:0.85rem;">ผลิต: ${prodTotal}</div></div><div style="color:#0277bd;">></div></div>`); }); } document.getElementById('full_history_modal').style.display = 'block'; }
+    function openFullHistory() { const container = document.getElementById('full_history_list'); container.innerHTML = ''; const startTimeStr = document.getElementById('time_start').value; const sortedDrops = DATA.drops.filter(d => d.type === 'prod' || d.type === 'downtime').sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr)).reverse(); if (sortedDrops.length === 0) { container.innerHTML = '<div style="text-align:center; color:#aaa;">ไม่มีประวัติ</div>'; } else { sortedDrops.forEach((d, idx) => { 
+        if(d.type === 'prod') {
+            let prodTotal = getNum(d.p_in_room.hl) + getNum(d.p_in_room.bh) + getNum(d.p_in_room.bl); if(d.dist) d.dist.forEach(i => prodTotal += getNum(i.total)); const tag = (idx === 0) ? '<span class="hist-tag ht-fresh">ล่าสุด</span>' : ''; container.insertAdjacentHTML('beforeend', `<div class="hist-item" onclick="openEditPast(${d.id})" style="cursor:pointer;"><div class="hist-info"><div><b>${d.time}</b> ${tag}</div><div style="color:#666; font-size:0.85rem;">ผลิต: ${prodTotal}</div></div><div style="color:#0277bd;">></div></div>`); 
+        } else if (d.type === 'downtime') {
+            let dt = getMinDiff(d.time, d.time_end);
+            container.insertAdjacentHTML('beforeend', `<div class="hist-item" style="border-left: 4px solid #f44336; cursor:pointer;" onclick="openEditPast(${d.id})"><div class="hist-info"><div><b style="color:#d32f2f;">${d.time} - ${d.time_end}</b></div><div style="color:#c62828; font-size:0.85rem;">หยุดเครื่อง/ไฟดับ (${dt} น.)</div></div><div style="color:#f44336;">></div></div>`);
+        }
+    }); } document.getElementById('full_history_modal').style.display = 'block'; }
     function closeFullHistory() { document.getElementById('full_history_modal').style.display = 'none'; renderDrops(); calcAll(); }
     function openTruckHistory(tid) { const container = document.getElementById('history_list'); container.innerHTML = ''; document.getElementById('hist_title').innerText = `🕒 ประวัติ ${getTruckName(tid)}`; const startTimeStr = document.getElementById('time_start').value; const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr)); let hasData = false; sortedDrops.forEach(d => { if(d.dist) { d.dist.forEach((item, idx) => { if(item.truck === tid) { hasData = true; const typeName = getTypeName(item.type); const typeLabel = d.type === 'prod' ? '<span class="hist-tag ht-fresh">ผลิต</span>' : '<span class="hist-tag ht-stock">ห้อง</span>'; container.insertAdjacentHTML('beforeend', `<div class="hist-item"><div class="hist-info"><div><b>${d.time}</b> ${typeLabel} : ${typeName}</div><div style="color:#666;">(${item.r1}/${item.r2}/${item.r3}) = <b>${item.total}</b></div></div><div class="hist-actions"><button class="btn-edit-mini" onclick="closeHistoryModal(); SOURCE_MODAL='truck_history'; editDist(${d.id}, ${idx})">✏️ แก้</button><button class="btn-del-mini" onclick="removeDist(${d.id}, ${idx}); closeHistoryModal();">ลบ</button></div></div>`); } }); } }); if(!hasData) container.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">ไม่มีประวัติสำหรับรถคันนี้</div>'; document.getElementById('history_modal').style.display = 'block'; }
     function closeHistoryModal() { document.getElementById('history_modal').style.display = 'none'; }
     
-    function openEditPast(id) { const d = DATA.drops.find(x => x.id === id); if(!d) return; document.getElementById('full_history_modal').style.display = 'none'; document.getElementById('stock_manager_modal').style.display = 'none'; if(document.getElementById('stock_manager_modal').style.display === 'block') SOURCE_MODAL = 'stock'; else if(document.getElementById('full_history_modal').style.display === 'block') SOURCE_MODAL = 'history'; else SOURCE_MODAL = null; const startTimeStr = document.getElementById('time_start').value; const diffMin = getMinDiff(startTimeStr, d.time); document.getElementById('edit_past_body').innerHTML = generateCardHtml(d, diffMin); document.getElementById('edit_past_modal').style.display = 'flex'; }
+    function openEditPast(id) { const d = DATA.drops.find(x => x.id === id); if(!d) return; document.getElementById('full_history_modal').style.display = 'none'; document.getElementById('stock_manager_modal').style.display = 'none'; if(document.getElementById('stock_manager_modal').style.display === 'block') SOURCE_MODAL = 'stock'; else if(document.getElementById('full_history_modal').style.display === 'block') SOURCE_MODAL = 'history'; else SOURCE_MODAL = null; const startTimeStr = document.getElementById('time_start').value; const diffMin = getMinDiff(startTimeStr, d.time); 
+    
+    if(d.type === 'prod') { document.getElementById('edit_past_body').innerHTML = generateCardHtml(d, diffMin); }
+    else if(d.type === 'downtime') { 
+        document.getElementById('edit_past_body').innerHTML = `<div class="modern-card" style="border: 2px dashed #f44336;"><div class="card-header-flex" style="background:#ffebee;"><div class="badge-box" style="background:#d32f2f; color:white;"><span>หยุด<br>เครื่อง</span></div><div style="flex:1; display:flex; align-items:center; justify-content:center; gap:5px;"><div style="text-align:center;"><div style="font-size:0.7rem; color:#d32f2f; font-weight:bold;">เวลาดับ</div><input type="time" class="big-time-input" value="${d.time}" style="color:#d32f2f; width:85px; font-size:1.3rem; padding:0;" onchange="updateDropVal(${d.id}, 'time', null, this.value)"></div><span style="color:#c62828; font-weight:bold;">➡</span><div style="text-align:center;"><div style="font-size:0.7rem; color:#2e7d32; font-weight:bold;">เวลาติด</div><input type="time" class="big-time-input" value="${d.time_end}" style="color:#2e7d32; width:85px; font-size:1.3rem; padding:0;" onchange="updateDropVal(${d.id}, 'time_end', null, this.value)"></div></div><button class="btn-close-red" onclick="deleteDrop(${d.id}); closeEditPastModal();">×</button></div></div>`;
+    }
+    
+    document.getElementById('edit_past_modal').style.display = 'flex'; }
     function closeEditPastModal() { document.getElementById('edit_past_modal').style.display = 'none'; if(SOURCE_MODAL === 'history') openFullHistory(); else if(SOURCE_MODAL === 'stock') openStockManager(); else renderDrops(); calcAll(); }
     
     function openStockManager() { const container = document.getElementById('stock_list_container'); container.innerHTML = ''; const stockDrops = DATA.drops.filter(d => d.type === 'stock').reverse(); if(stockDrops.length === 0) { container.innerHTML = '<div style="text-align:center; color:#aaa; margin-top:20px;">ไม่มีรายการเบิกของเก่า</div>'; } else { stockDrops.forEach(d => { let details = ''; if(d.dist) { d.dist.forEach((item, idx) => { details += `<div style="background:white; padding:5px; border-radius:4px; margin-top:5px; font-size:0.85rem;">🚛 ${getTruckName(item.truck)} (${getTypeName(item.type)}) : <b>${item.total}</b></div>`; }); } container.insertAdjacentHTML('beforeend', `<div style="background:#fff3e0; padding:10px; border-radius:8px; margin-bottom:10px;"><div style="display:flex; justify-content:space-between; font-weight:bold; color:#ef6c00;"><span>📦 เบิก ${d.time}</span><button class="btn-del-mini" onclick="deleteDrop(${d.id})">ลบ</button></div>${details}<button class="btn-add-dist" style="background:white; margin-top:5px; padding:5px; font-size:0.8rem;" onclick="openDistModal(${d.id})">+ เพิ่มจ่าย</button></div>`); }); } document.getElementById('stock_manager_modal').style.display = 'block'; }
