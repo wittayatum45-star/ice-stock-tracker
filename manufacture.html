@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V149 (Auto Pull Orders)</title>
+    <title>Smart Ice V150 (Final Perfect Form)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- Theme --- */
@@ -61,6 +61,12 @@
         .cr-val { font-weight: 900; color: #263238; text-align: right; }
         .cr-total { color: #0277bd; font-size: 1.1rem; }
         .cr-header { font-weight: 800; color: #37474f; margin-bottom: 8px; font-size: 1.05rem; background: #eceff1; padding: 5px; border-radius: 4px; }
+
+        /* Forecast Card */
+        .forecast-card { background: linear-gradient(135deg, #e8eaf6 0%, #f3e5f5 100%); border: 2px solid #9c27b0; }
+        .fc-header { font-weight: 800; color: #6a1b9a; font-size: 1.1rem; border-bottom: 2px dashed #ce93d8; padding-bottom: 8px; margin-bottom: 15px; display:flex; justify-content:space-between; }
+        .fc-result { background: #fff; border-radius: 8px; padding: 12px; margin-top: 15px; border: 1px solid #e1bee7; }
+        .fc-highlight { font-size: 1.5rem; font-weight: 900; color: #d84315; text-align: center; margin-top: 5px; }
 
         /* Truck Matrix & Detail */
         .truck-matrix-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 5px; border: 1px solid #ddd; }
@@ -189,6 +195,24 @@
 
     <div id="page-summary" class="page">
         
+        <div class="modern-card card-body forecast-card">
+            <div class="fc-header"><span>🔮 พยากรณ์การผลิต (Smart Forecast)</span></div>
+            <div style="font-size:0.85rem; color:#666; margin-bottom:10px;">กรอกจำนวนที่ต้องการเผื่อไว้ในห้องเย็น (หลังส่งของเสร็จ)</div>
+            <div class="grid-3">
+                <div><div class="input-label">เผื่อหลอด</div><input type="tel" id="fc_tar_hl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="saveData()"></div>
+                <div><div class="input-label">เผื่อหยาบ</div><input type="tel" id="fc_tar_bh" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="saveData()"></div>
+                <div><div class="input-label">เผื่อละเอียด</div><input type="tel" id="fc_tar_bl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="saveData()"></div>
+            </div>
+            
+            <div class="fc-result">
+                <div class="cr-row"><span class="cr-label">ขาด (ต้องผลิตเพิ่ม):</span> <span class="cr-val" id="fc_need_text" style="color:#c62828;">-</span></div>
+                <div class="cr-row"><span class="cr-label">ใช้เวลาอีกประมาณ:</span> <span class="cr-val" id="fc_duration_text">-</span></div>
+                <div style="text-align:center; margin-top:10px; font-weight:bold; color:#455a64;">คาดว่าจะเสร็จเวลา</div>
+                <div class="fc-highlight" id="fc_finish_time">--:-- น.</div>
+                <div id="fc_stat_info" style="font-size:0.75rem; color:#888; text-align:center; margin-top:10px; border-top:1px dashed #e1bee7; padding-top:8px;"></div>
+            </div>
+        </div>
+
         <div class="modern-card card-body">
              <h3>📊 สรุปสถานะรายคัน (ขาด/เกิน)</h3>
              <div id="truck_report_container"></div>
@@ -328,7 +352,7 @@
         setTimeout(() => { calcAll(); }, 100);
     });
 
-    function getEmptyData() { return { times: { start: "22:00", stop: "06:00" }, initStock: { hl:0, bh:0, bl:0 }, orders: {}, drops: [] }; }
+    function getEmptyData() { return { times: { start: "22:00", stop: "06:00" }, initStock: { hl:0, bh:0, bl:0 }, targetReserve: { hl:0, bh:0, bl:0 }, orders: {}, drops: [] }; }
     
     function saveData() { 
         const dateKey = document.getElementById('setup_date').value;
@@ -336,6 +360,12 @@
         DATA.times.start = document.getElementById('time_start').value;
         DATA.times.stop = document.getElementById('time_stop').value;
         DATA.initStock = { hl: getNum(document.getElementById('init_hl').value), bh: getNum(document.getElementById('init_bh').value), bl: getNum(document.getElementById('init_bl').value) };
+        
+        if(!DATA.targetReserve) DATA.targetReserve = {hl:0, bh:0, bl:0};
+        DATA.targetReserve.hl = getNum(document.getElementById('fc_tar_hl').value);
+        DATA.targetReserve.bh = getNum(document.getElementById('fc_tar_bh').value);
+        DATA.targetReserve.bl = getNum(document.getElementById('fc_tar_bl').value);
+
         localStorage.setItem(`ICE_DATA_${dateKey}`, JSON.stringify(DATA)); 
         calcAll(); 
     }
@@ -349,6 +379,9 @@
                 DATA = JSON.parse(d); 
                 if(!DATA.drops) DATA.drops = []; 
                 if(!DATA.orders) DATA.orders = {}; 
+                if(!DATA.targetReserve) DATA.targetReserve = {hl:0, bh:0, bl:0};
+                if(!DATA.initStock) DATA.initStock = {hl:0, bh:0, bl:0};
+                
                 DATA.drops.forEach(drop => {
                    if(!drop.p_in_room) drop.p_in_room = {hl:0,bh:0,bl:0};
                    if(drop.dist) drop.dist.forEach(i => i.total = getNum(i.r1)+getNum(i.r2)+getNum(i.r3));
@@ -363,9 +396,8 @@
             isNewDay = true;
         }
 
-        // --- 🔥 V149: AUTO-PULL YESTERDAY'S ORDERS IF EMPTY 🔥 ---
-        let hasOrders = Object.keys(DATA.orders).some(k => getNum(DATA.orders[k]) > 0);
-        if (!hasOrders) {
+        // 🔥 PULL ONLY ORDERS FROM PREVIOUS DAYS (DO NOT PULL INITIAL STOCK) 🔥
+        if (isNewDay) {
             let parts = dateKey.split('-');
             let checkDate = new Date(parts[0], parts[1]-1, parts[2]);
 
@@ -377,9 +409,8 @@
                     try {
                         let pastD = JSON.parse(pastDStr);
                         if (pastD && pastD.orders && Object.keys(pastD.orders).some(k => getNum(pastD.orders[k]) > 0)) {
-                            // Found past orders, clone them!
+                            // Clone ONLY orders
                             DATA.orders = JSON.parse(JSON.stringify(pastD.orders));
-                            saveData(); // Save instantly to today
                             break;
                         }
                     } catch(e) {}
@@ -387,11 +418,18 @@
             }
         }
 
+        // Update DOM inputs
         document.getElementById('time_start').value = DATA.times.start || "22:00";
         document.getElementById('time_stop').value = DATA.times.stop || "06:00";
         document.getElementById('init_hl').value = DATA.initStock.hl || 0;
         document.getElementById('init_bh').value = DATA.initStock.bh || 0;
         document.getElementById('init_bl').value = DATA.initStock.bl || 0;
+        
+        if(document.getElementById('fc_tar_hl')) {
+            document.getElementById('fc_tar_hl').value = DATA.targetReserve.hl || 0;
+            document.getElementById('fc_tar_bh').value = DATA.targetReserve.bh || 0;
+            document.getElementById('fc_tar_bl').value = DATA.targetReserve.bl || 0;
+        }
     }
 
     function changeDate() { const newDate = document.getElementById('setup_date').value; loadData(newDate); saveData(); renderOrderInputs(); renderDrops(); calcAll(); }
@@ -493,15 +531,82 @@
         calcAll();
     }
 
+    function getHistoricalAverages() {
+        let totalBOD = 0, countBOD = 0;
+        let totalHL = 0, countHL = 0;
+        
+        const currentDateStr = document.getElementById('setup_date').value;
+        if(!currentDateStr) return { avgHL: 70, avgBOD: 62 }; 
+        
+        let parts = currentDateStr.split('-');
+        let d = new Date(parts[0], parts[1]-1, parts[2]);
+
+        for(let i=0; i<=3; i++) {
+            let checkDate = new Date(d);
+            checkDate.setDate(d.getDate() - i);
+            let dateKey = checkDate.getFullYear() + '-' + String(checkDate.getMonth()+1).padStart(2,'0') + '-' + String(checkDate.getDate()).padStart(2,'0');
+            
+            let pastDataStr = localStorage.getItem(`ICE_DATA_${dateKey}`);
+            if(pastDataStr) {
+                try {
+                    let pastData = JSON.parse(pastDataStr);
+                    if(pastData && pastData.drops) {
+                        pastData.drops.forEach(drop => {
+                            if(drop.type === 'prod') {
+                                let p_hl = getNum(drop.p_in_room?.hl);
+                                let p_bh = getNum(drop.p_in_room?.bh);
+                                let p_bl = getNum(drop.p_in_room?.bl);
+                                if(drop.dist) {
+                                    drop.dist.forEach(distItem => {
+                                        if(distItem.type === 'hl') p_hl += getNum(distItem.total);
+                                        if(distItem.type === 'bh') p_bh += getNum(distItem.total);
+                                        if(distItem.type === 'bl') p_bl += getNum(distItem.total);
+                                    });
+                                }
+                                
+                                let bod_sum = p_bh + p_bl;
+                                
+                                if(p_hl === 0 && bod_sum > 0) {
+                                    totalBOD += bod_sum;
+                                    countBOD++;
+                                }
+                                if(bod_sum === 0 && p_hl > 0) {
+                                    totalHL += p_hl;
+                                    countHL++;
+                                }
+                            }
+                        });
+                    }
+                } catch(e) {}
+            }
+        }
+
+        return {
+            avgHL: countHL > 0 ? (totalHL / countHL) : 70,
+            avgBOD: countBOD > 0 ? (totalBOD / countBOD) : 62
+        };
+    }
+
     function calcAll() {
         let sumP={hl:0,bh:0,bl:0}, curHL=getNum(document.getElementById('init_hl').value), curBH=getNum(document.getElementById('init_bh').value), curBL=getNum(document.getElementById('init_bl').value);
-        let totalSent=0, totalWithHL=0, totalWithBod=0, totalRemHL=0, totalRemBod=0, totalUsedAll=0, totalDuration=0;
+        let totalSent=0, sentHL=0, sentBH=0, sentBL=0; 
+        let totalWithHL=0, totalWithBod=0, totalRemHL=0, totalRemBod=0, totalUsedAll=0, totalDuration=0;
         let prodLogHtml = '', startTimeStr = document.getElementById('time_start').value;
         let lastProdTime = startTimeStr;
         let pendingDowntime = 0;
         let truckMat = {}; let truckDetail = {};
         
-        TRUCKS.forEach((t,i) => { let tid = `t${i+1}`; truckMat[tid] = {hl:{fr:0,st:0}, bh:{fr:0,st:0}, bl:{fr:0,st:0}}; truckDetail[tid] = { hl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bh: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} } }; });
+        let ordHL = 0, ordBH = 0, ordBL = 0, totOrd = 0;
+        
+        TRUCKS.forEach((t,i) => { 
+            let tid = `t${i+1}`; 
+            truckMat[tid] = {hl:{fr:0,st:0}, bh:{fr:0,st:0}, bl:{fr:0,st:0}}; 
+            truckDetail[tid] = { hl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bh: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} } }; 
+            ordHL += getNum(DATA.orders[`${tid}_hl`]);
+            ordBH += getNum(DATA.orders[`${tid}_bh`]);
+            ordBL += getNum(DATA.orders[`${tid}_bl`]);
+        });
+        totOrd = ordHL + ordBH + ordBL;
 
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
         let dropCount = 0;
@@ -546,13 +651,31 @@
                     <td class="pt-rem">${w_bod>0?r_bod:'-'}</td>
                 </tr>`;
             }
-            if(d.dist) { d.dist.forEach(i => { const total = getNum(i.total); totalSent += total; const field = d.type === 'prod' ? 'fr' : 'st'; truckMat[i.truck][i.type][field] += total; if(truckDetail[i.truck] && truckDetail[i.truck][i.type]) { truckDetail[i.truck][i.type].r1[field] += getNum(i.r1); truckDetail[i.truck][i.type].r2[field] += getNum(i.r2); truckDetail[i.truck][i.type].r3[field] += getNum(i.r3); } if(d.type === 'stock') { if(i.type==='hl') curHL -= total; if(i.type==='bh') curBH -= total; if(i.type==='bl') curBL -= total; } }); }
+            if(d.dist) { d.dist.forEach(i => { 
+                const total = getNum(i.total); 
+                totalSent += total; 
+                if(i.type === 'hl') sentHL += total;
+                if(i.type === 'bh') sentBH += total;
+                if(i.type === 'bl') sentBL += total;
+                const field = d.type === 'prod' ? 'fr' : 'st'; 
+                truckMat[i.truck][i.type][field] += total; 
+                if(truckDetail[i.truck] && truckDetail[i.truck][i.type]) { 
+                    truckDetail[i.truck][i.type].r1[field] += getNum(i.r1); 
+                    truckDetail[i.truck][i.type].r2[field] += getNum(i.r2); 
+                    truckDetail[i.truck][i.type].r3[field] += getNum(i.r3); 
+                } 
+                if(d.type === 'stock') { 
+                    if(i.type==='hl') curHL -= total; 
+                    if(i.type==='bh') curBH -= total; 
+                    if(i.type==='bl') curBL -= total; 
+                } 
+            }); }
         });
         
-        // 🔥 V149: Remove total duration from table bottom row (set to dash) 🔥
+        // 🔥 FIXED: RESTORED TOTAL DURATION TO THE TABLE ROW 🔥
         prodLogHtml += `<tr class="total-row">
             <td class="total-label" colspan="2">รวม</td>
-            <td>-</td>
+            <td>${totalDuration}</td>
             <td>${totalWithHL}</td>
             <td>${totalWithBod}</td>
             <td>${sumP.hl}</td>
@@ -565,7 +688,6 @@
         const safeSet = (id, val) => { if(document.getElementById(id)) document.getElementById(id).innerText = val; };
         document.getElementById('prod_log_body').innerHTML = prodLogHtml;
         safeSet('dash_hl', curHL); safeSet('dash_bh', curBH); safeSet('dash_bl', curBL);
-        let totOrd=0; for(let k in DATA.orders) totOrd+=getNum(DATA.orders[k]);
         safeSet('os_total', totOrd); safeSet('os_sent', totalSent); safeSet('os_remain', totOrd - totalSent);
 
         safeSet('rpt_hl', sumP.hl); safeSet('rpt_bh', sumP.bh); safeSet('rpt_bl', sumP.bl); safeSet('rpt_total_prod', sumP.hl + sumP.bh + sumP.bl);
@@ -574,11 +696,62 @@
         safeSet('rpt_with_hl', totalWithHL); safeSet('rpt_with_bod', totalWithBod); safeSet('rpt_sack_withdraw', totalWithHL + totalWithBod); safeSet('rpt_sack_used', totalUsedAll); safeSet('rpt_rem_total_all', totalRemHL + totalRemBod);
 
         const prodDropsCount = DATA.drops.filter(d => d.type==='prod').length;
+        let avgTime = 38; 
+        
         if(prodDropsCount > 0) {
-            safeSet('rpt_avg_time', (totalDuration / prodDropsCount).toFixed(0));
+            avgTime = Math.round(totalDuration / prodDropsCount) || 38;
+            safeSet('rpt_avg_time', avgTime);
             let tonsDay = 0; if (totalDuration > 0) { tonsDay = (totW / totalDuration) * 1440 / 1000; }
-            safeSet('rpt_tons_day', tonsDay.toFixed(2)); safeSet('rpt_avg_yield', ((sumP.hl+sumP.bh+sumP.bl) / prodDropsCount).toFixed(0));
-        } else { safeSet('rpt_avg_time', 0); safeSet('rpt_tons_day', 0); safeSet('rpt_avg_yield', 0); }
+            safeSet('rpt_tons_day', tonsDay.toFixed(2)); 
+            safeSet('rpt_avg_yield', Math.round((sumP.hl+sumP.bh+sumP.bl) / prodDropsCount));
+        } else { 
+            safeSet('rpt_avg_time', 0); safeSet('rpt_tons_day', 0); safeSet('rpt_avg_yield', 0); 
+        }
+
+        // --- 🔮 FORECASTING LOGIC 🔮 ---
+        let tarHL = DATA.targetReserve ? DATA.targetReserve.hl : 0;
+        let tarBH = DATA.targetReserve ? DATA.targetReserve.bh : 0;
+        let tarBL = DATA.targetReserve ? DATA.targetReserve.bl : 0;
+
+        let remHL = Math.max(0, ordHL - sentHL);
+        let remBH = Math.max(0, ordBH - sentBH);
+        let remBL = Math.max(0, ordBL - sentBL);
+
+        let needHL = Math.max(0, (remHL + tarHL) - curHL);
+        let needBH = Math.max(0, (remBH + tarBH) - curBH);
+        let needBL = Math.max(0, (remBL + tarBL) - curBL);
+        let totalNeedBOD = needBH + needBL; 
+
+        let histAvg = getHistoricalAverages();
+        
+        let dropsForHL = needHL / histAvg.avgHL;
+        let dropsForBOD = totalNeedBOD / histAvg.avgBOD; 
+        
+        let totalDropsNeeded = Math.ceil(dropsForHL + dropsForBOD);
+
+        safeSet('fc_need_text', `หลอด ${needHL} | หยาบ ${needBH} | ละเอียด ${needBL}`);
+        
+        if (totalDropsNeeded > 0) {
+            let addMins = totalDropsNeeded * avgTime;
+            let hrs = Math.floor(addMins / 60);
+            let mins = Math.round(addMins % 60);
+            safeSet('fc_duration_text', `${totalDropsNeeded} ตก (ประมาณ ${hrs} ชม. ${mins} น.)`);
+            
+            let baseTimeStr = lastProdTime || startTimeStr || "00:00";
+            let [bh, bm] = baseTimeStr.split(':').map(Number);
+            let totalFinishMins = bh * 60 + bm + addMins;
+            let fh = Math.floor(totalFinishMins / 60) % 24;
+            let fm = Math.floor(totalFinishMins % 60);
+            safeSet('fc_finish_time', `${String(fh).padStart(2, '0')}:${String(fm).padStart(2, '0')} น.`);
+        } else {
+            safeSet('fc_duration_text', "ไม่ต้องตกเพิ่มแล้ว");
+            safeSet('fc_finish_time', "เสร็จสิ้นตามเป้า! 🎉");
+        }
+        
+        if(document.getElementById('fc_stat_info')) {
+             document.getElementById('fc_stat_info').innerText = `*อ้างอิงสถิติผลิตล้วน 3 วันย้อนหลัง: หลอด ≈${Math.round(histAvg.avgHL)} ใบ/ตก, บด ≈${Math.round(histAvg.avgBOD)} ใบ/ตก`;
+        }
+
         renderSummaryTable(truckMat); renderDetailTable(truckDetail);
     }
     
