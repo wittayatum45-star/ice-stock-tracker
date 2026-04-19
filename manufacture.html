@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V155 (Downtime Table Row)</title>
+    <title>Smart Ice V156 (Manual Timeline)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- Theme --- */
@@ -188,8 +188,8 @@
         <button class="btn-downtime" onclick="addDrop('downtime')">⚡ บันทึกไฟดับ / พักเครื่อง</button>
         <button class="btn-stock-manager" onclick="openStockManager()">📦 จัดการเบิกของเก่า (ห้องเย็น)</button>
         <button class="btn-view-history" onclick="openFullHistory()">🕒 ดูรายการผลิตย้อนหลัง</button>
+        
         <div id="drops_list"></div>
-        <div id="downtime_list" style="margin-top: 20px;"></div>
         <div style="height: 100px;"></div>
     </div>
     <div class="fab-container"><button class="fab-main" onclick="addDrop('prod')">+</button></div>
@@ -450,97 +450,95 @@
     
     function deleteDrop(id) { if(confirm("เจ้าสิลบอีหลีเบาะท้าว?")) { DATA.drops = DATA.drops.filter(d => d.id !== id); saveData(); renderDrops(); calcAll(); if(document.getElementById('stock_manager_modal').style.display === 'block') openStockManager(); } }
     
-    // --- 🔥 AI Timeline Logic (For V155) 🔥 ---
-    function getProcessedDrops() {
-        const startTimeStr = document.getElementById('time_start').value || "22:00";
-        let [sh, sm] = startTimeStr.split(':').map(Number);
-        let startRawMins = sh * 60 + sm;
-        
-        let offset = 0;
-        let lastRaw = startRawMins;
-        
-        let sortedById = DATA.drops.slice().sort((a, b) => a.id - b.id);
-        
-        sortedById.forEach(d => {
-            let [h, m] = (d.time || "00:00").split(':').map(Number);
-            let raw = h * 60 + m;
-            
-            let diff = raw - lastRaw;
-            if (diff < -300) { offset += 1440; } 
-            else if (diff > 1080) { offset -= 1440; } 
-            
-            d._absMins = raw + offset;
-            lastRaw = raw;
+    // --- 🔥 V156: SIMPLE ORDER (BY ID/CREATION TIME) 🔥 ---
+    function getAdjustedMinutes(timeStr, startStr) { 
+        if(!timeStr || !startStr) return 0; 
+        let [h, m] = timeStr.split(':').map(Number); 
+        let [sh, sm] = startStr.split(':').map(Number); 
+        let mins = h * 60 + m; 
+        let sMins = sh * 60 + sm; 
+        if (mins < sMins) mins += 1440; 
+        return mins; 
+    }
 
-            if (d.type === 'downtime') {
-                let [eh, em] = (d.time_end || d.time).split(':').map(Number);
-                let eRaw = eh * 60 + em;
-                let eDiff = eRaw - lastRaw;
-                
-                if (eDiff < -300) { offset += 1440; }
-                else if (eDiff > 1080) { offset -= 1440; }
-                
-                d._absEndMins = eRaw + offset;
-                lastRaw = eRaw;
-            }
-        });
-        
-        return sortedById.sort((a, b) => a._absMins - b._absMins);
+    function getMinDiff(start, end) { 
+        const anchor = document.getElementById('time_start').value || "22:00"; 
+        const mStart = getAdjustedMinutes(start, anchor); 
+        const mEnd = getAdjustedMinutes(end, anchor); 
+        return mEnd - mStart; 
     }
 
     function renderDrops() {
-        const container_prod = document.getElementById('drops_list');
-        const container_dt = document.getElementById('downtime_list');
-        container_prod.innerHTML = '';
-        container_dt.innerHTML = '';
+        const container = document.getElementById('drops_list');
+        container.innerHTML = '';
         
-        const startTimeStr = document.getElementById('time_start').value || "22:00";
-        let [sh, sm] = startTimeStr.split(':').map(Number);
-        let startAbsMins = sh * 60 + sm;
-
-        const sortedDrops = getProcessedDrops();
+        // V156: Simply sort by ID (the exact order the user clicked the buttons)
+        const sortedDrops = DATA.drops.slice().sort((a, b) => a.id - b.id);
         const prodDrops = sortedDrops.filter(d => d.type === 'prod');
         const latestProd = prodDrops[prodDrops.length - 1]; 
         
-        if(latestProd) {
-             let prevProd = prodDrops.length > 1 ? prodDrops[prodDrops.length - 2] : null;
-             let prevAbsMins = prevProd ? prevProd._absMins : startAbsMins;
-             
-             let dtToSubtract = 0;
-             sortedDrops.forEach(td => {
-                 if(td.type === 'downtime' && td._absMins >= prevAbsMins && td._absMins <= latestProd._absMins) {
-                     dtToSubtract += (td._absEndMins - td._absMins);
-                 }
-             });
-             const grossDiff = latestProd._absMins - prevAbsMins;
-             const netDiff = Math.max(0, grossDiff - dtToSubtract);
-             
-             container_prod.insertAdjacentHTML('beforeend', generateCardHtml(latestProd, netDiff));
-        } else {
-             container_prod.innerHTML = '<div style="text-align:center; color:#aaa; margin-top:20px;">กด + เพื่อเริ่มผลิต</div>';
+        if (sortedDrops.length === 0) {
+             container.innerHTML = '<div style="text-align:center; color:#aaa; margin-top:20px;">กด + เพื่อเริ่มผลิต</div>';
+             return;
         }
 
-        const downTimes = sortedDrops.filter(d => d.type === 'downtime');
-        if(downTimes.length > 0) {
-            container_dt.innerHTML = '<div style="font-size:0.85rem; font-weight:bold; color:#d32f2f; margin-bottom:5px;">รายการหยุดเครื่อง / ไฟดับ (แก้ไขย้อนหลังได้)</div>';
-        }
+        // We only render the *latest* item in the main view to keep it clean, 
+        // BUT if there are downtimes AFTER the latest prod, we show them too.
         
-        downTimes.forEach(d => {
-            let dtMins = d._absEndMins - d._absMins;
-            container_dt.insertAdjacentHTML('beforeend', `
-            <div class="modern-card" style="border: 2px dashed #f44336; margin-bottom:10px;">
-                <div class="card-header-flex" style="background:#ffebee;">
-                    <div class="badge-box" style="background:#d32f2f; color:white;"><span>หยุด<br>เครื่อง</span></div>
-                    <div style="flex:1; display:flex; align-items:center; justify-content:center; gap:5px;">
-                        <div style="text-align:center;"><div style="font-size:0.7rem; color:#d32f2f; font-weight:bold;">เวลาดับ</div><input type="time" class="big-time-input" value="${d.time}" style="color:#d32f2f; width:85px; font-size:1.3rem; padding:0;" onchange="updateDropVal(${d.id}, 'time', null, this.value)"></div>
-                        <span style="color:#c62828; font-weight:bold;">➡</span>
-                        <div style="text-align:center;"><div style="font-size:0.7rem; color:#2e7d32; font-weight:bold;">เวลาติด</div><input type="time" class="big-time-input" value="${d.time_end || d.time}" style="color:#2e7d32; width:85px; font-size:1.3rem; padding:0;" onchange="updateDropVal(${d.id}, 'time_end', null, this.value)"></div>
+        let foundLatestProd = false;
+        
+        // Loop backwards to find what to show at the top of page 2
+        for(let i = sortedDrops.length - 1; i >= 0; i--) {
+            const d = sortedDrops[i];
+            
+            if (d.type === 'prod' && !foundLatestProd) {
+                foundLatestProd = true;
+                
+                let prevTime = document.getElementById('time_start').value || "22:00";
+                let dtToSubtract = 0;
+                
+                // Find the previous prod drop
+                for(let j = i - 1; j >= 0; j--) {
+                    if (sortedDrops[j].type === 'prod') {
+                        prevTime = sortedDrops[j].time;
+                        break;
+                    }
+                }
+                
+                // Sum any downtimes that happened between previous prod and this prod
+                let insideInterval = false;
+                for(let j = 0; j < i; j++) {
+                    if (sortedDrops[j].type === 'prod') insideInterval = false;
+                    if (sortedDrops[j].time === prevTime) insideInterval = true;
+                    if (insideInterval && sortedDrops[j].type === 'downtime') {
+                        dtToSubtract += getMinDiff(sortedDrops[j].time, sortedDrops[j].time_end || sortedDrops[j].time);
+                    }
+                }
+
+                const grossDiff = getMinDiff(prevTime, d.time);
+                const netDiff = Math.max(0, grossDiff - dtToSubtract);
+                
+                // Insert at the top of the container
+                container.insertAdjacentHTML('afterbegin', generateCardHtml(d, netDiff));
+            } 
+            else if (d.type === 'downtime' && !foundLatestProd) {
+                // This downtime happened AFTER the last production drop. Show it.
+                let dtMins = getMinDiff(d.time, d.time_end || d.time);
+                container.insertAdjacentHTML('afterbegin', `
+                <div class="modern-card" style="border: 2px dashed #f44336; margin-bottom:10px;">
+                    <div class="card-header-flex" style="background:#ffebee;">
+                        <div class="badge-box" style="background:#d32f2f; color:white;"><span>หยุด<br>เครื่อง</span></div>
+                        <div style="flex:1; display:flex; align-items:center; justify-content:center; gap:5px;">
+                            <div style="text-align:center;"><div style="font-size:0.7rem; color:#d32f2f; font-weight:bold;">เวลาดับ</div><input type="time" class="big-time-input" value="${d.time}" style="color:#d32f2f; width:85px; font-size:1.3rem; padding:0;" onchange="updateDropVal(${d.id}, 'time', null, this.value)"></div>
+                            <span style="color:#c62828; font-weight:bold;">➡</span>
+                            <div style="text-align:center;"><div style="font-size:0.7rem; color:#2e7d32; font-weight:bold;">เวลาติด</div><input type="time" class="big-time-input" value="${d.time_end || d.time}" style="color:#2e7d32; width:85px; font-size:1.3rem; padding:0;" onchange="updateDropVal(${d.id}, 'time_end', null, this.value)"></div>
+                        </div>
+                        <span class="time-diff-badge" style="background:#ffcdd2; color:#c62828;">(พัก ${dtMins} น.)</span>
+                        <button class="btn-close-red" onclick="deleteDrop(${d.id})">×</button>
                     </div>
-                    <span class="time-diff-badge" style="background:#ffcdd2; color:#c62828;">(พัก ${dtMins} น.)</span>
-                    <button class="btn-close-red" onclick="deleteDrop(${d.id})">×</button>
-                </div>
-            </div>`);
-        });
+                </div>`);
+            }
+        }
     }
 
     function generateCardHtml(d, netDiff) {
@@ -639,10 +637,7 @@
         let prodLogHtml = '';
         
         const startTimeStr = document.getElementById('time_start').value || "22:00";
-        let [sh, sm] = startTimeStr.split(':').map(Number);
-        let startAbsMins = sh * 60 + sm;
-        
-        let lastAbsMins = startAbsMins;
+        let lastProdTime = startTimeStr;
         let pendingDowntime = 0;
         let truckMat = {}; let truckDetail = {};
         
@@ -658,7 +653,8 @@
         });
         totOrd = ordHL + ordBH + ordBL;
 
-        const sortedDrops = getProcessedDrops();
+        // 🔥 V156: Sort strictly by creation ID (user intent order) 🔥
+        const sortedDrops = DATA.drops.slice().sort((a, b) => a.id - b.id);
         let dropCount = 0;
 
         if(document.getElementById('header_start_time')) {
@@ -667,9 +663,10 @@
 
         sortedDrops.forEach(d => {
             if(d.type === 'downtime') {
-                pendingDowntime += (d._absEndMins - d._absMins);
-                // 🔥 V155: RENDER DOWNTIME AS A ROW IN THE TABLE 🔥
-                let dtMins = d._absEndMins - d._absMins;
+                let dtMins = getMinDiff(d.time, d.time_end || d.time);
+                pendingDowntime += dtMins;
+                
+                // 🔥 V156: Draw downtime row in table 🔥
                 prodLogHtml += `<tr style="background-color: #f5f5f5;">
                     <td style="font-weight:bold; color:#78909c; text-align:center; border-right:none;">-</td>
                     <td class="pt-time" style="color:#d32f2f; font-weight:bold;">${d.time}</td>
@@ -692,10 +689,10 @@
                 curHL += getNum(d.p_in_room.hl); curBH += getNum(d.p_in_room.bh); curBL += getNum(d.p_in_room.bl);
                 
                 // CALCULATE NET TIME
-                let grossDiff = d._absMins - lastAbsMins;
+                let grossDiff = getMinDiff(lastProdTime, d.time);
                 let netDiff = Math.max(0, grossDiff - pendingDowntime);
                 totalDuration += netDiff;
-                lastAbsMins = d._absMins;
+                lastProdTime = d.time;
                 
                 pendingDowntime = 0; // reset
                 
@@ -797,13 +794,16 @@
             let mins = Math.round(addMins % 60);
             safeSet('fc_duration_text', `${totalDropsNeeded} ตก (ประมาณ ${hrs} ชม. ${mins} น.)`);
             
-            let baseAbsMins = sortedDrops.length > 0 ? 
-                              (sortedDrops[sortedDrops.length-1].type === 'downtime' ? sortedDrops[sortedDrops.length-1]._absEndMins : sortedDrops[sortedDrops.length-1]._absMins)
-                              : startAbsMins;
-            
+            // Forecast based on the very last drop time in the array
+            let baseTimeStr = sortedDrops.length > 0 ? 
+                              (sortedDrops[sortedDrops.length-1].type === 'downtime' ? sortedDrops[sortedDrops.length-1].time_end : sortedDrops[sortedDrops.length-1].time)
+                              : startTimeStr;
+                              
+            let baseAbsMins = getAdjustedMinutes(baseTimeStr, startTimeStr);
             let totalFinishMins = baseAbsMins + addMins;
+            
             let [sh, sm] = startTimeStr.split(':').map(Number);
-            let finalRawMins = (sh * 60 + sm) + (totalFinishMins - startAbsMins);
+            let finalRawMins = (sh * 60 + sm) + totalFinishMins;
             
             let fh = Math.floor(finalRawMins / 60) % 24;
             let fm = Math.floor(finalRawMins % 60);
@@ -828,41 +828,44 @@
     }
     
     function openFullHistory() { const container = document.getElementById('full_history_list'); container.innerHTML = ''; 
-        const sortedDrops = getProcessedDrops().reverse(); 
+        const sortedDrops = DATA.drops.slice().sort((a, b) => b.id - a.id); // Reverse creation order
         if (sortedDrops.length === 0) { container.innerHTML = '<div style="text-align:center; color:#aaa;">ไม่มีประวัติ</div>'; } else { sortedDrops.forEach((d, idx) => { 
         if(d.type === 'prod') {
             let prodTotal = getNum(d.p_in_room.hl) + getNum(d.p_in_room.bh) + getNum(d.p_in_room.bl); if(d.dist) d.dist.forEach(i => prodTotal += getNum(i.total)); const tag = (idx === 0) ? '<span class="hist-tag ht-fresh">ล่าสุด</span>' : ''; container.insertAdjacentHTML('beforeend', `<div class="hist-item" onclick="openEditPast(${d.id})" style="cursor:pointer;"><div class="hist-info"><div><b>${d.time}</b> ${tag}</div><div style="color:#666; font-size:0.85rem;">ผลิต: ${prodTotal}</div></div><div style="color:#0277bd;">></div></div>`); 
         } else if (d.type === 'downtime') {
-            let dt = d._absEndMins - d._absMins;
+            let dt = getMinDiff(d.time, d.time_end);
             container.insertAdjacentHTML('beforeend', `<div class="hist-item" style="border-left: 4px solid #f44336; cursor:pointer;" onclick="openEditPast(${d.id})"><div class="hist-info"><div><b style="color:#d32f2f;">${d.time} - ${d.time_end}</b></div><div style="color:#c62828; font-size:0.85rem;">หยุดเครื่อง/ไฟดับ (${dt} น.)</div></div><div style="color:#f44336;">></div></div>`);
         }
     }); } document.getElementById('full_history_modal').style.display = 'block'; }
     function closeFullHistory() { document.getElementById('full_history_modal').style.display = 'none'; renderDrops(); calcAll(); }
     
     function openTruckHistory(tid) { const container = document.getElementById('history_list'); container.innerHTML = ''; document.getElementById('hist_title').innerText = `🕒 ประวัติ ${getTruckName(tid)}`; 
-        const sortedDrops = getProcessedDrops(); 
+        const sortedDrops = DATA.drops.slice().sort((a, b) => a.id - b.id);
         let hasData = false; sortedDrops.forEach(d => { if(d.dist) { d.dist.forEach((item, idx) => { if(item.truck === tid) { hasData = true; const typeName = getTypeName(item.type); const typeLabel = d.type === 'prod' ? '<span class="hist-tag ht-fresh">ผลิต</span>' : '<span class="hist-tag ht-stock">ห้อง</span>'; container.insertAdjacentHTML('beforeend', `<div class="hist-item"><div class="hist-info"><div><b>${d.time}</b> ${typeLabel} : ${typeName}</div><div style="color:#666;">(${item.r1}/${item.r2}/${item.r3}) = <b>${item.total}</b></div></div><div class="hist-actions"><button class="btn-edit-mini" onclick="closeHistoryModal(); SOURCE_MODAL='truck_history'; editDist(${d.id}, ${idx})">✏️ แก้</button><button class="btn-del-mini" onclick="removeDist(${d.id}, ${idx}); closeHistoryModal();">ลบ</button></div></div>`); } }); } }); if(!hasData) container.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">ไม่มีประวัติสำหรับรถคันนี้</div>'; document.getElementById('history_modal').style.display = 'block'; }
     function closeHistoryModal() { document.getElementById('history_modal').style.display = 'none'; }
     
     function openEditPast(id) { 
-        const processed = getProcessedDrops();
-        const idx = processed.findIndex(x => x.id === id);
-        const d = processed[idx];
+        const sortedDrops = DATA.drops.slice().sort((a, b) => a.id - b.id);
+        const idx = sortedDrops.findIndex(x => x.id === id);
+        const d = sortedDrops[idx];
         if(!d) return; 
         
         document.getElementById('full_history_modal').style.display = 'none'; document.getElementById('stock_manager_modal').style.display = 'none'; if(document.getElementById('stock_manager_modal').style.display === 'block') SOURCE_MODAL = 'stock'; else if(document.getElementById('full_history_modal').style.display === 'block') SOURCE_MODAL = 'history'; else SOURCE_MODAL = null; 
     
         if(d.type === 'prod') { 
             let startTimeStr = document.getElementById('time_start').value || "22:00";
-            let [sh, sm] = startTimeStr.split(':').map(Number);
-            let startAbsMins = sh * 60 + sm;
             
             let prevProdIdx = -1;
-            for(let i=idx-1; i>=0; i--) { if(processed[i].type === 'prod') { prevProdIdx = i; break; } }
-            let prevAbs = prevProdIdx >= 0 ? processed[prevProdIdx]._absMins : startAbsMins;
+            for(let i=idx-1; i>=0; i--) { if(sortedDrops[i].type === 'prod') { prevProdIdx = i; break; } }
+            let prevTime = prevProdIdx >= 0 ? sortedDrops[prevProdIdx].time : startTimeStr;
+            
             let dtSub = 0;
-            for(let i=prevProdIdx+1; i<idx; i++) { if(processed[i].type==='downtime') dtSub += (processed[i]._absEndMins - processed[i]._absMins); }
-            let netDiff = Math.max(0, d._absMins - prevAbs - dtSub);
+            for(let i=prevProdIdx+1; i<idx; i++) { 
+                if(sortedDrops[i].type==='downtime') {
+                    dtSub += getMinDiff(sortedDrops[i].time, sortedDrops[i].time_end || sortedDrops[i].time); 
+                }
+            }
+            let netDiff = Math.max(0, getMinDiff(prevTime, d.time) - dtSub);
             document.getElementById('edit_past_body').innerHTML = generateCardHtml(d, netDiff); 
         }
         else if(d.type === 'downtime') { 
