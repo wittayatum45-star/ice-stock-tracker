@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V167 (Perfect PDF Layout)</title>
+    <title>Smart Ice V168 (Perfect Paper Replica)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
-        /* --- Modern Premium Theme --- */
+        /* --- Modern Premium Theme (Screen UI) --- */
         :root {
             --bg-main: #f0f4f8;
             --text-dark: #1e293b;
@@ -36,15 +36,12 @@
             * { box-sizing: border-box; }
             button, input, select { touch-action: manipulation; }
             
-            /* Dashboard Header */
             .dashboard { position: sticky; top: 0; z-index: 1000; background: var(--dark-grad); color: white; padding: 15px 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); display: flex; justify-content: space-around; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; margin-bottom: 10px; }
             .dash-item span { font-size: 0.8rem; color: #cbd5e1; display: block; margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
             .dash-item div { font-size: 1.6rem; font-weight: 900; color: #34d399; line-height: 1; text-shadow: 0 2px 5px rgba(0,0,0,0.2); }
             
-            /* Order Status Bar */
             .order-status-bar { background: #fffbeb; border: 1px solid #fde68a; padding: 10px; text-align: center; font-size: 0.95rem; color: #d97706; font-weight: bold; display: flex; justify-content: space-around; border-radius: var(--radius-pill); margin: 0 10px 15px 10px; box-shadow: var(--shadow-sm); }
             
-            /* Navigation */
             .nav-bar { display: flex; background: var(--card-bg); margin: 0 10px 20px 10px; border-radius: var(--radius-pill); padding: 6px; box-shadow: var(--shadow-md); position: sticky; top: 85px; z-index: 900; border: 1px solid #f1f5f9; }
             .nav-btn { flex: 1; padding: 12px 5px; text-align: center; border: none; background: transparent; font-weight: 800; font-size: 0.9rem; color: var(--text-muted); cursor: pointer; border-radius: var(--radius-pill); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
             .nav-btn.active { background: var(--primary-grad); color: white; box-shadow: var(--shadow-color); transform: scale(1.02); }
@@ -53,19 +50,16 @@
             .page.active { display: block; animation: fadeIn 0.3s ease; }
             @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-            /* Modern Cards */
             .modern-card { background: var(--card-bg); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); margin-bottom: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.8); }
             .card-body { padding: 20px; }
             .card-body h3 { margin-top: 0; color: var(--text-dark); font-weight: 800; font-size: 1.15rem; display: flex; align-items: center; gap: 8px; margin-bottom: 15px; }
             
-            /* Inputs */
             input[type="number"], input[type="tel"], input[type="time"], input[type="date"], input[type="text"], select { 
                 width: 100%; padding: 14px; font-size: 1.1rem; text-align: center; font-weight: 800; color: var(--text-dark);
                 border: 2px solid #e2e8f0; border-radius: 12px; background: #f8fafc; transition: all 0.3s; font-family: 'Sarabun', sans-serif;
             }
             input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15); outline: none; background: #ffffff; }
             
-            /* Card UI (Production Logs) */
             .card-header-flex { display: flex; align-items: center; padding: 15px; gap: 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
             .badge-box { border-radius: 14px; padding: 8px; width: 75px; text-align: center; color: white; font-weight: 800; font-size: 0.75rem; display: flex; flex-direction: column; justify-content: center; height: 55px; box-shadow: var(--shadow-sm); }
             .bg-prod { background: var(--success-grad); }
@@ -81,24 +75,11 @@
             .sack-split { font-size: 0.85rem; color: #555; display: flex; justify-content: center; gap: 5px; margin-top: 4px; }
             .ss-hl { color: #059669; font-weight:900; } .ss-bod { color: #7c3aed; font-weight:900; }
 
-            /* Color-Coded Report Table */
             .paper-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; margin-top: 5px; border-radius: 12px; overflow: hidden; border: 1px solid #cbd5e1; }
-            .paper-table th { border-right: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1; padding: 6px 2px; text-align: center; font-weight: 800; vertical-align: middle; line-height: 1.2; }
-            .paper-table th:last-child { border-right: none; }
-            .paper-table td { border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; padding: 10px 2px; text-align: center; vertical-align: middle; font-weight: 800; font-size: 1rem; }
-            .paper-table td:last-child { border-right: none; }
-            
-            /* Column Colors */
-            .paper-table th.pt-time, .paper-table td.pt-time-col { background-color: #f8fafc !important; color: #1e293b; }
-            .paper-table th.pt-check, .paper-table td.pt-check { background-color: #e0f2fe !important; color: #0284c7; }
-            .paper-table th.pt-prod, .paper-table td.pt-prod { background-color: #dcfce7 !important; color: #15803d; }
-            .paper-table th.pt-rem, .paper-table td.pt-rem { background-color: #fef3c7 !important; color: #b45309; }
-            
-            .sub-header { font-size: 0.75rem !important; }
+            .paper-table th { border-right: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1; padding: 6px 2px; text-align: center; font-weight: 800; vertical-align: middle; line-height: 1.2; background: #f8fafc; color: #1e293b;}
+            .paper-table td { border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; padding: 10px 2px; text-align: center; vertical-align: middle; font-weight: 800; font-size: 1rem; background: white;}
             .total-row td { background-color: #1e293b !important; color: white !important; font-weight: 900 !important; font-size: 1rem !important; border-color: #0f172a !important; padding: 12px 4px; }
-            .total-label { text-align: center !important; color: #fde047 !important; }
 
-            /* Custom Report Box */
             .custom-report { border: 2px solid #e2e8f0; border-radius: var(--radius-md); padding: 20px; margin-top: 20px; background: #f8fafc; }
             .cr-section { margin-bottom: 15px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 15px; }
             .cr-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
@@ -108,7 +89,6 @@
             .cr-total { color: var(--primary); font-size: 1.15rem; }
             .cr-header { font-weight: 900; color: white; margin-bottom: 12px; font-size: 1.1rem; background: var(--text-dark); padding: 10px 15px; border-radius: 8px; display: block; text-align: center; box-shadow: var(--shadow-sm); }
 
-            /* Truck Matrix */
             .truck-matrix-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 5px; border-radius: 12px; overflow: hidden; border: 1px solid #cbd5e1; }
             .truck-matrix-table th { background: #e2e8f0; color: #334155; padding: 10px 6px; font-weight: 800; border-bottom: 1px solid #cbd5e1; font-size: 0.9rem; }
             .truck-matrix-table td { border-bottom: 1px solid #e2e8f0; padding: 8px 4px; text-align: center; vertical-align: middle; background: white; }
@@ -116,7 +96,6 @@
             .st-pill { display: inline-block; padding: 4px 10px; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 800; min-width: 60px; box-shadow: var(--shadow-sm); }
             .st-over { background: #e0f2fe; color: #0284c7; } .st-miss { background: #fee2e2; color: #dc2626; } .st-ok { background: #dcfce7; color: #16a34a; } .st-none { color: #cbd5e1; font-weight: 400; font-size: 1.2rem; }
             
-            /* Detail Table (Inside truck details) */
             .truck-detail-block { background: white; border-radius: var(--radius-md); padding: 20px; margin-bottom: 20px; border: 1px solid #e2e8f0; box-shadow: var(--shadow-md); }
             .truck-detail-header { font-weight: 900; color: var(--text-dark); border-bottom: 2px dashed #e2e8f0; padding-bottom: 12px; margin-bottom: 15px; font-size: 1.2rem; display: flex; justify-content: space-between; align-items: center; }
             .detail-table { width: 100%; border-collapse: separate; border-spacing: 0 5px; margin-top: 10px; }
@@ -129,143 +108,90 @@
             .dt-total-val { color: #ffffff; background: #334155; padding: 4px 12px; border-radius: 6px; font-weight: 900; display:inline-block; min-width: 45px;}
             .detail-summary-row td { background: transparent !important; border: none; padding-top: 15px; }
 
-            /* Buttons */
             .btn-history, .btn-del-mini, .btn-edit-mini { border: none; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.15s; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
             .btn-history { background: var(--warning-grad); color: white; padding: 8px 14px; font-size: 0.9rem; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3); border-radius: 20px;}
-            .btn-history:active { transform: scale(0.95); }
             
-            .btn-save-wiz { width: 100%; padding: 16px; background: var(--success-grad); color: white; border: none; border-radius: 14px; font-size: 1.3rem; font-weight: 900; margin-top: 15px; cursor: pointer; box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3); transition: 0.15s; }
-            .btn-save-wiz:active { transform: scale(0.98); }
+            .btn-save-wiz, .btn-stock-manager, .btn-view-history, .btn-downtime, .btn-print, .btn-save-dist { width: 100%; padding: 16px; border: none; border-radius: 14px; font-size: 1.15rem; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.15s; margin-bottom: 12px; color:white;}
+            .btn-save-wiz { background: var(--success-grad); font-size: 1.3rem; margin-top: 15px; box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3); }
+            .btn-stock-manager { background: var(--warning-grad); box-shadow: 0 6px 15px rgba(245, 158, 11, 0.3); }
+            .btn-downtime { background: var(--danger-grad); box-shadow: 0 6px 15px rgba(239, 68, 68, 0.3); }
+            .btn-view-history { background: var(--text-dark); box-shadow: 0 6px 15px rgba(30, 41, 59, 0.3); margin-bottom: 25px; }
+            .btn-print { background: var(--purple-grad); box-shadow: 0 6px 15px rgba(139, 92, 246, 0.3); margin-top:15px; font-size:1.3rem; }
+            .btn-save-dist { background: var(--success-grad); border-radius: 12px; font-size: 1.1rem; margin-top: 15px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
             
-            .btn-stock-manager, .btn-view-history, .btn-downtime, .btn-print { width: 100%; padding: 16px; border: none; border-radius: 14px; font-size: 1.15rem; font-weight: 900; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.15s; }
-            .btn-stock-manager { background: var(--warning-grad); color: white; box-shadow: 0 6px 15px rgba(245, 158, 11, 0.3); }
-            .btn-downtime { background: var(--danger-grad); color: white; box-shadow: 0 6px 15px rgba(239, 68, 68, 0.3); }
-            .btn-view-history { background: var(--text-dark); color: white; box-shadow: 0 6px 15px rgba(30, 41, 59, 0.3); margin-bottom: 25px; }
-            .btn-print { background: var(--purple-grad); color: white; box-shadow: 0 6px 15px rgba(139, 92, 246, 0.3); margin-top:15px; font-size:1.3rem; }
-            .btn-stock-manager:active, .btn-downtime:active, .btn-view-history:active, .btn-print:active { transform: scale(0.96); }
-            
-            .btn-save-dist { width: 100%; padding: 14px; background: var(--success-grad); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 900; margin-top: 15px; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition:0.15s; }
-            .btn-save-dist:active { transform: scale(0.96); }
             .btn-reset { background: #e2e8f0; color: #64748b; border: none; padding: 14px; width: 100%; margin-top: 20px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.15s; }
-            .btn-reset:active { background: #cbd5e1; }
             
-            /* Layout Helpers */
             .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
             .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
             .input-label { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 800; text-align: center; text-transform: uppercase; }
             
-            /* Floating Actions */
             .fab-container { position: fixed; bottom: 30px; right: 20px; z-index: 2000; }
-            .fab-main { width: 65px; height: 65px; border-radius: 50%; background: var(--success-grad); color: white; border: none; font-size: 36px; line-height: 1; font-weight: 300; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.15s; }
-            .fab-main:active { transform: scale(0.85); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
+            .fab-main { width: 65px; height: 65px; border-radius: 50%; background: var(--success-grad); color: white; border: none; font-size: 36px; line-height: 1; font-weight: 300; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5); cursor: pointer; display: flex; align-items: center; justify-content: center; }
             
-            /* Live Predictor Pill */
-            .live-predictor-fab { position: fixed; bottom: 35px; left: 15px; z-index: 2000; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border: 2px solid #e2e8f0; color: var(--text-dark); padding: 10px 16px; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 800; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 10px; transition: 0.3s; cursor: pointer;}
+            .live-predictor-fab { position: fixed; bottom: 35px; left: 15px; z-index: 2000; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border: 2px solid #e2e8f0; color: var(--text-dark); padding: 10px 16px; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 800; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 10px; cursor: pointer;}
             .lpf-time { font-size: 1.25rem; color: #7c3aed; font-weight: 900; letter-spacing: 0.5px; }
             .lpf-badge { background: #f3e8ff; color: #6d28d9; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 900; }
             .lpf-badge.overdue { background: #fee2e2; color: #dc2626; }
 
-            /* Modal */
             .modal { display: none; position: fixed; z-index: 5000; left: 0; top: 0; width: 100%; height: 100%; overflow: hidden; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px); align-items: center; justify-content: center; }
             .modal-content { background-color: var(--bg-main); margin: 0; border-radius: var(--radius-lg); width: 92%; max-width: 500px; max-height: 90vh; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; position: relative; overflow:hidden; }
             .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; background: white; border-bottom: 1px solid #f1f5f9; flex-shrink: 0; }
             .modal-title { font-size: 1.3rem; font-weight: 900; color: var(--text-dark); }
             .btn-close-modal { background: #f1f5f9; color: #64748b; border: none; font-size: 1.5rem; font-weight: bold; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; transition:0.2s;}
-            .btn-close-modal:hover { background: #fee2e2; color: #ef4444; }
             .modal-body { overflow-y: auto; padding: 20px; flex-grow: 1; }
 
-            /* Distributions within card */
-            .dist-container { background: #f8fafc; border-radius: 14px; padding: 12px; border: 1px solid #e2e8f0; margin-top: 15px; }
-            .dist-item { background: white; padding: 12px; border-radius: 10px; border: 1px solid #f1f5f9; margin-bottom: 10px; box-shadow: var(--shadow-sm); }
-            .dist-header { font-weight: 800; color: var(--primary); font-size: 1.05rem; display: flex; justify-content: space-between; align-items: center; }
-            .dist-rows { font-size: 0.9rem; color: #475569; margin-top: 8px; background: #f0fdf4; padding: 8px; border-radius: 8px; font-weight:700; }
-            .btn-add-dist { width: 100%; padding: 14px; background: white; color: var(--primary); border: 2px dashed #bae6fd; border-radius: 12px; font-weight: 800; font-size:1rem; cursor: pointer; margin-top: 5px; transition:0.2s; }
-            .btn-add-dist:active { background: #f0f9ff; }
-            
-            .btn-edit-mini { background: #fef9c3; color: #d97706; padding: 6px 12px;}
-            .btn-del-mini { background: #fee2e2; color: #dc2626; padding: 6px 12px;}
-
-            /* History List */
             .history-list-wrapper { background: white; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: var(--shadow-sm); }
             .hist-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background 0.2s; }
             .hist-item:last-child { border-bottom: none; }
-            .hist-item:active { background: #f8fafc; }
             .hist-info-left { display: flex; flex-direction: column; gap: 4px; }
             .hist-time { font-size: 1.3rem; font-weight: 900; color: var(--text-dark); display: flex; align-items: center; gap: 8px; }
             .hist-yield { font-size: 0.9rem; color: var(--text-muted); font-weight: 600; }
             .hist-yield span { color: var(--primary); font-weight: 900; font-size: 1.05rem; }
             .hist-arrow { color: #cbd5e1; font-weight: 900; font-size: 1.5rem; }
 
-            /* Hide print area on screen */
             #print_area { display: none; }
         }
 
-        /* --- 🔥 V167: PERFECT PDF PRINT STYLES 🔥 --- */
+        /* --- 🔥 V168: PERFECT A4 PDF PRINT STYLES 🔥 --- */
         @media print {
             @page { size: A4 portrait; margin: 10mm; }
             body { background: white !important; color: black !important; font-family: 'Sarabun', sans-serif; font-size: 11pt !important; padding: 0 !important; margin: 0 !important; }
             
             /* Hide ALL app UI elements */
-            .dashboard, .nav-bar, .page, .fab-container, .live-predictor-fab, .modal, .order-status-bar { display: none !important; }
+            body > *:not(#print_area) { display: none !important; }
             
             /* Show ONLY Print Area */
             #print_area { display: block !important; width: 100%; position: static; margin: 0 auto; }
             
             .print-header { text-align: center; font-weight: 900; font-size: 14pt; margin-bottom: 10px; }
             
-            /* FORCE EXACT TABLE LAYOUT */
-            .print-table { 
-                width: 100%; 
-                border-collapse: collapse; 
-                border: 2px solid black; 
-                table-layout: fixed; /* 🔒 LOCK COLUMNS WIDTH */
-            }
+            /* Two Column Layout for Perfect Form */
+            .print-wrapper { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; gap: 10px; }
+            .print-left { width: 72%; }
+            .print-right { width: 27%; border: 1.5px solid black; padding: 8px; font-size: 9.5pt; font-weight: 600; display:flex; flex-direction:column; justify-content:space-between; height: 100%;}
             
-            .print-table th, .print-table td { 
-                border: 1px solid black; 
-                padding: 4px 2px; 
-                text-align: center; 
-                font-size: 10pt; 
-                font-weight: 600; 
-                overflow: hidden; /* Prevent content overflow */
-            }
+            /* Main Data Table */
+            .print-table { width: 100%; border-collapse: collapse; border: 1.5px solid black; table-layout: fixed; }
+            .print-table th, .print-table td { border: 1px solid black; text-align: center; font-weight: 600; }
             
-            .print-table th { 
-                background-color: #f1f5f9 !important; 
-                font-weight: 800; 
-                font-size: 9.5pt; 
-                -webkit-print-color-adjust: exact; 
-                print-color-adjust: exact; 
-            }
+            /* Adjust height to exactly fit A4 */
+            .print-table th { padding: 4px 2px; font-size: 9pt; background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: 800;}
+            .print-table td { height: 26px; font-size: 10pt; } /* Fixed height to ensure 30 rows fit well */
             
-            .print-summary-col { 
-                text-align: left !important; 
-                padding-left: 10px !important; 
-                border-left: 2px solid black !important; 
-                font-size: 9.5pt; 
-                font-weight: 600;
-            }
+            .print-downtime td { color: black; font-weight: 800; font-style: italic; background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
             
-            .print-footer td { 
-                border-top: 2px solid black; 
-                font-weight: 900; 
-                background-color: #e2e8f0 !important; 
-                -webkit-print-color-adjust: exact; 
-                print-color-adjust: exact; 
-            }
+            /* Bottom Total Row */
+            .print-footer td { border-top: 2px solid black; font-weight: 900; background-color: #e2e8f0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             
-            .print-downtime td { 
-                color: #b91c1c; 
-                font-style: italic; 
-            }
-
-            /* Compact Signature Area */
-            .print-signature-box {
-                display: flex;
-                justify-content: space-between;
-                margin-top: 5px;
-                padding-top: 10px;
-            }
+            /* Summary Box Lines */
+            .s-line { display: flex; justify-content: space-between; margin-bottom: 5px; border-bottom: 1px dotted #ccc; padding-bottom:2px;}
+            .s-val { font-weight: 900; text-align: right; }
+            .s-title { margin-top: 10px; margin-bottom: 5px; font-weight: 900; border-bottom: 1px solid black; padding-bottom:2px; font-size: 10pt;}
+            .s-space { height: 10px; }
+            
+            /* Signatures */
+            .sign-box { margin-top: auto; padding-top: 15px; }
+            .sign-line { text-align: center; margin-top: 25px; font-size: 9pt; }
         }
     </style>
 </head>
@@ -493,7 +419,20 @@
     </div>
 
     <div id="stock_manager_modal" class="modal"><div class="modal-content"><div class="modal-header"><div class="modal-title">📦 จ่ายของเก่า (ห้องเย็น)</div><button class="btn-close-modal" onclick="closeStockManager()">×</button></div><div class="modal-body"><button class="btn-save-dist" style="width:100%; margin-top:0; margin-bottom:20px;" onclick="addDrop('stock'); closeStockManager(); openDistModal(DATA.drops[DATA.drops.length-1].id)">+ เพิ่มรายการเบิก</button><div id="stock_list_container"></div><div style="height:50px;"></div></div></div></div>
-    <div id="full_history_modal" class="modal"><div class="modal-content"><div class="modal-header"><div class="modal-title">🕒 ประวัติย้อนหลัง</div><button class="btn-close-modal" onclick="closeFullHistory()">×</button></div><div class="modal-body"><div id="full_history_list"></div><div style="height:50px;"></div></div></div></div>
+    
+    <div id="full_history_modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">🕒 ประวัติย้อนหลัง</div>
+                <button class="btn-close-modal" onclick="closeFullHistory()">×</button>
+            </div>
+            <div class="modal-body" style="background:#f8fafc;">
+                <div class="history-list-wrapper" id="full_history_list"></div>
+                <div style="height:50px;"></div>
+            </div>
+        </div>
+    </div>
+    
     <div id="history_modal" class="modal"><div class="modal-content"><div class="modal-header"><div class="modal-title" id="hist_title">🕒 ประวัติ</div><button class="btn-close-modal" onclick="closeHistoryModal()">×</button></div><div class="modal-body"><div id="history_list"></div><div style="height:50px;"></div></div></div></div>
     <div id="edit_past_modal" class="modal" style="display:none; align-items:center; justify-content:center;"><div class="modal-content" style="background:transparent; box-shadow:none;"><div class="modal-header" style="border-radius:16px 16px 0 0;"><div class="modal-title">✏️ แก้ไขรายการ</div><button class="btn-close-modal" onclick="closeEditPastModal()">×</button></div><div class="modal-body" id="edit_past_body" style="padding:0;"></div></div></div>
 
@@ -806,17 +745,11 @@
                 pendingDowntime += dtMins;
                 
                 prodLogHtml += `
-                <tr style="background-color: #fef2f2;" class="print-downtime">
+                <tr style="background-color: #fef2f2;">
                     <td class="pt-time-col" style="font-weight:900; color:#cbd5e1; text-align:center;">-</td>
                     <td class="pt-time-col" style="color:#ef4444; font-weight:900;">${d.time}</td>
                     <td class="pt-time-col" style="color:#ef4444;">-</td>
-                    <td colspan="7" style="background-color: #fef2f2 !important; color:#ef4444 !important; font-weight:900 !important; text-align:center; letter-spacing: 2px;">ปิดเครื่อง</td>
-                </tr>
-                <tr style="background-color: #f0fdf4;" class="print-downtime">
-                    <td class="pt-time-col" style="font-weight:900; color:#cbd5e1; text-align:center;">-</td>
-                    <td class="pt-time-col" style="color:#10b981; font-weight:900;">${d.time_end || d.time}</td>
-                    <td class="pt-time-col" style="color:#10b981;">-</td>
-                    <td colspan="7" style="background-color: #f0fdf4 !important; color:#10b981 !important; font-weight:900 !important; text-align:center; letter-spacing: 2px;">เปิดเครื่อง</td>
+                    <td colspan="7" style="color:#ef4444 !important; font-weight:900 !important; text-align:center; letter-spacing: 2px;">ปิดเครื่อง (พัก ${dtMins} น.)</td>
                 </tr>`;
             } 
             else if(d.type === 'prod') {
@@ -917,17 +850,69 @@
             usedAll: totalUsedAll,
             remHL: totalRemHL, remBOD: totalRemBod,
             totDuration: totalDuration,
-            drops: sortedDrops
+            drops: sortedDrops,
+            timeStop: document.getElementById('time_stop').value
         };
 
-        // --- LIVE PREDICTOR TICKER ---
+        let tarHL = DATA.targetReserve ? DATA.targetReserve.hl : 0;
+        let tarBH = DATA.targetReserve ? DATA.targetReserve.bh : 0;
+        let tarBL = DATA.targetReserve ? DATA.targetReserve.bl : 0;
+
+        let remHL_fc = Math.max(0, ordHL - sentHL);
+        let remBH_fc = Math.max(0, ordBH - sentBH);
+        let remBL_fc = Math.max(0, ordBL - sentBL);
+
+        let needHL = Math.max(0, (remHL_fc + tarHL) - curHL);
+        let needBH = Math.max(0, (remBH_fc + tarBH) - curBH);
+        let needBL = Math.max(0, (remBL_fc + tarBL) - curBL);
+        let totalNeedBOD = needBH + needBL; 
+
+        let avgHLHist = 70;
+        let avgBODHist = 62;
+        let dropsForHL = needHL / avgHLHist;
+        let dropsForBOD = totalNeedBOD / avgBODHist; 
+        
+        let totalDropsNeeded = Math.ceil(dropsForHL + dropsForBOD);
+
+        safeSet('fc_need_text', `หลอด ${needHL} | หยาบ ${needBH} | ละเอียด ${needBL}`);
+        
+        if (totalDropsNeeded > 0) {
+            let addMins = totalDropsNeeded * avgTime;
+            let hrs = Math.floor(addMins / 60);
+            let mins = Math.round(addMins % 60);
+            safeSet('fc_duration_text', `${totalDropsNeeded} ตก (ประมาณ ${hrs} ชม. ${mins} น.)`);
+            
+            let lastEventStr = startTimeStr;
+            if(sortedDrops.length > 0) {
+                let ld = sortedDrops[sortedDrops.length-1];
+                lastEventStr = ld.type === 'downtime' ? (ld.time_end || ld.time) : ld.time;
+            }
+            
+            let baseAbsMins = getAdjustedMinutes(lastEventStr, startTimeStr);
+            let totalFinishMins = baseAbsMins + addMins;
+            
+            let [sh, sm] = startTimeStr.split(':').map(Number);
+            let finalRawMins = (sh * 60 + sm) + totalFinishMins;
+            
+            let fh = Math.floor(finalRawMins / 60) % 24;
+            let fm = Math.floor(finalRawMins % 60);
+            safeSet('fc_finish_time', `${String(fh).padStart(2, '0')}:${String(fm).padStart(2, '0')} น.`);
+        } else {
+            safeSet('fc_duration_text', "ไม่ต้องตกเพิ่มแล้ว");
+            safeSet('fc_finish_time', "เสร็จสิ้นตามเป้า! 🎉");
+        }
+        
+        if(document.getElementById('fc_stat_info')) {
+             document.getElementById('fc_stat_info').innerText = `*อ้างอิงสถิติผลิตเฉลี่ย: หลอด ≈${avgHLHist} ใบ/ตก, บด ≈${avgBODHist} ใบ/ตก`;
+        }
+        
         globalAvgTime = avgTime;
-        let lastEventStr = startTimeStr;
+        let lastEventForPred = startTimeStr;
         if(sortedDrops.length > 0) {
             let ld = sortedDrops[sortedDrops.length-1];
-            lastEventStr = ld.type === 'downtime' ? (ld.time_end || ld.time) : ld.time;
+            lastEventForPred = ld.type === 'downtime' ? (ld.time_end || ld.time) : ld.time;
         }
-        globalLastEventTime = lastEventStr;
+        globalLastEventTime = lastEventForPred;
         updatePredictor(); 
 
         renderSummaryTable(truckMat); renderDetailTable(truckDetail);
@@ -994,7 +979,7 @@
             </table>
         </div>`; } } }); content += `</div>`; if(hasData) h += content; } }); if(h==='') h='<div style="text-align:center; padding:20px; color:#aaa;">ยังไม่มีข้อมูล</div>'; document.getElementById('truck_detail_container').innerHTML = h; }
     
-    function updateOrder(key, val) { DATA.orders[key] = getNum(val); saveData(); // calcAll is inside saveData
+    function updateOrder(key, val) { DATA.orders[key] = getNum(val); saveData(); 
         const tid = key.split('_')[0] + '_' + key.split('_')[1]; const hl = getNum(DATA.orders[tid+'_hl']); const bh = getNum(DATA.orders[tid+'_bh']); const bl = getNum(DATA.orders[tid+'_bl']); const sumEl = document.getElementById('ord_sum_'+tid); if(sumEl) sumEl.innerText = hl+bh+bl;
     }
     
@@ -1208,7 +1193,7 @@
     function getTypeName(id) { return ICE_TYPES.find(x=>x.id===id).label; }
     function switchPage(id) { document.querySelectorAll('.page').forEach(x=>x.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active')); document.getElementById('page-'+id).classList.add('active'); const map={setup:0,production:1,summary:2}; document.querySelectorAll('.nav-btn')[map[id]].classList.add('active'); if(id==='summary'){calcAll(); window.scrollTo(0,0);} }
 
-    // --- 🔥 V167: FIXED PDF REPORT LAYOUT 🔥 ---
+    // --- 🔥 V168: PRINT PDF FUNCTION (FIXED A4 LAYOUT) 🔥 ---
     function printReport() {
         saveData();
         
@@ -1224,6 +1209,7 @@
         const info = DATA.reportInfo;
         const startTimeStr = document.getElementById('time_start').value || "22:00";
         
+        // Prepare exact 30 items for the left table
         let renderItems = [];
         rd.drops.forEach(d => {
             if(d.type === 'prod') {
@@ -1244,74 +1230,46 @@
 
                 renderItems.push({
                     type: 'prod', time: d.time, duration: netDiff,
-                    whl: w_hl||'-', wbod: w_bod||'-', phl: p_hl||'-', pbh: p_bh||'-', pbl: p_bl||'-',
-                    rhl: w_hl>0?(w_hl-p_hl):'-', rbod: w_bod>0?(w_bod-(p_bh+p_bl)):'-'
+                    whl: w_hl||'', wbod: w_bod||'', phl: p_hl||'', pbh: p_bh||'', pbl: p_bl||'',
+                    rhl: w_hl>0?(w_hl-p_hl):'', rbod: w_bod>0?(w_bod-(p_bh+p_bl)):''
                 });
             } else if (d.type === 'downtime') {
-                renderItems.push({ type: 'dt1', time: d.time });
-                renderItems.push({ type: 'dt2', time: d.time_end || d.time });
+                // Single line for downtime to fit 30-row sheet perfectly
+                renderItems.push({ type: 'downtime', time: `${d.time}-${d.time_end || d.time}`, dtMins: getMinDiff(d.time, d.time_end || d.time) });
             }
         });
 
-        // Mapping to 29 rows (save last row for signature area)
-        let sumCol = [
-            `หลอดใหญ่ <b>${rd.sumHL}</b> กระสอบ`,
-            `บดหยาบ <b>${rd.sumBH}</b> กระสอบ`,
-            `บดละเอียด <b>${rd.sumBL}</b> กระสอบ`,
-            `รวม <b>${rd.totProd}</b> กระสอบ`,
-            ``, ``,
-            `นน.เฉลี่ยหลอดใหญ่ <b>20</b> กก.`,
-            `นน.เฉลี่ยบดหยาบ <b>23</b> กก.`,
-            `นน.เฉลี่ยบดละเอียด <b>24</b> กก.`,
-            `นน.รวม <b>22</b> กก.`,
-            ``, ``,
-            `นน.รวมหลอดใหญ่ <b>${rd.wHL.toLocaleString()}</b> กก.`,
-            `นน.รวมบดหยาบ <b>${rd.wBH.toLocaleString()}</b> กก.`,
-            `นน.รวมบดละเอียด <b>${rd.wBL.toLocaleString()}</b> กก.`,
-            `น้ำหนักรวม <b>${rd.totWeight.toLocaleString()}</b> กก.`,
-            ``, ``,
-            `เวลาเฉลี่ย <b>${rd.avgTime}</b> นาที/ตก`,
-            `น้ำหนัก <b>${rd.tonsDay}</b> ตัน/วัน`,
-            `จำนวนเฉลี่ย <b>${rd.avgYield}</b> กระสอบ/ตก`,
-            ``, ``,
-            `เบิกกระสอบ <b>${rd.withHL + rd.withBOD}</b> ใบ (รวมทั้งหมด)`,
-            `กระสอบที่ใช้ <b>${rd.usedAll}</b> ใบ`,
-            `กระสอบคงเหลือ <b>${rd.remHL + rd.remBOD}</b> ใบ`,
-            ``,
-            `ค่า pH &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>${info.ph}</b>`,
-            `ค่า TDS &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>${info.tds}</b>`
-        ];
-
+        // Construct HTML
         let html = `
             <div class="print-header">แบบฟอร์มบันทึกการผลิตน้ำแข็ง สาขา ${info.branch} เครื่องที่ ${info.machine} วันที่ ${thaiDateStr}</div>
-            <table class="print-table">
-                <thead>
-                    <tr>
-                        <th rowspan="2" style="width:4%;">ลำดับ</th>
-                        <th style="width:9%;">เวลา</th>
-                        <th rowspan="2" style="width:6%;">นาที/ตก</th>
-                        <th colspan="2" style="width:14%;">เบิกกระสอบ</th>
-                        <th colspan="3" style="width:20%;">ผลการผลิต</th>
-                        <th colspan="2" style="width:14%;">กระสอบคงเหลือ</th>
-                        <th rowspan="2" style="width:33%; border-left:2px solid black;">ข้อมูลสรุป</th>
-                    </tr>
-                    <tr>
-                        <th>เปิดเครื่อง<br>${startTimeStr} น.</th>
-                        <th style="width:7%;">หลอด</th><th style="width:7%;">บด</th>
-                        <th style="width:7%;">หลอดใหญ่</th><th style="width:7%;">บดหยาบ</th><th style="width:6%;">ละเอียด</th>
-                        <th style="width:7%;">หลอด</th><th style="width:7%;">บด</th>
-                    </tr>
-                </thead>
-                <tbody>
+            
+            <div class="print-wrapper">
+                <div class="print-left">
+                    <table class="print-table">
+                        <thead>
+                            <tr>
+                                <th rowspan="2" style="width:5%;">ลำดับ</th>
+                                <th style="width:13%;">เวลา</th>
+                                <th rowspan="2" style="width:8%;">นาที/<br>ตก</th>
+                                <th colspan="2" style="width:16%;">เบิกกระสอบ</th>
+                                <th colspan="3" style="width:30%;">ผลการผลิต</th>
+                                <th colspan="2" style="width:16%;">กระสอบคงเหลือ</th>
+                            </tr>
+                            <tr>
+                                <th>เปิดเครื่อง<br>${startTimeStr} น.</th>
+                                <th style="width:8%;">หลอด</th><th style="width:8%;">บด</th>
+                                <th style="width:10%;">หลอดใหญ่</th><th style="width:10%;">บดหยาบ</th><th style="width:10%;">ละเอียด</th>
+                                <th style="width:8%;">หลอด</th><th style="width:8%;">บด</th>
+                            </tr>
+                        </thead>
+                        <tbody>
         `;
 
-        let loopLimit = Math.max(29, renderItems.length); // Leave room for signature box
+        let loopLimit = Math.max(30, renderItems.length); 
         let prodCounter = 0;
 
         for(let i=0; i<loopLimit; i++) {
             let item = renderItems[i];
-            let summaryText = sumCol[i] || '';
-
             if(item && item.type === 'prod') {
                 prodCounter++;
                 html += `<tr>
@@ -1319,19 +1277,11 @@
                     <td>${item.whl}</td><td>${item.wbod}</td>
                     <td>${item.phl}</td><td>${item.pbh}</td><td>${item.pbl}</td>
                     <td>${item.rhl}</td><td>${item.rbod}</td>
-                    <td class="print-summary-col">${summaryText}</td>
                 </tr>`;
-            } else if (item && item.type === 'dt1') {
+            } else if (item && item.type === 'downtime') {
                 html += `<tr class="print-downtime">
-                    <td>-</td><td>${item.time}</td><td>-</td>
-                    <td colspan="7">ปิดเครื่อง</td>
-                    <td class="print-summary-col" style="color:black; font-style:normal;">${summaryText}</td>
-                </tr>`;
-            } else if (item && item.type === 'dt2') {
-                html += `<tr class="print-downtime" style="color:#15803d;">
-                    <td>-</td><td>${item.time}</td><td>-</td>
-                    <td colspan="7">เปิดเครื่อง</td>
-                    <td class="print-summary-col" style="color:black; font-style:normal;">${summaryText}</td>
+                    <td></td><td>${item.time}</td><td></td>
+                    <td colspan="7">ปิดเครื่อง (พัก ${item.dtMins} น.)</td>
                 </tr>`;
             } else {
                 html += `<tr>
@@ -1339,33 +1289,67 @@
                     <td></td><td></td>
                     <td></td><td></td><td></td>
                     <td></td><td></td>
-                    <td class="print-summary-col">${summaryText}</td>
                 </tr>`;
             }
         }
 
-        // Add the Footer row
+        // Bottom row of left table
         html += `
-                <tr class="print-footer">
-                    <td colspan="2">รวม</td>
-                    <td>${rd.totDuration}</td>
-                    <td>${rd.withHL}</td><td>${rd.withBOD}</td>
-                    <td>${rd.sumHL}</td><td>${rd.sumBH}</td><td>${rd.sumBL}</td>
-                    <td>${rd.remHL}</td><td>${rd.remBOD}</td>
-                    <td class="print-summary-col" style="padding-top:5px; padding-bottom:5px;">
-                        พนักงานผลิต: <b>${info.prodStaff}</b> คน &nbsp;|&nbsp; วิศวกรรม: <b>${info.engStaff}</b> คน
-                    </td>
-                </tr>
-            </tbody></table>
+                        <tr class="print-footer">
+                            <td>รวม</td>
+                            <td>ปิดเครื่อง<br>${rd.timeStop} น.</td>
+                            <td>${rd.totDuration}</td>
+                            <td>${rd.withHL}</td><td>${rd.withBOD}</td>
+                            <td>${rd.sumHL}</td><td>${rd.sumBH}</td><td>${rd.sumBL}</td>
+                            <td>${rd.remHL}</td><td>${rd.remBOD}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
             
-            <div class="print-signature-box">
-                <div style="width:45%; text-align:center;">
-                    <br>ลงชื่อ ........................................................... พนักงาน
+            <div class="print-right">
+                <div>
+                    <div class="s-title" style="margin-top:0;">ข้อมูลสรุป</div>
+                    <div class="s-line"><span>หลอดใหญ่</span> <span class="s-val">${rd.sumHL} กระสอบ</span></div>
+                    <div class="s-line"><span>บดหยาบ</span> <span class="s-val">${rd.sumBH} กระสอบ</span></div>
+                    <div class="s-line"><span>บดละเอียด</span> <span class="s-val">${rd.sumBL} กระสอบ</span></div>
+                    <div class="s-line"><span>รวม</span> <span class="s-val">${rd.totProd} กระสอบ</span></div>
+                    
+                    <div class="s-title">น้ำหนักเฉลี่ย</div>
+                    <div class="s-line"><span>หลอดใหญ่</span> <span class="s-val">20 กก.</span></div>
+                    <div class="s-line"><span>บดหยาบ</span> <span class="s-val">23 กก.</span></div>
+                    <div class="s-line"><span>บดละเอียด</span> <span class="s-val">24 กก.</span></div>
+                    <div class="s-line"><span>รวม</span> <span class="s-val">22 กก.</span></div>
+                    
+                    <div class="s-title">น้ำหนักรวม</div>
+                    <div class="s-line"><span>หลอดใหญ่</span> <span class="s-val">${rd.wHL.toLocaleString()} กก.</span></div>
+                    <div class="s-line"><span>บดหยาบ</span> <span class="s-val">${rd.wBH.toLocaleString()} กก.</span></div>
+                    <div class="s-line"><span>บดละเอียด</span> <span class="s-val">${rd.wBL.toLocaleString()} กก.</span></div>
+                    <div class="s-line"><span>รวม</span> <span class="s-val">${rd.totWeight.toLocaleString()} กก.</span></div>
+                    
+                    <div class="s-title">สถิติการผลิต</div>
+                    <div class="s-line"><span>เวลาเฉลี่ย</span> <span class="s-val">${rd.avgTime} นาที/ตก</span></div>
+                    <div class="s-line"><span>น้ำหนัก</span> <span class="s-val">${rd.tonsDay} ตัน/วัน</span></div>
+                    <div class="s-line"><span>จำนวนเฉลี่ย</span> <span class="s-val">${rd.avgYield} กระสอบ/ตก</span></div>
+                    
+                    <div class="s-title">สรุปกระสอบ</div>
+                    <div class="s-line"><span>เบิกกระสอบรวม</span> <span class="s-val">${rd.withHL + rd.withBOD} ใบ</span></div>
+                    <div class="s-line"><span>กระสอบที่ใช้</span> <span class="s-val">${rd.usedAll} ใบ</span></div>
+                    <div class="s-line"><span>กระสอบคงเหลือ</span> <span class="s-val">${rd.remHL + rd.remBOD} ใบ</span></div>
+                    
+                    <div class="s-title">ข้อมูลอื่นๆ</div>
+                    <div class="s-line"><span>ค่า pH</span> <span class="s-val">${info.ph}</span></div>
+                    <div class="s-line"><span>ค่า TDS</span> <span class="s-val">${info.tds}</span></div>
+                    <div class="s-line"><span>พนักงานผลิต</span> <span class="s-val">${info.prodStaff} คน</span></div>
+                    <div class="s-line"><span>วิศวกรรม</span> <span class="s-val">${info.engStaff} คน</span></div>
                 </div>
-                <div style="width:45%; text-align:center;">
-                    <br>ลงชื่อ ........................................................... ผู้จัดการสาขา
+                
+                <div class="sign-box">
+                    <div class="sign-line">ลงชื่อ ...................................... พนักงาน</div>
+                    <div class="sign-line">ลงชื่อ ...................................... ผู้จัดการสาขา</div>
                 </div>
             </div>
+        </div>
         `;
 
         document.getElementById('print_area').innerHTML = html;
