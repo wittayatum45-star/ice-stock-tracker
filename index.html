@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V161 (Premium UI)</title>
+    <title>Smart Ice V162 (Optimized Summary)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
         /* --- Modern Premium Theme --- */
@@ -40,7 +40,7 @@
         .dash-item div { font-size: 1.6rem; font-weight: 900; color: #34d399; line-height: 1; text-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         
         /* Order Status Bar */
-        .order-status-bar { background: #fffbeb; border: 1px solid #fde68a; padding: 10px; text-align: center; font-size: 0.95rem; color: #d97706; font-weight: 800; display: flex; justify-content: space-around; border-radius: var(--radius-pill); margin: 0 10px 15px 10px; box-shadow: var(--shadow-sm); }
+        .order-status-bar { background: #fffbeb; border: 1px solid #fde68a; padding: 10px; text-align: center; font-size: 0.95rem; color: #d97706; font-weight: bold; display: flex; justify-content: space-around; border-radius: var(--radius-pill); margin: 0 10px 15px 10px; box-shadow: var(--shadow-sm); }
         
         /* Navigation */
         .nav-bar { display: flex; background: var(--card-bg); margin: 0 10px 20px 10px; border-radius: var(--radius-pill); padding: 6px; box-shadow: var(--shadow-md); position: sticky; top: 85px; z-index: 900; border: 1px solid #f1f5f9; }
@@ -104,13 +104,13 @@
         .cr-total { color: var(--primary); font-size: 1.15rem; }
         .cr-header { font-weight: 900; color: white; margin-bottom: 12px; font-size: 1.1rem; background: var(--text-dark); padding: 8px 12px; border-radius: 8px; display: inline-block; }
 
-        /* Forecast Card */
-        .forecast-card { background: linear-gradient(135deg, #f3e8ff 0%, #e0e7ff 100%); border: none; box-shadow: 0 10px 25px rgba(139, 92, 246, 0.15); }
-        .fc-header { font-weight: 900; color: #6d28d9; font-size: 1.2rem; border-bottom: 2px dashed #c4b5fd; padding-bottom: 10px; margin-bottom: 15px; display:flex; justify-content:space-between; }
-        .fc-result { background: rgba(255,255,255,0.8); border-radius: 12px; padding: 15px; margin-top: 15px; border: 1px solid white; backdrop-filter: blur(10px); }
-        .fc-highlight { font-size: 1.8rem; font-weight: 900; color: #be123c; text-align: center; margin-top: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-
-        /* Truck Detail */
+        /* Truck Matrix & Detail */
+        .truck-matrix-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 5px; border-radius: 12px; overflow: hidden; border: 1px solid #cbd5e1; }
+        .truck-matrix-table th { background: #e2e8f0; color: #334155; padding: 10px 6px; font-weight: 800; border-bottom: 1px solid #cbd5e1; font-size: 0.9rem; }
+        .truck-matrix-table td { border-bottom: 1px solid #e2e8f0; padding: 8px 4px; text-align: center; vertical-align: middle; background: white; }
+        .truck-name-col { text-align: left; padding-left: 15px !important; font-weight: 900; color: var(--text-dark); font-size: 0.95rem; }
+        .st-pill { display: inline-block; padding: 4px 10px; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 800; min-width: 60px; box-shadow: var(--shadow-sm); }
+        .st-over { background: #e0f2fe; color: #0284c7; } .st-miss { background: #fee2e2; color: #dc2626; } .st-ok { background: #dcfce7; color: #16a34a; } .st-none { color: #cbd5e1; font-weight: 400; font-size: 1.2rem; }
         .truck-detail-block { background: white; border-radius: var(--radius-md); padding: 15px; margin-bottom: 20px; border: 1px solid #e2e8f0; box-shadow: var(--shadow-sm); }
         .truck-detail-header { font-weight: 900; color: var(--text-dark); border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 15px; font-size: 1.15rem; display: flex; justify-content: space-between; align-items: center; }
         
@@ -142,7 +142,7 @@
         .fab-main { width: 65px; height: 65px; border-radius: 50%; background: var(--success-grad); color: white; border: none; font-size: 36px; line-height: 1; font-weight: 300; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
         .fab-main:active { transform: scale(0.9); }
         
-        /* 🔥 V161: Enhanced Live Predictor Pill 🔥 */
+        /* 🔥 V162: Glassmorphism Floating Predictor 🔥 */
         .live-predictor-fab { position: fixed; bottom: 35px; left: 15px; z-index: 2000; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); border: 2px solid #e2e8f0; color: var(--text-dark); padding: 10px 16px; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 800; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 10px; transition: 0.3s; }
         .lpf-time { font-size: 1.25rem; color: #7c3aed; font-weight: 900; letter-spacing: 0.5px; }
         .lpf-badge { background: #f3e8ff; color: #6d28d9; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 900; }
@@ -168,8 +168,13 @@
         .btn-edit-mini { background: #fef9c3; color: #d97706; padding: 6px 12px;}
         .btn-del-mini { background: #fee2e2; color: #dc2626; padding: 6px 12px;}
 
-        /* Hide scrollbar for neatness */
-        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        /* Detail Table (Inside truck details) */
+        .detail-table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; margin-top: 5px;}
+        .detail-table th { background: #f8fafc; padding: 8px 4px; border-bottom: 1px solid #e2e8f0;}
+        .detail-table td { padding: 10px 4px; border-bottom: 1px solid #f1f5f9; text-align: center; }
+        .dt-fresh { color: #16a34a; font-weight: 800; background: #f0fdf4; }
+        .dt-stock { color: #0284c7; font-weight: 800; background: #e0f2fe; }
+        .dt-total { font-weight: 900; color: white; background: var(--text-dark); }
     </style>
 </head>
 <body>
@@ -183,7 +188,7 @@
     <div class="order-status-bar">
         <div class="os-item">สั่งรวม: <span id="os_total">0</span></div>
         <div class="os-item">ส่งแล้ว: <span id="os_sent">0</span></div>
-        <div class="os-item">ค้างส่ง: <b id="os_remain" style="color:#dc2626;">0</b></div>
+        <div class="os-item">ค้างส่ง: <b id="os_remain" style="color:#ef4444;">0</b></div>
     </div>
 
     <div class="nav-bar">
@@ -240,25 +245,6 @@
     <div class="fab-container"><button class="fab-main" onclick="addDrop('prod')">+</button></div>
 
     <div id="page-summary" class="page">
-        
-        <div class="modern-card card-body forecast-card">
-            <div class="fc-header"><span>🔮 พยากรณ์อัจฉริยะ</span></div>
-            <div style="font-size:0.85rem; color:#6b7280; margin-bottom:12px; font-weight:600;">ระบุจำนวนกระสอบที่ต้องการเผื่อไว้ในห้อง (หลังส่งครบ)</div>
-            <div class="grid-3">
-                <div><div class="input-label" style="color:#7c3aed;">เผื่อหลอด</div><input type="tel" id="fc_tar_hl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="saveData()" style="border-color:#ddd6fe; color:#6d28d9;"></div>
-                <div><div class="input-label" style="color:#7c3aed;">เผื่อหยาบ</div><input type="tel" id="fc_tar_bh" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="saveData()" style="border-color:#ddd6fe; color:#6d28d9;"></div>
-                <div><div class="input-label" style="color:#7c3aed;">เผื่อละเอียด</div><input type="tel" id="fc_tar_bl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="saveData()" style="border-color:#ddd6fe; color:#6d28d9;"></div>
-            </div>
-            
-            <div class="fc-result">
-                <div class="cr-row"><span class="cr-label" style="color:#475569;">ขาด (ต้องผลิตเพิ่ม):</span> <span class="cr-val" id="fc_need_text" style="color:#e11d48;">-</span></div>
-                <div class="cr-row"><span class="cr-label" style="color:#475569;">ใช้เวลาเดินเครื่องอีก:</span> <span class="cr-val" id="fc_duration_text" style="color:#0f172a;">-</span></div>
-                <div style="text-align:center; margin-top:15px; font-weight:800; color:#64748b; font-size:0.9rem; text-transform:uppercase;">คาดว่าจะเสร็จเวลา</div>
-                <div class="fc-highlight" id="fc_finish_time">--:-- น.</div>
-                <div id="fc_stat_info" style="font-size:0.75rem; color:#94a3b8; text-align:center; margin-top:12px; border-top:1px dashed #e2e8f0; padding-top:10px;"></div>
-            </div>
-        </div>
-
         <div class="modern-card card-body">
              <h3>📊 สรุปสถานะรายคัน (ขาด/เกิน)</h3>
              <div id="truck_report_container" style="overflow-x:auto;"></div>
@@ -267,28 +253,25 @@
         <div class="modern-card card-body">
             <h3>📝 บันทึกการผลิต (ตารางลงงาน)</h3>
             <div style="overflow-x:auto; border-radius:12px; border:1px solid #cbd5e1;">
-                <table class="paper-table" style="margin-top:0; border:none;">
+                <table class="paper-table" id="prod_paper_table" style="margin-top:0; border:none; table-layout:fixed; width:100%;">
                     <thead>
                         <tr>
-                            <th rowspan="3" class="pt-time" style="width:6%; padding:2px; font-size:0.75rem; white-space:nowrap;">ลำดับ</th>
-                            <th class="pt-time" style="width:14%; border-bottom:none; padding:4px 2px 2px 2px; font-size:0.75rem; white-space:nowrap; line-height:1;">เวลา</th>
-                            <th rowspan="3" class="pt-duration" style="width:8%; padding:2px; font-size:0.7rem; white-space:nowrap; line-height:1.2;">นาที/<br>ตก</th>
+                            <th rowspan="2" style="width:6%;">ลำดับ</th>
+                            <th style="width:14%;" id="prod_header_label_time">เวลา</th>
+                            <th rowspan="2" style="width:8%;">นาที/<br>ตก</th>
                             <th colspan="2" class="pt-check" style="width:20%">เบิกกระสอบ</th>
                             <th colspan="3" class="pt-prod" style="width:30%">ผลการผลิต</th>
                             <th colspan="2" class="pt-rem" style="width:22%">กระสอบคงเหลือ</th>
                         </tr>
                         <tr>
-                            <th class="pt-time sub-header" style="font-size:0.65rem !important; border-top:none; border-bottom:none; padding:0; line-height:1; white-space:nowrap;">เปิดเครื่อง</th>
-                            <th rowspan="2" class="pt-check sub-header" style="font-size:0.75rem !important;">หลอด</th>
-                            <th rowspan="2" class="pt-check sub-header" style="font-size:0.75rem !important;">บด</th>
-                            <th rowspan="2" class="pt-prod sub-header" style="font-size:0.7rem !important;">หลอด<br>ใหญ่</th>
-                            <th rowspan="2" class="pt-prod sub-header" style="font-size:0.7rem !important;">บด<br>หยาบ</th>
-                            <th rowspan="2" class="pt-prod sub-header" style="font-size:0.7rem !important;">บด<br>ละเอียด</th>
-                            <th rowspan="2" class="pt-rem sub-header" style="font-size:0.75rem !important;">หลอด</th>
-                            <th rowspan="2" class="pt-rem sub-header" style="font-size:0.75rem !important;">บด</th>
-                        </tr>
-                        <tr>
-                            <th id="header_start_time" class="pt-time" style="color:#ea580c; font-size:0.85rem; font-weight:900; border-top:none; padding:2px 0 6px 0; line-height:1; white-space:nowrap;">-</th>
+                            <th id="header_start_time_simple" style="color:#ea580c; font-weight:900; background:#f1f5f9; padding:2px;">22:00</th>
+                            <th class="pt-check sub-header" style="font-weight:700;">หลอด</th>
+                            <th class="pt-check sub-header" style="font-weight:700;">บด</th>
+                            <th class="pt-prod sub-header" style="font-weight:700; font-size:0.75rem;">หลอดใหญ่</th>
+                            <th class="pt-prod sub-header" style="font-weight:700; font-size:0.75rem;">บดหยาบ</th>
+                            <th class="pt-prod sub-header" style="font-weight:700; font-size:0.75rem;">ละเอียด</th>
+                            <th class="pt-rem sub-header" style="font-weight:700;">หลอด</th>
+                            <th class="pt-rem sub-header" style="font-weight:700;">บด</th>
                         </tr>
                     </thead>
                     <tbody id="prod_log_body"></tbody>
@@ -304,14 +287,7 @@
                     <div class="cr-row" style="margin-top:8px; padding-top:8px; border-top:1px solid #e2e8f0;"><span class="cr-label cr-total">รวมผลิตทั้งหมด:</span> <span class="cr-val cr-total" id="rpt_total_prod" style="font-size:1.3rem;">0</span> กระสอบ</div>
                 </div>
                 <div class="cr-section">
-                    <div class="cr-header" style="background:var(--warning-grad);">⚖️ น้ำหนักเฉลี่ย (ต่อกระสอบ)</div>
-                    <div class="cr-row"><span class="cr-label">นน.เฉลี่ย หลอดใหญ่:</span> <span class="cr-val">20</span> กก.</div>
-                    <div class="cr-row"><span class="cr-label">นน.เฉลี่ย บดหยาบ:</span> <span class="cr-val">23</span> กก.</div>
-                    <div class="cr-row"><span class="cr-label">นน.เฉลี่ย บดละเอียด:</span> <span class="cr-val">24</span> กก.</div>
-                    <div class="cr-row"><span class="cr-label cr-total" style="color:#d97706;">นน.เฉลี่ยรวม:</span> <span class="cr-val cr-total" style="color:#d97706;">22</span> กก.</div>
-                </div>
-                <div class="cr-section">
-                    <div class="cr-header" style="background:var(--primary-grad);">🏋️ น้ำหนักรวม (Production Weight)</div>
+                    <div class="cr-header" style="background:var(--warning-grad);">⚖️ น้ำหนักรวม (Production Weight)</div>
                     <div class="cr-row"><span class="cr-label">นน.รวม หลอดใหญ่:</span> <span class="cr-val" id="rpt_w_hl">0</span> กก.</div>
                     <div class="cr-row"><span class="cr-label">นน.รวม บดหยาบ:</span> <span class="cr-val" id="rpt_w_bh">0</span> กก.</div>
                     <div class="cr-row"><span class="cr-label">นน.รวม บดละเอียด:</span> <span class="cr-val" id="rpt_w_bl">0</span> กก.</div>
@@ -431,7 +407,7 @@
         setInterval(updatePredictor, 60000); 
     });
 
-    function getEmptyData() { return { times: { start: "22:00", stop: "06:00" }, initStock: { hl:0, bh:0, bl:0 }, targetReserve: { hl:0, bh:0, bl:0 }, orders: {}, drops: [] }; }
+    function getEmptyData() { return { times: { start: "22:00", stop: "06:00" }, initStock: { hl:0, bh:0, bl:0 }, orders: {}, drops: [] }; }
     
     function saveData() { 
         const dateKey = document.getElementById('setup_date').value;
@@ -439,12 +415,6 @@
         DATA.times.start = document.getElementById('time_start').value;
         DATA.times.stop = document.getElementById('time_stop').value;
         DATA.initStock = { hl: getNum(document.getElementById('init_hl').value), bh: getNum(document.getElementById('init_bh').value), bl: getNum(document.getElementById('init_bl').value) };
-        
-        if(!DATA.targetReserve) DATA.targetReserve = {hl:0, bh:0, bl:0};
-        DATA.targetReserve.hl = getNum(document.getElementById('fc_tar_hl').value);
-        DATA.targetReserve.bh = getNum(document.getElementById('fc_tar_bh').value);
-        DATA.targetReserve.bl = getNum(document.getElementById('fc_tar_bl').value);
-
         localStorage.setItem(`ICE_DATA_${dateKey}`, JSON.stringify(DATA)); 
         calcAll(); 
     }
@@ -458,7 +428,6 @@
                 DATA = JSON.parse(d); 
                 if(!DATA.drops) DATA.drops = []; 
                 if(!DATA.orders) DATA.orders = {}; 
-                if(!DATA.targetReserve) DATA.targetReserve = {hl:0, bh:0, bl:0};
                 if(!DATA.initStock) DATA.initStock = {hl:0, bh:0, bl:0};
                 
                 DATA.drops.forEach(drop => {
@@ -502,10 +471,9 @@
         document.getElementById('init_bh').value = DATA.initStock.bh || 0;
         document.getElementById('init_bl').value = DATA.initStock.bl || 0;
         
-        if(document.getElementById('fc_tar_hl')) {
-            document.getElementById('fc_tar_hl').value = DATA.targetReserve.hl || 0;
-            document.getElementById('fc_tar_bh').value = DATA.targetReserve.bh || 0;
-            document.getElementById('fc_tar_bl').value = DATA.targetReserve.bl || 0;
+        // Update Simple Table Header Time (V162)
+        if(document.getElementById('header_start_time_simple')) {
+            document.getElementById('header_start_time_simple').innerText = (DATA.times.start || "22:00") + ' น.';
         }
     }
 
@@ -668,62 +636,6 @@
         calcAll();
     }
 
-    function getHistoricalAverages() {
-        let totalBOD = 0, countBOD = 0;
-        let totalHL = 0, countHL = 0;
-        
-        const currentDateStr = document.getElementById('setup_date').value;
-        if(!currentDateStr) return { avgHL: 70, avgBOD: 62 }; 
-        
-        let parts = currentDateStr.split('-');
-        let d = new Date(parts[0], parts[1]-1, parts[2]);
-
-        for(let i=0; i<=3; i++) {
-            let checkDate = new Date(d);
-            checkDate.setDate(d.getDate() - i);
-            let dateKey = checkDate.getFullYear() + '-' + String(checkDate.getMonth()+1).padStart(2,'0') + '-' + String(checkDate.getDate()).padStart(2,'0');
-            
-            let pastDataStr = localStorage.getItem(`ICE_DATA_${dateKey}`);
-            if(pastDataStr) {
-                try {
-                    let pastData = JSON.parse(pastDataStr);
-                    if(pastData && pastData.drops) {
-                        pastData.drops.forEach(drop => {
-                            if(drop.type === 'prod') {
-                                let p_hl = getNum(drop.p_in_room?.hl);
-                                let p_bh = getNum(drop.p_in_room?.bh);
-                                let p_bl = getNum(drop.p_in_room?.bl);
-                                if(drop.dist) {
-                                    drop.dist.forEach(distItem => {
-                                        if(distItem.type === 'hl') p_hl += getNum(distItem.total);
-                                        if(distItem.type === 'bh') p_bh += getNum(distItem.total);
-                                        if(distItem.type === 'bl') p_bl += getNum(distItem.total);
-                                    });
-                                }
-                                
-                                let bod_sum = p_bh + p_bl;
-                                
-                                if(p_hl === 0 && bod_sum > 0) {
-                                    totalBOD += bod_sum;
-                                    countBOD++;
-                                }
-                                if(bod_sum === 0 && p_hl > 0) {
-                                    totalHL += p_hl;
-                                    countHL++;
-                                }
-                            }
-                        });
-                    }
-                } catch(e) {}
-            }
-        }
-
-        return {
-            avgHL: countHL > 0 ? (totalHL / countHL) : 70,
-            avgBOD: countBOD > 0 ? (totalBOD / countBOD) : 62
-        };
-    }
-
     function calcAll() {
         let sumP={hl:0,bh:0,bl:0}, curHL=getNum(document.getElementById('init_hl').value), curBH=getNum(document.getElementById('init_bh').value), curBL=getNum(document.getElementById('init_bl').value);
         let totalSent=0, sentHL=0, sentBH=0, sentBL=0; 
@@ -750,27 +662,24 @@
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
         let dropCount = 0;
 
-        if(document.getElementById('header_start_time')) {
-            document.getElementById('header_start_time').innerText = startTimeStr + ' น.';
-        }
-
         sortedDrops.forEach(d => {
             if(d.type === 'downtime') {
                 let dtMins = getMinDiff(d.time, d.time_end || d.time);
                 pendingDowntime += dtMins;
                 
+                // 🔥 V162: FIXED DOWNTIME ROW (NO COMPLEX COLSPANs) 🔥
                 prodLogHtml += `
                 <tr style="background-color: #fef2f2;">
-                    <td style="font-weight:900; color:#cbd5e1; text-align:center; border-right:none;">-</td>
-                    <td class="pt-time" style="color:#ef4444; font-weight:900; background:transparent;">${d.time}</td>
-                    <td class="pt-duration" style="color:#ef4444; background:transparent;">-</td>
-                    <td colspan="7" style="color:#ef4444; font-weight:900; text-align:center; letter-spacing: 2px; background:transparent;">ปิดเครื่อง</td>
+                    <td style="font-weight:900; color:#cbd5e1; text-align:center;">-</td>
+                    <td style="color:#ef4444; font-weight:900;">${d.time}</td>
+                    <td style="color:#ef4444;">-</td>
+                    <td colspan="7" style="color:#ef4444; font-weight:900; text-align:center; letter-spacing: 2px;">ปิดเครื่อง</td>
                 </tr>
                 <tr style="background-color: #f0fdf4;">
-                    <td style="font-weight:900; color:#cbd5e1; text-align:center; border-right:none;">-</td>
-                    <td class="pt-time" style="color:#10b981; font-weight:900; background:transparent;">${d.time_end || d.time}</td>
-                    <td class="pt-duration" style="color:#10b981; background:transparent;">-</td>
-                    <td colspan="7" style="color:#10b981; font-weight:900; text-align:center; letter-spacing: 2px; background:transparent;">เปิดเครื่อง</td>
+                    <td style="font-weight:900; color:#cbd5e1; text-align:center;">-</td>
+                    <td style="color:#10b981; font-weight:900;">${d.time_end || d.time}</td>
+                    <td style="color:#10b981;">-</td>
+                    <td colspan="7" style="color:#10b981; font-weight:900; text-align:center; letter-spacing: 2px;">เปิดเครื่อง</td>
                 </tr>`;
             } 
             else if(d.type === 'prod') {
@@ -825,16 +734,15 @@
             }); }
         });
         
+        // 🔥 V162: FIXED TOTAL ROW (CORRECT UNIT ALIGNMENT) 🔥
         prodLogHtml += `<tr class="total-row">
-            <td class="total-label" colspan="2">รวม</td>
-            <td style="color:#38bdf8 !important;">${totalDuration}</td>
-            <td>${totalWithHL}</td>
-            <td>${totalWithBod}</td>
-            <td>${sumP.hl}</td>
-            <td>${sumP.bh}</td>
-            <td>${sumP.bl}</td>
-            <td>${totalRemHL}</td>
-            <td>${totalRemBod}</td>
+            <td style="color:#fde047 !important;">รวม</td> <td>${totalDuration}</td> <td style="color:#38bdf8 !important; border-bottom:1px solid white;"></td> <td style="color:#0ea5e9 !important;">${totalWithHL}</td>
+            <td style="color:#0ea5e9 !important;">${totalWithBod}</td>
+            <td style="color:#34d399 !important;">${sumP.hl}</td>
+            <td style="color:#34d399 !important;">${sumP.bh}</td>
+            <td style="color:#34d399 !important;">${sumP.bl}</td>
+            <td style="color:#fbbf24 !important;">${totalRemHL}</td>
+            <td style="color:#fbbf24 !important;">${totalRemBod}</td>
         </tr>`;
 
         const safeSet = (id, val) => { if(document.getElementById(id)) document.getElementById(id).innerText = val; };
@@ -845,7 +753,7 @@
         safeSet('rpt_hl', sumP.hl); safeSet('rpt_bh', sumP.bh); safeSet('rpt_bl', sumP.bl); safeSet('rpt_total_prod', sumP.hl + sumP.bh + sumP.bl);
         const totW = ((sumP.hl*20) + (sumP.bh*23) + (sumP.bl*24));
         safeSet('rpt_total_weight', totW.toLocaleString()); safeSet('rpt_w_hl', (sumP.hl*20).toLocaleString()); safeSet('rpt_w_bh', (sumP.bh*23).toLocaleString()); safeSet('rpt_w_bl', (sumP.bl*24).toLocaleString());
-        safeSet('rpt_with_hl', totalWithHL); safeSet('rpt_with_bod', totalWithBod); safeSet('rpt_sack_withdraw', totalWithHL + totalWithBod); safeSet('rpt_sack_used', totalUsedAll); safeSet('rpt_rem_total_all', totalRemHL + totalRemBod);
+        safeSet('rpt_sack_withdraw', totalWithHL + totalWithBod); safeSet('rpt_sack_used', totalUsedAll); safeSet('rpt_rem_total_all', totalRemHL + totalRemBod);
 
         const prodDropsCount = DATA.drops.filter(d => d.type==='prod').length;
         let avgTime = 38; 
@@ -860,7 +768,7 @@
             safeSet('rpt_avg_time', 0); safeSet('rpt_tons_day', 0); safeSet('rpt_avg_yield', 0); 
         }
 
-        // --- 🔮 FORECASTING LOGIC & LIVE UPDATER 🔮 ---
+        // --- 🔮 FLOATING PREDICTOR TICKER ---
         globalAvgTime = avgTime;
         let lastEventStr = startTimeStr;
         if(sortedDrops.length > 0) {
@@ -869,52 +777,6 @@
         }
         globalLastEventTime = lastEventStr;
         updatePredictor(); 
-
-        let tarHL = DATA.targetReserve ? DATA.targetReserve.hl : 0;
-        let tarBH = DATA.targetReserve ? DATA.targetReserve.bh : 0;
-        let tarBL = DATA.targetReserve ? DATA.targetReserve.bl : 0;
-
-        let remHL = Math.max(0, ordHL - sentHL);
-        let remBH = Math.max(0, ordBH - sentBH);
-        let remBL = Math.max(0, ordBL - sentBL);
-
-        let needHL = Math.max(0, (remHL + tarHL) - curHL);
-        let needBH = Math.max(0, (remBH + tarBH) - curBH);
-        let needBL = Math.max(0, (remBL + tarBL) - curBL);
-        let totalNeedBOD = needBH + needBL; 
-
-        let histAvg = getHistoricalAverages();
-        
-        let dropsForHL = needHL / histAvg.avgHL;
-        let dropsForBOD = totalNeedBOD / histAvg.avgBOD; 
-        
-        let totalDropsNeeded = Math.ceil(dropsForHL + dropsForBOD);
-
-        safeSet('fc_need_text', `หลอด ${needHL} | หยาบ ${needBH} | ละเอียด ${needBL}`);
-        
-        if (totalDropsNeeded > 0) {
-            let addMins = totalDropsNeeded * avgTime;
-            let hrs = Math.floor(addMins / 60);
-            let mins = Math.round(addMins % 60);
-            safeSet('fc_duration_text', `${totalDropsNeeded} ตก (ประมาณ ${hrs} ชม. ${mins} น.)`);
-            
-            let baseAbsMins = getAdjustedMinutes(lastEventStr, startTimeStr);
-            let totalFinishMins = baseAbsMins + addMins;
-            
-            let [sh, sm] = startTimeStr.split(':').map(Number);
-            let finalRawMins = (sh * 60 + sm) + totalFinishMins;
-            
-            let fh = Math.floor(finalRawMins / 60) % 24;
-            let fm = Math.floor(finalRawMins % 60);
-            safeSet('fc_finish_time', `${String(fh).padStart(2, '0')}:${String(fm).padStart(2, '0')} น.`);
-        } else {
-            safeSet('fc_duration_text', "ไม่ต้องตกเพิ่มแล้ว");
-            safeSet('fc_finish_time', "เสร็จสิ้นตามเป้า! 🎉");
-        }
-        
-        if(document.getElementById('fc_stat_info')) {
-             document.getElementById('fc_stat_info').innerText = `*อ้างอิงสถิติผลิตล้วน 3 วันย้อนหลัง: หลอด ≈${Math.round(histAvg.avgHL)} ใบ/ตก, บด ≈${Math.round(histAvg.avgBOD)} ใบ/ตก`;
-        }
 
         renderSummaryTable(truckMat); renderDetailTable(truckDetail);
     }
@@ -984,7 +846,7 @@
     
     function openTruckHistory(tid) { const container = document.getElementById('history_list'); container.innerHTML = ''; document.getElementById('hist_title').innerText = `🕒 ประวัติ ${getTruckName(tid)}`; 
         const startTimeStr = document.getElementById('time_start').value;
-        const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr)); 
+        const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(a.time, startTimeStr)); 
         let hasData = false; sortedDrops.forEach(d => { if(d.dist) { d.dist.forEach((item, idx) => { if(item.truck === tid) { hasData = true; const typeName = getTypeName(item.type); const typeLabel = d.type === 'prod' ? '<span class="hist-tag ht-fresh">ผลิต</span>' : '<span class="hist-tag ht-stock">ห้อง</span>'; container.insertAdjacentHTML('beforeend', `<div class="hist-item"><div class="hist-info"><div><b style="font-weight:900;">${d.time}</b> ${typeLabel} : <span style="font-weight:800;">${typeName}</span></div><div style="color:var(--text-muted); font-weight:600;">(${item.r1}/${item.r2}/${item.r3}) = <b style="color:var(--text-dark);">${item.total}</b></div></div><div class="hist-actions"><button class="btn-edit-mini" onclick="closeHistoryModal(); SOURCE_MODAL='truck_history'; editDist(${d.id}, ${idx})">✏️ แก้</button><button class="btn-del-mini" onclick="removeDist(${d.id}, ${idx}); closeHistoryModal();">ลบ</button></div></div>`); } }); } }); if(!hasData) container.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">ไม่มีประวัติสำหรับรถคันนี้</div>'; document.getElementById('history_modal').style.display = 'block'; }
     function closeHistoryModal() { document.getElementById('history_modal').style.display = 'none'; }
     
