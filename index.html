@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V165 (Color-Coded Table)</title>
+    <title>Smart Ice V166 (PDF Report Generator)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
         /* --- Modern Premium Theme --- */
@@ -31,172 +31,190 @@
             --radius-pill: 50px;
         }
 
-        body { font-family: 'Sarabun', sans-serif; margin: 0; padding: 0; background: var(--bg-main); color: var(--text-dark); padding-bottom: 100px; font-size: 15px; -webkit-font-smoothing: antialiased; }
-        * { box-sizing: border-box; }
-        
-        button, input, select { touch-action: manipulation; }
-        
-        /* Dashboard Header */
-        .dashboard { position: sticky; top: 0; z-index: 1000; background: var(--dark-grad); color: white; padding: 15px 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); display: flex; justify-content: space-around; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; margin-bottom: 10px; }
-        .dash-item span { font-size: 0.8rem; color: #cbd5e1; display: block; margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-        .dash-item div { font-size: 1.6rem; font-weight: 900; color: #34d399; line-height: 1; text-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        
-        /* Order Status Bar */
-        .order-status-bar { background: #fffbeb; border: 1px solid #fde68a; padding: 10px; text-align: center; font-size: 0.95rem; color: #d97706; font-weight: bold; display: flex; justify-content: space-around; border-radius: var(--radius-pill); margin: 0 10px 15px 10px; box-shadow: var(--shadow-sm); }
-        
-        /* Navigation */
-        .nav-bar { display: flex; background: var(--card-bg); margin: 0 10px 20px 10px; border-radius: var(--radius-pill); padding: 6px; box-shadow: var(--shadow-md); position: sticky; top: 85px; z-index: 900; border: 1px solid #f1f5f9; }
-        .nav-btn { flex: 1; padding: 12px 5px; text-align: center; border: none; background: transparent; font-weight: 800; font-size: 0.9rem; color: var(--text-muted); cursor: pointer; border-radius: var(--radius-pill); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .nav-btn.active { background: var(--primary-grad); color: white; box-shadow: var(--shadow-color); transform: scale(1.02); }
-        
-        .page { display: none; padding: 0 10px 10px 10px; max-width: 800px; margin: 0 auto; }
-        .page.active { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @media screen {
+            body { font-family: 'Sarabun', sans-serif; margin: 0; padding: 0; background: var(--bg-main); color: var(--text-dark); padding-bottom: 100px; font-size: 15px; -webkit-font-smoothing: antialiased; }
+            * { box-sizing: border-box; }
+            button, input, select { touch-action: manipulation; }
+            
+            /* Dashboard Header */
+            .dashboard { position: sticky; top: 0; z-index: 1000; background: var(--dark-grad); color: white; padding: 15px 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); display: flex; justify-content: space-around; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; margin-bottom: 10px; }
+            .dash-item span { font-size: 0.8rem; color: #cbd5e1; display: block; margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+            .dash-item div { font-size: 1.6rem; font-weight: 900; color: #34d399; line-height: 1; text-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+            
+            /* Order Status Bar */
+            .order-status-bar { background: #fffbeb; border: 1px solid #fde68a; padding: 10px; text-align: center; font-size: 0.95rem; color: #d97706; font-weight: bold; display: flex; justify-content: space-around; border-radius: var(--radius-pill); margin: 0 10px 15px 10px; box-shadow: var(--shadow-sm); }
+            
+            /* Navigation */
+            .nav-bar { display: flex; background: var(--card-bg); margin: 0 10px 20px 10px; border-radius: var(--radius-pill); padding: 6px; box-shadow: var(--shadow-md); position: sticky; top: 85px; z-index: 900; border: 1px solid #f1f5f9; }
+            .nav-btn { flex: 1; padding: 12px 5px; text-align: center; border: none; background: transparent; font-weight: 800; font-size: 0.9rem; color: var(--text-muted); cursor: pointer; border-radius: var(--radius-pill); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+            .nav-btn.active { background: var(--primary-grad); color: white; box-shadow: var(--shadow-color); transform: scale(1.02); }
+            
+            .page { display: none; padding: 0 10px 10px 10px; max-width: 800px; margin: 0 auto; }
+            .page.active { display: block; animation: fadeIn 0.3s ease; }
+            @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Modern Cards */
-        .modern-card { background: var(--card-bg); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); margin-bottom: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.8); }
-        .card-body { padding: 20px; }
-        .card-body h3 { margin-top: 0; color: var(--text-dark); font-weight: 800; font-size: 1.15rem; display: flex; align-items: center; gap: 8px; margin-bottom: 15px; }
-        
-        /* Inputs */
-        input[type="number"], input[type="tel"], input[type="time"], input[type="date"], select { 
-            width: 100%; padding: 14px; font-size: 1.2rem; text-align: center; font-weight: 800; color: var(--text-dark);
-            border: 2px solid #e2e8f0; border-radius: 12px; background: #f8fafc; transition: all 0.3s; font-family: 'Sarabun', sans-serif;
+            /* Modern Cards */
+            .modern-card { background: var(--card-bg); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); margin-bottom: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.8); }
+            .card-body { padding: 20px; }
+            .card-body h3 { margin-top: 0; color: var(--text-dark); font-weight: 800; font-size: 1.15rem; display: flex; align-items: center; gap: 8px; margin-bottom: 15px; }
+            
+            /* Inputs */
+            input[type="number"], input[type="tel"], input[type="time"], input[type="date"], input[type="text"], select { 
+                width: 100%; padding: 14px; font-size: 1.1rem; text-align: center; font-weight: 800; color: var(--text-dark);
+                border: 2px solid #e2e8f0; border-radius: 12px; background: #f8fafc; transition: all 0.3s; font-family: 'Sarabun', sans-serif;
+            }
+            input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15); outline: none; background: #ffffff; }
+            
+            /* Card UI (Production Logs) */
+            .card-header-flex { display: flex; align-items: center; padding: 15px; gap: 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+            .badge-box { border-radius: 14px; padding: 8px; width: 75px; text-align: center; color: white; font-weight: 800; font-size: 0.75rem; display: flex; flex-direction: column; justify-content: center; height: 55px; box-shadow: var(--shadow-sm); }
+            .bg-prod { background: var(--success-grad); }
+            .big-time-input { font-size: 1.8rem !important; font-weight: 900 !important; color: var(--text-dark); border: none !important; background: transparent !important; width: 110px; text-align: center; padding: 0 !important; box-shadow: none !important; }
+            .time-diff-badge { font-size: 0.9rem; color: var(--primary); font-weight: 800; background: #e0f2fe; padding: 6px 10px; border-radius: var(--radius-pill); white-space: nowrap; }
+            .btn-close-red { width: 38px; height: 38px; border-radius: 10px; background: #fee2e2; color: #dc2626; border: none; font-size: 1.4rem; font-weight: bold; cursor: pointer; margin-left: auto; transition: 0.2s; display:flex; align-items:center; justify-content:center;}
+            .btn-close-red:active { transform: scale(0.9); }
+            
+            .sack-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; background: #f1f5f9; padding: 12px; border-radius: var(--radius-md); margin-bottom: 15px; }
+            .sack-item { text-align: center; background: white; padding: 8px 4px; border-radius: 10px; box-shadow: var(--shadow-sm); }
+            .sack-label { font-size: 0.7rem; color: var(--text-muted); font-weight: 800; margin-bottom: 4px; white-space: nowrap; }
+            .sack-val { font-size: 1.3rem; font-weight: 900; color: var(--text-dark); }
+            .sack-split { font-size: 0.85rem; color: #555; display: flex; justify-content: center; gap: 5px; margin-top: 4px; }
+            .ss-hl { color: #059669; font-weight:900; } .ss-bod { color: #7c3aed; font-weight:900; }
+
+            /* Color-Coded Report Table */
+            .paper-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; margin-top: 5px; border-radius: 12px; overflow: hidden; border: 1px solid #cbd5e1; }
+            .paper-table th { border-right: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1; padding: 6px 2px; text-align: center; font-weight: 800; vertical-align: middle; line-height: 1.2; }
+            .paper-table th:last-child { border-right: none; }
+            .paper-table td { border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; padding: 10px 2px; text-align: center; vertical-align: middle; font-weight: 800; font-size: 1rem; }
+            .paper-table td:last-child { border-right: none; }
+            
+            /* Column Colors */
+            .paper-table th.pt-time, .paper-table td.pt-time-col { background-color: #f8fafc !important; color: #1e293b; }
+            .paper-table th.pt-check, .paper-table td.pt-check { background-color: #e0f2fe !important; color: #0284c7; }
+            .paper-table th.pt-prod, .paper-table td.pt-prod { background-color: #dcfce7 !important; color: #15803d; }
+            .paper-table th.pt-rem, .paper-table td.pt-rem { background-color: #fef3c7 !important; color: #b45309; }
+            
+            .sub-header { font-size: 0.75rem !important; }
+            .total-row td { background-color: #1e293b !important; color: white !important; font-weight: 900 !important; font-size: 1rem !important; border-color: #0f172a !important; padding: 12px 4px; }
+            .total-label { text-align: center !important; color: #fde047 !important; }
+
+            /* Custom Report Box */
+            .custom-report { border: 2px solid #e2e8f0; border-radius: var(--radius-md); padding: 20px; margin-top: 20px; background: #f8fafc; }
+            .cr-section { margin-bottom: 15px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 15px; }
+            .cr-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+            .cr-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 1.05rem; }
+            .cr-label { font-weight: 800; color: #475569; }
+            .cr-val { font-weight: 900; color: #0f172a; text-align: right; }
+            .cr-total { color: var(--primary); font-size: 1.15rem; }
+            .cr-header { font-weight: 900; color: white; margin-bottom: 12px; font-size: 1.1rem; background: var(--text-dark); padding: 10px 15px; border-radius: 8px; display: block; text-align: center; box-shadow: var(--shadow-sm); }
+
+            /* Truck Matrix */
+            .truck-matrix-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 5px; border-radius: 12px; overflow: hidden; border: 1px solid #cbd5e1; }
+            .truck-matrix-table th { background: #e2e8f0; color: #334155; padding: 10px 6px; font-weight: 800; border-bottom: 1px solid #cbd5e1; font-size: 0.9rem; }
+            .truck-matrix-table td { border-bottom: 1px solid #e2e8f0; padding: 8px 4px; text-align: center; vertical-align: middle; background: white; }
+            .truck-name-col { text-align: left; padding-left: 15px !important; font-weight: 900; color: var(--text-dark); font-size: 0.95rem; }
+            .st-pill { display: inline-block; padding: 4px 10px; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 800; min-width: 60px; box-shadow: var(--shadow-sm); }
+            .st-over { background: #e0f2fe; color: #0284c7; } .st-miss { background: #fee2e2; color: #dc2626; } .st-ok { background: #dcfce7; color: #16a34a; } .st-none { color: #cbd5e1; font-weight: 400; font-size: 1.2rem; }
+            
+            /* Detail Table (Inside truck details) */
+            .truck-detail-block { background: white; border-radius: var(--radius-md); padding: 20px; margin-bottom: 20px; border: 1px solid #e2e8f0; box-shadow: var(--shadow-md); }
+            .truck-detail-header { font-weight: 900; color: var(--text-dark); border-bottom: 2px dashed #e2e8f0; padding-bottom: 12px; margin-bottom: 15px; font-size: 1.2rem; display: flex; justify-content: space-between; align-items: center; }
+            .detail-table { width: 100%; border-collapse: separate; border-spacing: 0 5px; margin-top: 10px; }
+            .detail-table th { background: transparent; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; padding-bottom: 5px; border: none; font-weight:800; }
+            .detail-table td { background: #f8fafc; padding: 12px 8px; border: none; text-align: center; font-weight: 700; color: var(--text-dark); }
+            .detail-table tr td:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; color: var(--text-muted); font-weight: 900; background:#f1f5f9;}
+            .detail-table tr td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; font-size: 1.1rem;}
+            .dt-stock-val { color: #0369a1; background: #e0f2fe; padding: 4px 10px; border-radius: 6px; border: 1px solid #bae6fd; display:inline-block; min-width: 40px;}
+            .dt-fresh-val { color: #15803d; background: #dcfce7; padding: 4px 10px; border-radius: 6px; border: 1px solid #bbf7d0; display:inline-block; min-width: 40px;}
+            .dt-total-val { color: #ffffff; background: #334155; padding: 4px 12px; border-radius: 6px; font-weight: 900; display:inline-block; min-width: 45px;}
+            .detail-summary-row td { background: transparent !important; border: none; padding-top: 15px; }
+
+            /* Buttons */
+            .btn-history, .btn-del-mini, .btn-edit-mini { border: none; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.15s; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
+            .btn-history { background: var(--warning-grad); color: white; padding: 8px 14px; font-size: 0.9rem; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3); border-radius: 20px;}
+            .btn-history:active { transform: scale(0.95); }
+            
+            .btn-save-wiz { width: 100%; padding: 16px; background: var(--success-grad); color: white; border: none; border-radius: 14px; font-size: 1.3rem; font-weight: 900; margin-top: 15px; cursor: pointer; box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3); transition: 0.15s; }
+            .btn-save-wiz:active { transform: scale(0.98); }
+            
+            .btn-stock-manager, .btn-view-history, .btn-downtime, .btn-print { width: 100%; padding: 16px; border: none; border-radius: 14px; font-size: 1.15rem; font-weight: 900; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.15s; }
+            .btn-stock-manager { background: var(--warning-grad); color: white; box-shadow: 0 6px 15px rgba(245, 158, 11, 0.3); }
+            .btn-downtime { background: var(--danger-grad); color: white; box-shadow: 0 6px 15px rgba(239, 68, 68, 0.3); }
+            .btn-view-history { background: var(--text-dark); color: white; box-shadow: 0 6px 15px rgba(30, 41, 59, 0.3); margin-bottom: 25px; }
+            .btn-print { background: var(--purple-grad); color: white; box-shadow: 0 6px 15px rgba(139, 92, 246, 0.3); margin-top:15px; font-size:1.3rem; }
+            .btn-stock-manager:active, .btn-downtime:active, .btn-view-history:active, .btn-print:active { transform: scale(0.96); }
+            
+            .btn-save-dist { width: 100%; padding: 14px; background: var(--success-grad); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 900; margin-top: 15px; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition:0.15s; }
+            .btn-save-dist:active { transform: scale(0.96); }
+            .btn-reset { background: #e2e8f0; color: #64748b; border: none; padding: 14px; width: 100%; margin-top: 20px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.15s; }
+            .btn-reset:active { background: #cbd5e1; }
+            
+            /* Layout Helpers */
+            .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+            .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+            .input-label { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 800; text-align: center; text-transform: uppercase; }
+            
+            /* Floating Actions */
+            .fab-container { position: fixed; bottom: 30px; right: 20px; z-index: 2000; }
+            .fab-main { width: 65px; height: 65px; border-radius: 50%; background: var(--success-grad); color: white; border: none; font-size: 36px; line-height: 1; font-weight: 300; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.15s; }
+            .fab-main:active { transform: scale(0.85); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
+            
+            /* Live Predictor Pill */
+            .live-predictor-fab { position: fixed; bottom: 35px; left: 15px; z-index: 2000; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border: 2px solid #e2e8f0; color: var(--text-dark); padding: 10px 16px; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 800; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 10px; transition: 0.3s; cursor: pointer;}
+            .lpf-time { font-size: 1.25rem; color: #7c3aed; font-weight: 900; letter-spacing: 0.5px; }
+            .lpf-badge { background: #f3e8ff; color: #6d28d9; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 900; }
+            .lpf-badge.overdue { background: #fee2e2; color: #dc2626; }
+
+            /* Modal */
+            .modal { display: none; position: fixed; z-index: 5000; left: 0; top: 0; width: 100%; height: 100%; overflow: hidden; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px); align-items: center; justify-content: center; }
+            .modal-content { background-color: var(--bg-main); margin: 0; border-radius: var(--radius-lg); width: 92%; max-width: 500px; max-height: 90vh; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; position: relative; overflow:hidden; }
+            .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; background: white; border-bottom: 1px solid #f1f5f9; flex-shrink: 0; }
+            .modal-title { font-size: 1.3rem; font-weight: 900; color: var(--text-dark); }
+            .btn-close-modal { background: #f1f5f9; color: #64748b; border: none; font-size: 1.5rem; font-weight: bold; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; transition:0.2s;}
+            .btn-close-modal:hover { background: #fee2e2; color: #ef4444; }
+            .modal-body { overflow-y: auto; padding: 20px; flex-grow: 1; }
+
+            /* Distributions within card */
+            .dist-container { background: #f8fafc; border-radius: 14px; padding: 12px; border: 1px solid #e2e8f0; margin-top: 15px; }
+            .dist-item { background: white; padding: 12px; border-radius: 10px; border: 1px solid #f1f5f9; margin-bottom: 10px; box-shadow: var(--shadow-sm); }
+            .dist-header { font-weight: 800; color: var(--primary); font-size: 1.05rem; display: flex; justify-content: space-between; align-items: center; }
+            .dist-rows { font-size: 0.9rem; color: #475569; margin-top: 8px; background: #f0fdf4; padding: 8px; border-radius: 8px; font-weight:700; }
+            .btn-add-dist { width: 100%; padding: 14px; background: white; color: var(--primary); border: 2px dashed #bae6fd; border-radius: 12px; font-weight: 800; font-size:1rem; cursor: pointer; margin-top: 5px; transition:0.2s; }
+            .btn-add-dist:active { background: #f0f9ff; }
+            
+            .btn-edit-mini { background: #fef9c3; color: #d97706; padding: 6px 12px;}
+            .btn-del-mini { background: #fee2e2; color: #dc2626; padding: 6px 12px;}
+
+            /* History List */
+            .history-list-wrapper { background: white; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: var(--shadow-sm); }
+            .hist-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background 0.2s; }
+            .hist-item:last-child { border-bottom: none; }
+            .hist-item:active { background: #f8fafc; }
+            .hist-info-left { display: flex; flex-direction: column; gap: 4px; }
+            .hist-time { font-size: 1.3rem; font-weight: 900; color: var(--text-dark); display: flex; align-items: center; gap: 8px; }
+            .hist-yield { font-size: 0.9rem; color: var(--text-muted); font-weight: 600; }
+            .hist-yield span { color: var(--primary); font-weight: 900; font-size: 1.05rem; }
+            .hist-arrow { color: #cbd5e1; font-weight: 900; font-size: 1.5rem; }
+
+            /* Hide print area on screen */
+            #print_area { display: none; }
         }
-        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15); outline: none; background: #ffffff; }
-        
-        /* Card UI (Production Logs) */
-        .card-header-flex { display: flex; align-items: center; padding: 15px; gap: 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
-        .badge-box { border-radius: 14px; padding: 8px; width: 75px; text-align: center; color: white; font-weight: 800; font-size: 0.75rem; display: flex; flex-direction: column; justify-content: center; height: 55px; box-shadow: var(--shadow-sm); }
-        .bg-prod { background: var(--success-grad); }
-        .big-time-input { font-size: 1.8rem !important; font-weight: 900 !important; color: var(--text-dark); border: none !important; background: transparent !important; width: 110px; text-align: center; padding: 0 !important; box-shadow: none !important; }
-        .time-diff-badge { font-size: 0.9rem; color: var(--primary); font-weight: 800; background: #e0f2fe; padding: 6px 10px; border-radius: var(--radius-pill); white-space: nowrap; }
-        .btn-close-red { width: 38px; height: 38px; border-radius: 10px; background: #fee2e2; color: #dc2626; border: none; font-size: 1.4rem; font-weight: bold; cursor: pointer; margin-left: auto; transition: 0.2s; display:flex; align-items:center; justify-content:center;}
-        .btn-close-red:active { transform: scale(0.9); }
-        
-        .sack-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; background: #f1f5f9; padding: 12px; border-radius: var(--radius-md); margin-bottom: 15px; }
-        .sack-item { text-align: center; background: white; padding: 8px 4px; border-radius: 10px; box-shadow: var(--shadow-sm); }
-        .sack-label { font-size: 0.7rem; color: var(--text-muted); font-weight: 800; margin-bottom: 4px; white-space: nowrap; }
-        .sack-val { font-size: 1.3rem; font-weight: 900; color: var(--text-dark); }
-        .sack-split { font-size: 0.85rem; color: #555; display: flex; justify-content: center; gap: 5px; margin-top: 4px; }
-        .ss-hl { color: #059669; font-weight:900; } .ss-bod { color: #7c3aed; font-weight:900; }
 
-        /* 🔥 V165: Color-Coded Report Table 🔥 */
-        .paper-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; margin-top: 5px; border-radius: 12px; overflow: hidden; border: 1px solid #cbd5e1; }
-        .paper-table th { border-right: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1; padding: 6px 2px; text-align: center; font-weight: 800; vertical-align: middle; line-height: 1.2; }
-        .paper-table th:last-child { border-right: none; }
-        .paper-table td { border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; padding: 10px 2px; text-align: center; vertical-align: middle; font-weight: 800; font-size: 1rem; }
-        .paper-table td:last-child { border-right: none; }
-        
-        /* Column Colors */
-        .paper-table th.pt-time, .paper-table td.pt-time-col { background-color: #f8fafc !important; color: #1e293b; }
-        .paper-table th.pt-check, .paper-table td.pt-check { background-color: #e0f2fe !important; color: #0284c7; }
-        .paper-table th.pt-prod, .paper-table td.pt-prod { background-color: #dcfce7 !important; color: #15803d; }
-        .paper-table th.pt-rem, .paper-table td.pt-rem { background-color: #fef3c7 !important; color: #b45309; }
-        
-        .sub-header { font-size: 0.75rem !important; }
-        .total-row td { background-color: #1e293b !important; color: white !important; font-weight: 900 !important; font-size: 1rem !important; border-color: #0f172a !important; padding: 12px 4px; }
-        .total-label { text-align: center !important; color: #fde047 !important; }
-
-        /* Custom Report Box */
-        .custom-report { border: 2px solid #e2e8f0; border-radius: var(--radius-md); padding: 20px; margin-top: 20px; background: #f8fafc; }
-        .cr-section { margin-bottom: 15px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 15px; }
-        .cr-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-        .cr-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 1.05rem; }
-        .cr-label { font-weight: 800; color: #475569; }
-        .cr-val { font-weight: 900; color: #0f172a; text-align: right; }
-        .cr-total { color: var(--primary); font-size: 1.15rem; }
-        .cr-header { font-weight: 900; color: white; margin-bottom: 12px; font-size: 1.1rem; background: var(--text-dark); padding: 10px 15px; border-radius: 8px; display: block; text-align: center; box-shadow: var(--shadow-sm); }
-
-        /* Truck Matrix */
-        .truck-matrix-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 5px; border-radius: 12px; overflow: hidden; border: 1px solid #cbd5e1; }
-        .truck-matrix-table th { background: #e2e8f0; color: #334155; padding: 10px 6px; font-weight: 800; border-bottom: 1px solid #cbd5e1; font-size: 0.9rem; }
-        .truck-matrix-table td { border-bottom: 1px solid #e2e8f0; padding: 8px 4px; text-align: center; vertical-align: middle; background: white; }
-        .truck-name-col { text-align: left; padding-left: 15px !important; font-weight: 900; color: var(--text-dark); font-size: 0.95rem; }
-        .st-pill { display: inline-block; padding: 4px 10px; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 800; min-width: 60px; box-shadow: var(--shadow-sm); }
-        .st-over { background: #e0f2fe; color: #0284c7; } .st-miss { background: #fee2e2; color: #dc2626; } .st-ok { background: #dcfce7; color: #16a34a; } .st-none { color: #cbd5e1; font-weight: 400; font-size: 1.2rem; }
-        
-        /* Detail Table (Inside truck details) */
-        .truck-detail-block { background: white; border-radius: var(--radius-md); padding: 20px; margin-bottom: 20px; border: 1px solid #e2e8f0; box-shadow: var(--shadow-md); }
-        .truck-detail-header { font-weight: 900; color: var(--text-dark); border-bottom: 2px dashed #e2e8f0; padding-bottom: 12px; margin-bottom: 15px; font-size: 1.2rem; display: flex; justify-content: space-between; align-items: center; }
-        .detail-table { width: 100%; border-collapse: separate; border-spacing: 0 5px; margin-top: 10px; }
-        .detail-table th { background: transparent; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; padding-bottom: 5px; border: none; font-weight:800; }
-        .detail-table td { background: #f8fafc; padding: 12px 8px; border: none; text-align: center; font-weight: 700; color: var(--text-dark); }
-        .detail-table tr td:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; color: var(--text-muted); font-weight: 900; background:#f1f5f9;}
-        .detail-table tr td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; font-size: 1.1rem;}
-        .dt-stock-val { color: #0369a1; background: #e0f2fe; padding: 4px 10px; border-radius: 6px; border: 1px solid #bae6fd; display:inline-block; min-width: 40px;}
-        .dt-fresh-val { color: #15803d; background: #dcfce7; padding: 4px 10px; border-radius: 6px; border: 1px solid #bbf7d0; display:inline-block; min-width: 40px;}
-        .dt-total-val { color: #ffffff; background: #334155; padding: 4px 12px; border-radius: 6px; font-weight: 900; display:inline-block; min-width: 45px;}
-        .detail-summary-row td { background: transparent !important; border: none; padding-top: 15px; }
-
-        /* Buttons */
-        .btn-history, .btn-del-mini, .btn-edit-mini { border: none; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.15s; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
-        .btn-history { background: var(--warning-grad); color: white; padding: 8px 14px; font-size: 0.9rem; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3); border-radius: 20px;}
-        .btn-history:active { transform: scale(0.95); }
-        
-        .btn-save-wiz { width: 100%; padding: 16px; background: var(--success-grad); color: white; border: none; border-radius: 14px; font-size: 1.3rem; font-weight: 900; margin-top: 15px; cursor: pointer; box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3); transition: 0.15s; }
-        .btn-save-wiz:active { transform: scale(0.98); }
-        
-        .btn-stock-manager, .btn-view-history, .btn-downtime { width: 100%; padding: 16px; border: none; border-radius: 14px; font-size: 1.15rem; font-weight: 900; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.15s; }
-        .btn-stock-manager { background: var(--warning-grad); color: white; box-shadow: 0 6px 15px rgba(245, 158, 11, 0.3); }
-        .btn-downtime { background: var(--danger-grad); color: white; box-shadow: 0 6px 15px rgba(239, 68, 68, 0.3); }
-        .btn-view-history { background: var(--text-dark); color: white; box-shadow: 0 6px 15px rgba(30, 41, 59, 0.3); margin-bottom: 25px; }
-        .btn-stock-manager:active, .btn-downtime:active, .btn-view-history:active { transform: scale(0.96); }
-        
-        .btn-save-dist { width: 100%; padding: 14px; background: var(--success-grad); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 900; margin-top: 15px; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition:0.15s; }
-        .btn-save-dist:active { transform: scale(0.96); }
-        .btn-reset { background: #e2e8f0; color: #64748b; border: none; padding: 14px; width: 100%; margin-top: 20px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.15s; }
-        .btn-reset:active { background: #cbd5e1; }
-        
-        /* Layout Helpers */
-        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .input-label { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 800; text-align: center; text-transform: uppercase; }
-        
-        /* Floating Actions */
-        .fab-container { position: fixed; bottom: 30px; right: 20px; z-index: 2000; }
-        .fab-main { width: 65px; height: 65px; border-radius: 50%; background: var(--success-grad); color: white; border: none; font-size: 36px; line-height: 1; font-weight: 300; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.15s; }
-        .fab-main:active { transform: scale(0.85); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
-        
-        /* Live Predictor Pill */
-        .live-predictor-fab { position: fixed; bottom: 35px; left: 15px; z-index: 2000; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border: 2px solid #e2e8f0; color: var(--text-dark); padding: 10px 16px; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 800; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 10px; transition: 0.3s; cursor: pointer;}
-        .lpf-time { font-size: 1.25rem; color: #7c3aed; font-weight: 900; letter-spacing: 0.5px; }
-        .lpf-badge { background: #f3e8ff; color: #6d28d9; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 900; }
-        .lpf-badge.overdue { background: #fee2e2; color: #dc2626; }
-
-        /* Modal */
-        .modal { display: none; position: fixed; z-index: 5000; left: 0; top: 0; width: 100%; height: 100%; overflow: hidden; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px); align-items: center; justify-content: center; }
-        .modal-content { background-color: var(--bg-main); margin: 0; border-radius: var(--radius-lg); width: 92%; max-width: 500px; max-height: 90vh; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; position: relative; overflow:hidden; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; background: white; border-bottom: 1px solid #f1f5f9; flex-shrink: 0; }
-        .modal-title { font-size: 1.3rem; font-weight: 900; color: var(--text-dark); }
-        .btn-close-modal { background: #f1f5f9; color: #64748b; border: none; font-size: 1.5rem; font-weight: bold; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; transition:0.2s;}
-        .btn-close-modal:hover { background: #fee2e2; color: #ef4444; }
-        .modal-body { overflow-y: auto; padding: 20px; flex-grow: 1; }
-
-        /* Distributions within card */
-        .dist-container { background: #f8fafc; border-radius: 14px; padding: 12px; border: 1px solid #e2e8f0; margin-top: 15px; }
-        .dist-item { background: white; padding: 12px; border-radius: 10px; border: 1px solid #f1f5f9; margin-bottom: 10px; box-shadow: var(--shadow-sm); }
-        .dist-header { font-weight: 800; color: var(--primary); font-size: 1.05rem; display: flex; justify-content: space-between; align-items: center; }
-        .dist-rows { font-size: 0.9rem; color: #475569; margin-top: 8px; background: #f0fdf4; padding: 8px; border-radius: 8px; font-weight:700; }
-        .btn-add-dist { width: 100%; padding: 14px; background: white; color: var(--primary); border: 2px dashed #bae6fd; border-radius: 12px; font-weight: 800; font-size:1rem; cursor: pointer; margin-top: 5px; transition:0.2s; }
-        .btn-add-dist:active { background: #f0f9ff; }
-        
-        .btn-edit-mini { background: #fef9c3; color: #d97706; padding: 6px 12px;}
-        .btn-del-mini { background: #fee2e2; color: #dc2626; padding: 6px 12px;}
-
-        /* History List (App Style) */
-        .history-list-wrapper { background: white; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: var(--shadow-sm); }
-        .hist-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background 0.2s; }
-        .hist-item:last-child { border-bottom: none; }
-        .hist-item:active { background: #f8fafc; }
-        .hist-info-left { display: flex; flex-direction: column; gap: 4px; }
-        .hist-time { font-size: 1.3rem; font-weight: 900; color: var(--text-dark); display: flex; align-items: center; gap: 8px; }
-        .hist-yield { font-size: 0.9rem; color: var(--text-muted); font-weight: 600; }
-        .hist-yield span { color: var(--primary); font-weight: 900; font-size: 1.05rem; }
-        .hist-arrow { color: #cbd5e1; font-weight: 900; font-size: 1.5rem; }
-
-        /* Hide scrollbar for neatness */
-        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        /* --- 🔥 V166: PRINT STYLES FOR PDF GENERATION 🔥 --- */
+        @media print {
+            @page { size: A4 portrait; margin: 12mm; }
+            body { background: white !important; color: black !important; font-family: 'Sarabun', sans-serif; font-size: 11pt !important; padding: 0 !important; margin: 0 !important; }
+            .dashboard, .nav-bar, .page, .fab-container, .live-predictor-fab, .modal, .order-status-bar { display: none !important; }
+            #print_area { display: block !important; width: 100%; position: static; }
+            
+            .print-header { text-align: center; font-weight: 900; font-size: 14pt; margin-bottom: 10px; }
+            .print-table { width: 100%; border-collapse: collapse; border: 2px solid black; }
+            .print-table th, .print-table td { border: 1px solid black; padding: 4px; text-align: center; font-size: 10pt; font-weight: 600; }
+            .print-table th { background-color: #f1f5f9 !important; font-weight: 800; font-size: 9.5pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .print-summary-col { text-align: left !important; padding-left: 10px !important; border-left: 2px solid black !important; font-size: 9.5pt; font-weight: 600;}
+            .print-footer td { border-top: 2px solid black; font-weight: 900; background-color: #e2e8f0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .print-downtime td { color: #b91c1c; font-style: italic; }
+        }
     </style>
 </head>
 <body>
@@ -251,7 +269,6 @@
             <button class="btn-stock-manager" style="margin-bottom:20px; font-size:1rem;" onclick="openStockManager()">📦 จ่ายของเก่า</button>
             <button class="btn-view-history" style="margin-bottom:20px; font-size:1rem;" onclick="openFullHistory()">🕒 ประวัติย้อนหลัง</button>
         </div>
-        
         <div id="drops_list"></div>
         <div style="height: 120px;"></div>
     </div>
@@ -263,10 +280,26 @@
         </div>
         <span class="lpf-badge" id="pred_countdown">--</span>
     </div>
-    
     <div class="fab-container"><button class="fab-main" onclick="addDrop('prod')">+</button></div>
 
     <div id="page-summary" class="page">
+        <div class="modern-card card-body" style="border:2px solid var(--primary);">
+            <h3 style="color:var(--primary);">📑 ข้อมูลออกรายงาน (PDF Form)</h3>
+            <div class="grid-2" style="margin-bottom:10px;">
+                <div><div class="input-label">สาขา</div><input type="text" id="rpt_branch" value="วาริเทพเพ็ญ (W041)" oninput="saveData()"></div>
+                <div><div class="input-label">เครื่องที่</div><input type="text" id="rpt_machine" value="M1" oninput="saveData()"></div>
+            </div>
+            <div class="grid-2" style="margin-bottom:10px;">
+                <div><div class="input-label">ค่า pH</div><input type="text" id="rpt_ph" value="7.1" oninput="saveData()"></div>
+                <div><div class="input-label">ค่า TDS</div><input type="text" id="rpt_tds" value="162" oninput="saveData()"></div>
+            </div>
+            <div class="grid-2">
+                <div><div class="input-label">พนักงานผลิต (คน)</div><input type="number" id="rpt_staff_prod" value="4" oninput="saveData()"></div>
+                <div><div class="input-label">วิศวกรรม (คน)</div><input type="number" id="rpt_staff_eng" value="1" oninput="saveData()"></div>
+            </div>
+            <button class="btn-print" onclick="printReport()">🖨️ สร้างไฟล์ PDF</button>
+        </div>
+
         <div class="modern-card card-body">
              <h3>📊 สรุปสถานะรายคัน (ขาด/เกิน)</h3>
              <div id="truck_report_container" style="overflow-x:auto;"></div>
@@ -287,13 +320,13 @@
                         </tr>
                         <tr>
                             <th id="header_start_time_simple" class="pt-time sub-header" style="color:#ea580c; font-weight:900; background:#f8fafc !important; padding:2px;">22:00</th>
-                            <th class="pt-check sub-header">หลอด</th>
-                            <th class="pt-check sub-header">บด</th>
-                            <th class="pt-prod sub-header">หลอดใหญ่</th>
-                            <th class="pt-prod sub-header">บดหยาบ</th>
-                            <th class="pt-prod sub-header">ละเอียด</th>
-                            <th class="pt-rem sub-header">หลอด</th>
-                            <th class="pt-rem sub-header">บด</th>
+                            <th class="pt-check sub-header" style="font-weight:700;">หลอด</th>
+                            <th class="pt-check sub-header" style="font-weight:700;">บด</th>
+                            <th class="pt-prod sub-header" style="font-weight:700; font-size:0.75rem;">หลอดใหญ่</th>
+                            <th class="pt-prod sub-header" style="font-weight:700; font-size:0.75rem;">บดหยาบ</th>
+                            <th class="pt-prod sub-header" style="font-weight:700; font-size:0.75rem;">ละเอียด</th>
+                            <th class="pt-rem sub-header" style="font-weight:700;">หลอด</th>
+                            <th class="pt-rem sub-header" style="font-weight:700;">บด</th>
                         </tr>
                     </thead>
                     <tbody id="prod_log_body"></tbody>
@@ -342,6 +375,8 @@
              <div id="truck_detail_container"></div>
         </div>
     </div>
+
+    <div id="print_area"></div>
 
     <div id="downtime_modal" class="modal">
         <div class="modal-content">
@@ -434,6 +469,9 @@
     
     let globalAvgTime = 38;
     let globalLastEventTime = null;
+    
+    // Store calculated totals globally for PDF generation
+    window.REPORT_DATA = {};
 
     document.addEventListener('DOMContentLoaded', () => {
         const today = new Date().toISOString().split('T')[0];
@@ -448,7 +486,7 @@
         setInterval(updatePredictor, 60000); 
     });
 
-    function getEmptyData() { return { times: { start: "22:00", stop: "06:00" }, initStock: { hl:0, bh:0, bl:0 }, orders: {}, drops: [] }; }
+    function getEmptyData() { return { times: { start: "22:00", stop: "06:00" }, initStock: { hl:0, bh:0, bl:0 }, reportInfo: { branch: 'วาริเทพเพ็ญ (W041)', machine: 'M1', ph: '7.1', tds: '162', prodStaff: 4, engStaff: 1 }, orders: {}, drops: [] }; }
     
     function saveData() { 
         const dateKey = document.getElementById('setup_date').value;
@@ -456,6 +494,17 @@
         DATA.times.start = document.getElementById('time_start').value;
         DATA.times.stop = document.getElementById('time_stop').value;
         DATA.initStock = { hl: getNum(document.getElementById('init_hl').value), bh: getNum(document.getElementById('init_bh').value), bl: getNum(document.getElementById('init_bl').value) };
+        
+        if(!DATA.reportInfo) DATA.reportInfo = { branch: 'วาริเทพเพ็ญ (W041)', machine: 'M1', ph: '', tds: '', prodStaff: 0, engStaff: 0 };
+        if(document.getElementById('rpt_branch')) {
+            DATA.reportInfo.branch = document.getElementById('rpt_branch').value;
+            DATA.reportInfo.machine = document.getElementById('rpt_machine').value;
+            DATA.reportInfo.ph = document.getElementById('rpt_ph').value;
+            DATA.reportInfo.tds = document.getElementById('rpt_tds').value;
+            DATA.reportInfo.prodStaff = getNum(document.getElementById('rpt_staff_prod').value);
+            DATA.reportInfo.engStaff = getNum(document.getElementById('rpt_staff_eng').value);
+        }
+
         localStorage.setItem(`ICE_DATA_${dateKey}`, JSON.stringify(DATA)); 
     }
     
@@ -468,6 +517,7 @@
                 DATA = JSON.parse(d); 
                 if(!DATA.drops) DATA.drops = []; 
                 if(!DATA.orders) DATA.orders = {}; 
+                if(!DATA.reportInfo) DATA.reportInfo = { branch: 'วาริเทพเพ็ญ (W041)', machine: 'M1', ph: '7.1', tds: '162', prodStaff: 4, engStaff: 1 };
                 if(!DATA.initStock) DATA.initStock = {hl:0, bh:0, bl:0};
                 
                 DATA.drops.forEach(drop => {
@@ -511,6 +561,15 @@
         document.getElementById('init_bh').value = DATA.initStock.bh || 0;
         document.getElementById('init_bl').value = DATA.initStock.bl || 0;
         
+        if(document.getElementById('rpt_branch')) {
+            document.getElementById('rpt_branch').value = DATA.reportInfo.branch || 'วาริเทพเพ็ญ (W041)';
+            document.getElementById('rpt_machine').value = DATA.reportInfo.machine || 'M1';
+            document.getElementById('rpt_ph').value = DATA.reportInfo.ph || '7.1';
+            document.getElementById('rpt_tds').value = DATA.reportInfo.tds || '162';
+            document.getElementById('rpt_staff_prod').value = DATA.reportInfo.prodStaff || 4;
+            document.getElementById('rpt_staff_eng').value = DATA.reportInfo.engStaff || 1;
+        }
+
         if(document.getElementById('header_start_time_simple')) {
             document.getElementById('header_start_time_simple').innerText = (DATA.times.start || "22:00") + ' น.';
         }
@@ -674,6 +733,62 @@
         calcAll();
     }
 
+    function getHistoricalAverages() {
+        let totalBOD = 0, countBOD = 0;
+        let totalHL = 0, countHL = 0;
+        
+        const currentDateStr = document.getElementById('setup_date').value;
+        if(!currentDateStr) return { avgHL: 70, avgBOD: 62 }; 
+        
+        let parts = currentDateStr.split('-');
+        let d = new Date(parts[0], parts[1]-1, parts[2]);
+
+        for(let i=0; i<=3; i++) {
+            let checkDate = new Date(d);
+            checkDate.setDate(d.getDate() - i);
+            let dateKey = checkDate.getFullYear() + '-' + String(checkDate.getMonth()+1).padStart(2,'0') + '-' + String(checkDate.getDate()).padStart(2,'0');
+            
+            let pastDataStr = localStorage.getItem(`ICE_DATA_${dateKey}`);
+            if(pastDataStr) {
+                try {
+                    let pastData = JSON.parse(pastDataStr);
+                    if(pastData && pastData.drops) {
+                        pastData.drops.forEach(drop => {
+                            if(drop.type === 'prod') {
+                                let p_hl = getNum(drop.p_in_room?.hl);
+                                let p_bh = getNum(drop.p_in_room?.bh);
+                                let p_bl = getNum(drop.p_in_room?.bl);
+                                if(drop.dist) {
+                                    drop.dist.forEach(distItem => {
+                                        if(distItem.type === 'hl') p_hl += getNum(distItem.total);
+                                        if(distItem.type === 'bh') p_bh += getNum(distItem.total);
+                                        if(distItem.type === 'bl') p_bl += getNum(distItem.total);
+                                    });
+                                }
+                                
+                                let bod_sum = p_bh + p_bl;
+                                
+                                if(p_hl === 0 && bod_sum > 0) {
+                                    totalBOD += bod_sum;
+                                    countBOD++;
+                                }
+                                if(bod_sum === 0 && p_hl > 0) {
+                                    totalHL += p_hl;
+                                    countHL++;
+                                }
+                            }
+                        });
+                    }
+                } catch(e) {}
+            }
+        }
+
+        return {
+            avgHL: countHL > 0 ? (totalHL / countHL) : 70,
+            avgBOD: countBOD > 0 ? (totalBOD / countBOD) : 62
+        };
+    }
+
     function calcAll() {
         let sumP={hl:0,bh:0,bl:0}, curHL=getNum(document.getElementById('init_hl').value), curBH=getNum(document.getElementById('init_bh').value), curBL=getNum(document.getElementById('init_bl').value);
         let totalSent=0, sentHL=0, sentBH=0, sentBL=0; 
@@ -710,13 +825,13 @@
                 pendingDowntime += dtMins;
                 
                 prodLogHtml += `
-                <tr style="background-color: #fef2f2;">
+                <tr style="background-color: #fef2f2;" class="print-downtime">
                     <td class="pt-time-col" style="font-weight:900; color:#cbd5e1; text-align:center;">-</td>
                     <td class="pt-time-col" style="color:#ef4444; font-weight:900;">${d.time}</td>
                     <td class="pt-time-col" style="color:#ef4444;">-</td>
                     <td colspan="7" style="background-color: #fef2f2 !important; color:#ef4444 !important; font-weight:900 !important; text-align:center; letter-spacing: 2px;">ปิดเครื่อง</td>
                 </tr>
-                <tr style="background-color: #f0fdf4;">
+                <tr style="background-color: #f0fdf4;" class="print-downtime">
                     <td class="pt-time-col" style="font-weight:900; color:#cbd5e1; text-align:center;">-</td>
                     <td class="pt-time-col" style="color:#10b981; font-weight:900;">${d.time_end || d.time}</td>
                     <td class="pt-time-col" style="color:#10b981;">-</td>
@@ -775,7 +890,7 @@
             }); }
         });
         
-        prodLogHtml += `<tr class="total-row">
+        prodLogHtml += `<tr class="total-row print-footer">
             <td class="total-label" colspan="2" style="border-bottom-left-radius: 12px;">รวม</td>
             <td style="color:#38bdf8 !important;">${totalDuration}</td>
             <td style="color:#38bdf8 !important;">${totalWithHL}</td>
@@ -809,8 +924,22 @@
         } else { 
             safeSet('rpt_avg_time', 0); safeSet('rpt_tons_day', 0); safeSet('rpt_avg_yield', 0); 
         }
+        
+        // STORE DATA FOR PDF REPORT
+        window.REPORT_DATA = {
+            sumHL: sumP.hl, sumBH: sumP.bh, sumBL: sumP.bl,
+            totProd: sumP.hl + sumP.bh + sumP.bl,
+            totWeight: totW,
+            wHL: sumP.hl * 20, wBH: sumP.bh * 23, wBL: sumP.bl * 24,
+            avgTime: avgTime, tonsDay: (totW > 0 && totalDuration > 0) ? ((totW / totalDuration) * 1440 / 1000).toFixed(2) : 0, avgYield: Math.round((sumP.hl+sumP.bh+sumP.bl) / prodDropsCount) || 0,
+            withHL: totalWithHL, withBOD: totalWithBod,
+            usedAll: totalUsedAll,
+            remHL: totalRemHL, remBOD: totalRemBod,
+            totDuration: totalDuration,
+            drops: sortedDrops // pass processed drops for pdf table rendering
+        };
 
-        // --- 🔮 LIVE PREDICTOR TICKER ---
+        // --- LIVE PREDICTOR TICKER ---
         globalAvgTime = avgTime;
         let lastEventStr = startTimeStr;
         if(sortedDrops.length > 0) {
@@ -884,7 +1013,7 @@
             </table>
         </div>`; } } }); content += `</div>`; if(hasData) h += content; } }); if(h==='') h='<div style="text-align:center; padding:20px; color:#aaa;">ยังไม่มีข้อมูล</div>'; document.getElementById('truck_detail_container').innerHTML = h; }
     
-    function updateOrder(key, val) { DATA.orders[key] = getNum(val); saveData(); // calcAll is inside saveData
+    function updateOrder(key, val) { DATA.orders[key] = getNum(val); saveData(); 
         const tid = key.split('_')[0] + '_' + key.split('_')[1]; const hl = getNum(DATA.orders[tid+'_hl']); const bh = getNum(DATA.orders[tid+'_bh']); const bl = getNum(DATA.orders[tid+'_bl']); const sumEl = document.getElementById('ord_sum_'+tid); if(sumEl) sumEl.innerText = hl+bh+bl;
     }
     
@@ -1097,6 +1226,166 @@
     function getTruckName(id) { return TRUCKS[parseInt(id.replace('t',''))-1]; }
     function getTypeName(id) { return ICE_TYPES.find(x=>x.id===id).label; }
     function switchPage(id) { document.querySelectorAll('.page').forEach(x=>x.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active')); document.getElementById('page-'+id).classList.add('active'); const map={setup:0,production:1,summary:2}; document.querySelectorAll('.nav-btn')[map[id]].classList.add('active'); if(id==='summary'){calcAll(); window.scrollTo(0,0);} }
+
+    // --- 🔥 V166: PRINT PDF GENERATOR FUNCTION 🔥 ---
+    function printReport() {
+        // Ensure calculations are up-to-date
+        saveData();
+        
+        const dateVal = document.getElementById('setup_date').value;
+        let thaiDateStr = '';
+        if(dateVal) {
+            const d = new Date(dateVal);
+            const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+            thaiDateStr = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear() + 543}`;
+        }
+        
+        const rd = window.REPORT_DATA;
+        const info = DATA.reportInfo;
+        const startTimeStr = document.getElementById('time_start').value || "22:00";
+        
+        // Prepare exact 30 items (Prod + 2 rows per downtime)
+        let renderItems = [];
+        rd.drops.forEach(d => {
+            if(d.type === 'prod') {
+                let p_hl = getNum(d.p_in_room.hl); let p_bh = getNum(d.p_in_room.bh); let p_bl = getNum(d.p_in_room.bl);
+                if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') p_hl+=getNum(i.total); if(i.type==='bh') p_bh+=getNum(i.total); if(i.type==='bl') p_bl+=getNum(i.total); }); }
+                const w_hl = Math.ceil(p_hl/40)*40; const w_bod = Math.ceil((p_bh+p_bl)/40)*40;
+                
+                // net time calc
+                let prevTime = startTimeStr;
+                let idx = rd.drops.findIndex(x => x.id === d.id);
+                for(let i=idx-1; i>=0; i--) { if(rd.drops[i].type==='prod'){ prevTime = rd.drops[i].time; break; } }
+                let dtSub = 0;
+                for(let i=0; i<idx; i++) { 
+                    if(rd.drops[i].type==='downtime' && getAdjustedMinutes(rd.drops[i].time, startTimeStr) >= getAdjustedMinutes(prevTime, startTimeStr)) {
+                        dtSub += getMinDiff(rd.drops[i].time, rd.drops[i].time_end);
+                    }
+                }
+                let netDiff = Math.max(0, getMinDiff(prevTime, d.time) - dtSub);
+
+                renderItems.push({
+                    type: 'prod', time: d.time, duration: netDiff,
+                    whl: w_hl||'-', wbod: w_bod||'-', phl: p_hl||'-', pbh: p_bh||'-', pbl: p_bl||'-',
+                    rhl: w_hl>0?(w_hl-p_hl):'-', rbod: w_bod>0?(w_bod-(p_bh+p_bl)):'-'
+                });
+            } else if (d.type === 'downtime') {
+                renderItems.push({ type: 'dt1', time: d.time });
+                renderItems.push({ type: 'dt2', time: d.time_end || d.time });
+            }
+        });
+
+        // Summary Mapping (exactly 30 rows)
+        let sumCol = [
+            `หลอดใหญ่ <b>${rd.sumHL}</b> กระสอบ`, // 0
+            `บดหยาบ <b>${rd.sumBH}</b> กระสอบ`, // 1
+            `บดละเอียด <b>${rd.sumBL}</b> กระสอบ`, // 2
+            `รวม <b>${rd.totProd}</b> กระสอบ`, // 3
+            ``, // 4
+            ``, // 5
+            `นน.เฉลี่ยหลอดใหญ่ <b>20</b> กก.`, // 6
+            `นน.เฉลี่ยบดหยาบ <b>23</b> กก.`, // 7
+            `นน.เฉลี่ยบดละเอียด <b>24</b> กก.`, // 8
+            `นน.รวม <b>22</b> กก.`, // 9
+            ``, // 10
+            ``, // 11
+            `นน.รวมหลอดใหญ่ <b>${rd.wHL.toLocaleString()}</b> กก.`, // 12
+            `นน.รวมบดหยาบ <b>${rd.wBH.toLocaleString()}</b> กก.`, // 13
+            `นน.รวมบดละเอียด <b>${rd.wBL.toLocaleString()}</b> กก.`, // 14
+            `น้ำหนักรวม <b>${rd.totWeight.toLocaleString()}</b> กก.`, // 15
+            ``, // 16
+            `เวลาเฉลี่ย <b>${rd.avgTime}</b> นาที/ตก`, // 17
+            `น้ำหนัก <b>${rd.tonsDay}</b> ตัน/วัน`, // 18
+            `จำนวนเฉลี่ย <b>${rd.avgYield}</b> กระสอบ/ตก`, // 19
+            ``, // 20
+            `เบิกกระสอบ <b>${rd.withHL + rd.withBOD}</b> ใบ (รวมทุกเครื่อง)`, // 21
+            `กระสอบที่ใช้ <b>${rd.usedAll}</b> ใบ`, // 22
+            `กระสอบคงเหลือ <b>${rd.remHL + rd.remBOD}</b> ใบ`, // 23
+            ``, // 24
+            `ค่า pH &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>${info.ph}</b>`, // 25
+            `ค่า TDS &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>${info.tds}</b>`, // 26
+            `พนักงานผลิต &nbsp;&nbsp;&nbsp;<b>${info.prodStaff}</b> คน`, // 27
+            `วิศวกรรม &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>${info.engStaff}</b> คน`, // 28
+            `<br>ลงชื่อ .................................... พนักงาน` // 29
+        ];
+
+        let html = `
+            <div class="print-header">แบบฟอร์มบันทึกการผลิตน้ำแข็ง สาขา ${info.branch} เครื่องที่ ${info.machine} วันที่ ${thaiDateStr}</div>
+            <table class="print-table">
+                <thead>
+                    <tr>
+                        <th rowspan="2" style="width:4%;">ลำดับ</th>
+                        <th style="width:10%;">เวลา</th>
+                        <th rowspan="2" style="width:6%;">นาที/ตก</th>
+                        <th colspan="2" style="width:14%;">เบิกกระสอบ</th>
+                        <th colspan="3" style="width:21%;">ผลการผลิต</th>
+                        <th colspan="2" style="width:14%;">กระสอบคงเหลือ</th>
+                        <th rowspan="2" style="width:31%; border-left:2px solid black;">ข้อมูลสรุป</th>
+                    </tr>
+                    <tr>
+                        <th>เปิดเครื่อง<br>${startTimeStr} น.</th>
+                        <th>หลอด</th><th>บด</th>
+                        <th>หลอดใหญ่</th><th>บดหยาบ</th><th>บดละเอียด</th>
+                        <th>หลอด</th><th>บด</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        let loopLimit = Math.max(30, renderItems.length);
+        let prodCounter = 0;
+
+        for(let i=0; i<loopLimit; i++) {
+            let item = renderItems[i];
+            let summaryText = sumCol[i] || '';
+
+            if(item && item.type === 'prod') {
+                prodCounter++;
+                html += `<tr>
+                    <td>${prodCounter}</td><td>${item.time}</td><td>${item.duration}</td>
+                    <td>${item.whl}</td><td>${item.wbod}</td>
+                    <td>${item.phl}</td><td>${item.pbh}</td><td>${item.pbl}</td>
+                    <td>${item.rhl}</td><td>${item.rbod}</td>
+                    <td class="print-summary-col">${summaryText}</td>
+                </tr>`;
+            } else if (item && item.type === 'dt1') {
+                html += `<tr class="print-downtime">
+                    <td>-</td><td>${item.time}</td><td>-</td>
+                    <td colspan="7">ปิดเครื่อง</td>
+                    <td class="print-summary-col" style="color:black; font-style:normal;">${summaryText}</td>
+                </tr>`;
+            } else if (item && item.type === 'dt2') {
+                html += `<tr class="print-downtime" style="color:#15803d;">
+                    <td>-</td><td>${item.time}</td><td>-</td>
+                    <td colspan="7">เปิดเครื่อง</td>
+                    <td class="print-summary-col" style="color:black; font-style:normal;">${summaryText}</td>
+                </tr>`;
+            } else {
+                html += `<tr>
+                    <td></td><td></td><td></td>
+                    <td></td><td></td>
+                    <td></td><td></td><td></td>
+                    <td></td><td></td>
+                    <td class="print-summary-col">${summaryText}</td>
+                </tr>`;
+            }
+        }
+
+        html += `
+                <tr class="print-footer">
+                    <td colspan="2">รวม</td>
+                    <td>${rd.totDuration}</td>
+                    <td>${rd.withHL}</td><td>${rd.withBOD}</td>
+                    <td>${rd.sumHL}</td><td>${rd.sumBH}</td><td>${rd.sumBL}</td>
+                    <td>${rd.remHL}</td><td>${rd.remBOD}</td>
+                    <td class="print-summary-col"><br>ลงชื่อ .................................... ผู้จัดการสาขา</td>
+                </tr>
+            </tbody></table>
+        `;
+
+        document.getElementById('print_area').innerHTML = html;
+        setTimeout(() => { window.print(); }, 300);
+    }
 </script>
 </body>
 </html>
