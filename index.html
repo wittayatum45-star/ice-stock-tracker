@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V164 (Speed & History UI Update)</title>
+    <title>Smart Ice V165 (Perfect Centered Modals)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
         /* --- Modern Premium Theme --- */
@@ -34,7 +34,6 @@
         body { font-family: 'Sarabun', sans-serif; margin: 0; padding: 0; background: var(--bg-main); color: var(--text-dark); padding-bottom: 100px; font-size: 15px; -webkit-font-smoothing: antialiased; }
         * { box-sizing: border-box; }
         
-        /* 🔥 V164: Prevent touch delay on mobile 🔥 */
         button, input, select { touch-action: manipulation; }
         
         /* Dashboard Header */
@@ -158,7 +157,7 @@
         .fab-main:active { transform: scale(0.85); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
         
         /* Live Predictor Pill */
-        .live-predictor-fab { position: fixed; bottom: 35px; left: 15px; z-index: 2000; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border: 2px solid #e2e8f0; color: var(--text-dark); padding: 10px 16px; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 800; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 10px; transition: 0.3s; }
+        .live-predictor-fab { position: fixed; bottom: 35px; left: 15px; z-index: 2000; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border: 2px solid #e2e8f0; color: var(--text-dark); padding: 10px 16px; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 800; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 10px; transition: 0.3s; cursor: pointer;}
         .lpf-time { font-size: 1.25rem; color: #7c3aed; font-weight: 900; letter-spacing: 0.5px; }
         .lpf-badge { background: #f3e8ff; color: #6d28d9; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 900; }
         .lpf-badge.overdue { background: #fee2e2; color: #dc2626; }
@@ -183,7 +182,7 @@
         .btn-edit-mini { background: #fef9c3; color: #d97706; padding: 6px 12px;}
         .btn-del-mini { background: #fee2e2; color: #dc2626; padding: 6px 12px;}
 
-        /* 🔥 V164: REDESIGNED HISTORY LIST (APP STYLE) 🔥 */
+        /* History List (App Style) */
         .history-list-wrapper { background: white; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: var(--shadow-sm); }
         .hist-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background 0.2s; }
         .hist-item:last-child { border-bottom: none; }
@@ -266,6 +265,7 @@
     <div class="fab-container"><button class="fab-main" onclick="addDrop('prod')">+</button></div>
 
     <div id="page-summary" class="page">
+
         <div class="modern-card card-body">
              <h3>📊 สรุปสถานะรายคัน (ขาด/เกิน)</h3>
              <div id="truck_report_container" style="overflow-x:auto;"></div>
@@ -442,12 +442,12 @@
         initWizard();
         renderOrderInputs();
         renderDrops();
-        setTimeout(() => { calcAll(); }, 50); // Faster initial render
+        setTimeout(() => { calcAll(); }, 50); 
         
         setInterval(updatePredictor, 60000); 
     });
 
-    function getEmptyData() { return { times: { start: "22:00", stop: "06:00" }, initStock: { hl:0, bh:0, bl:0 }, targetReserve: { hl:0, bh:0, bl:0 }, orders: {}, drops: [] }; }
+    function getEmptyData() { return { times: { start: "22:00", stop: "06:00" }, initStock: { hl:0, bh:0, bl:0 }, orders: {}, drops: [] }; }
     
     function saveData() { 
         const dateKey = document.getElementById('setup_date').value;
@@ -456,12 +456,6 @@
         DATA.times.stop = document.getElementById('time_stop').value;
         DATA.initStock = { hl: getNum(document.getElementById('init_hl').value), bh: getNum(document.getElementById('init_bh').value), bl: getNum(document.getElementById('init_bl').value) };
         
-        if(!DATA.targetReserve) DATA.targetReserve = {hl:0, bh:0, bl:0};
-        if(document.getElementById('fc_tar_hl')) {
-            DATA.targetReserve.hl = getNum(document.getElementById('fc_tar_hl').value);
-            DATA.targetReserve.bh = getNum(document.getElementById('fc_tar_bh').value);
-            DATA.targetReserve.bl = getNum(document.getElementById('fc_tar_bl').value);
-        }
         localStorage.setItem(`ICE_DATA_${dateKey}`, JSON.stringify(DATA)); 
     }
     
@@ -526,9 +520,7 @@
     function getNum(val) { return parseFloat(val) || 0; }
     function updateStock() { saveData(); calcAll(); }
 
-    // 🔥 V164: Optimized addDrop to prevent visual delay on click 🔥
     function addDrop(type) {
-        // Run logic slightly asynchronously to allow CSS :active state to render instantly
         setTimeout(() => {
             const now = new Date();
             const timeStr = now.toTimeString().substring(0, 5);
@@ -538,7 +530,7 @@
                 DATA.drops.push({ id: Date.now(), type: type, time: timeStr, sackWithdraw: 0, p_in_room: { hl:0, bh:0, bl:0 }, dist: [] });
             }
             saveData(); 
-            calcAll(); // calcAll must run before renderDrops to have accurate totals
+            calcAll(); 
             renderDrops(); 
             
             if(type === 'prod' || type === 'downtime') {
@@ -549,7 +541,7 @@
         }, 10);
     }
     
-    function deleteDrop(id) { if(confirm("ระบบจะลบข้อมูลนี้ทิ้ง ยืนยันหรือไม่?")) { DATA.drops = DATA.drops.filter(d => d.id !== id); saveData(); calcAll(); renderDrops(); if(document.getElementById('stock_manager_modal').style.display === 'block') openStockManager(); } }
+    function deleteDrop(id) { if(confirm("ระบบจะลบข้อมูลนี้ทิ้ง ยืนยันหรือไม่?")) { DATA.drops = DATA.drops.filter(d => d.id !== id); saveData(); calcAll(); renderDrops(); if(document.getElementById('stock_manager_modal').style.display === 'flex') openStockManager(); } }
 
     function openDowntimeModal(id = null) {
         EDITING_DOWNTIME_ID = id;
@@ -569,7 +561,7 @@
         if(document.getElementById('edit_past_modal').style.display === 'flex') {
             document.getElementById('edit_past_modal').style.display = 'none';
             SOURCE_MODAL = 'edit_past';
-        } else if (document.getElementById('history_modal').style.display === 'block') {
+        } else if (document.getElementById('history_modal').style.display === 'flex') {
             document.getElementById('history_modal').style.display = 'none';
             SOURCE_MODAL = 'history';
         } else {
@@ -581,7 +573,7 @@
     function closeDowntimeModal() {
         document.getElementById('downtime_modal').style.display = 'none';
         if(SOURCE_MODAL === 'edit_past') openFullHistory();
-        else if(SOURCE_MODAL === 'history') document.getElementById('history_modal').style.display = 'block';
+        else if(SOURCE_MODAL === 'history') document.getElementById('history_modal').style.display = 'flex';
     }
 
     function saveDowntime() {
@@ -678,63 +670,8 @@
         if(cat === 'time') d.time = val; 
         else if (cat === 'time_end') d.time_end = val;
         else if(cat === 'p_in_room') d.p_in_room[sub] = getNum(val);
-        saveData(); // calcAll is inside saveData
-    }
-
-    function getHistoricalAverages() {
-        let totalBOD = 0, countBOD = 0;
-        let totalHL = 0, countHL = 0;
-        
-        const currentDateStr = document.getElementById('setup_date').value;
-        if(!currentDateStr) return { avgHL: 70, avgBOD: 62 }; 
-        
-        let parts = currentDateStr.split('-');
-        let d = new Date(parts[0], parts[1]-1, parts[2]);
-
-        for(let i=0; i<=3; i++) {
-            let checkDate = new Date(d);
-            checkDate.setDate(d.getDate() - i);
-            let dateKey = checkDate.getFullYear() + '-' + String(checkDate.getMonth()+1).padStart(2,'0') + '-' + String(checkDate.getDate()).padStart(2,'0');
-            
-            let pastDataStr = localStorage.getItem(`ICE_DATA_${dateKey}`);
-            if(pastDataStr) {
-                try {
-                    let pastData = JSON.parse(pastDataStr);
-                    if(pastData && pastData.drops) {
-                        pastData.drops.forEach(drop => {
-                            if(drop.type === 'prod') {
-                                let p_hl = getNum(drop.p_in_room?.hl);
-                                let p_bh = getNum(drop.p_in_room?.bh);
-                                let p_bl = getNum(drop.p_in_room?.bl);
-                                if(drop.dist) {
-                                    drop.dist.forEach(distItem => {
-                                        if(distItem.type === 'hl') p_hl += getNum(distItem.total);
-                                        if(distItem.type === 'bh') p_bh += getNum(distItem.total);
-                                        if(distItem.type === 'bl') p_bl += getNum(distItem.total);
-                                    });
-                                }
-                                
-                                let bod_sum = p_bh + p_bl;
-                                
-                                if(p_hl === 0 && bod_sum > 0) {
-                                    totalBOD += bod_sum;
-                                    countBOD++;
-                                }
-                                if(bod_sum === 0 && p_hl > 0) {
-                                    totalHL += p_hl;
-                                    countHL++;
-                                }
-                            }
-                        });
-                    }
-                } catch(e) {}
-            }
-        }
-
-        return {
-            avgHL: countHL > 0 ? (totalHL / countHL) : 70,
-            avgBOD: countBOD > 0 ? (totalBOD / countBOD) : 62
-        };
+        saveData(); 
+        calcAll();
     }
 
     function calcAll() {
@@ -873,7 +810,7 @@
             safeSet('rpt_avg_time', 0); safeSet('rpt_tons_day', 0); safeSet('rpt_avg_yield', 0); 
         }
 
-        // --- 🔮 LIVE PREDICTOR TICKER ---
+        // --- LIVE PREDICTOR ENGINE ---
         globalAvgTime = avgTime;
         let lastEventStr = startTimeStr;
         if(sortedDrops.length > 0) {
@@ -886,7 +823,6 @@
         renderSummaryTable(truckMat); renderDetailTable(truckDetail);
     }
 
-    // --- 🔥 LIVE PREDICTOR TICKER 🔥 ---
     function updatePredictor() {
         if(!globalLastEventTime) return;
         
@@ -948,16 +884,16 @@
             </table>
         </div>`; } } }); content += `</div>`; if(hasData) h += content; } }); if(h==='') h='<div style="text-align:center; padding:20px; color:#aaa;">ยังไม่มีข้อมูล</div>'; document.getElementById('truck_detail_container').innerHTML = h; }
     
-    function updateOrder(key, val) { DATA.orders[key] = getNum(val); saveData(); // calcAll is inside saveData
+    function updateOrder(key, val) { DATA.orders[key] = getNum(val); saveData(); calcAll(); 
         const tid = key.split('_')[0] + '_' + key.split('_')[1]; const hl = getNum(DATA.orders[tid+'_hl']); const bh = getNum(DATA.orders[tid+'_bh']); const bl = getNum(DATA.orders[tid+'_bl']); const sumEl = document.getElementById('ord_sum_'+tid); if(sumEl) sumEl.innerText = hl+bh+bl;
     }
     
-    // 🔥 V164: REDESIGNED HISTORY MODAL LIST 🔥
+    // 🔥 V165: List with fixed modal logic 🔥
     function openFullHistory() { 
         const container = document.getElementById('full_history_list'); 
         container.innerHTML = ''; 
         const startTimeStr = document.getElementById('time_start').value;
-        const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(b.time, startTimeStr) - getAdjustedMinutes(a.time, startTimeStr)); 
+        const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(b.time, startTimeStr) - getAdjustedMinutes(a.time, startTimeStr)).reverse(); 
         
         if (sortedDrops.length === 0) { 
             container.innerHTML = '<div style="text-align:center; padding:30px; color:#94a3b8; font-weight:600;">ไม่มีประวัติการผลิต</div>'; 
@@ -989,14 +925,16 @@
                 }
             }); 
         } 
-        document.getElementById('full_history_modal').style.display = 'block'; 
+        document.getElementById('full_history_modal').style.display = 'flex'; // Changed to 'flex' for centering
     }
     function closeFullHistory() { document.getElementById('full_history_modal').style.display = 'none'; renderDrops(); calcAll(); }
     
     function openTruckHistory(tid) { const container = document.getElementById('history_list'); container.innerHTML = ''; document.getElementById('hist_title').innerText = `🕒 ประวัติ ${getTruckName(tid)}`; 
         const startTimeStr = document.getElementById('time_start').value;
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(a.time, startTimeStr)); 
-        let hasData = false; sortedDrops.forEach(d => { if(d.dist) { d.dist.forEach((item, idx) => { if(item.truck === tid) { hasData = true; const typeName = getTypeName(item.type); const typeLabel = d.type === 'prod' ? '<span class="hist-tag ht-fresh">ผลิต</span>' : '<span class="hist-tag ht-stock">ห้อง</span>'; container.insertAdjacentHTML('beforeend', `<div class="hist-item" style="border-radius:12px; border:1px solid #e2e8f0; margin-bottom:10px;"><div class="hist-info"><div><b style="font-weight:900; font-size:1.1rem;">${d.time}</b> ${typeLabel} : <span style="font-weight:800;">${typeName}</span></div><div style="color:var(--text-muted); font-weight:600; margin-top:4px;">(${item.r1}/${item.r2}/${item.r3}) = <b style="color:var(--primary); font-size:1.1rem;">${item.total}</b></div></div><div style="display:flex; flex-direction:column; gap:5px;"><button class="btn-edit-mini" onclick="closeHistoryModal(); SOURCE_MODAL='truck_history'; editDist(${d.id}, ${idx})">✏️ แก้ไข</button><button class="btn-del-mini" onclick="removeDist(${d.id}, ${idx}); closeHistoryModal();">🗑️ ลบ</button></div></div>`); } }); } }); if(!hasData) container.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">ไม่มีประวัติสำหรับรถคันนี้</div>'; document.getElementById('history_modal').style.display = 'block'; }
+        let hasData = false; sortedDrops.forEach(d => { if(d.dist) { d.dist.forEach((item, idx) => { if(item.truck === tid) { hasData = true; const typeName = getTypeName(item.type); const typeLabel = d.type === 'prod' ? '<span class="hist-tag ht-fresh">ผลิต</span>' : '<span class="hist-tag ht-stock">ห้อง</span>'; container.insertAdjacentHTML('beforeend', `<div class="hist-item" style="border-radius:12px; border:1px solid #e2e8f0; margin-bottom:10px;"><div class="hist-info" style="flex:1;"><div><b style="font-weight:900; font-size:1.1rem;">${d.time}</b> ${typeLabel} : <span style="font-weight:800;">${typeName}</span></div><div style="color:var(--text-muted); font-weight:600; margin-top:4px;">(${item.r1}/${item.r2}/${item.r3}) = <b style="color:var(--primary); font-size:1.1rem;">${item.total}</b></div></div><div style="display:flex; flex-direction:column; gap:5px;"><button class="btn-edit-mini" onclick="closeHistoryModal(); SOURCE_MODAL='truck_history'; editDist(${d.id}, ${idx})">✏️ แก้ไข</button><button class="btn-del-mini" onclick="removeDist(${d.id}, ${idx}); closeHistoryModal();">🗑️ ลบ</button></div></div>`); } }); } }); if(!hasData) container.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">ไม่มีประวัติสำหรับรถคันนี้</div>'; 
+        document.getElementById('history_modal').style.display = 'flex'; // Changed to 'flex'
+    }
     function closeHistoryModal() { document.getElementById('history_modal').style.display = 'none'; }
     
     function openEditPast(id) { 
@@ -1006,7 +944,7 @@
         const d = sortedDrops[idx];
         if(!d) return; 
         
-        document.getElementById('full_history_modal').style.display = 'none'; document.getElementById('stock_manager_modal').style.display = 'none'; if(document.getElementById('stock_manager_modal').style.display === 'block') SOURCE_MODAL = 'stock'; else if(document.getElementById('full_history_modal').style.display === 'block') SOURCE_MODAL = 'history'; else SOURCE_MODAL = null; 
+        document.getElementById('full_history_modal').style.display = 'none'; document.getElementById('stock_manager_modal').style.display = 'none'; if(document.getElementById('stock_manager_modal').style.display === 'flex') SOURCE_MODAL = 'stock'; else if(document.getElementById('full_history_modal').style.display === 'flex') SOURCE_MODAL = 'history'; else SOURCE_MODAL = null; 
     
         if(d.type === 'prod') { 
             let prevProdIdx = -1;
@@ -1022,21 +960,21 @@
     
     function closeEditPastModal() { document.getElementById('edit_past_modal').style.display = 'none'; if(SOURCE_MODAL === 'history') openFullHistory(); else if(SOURCE_MODAL === 'stock') openStockManager(); else renderDrops(); calcAll(); }
     
-    function openStockManager() { const container = document.getElementById('stock_list_container'); container.innerHTML = ''; const stockDrops = DATA.drops.filter(d => d.type === 'stock').reverse(); if(stockDrops.length === 0) { container.innerHTML = '<div style="text-align:center; color:#aaa; margin-top:20px; font-weight:bold;">ไม่มีรายการเบิกของเก่าในวันนี้</div>'; } else { stockDrops.forEach(d => { let details = ''; if(d.dist) { d.dist.forEach((item, idx) => { details += `<div style="background:white; padding:8px; border-radius:8px; margin-top:8px; font-size:0.85rem; border:1px solid #f1f5f9; box-shadow:var(--shadow-sm);">🚛 ${getTruckName(item.truck)} (${getTypeName(item.type)}) : <b style="font-size:1rem; color:var(--text-dark);">${item.total}</b></div>`; }); } container.insertAdjacentHTML('beforeend', `<div style="background:#fffbeb; padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid #fef3c7;"><div style="display:flex; justify-content:space-between; font-weight:900; color:#d97706; font-size:1.1rem; align-items:center;"><span>📦 เบิก ${d.time}</span><button class="btn-act-del" style="width:auto; padding:6px 12px; font-size:0.8rem;" onclick="deleteDrop(${d.id})">ลบ</button></div>${details}<button class="btn-add-dist" style="background:white; border-color:#fde68a; color:#d97706;" onclick="openDistModal(${d.id})">+ เพิ่มจ่ายรถ</button></div>`); }); } document.getElementById('stock_manager_modal').style.display = 'block'; }
+    function openStockManager() { const container = document.getElementById('stock_list_container'); container.innerHTML = ''; const stockDrops = DATA.drops.filter(d => d.type === 'stock').reverse(); if(stockDrops.length === 0) { container.innerHTML = '<div style="text-align:center; color:#aaa; margin-top:20px; font-weight:bold;">ไม่มีรายการเบิกของเก่าในวันนี้</div>'; } else { stockDrops.forEach(d => { let details = ''; if(d.dist) { d.dist.forEach((item, idx) => { details += `<div style="background:white; padding:8px; border-radius:8px; margin-top:8px; font-size:0.85rem; border:1px solid #f1f5f9; box-shadow:var(--shadow-sm);">🚛 ${getTruckName(item.truck)} (${getTypeName(item.type)}) : <b style="font-size:1rem; color:var(--text-dark);">${item.total}</b></div>`; }); } container.insertAdjacentHTML('beforeend', `<div style="background:#fffbeb; padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid #fef3c7;"><div style="display:flex; justify-content:space-between; font-weight:900; color:#d97706; font-size:1.1rem; align-items:center;"><span>📦 เบิก ${d.time}</span><button class="btn-act-del" style="width:auto; padding:6px 12px; font-size:0.8rem;" onclick="deleteDrop(${d.id})">ลบ</button></div>${details}<button class="btn-add-dist" style="background:white; border-color:#fde68a; color:#d97706;" onclick="openDistModal(${d.id})">+ เพิ่มจ่ายรถ</button></div>`); }); } document.getElementById('stock_manager_modal').style.display = 'flex'; } // Changed to 'flex'
     function closeStockManager() { document.getElementById('stock_manager_modal').style.display = 'none'; renderDrops(); calcAll(); }
-    function removeDist(dropId, idx) { const d = DATA.drops.find(x => x.id === dropId); if(d) { d.dist.splice(idx, 1); updateDropVal(dropId, 'dist_update', null, 0); saveData(); if(document.getElementById('stock_manager_modal').style.display === 'block') openStockManager(); else if(document.getElementById('edit_past_modal').style.display === 'flex') openEditPast(dropId); else renderDrops(); calcAll(); } }
+    function removeDist(dropId, idx) { const d = DATA.drops.find(x => x.id === dropId); if(d) { d.dist.splice(idx, 1); updateDropVal(dropId, 'dist_update', null, 0); saveData(); if(document.getElementById('stock_manager_modal').style.display === 'flex') openStockManager(); else if(document.getElementById('edit_past_modal').style.display === 'flex') openEditPast(dropId); else renderDrops(); calcAll(); } }
     
     function initWizard() { const tSel = document.getElementById('wiz_truck'); const tySel = document.getElementById('wiz_type'); tSel.innerHTML = TRUCKS.map((t,i) => `<option value="t${i+1}">${t}</option>`).join(''); tySel.innerHTML = ICE_TYPES.map(ty => `<option value="${ty.id}">${ty.label}</option>`).join(''); }
     function openDistModal(dropId) { 
         if(document.getElementById('edit_past_modal').style.display === 'flex') { document.getElementById('edit_past_modal').style.display = 'none'; SOURCE_MODAL = 'edit_past'; } 
-        else if (document.getElementById('stock_manager_modal').style.display === 'block') { document.getElementById('stock_manager_modal').style.display = 'none'; SOURCE_MODAL = 'stock'; } 
+        else if (document.getElementById('stock_manager_modal').style.display === 'flex') { document.getElementById('stock_manager_modal').style.display = 'none'; SOURCE_MODAL = 'stock'; } 
         else { SOURCE_MODAL = null; } 
         initWizard(); CURRENT_DROP_ID = dropId; EDITING_DIST_IDX = null; const d = DATA.drops.find(x => x.id === dropId); document.getElementById('wiz_r1').value = ''; document.getElementById('wiz_r2').value = ''; document.getElementById('wiz_r3').value = ''; updateWizStats(); document.getElementById('wiz_title').innerText = d.type === 'prod' ? '🚛 จ่ายของผลิตใหม่' : '📦 จ่ายของเก่า'; document.getElementById('dist_modal').style.display = 'flex'; 
     }
     function editDist(dropId, idx) { 
         if(document.getElementById('edit_past_modal').style.display === 'flex') { document.getElementById('edit_past_modal').style.display = 'none'; SOURCE_MODAL = 'edit_past'; } 
-        else if (document.getElementById('history_modal').style.display === 'block') { document.getElementById('history_modal').style.display = 'none'; SOURCE_MODAL = 'truck_history'; }
-        else if (document.getElementById('stock_manager_modal').style.display === 'block') { document.getElementById('stock_manager_modal').style.display = 'none'; SOURCE_MODAL = 'stock'; } 
+        else if (document.getElementById('history_modal').style.display === 'flex') { document.getElementById('history_modal').style.display = 'none'; SOURCE_MODAL = 'truck_history'; }
+        else if (document.getElementById('stock_manager_modal').style.display === 'flex') { document.getElementById('stock_manager_modal').style.display = 'none'; SOURCE_MODAL = 'stock'; } 
         else { SOURCE_MODAL = null; } 
         initWizard(); CURRENT_DROP_ID = dropId; EDITING_DIST_IDX = idx; const d = DATA.drops.find(x => x.id === dropId); const item = d.dist[idx]; document.getElementById('wiz_truck').value = item.truck; document.getElementById('wiz_type').value = item.type; document.getElementById('wiz_r1').value = item.r1; document.getElementById('wiz_r2').value = item.r2; document.getElementById('wiz_r3').value = item.r3; updateWizStats(); document.getElementById('wiz_title').innerText = '✏️ แก้ไขรายการ'; document.getElementById('dist_modal').style.display = 'flex'; 
     }
