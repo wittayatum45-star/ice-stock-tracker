@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V163 (UI Redesign & Fixes)</title>
+    <title>Smart Ice V164 (Speed & History UI Update)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
         /* --- Modern Premium Theme --- */
@@ -34,6 +34,9 @@
         body { font-family: 'Sarabun', sans-serif; margin: 0; padding: 0; background: var(--bg-main); color: var(--text-dark); padding-bottom: 100px; font-size: 15px; -webkit-font-smoothing: antialiased; }
         * { box-sizing: border-box; }
         
+        /* 🔥 V164: Prevent touch delay on mobile 🔥 */
+        button, input, select { touch-action: manipulation; }
+        
         /* Dashboard Header */
         .dashboard { position: sticky; top: 0; z-index: 1000; background: var(--dark-grad); color: white; padding: 15px 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); display: flex; justify-content: space-around; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; margin-bottom: 10px; }
         .dash-item span { font-size: 0.8rem; color: #cbd5e1; display: block; margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -48,8 +51,8 @@
         .nav-btn.active { background: var(--primary-grad); color: white; box-shadow: var(--shadow-color); transform: scale(1.02); }
         
         .page { display: none; padding: 0 10px 10px 10px; max-width: 800px; margin: 0 auto; }
-        .page.active { display: block; animation: fadeIn 0.4s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .page.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Modern Cards */
         .modern-card { background: var(--card-bg); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); margin-bottom: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.8); }
@@ -79,7 +82,7 @@
         .sack-split { font-size: 0.85rem; color: #555; display: flex; justify-content: center; gap: 5px; margin-top: 4px; }
         .ss-hl { color: #059669; font-weight:900; } .ss-bod { color: #7c3aed; font-weight:900; }
 
-        /* Report Table */
+        /* Report Table (Polished) */
         .paper-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; margin-top: 5px; border-radius: 12px; overflow: hidden; border: 1px solid #cbd5e1; }
         .paper-table th { background: #e2e8f0; border-right: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1; padding: 6px 2px; text-align: center; font-weight: 800; color: #334155; vertical-align: middle; line-height: 1.2; }
         .paper-table th:last-child { border-right: none; }
@@ -104,12 +107,6 @@
         .cr-total { color: var(--primary); font-size: 1.15rem; }
         .cr-header { font-weight: 900; color: white; margin-bottom: 12px; font-size: 1.1rem; background: var(--text-dark); padding: 8px 12px; border-radius: 8px; display: inline-block; }
 
-        /* Forecast Card */
-        .forecast-card { background: linear-gradient(135deg, #f3e8ff 0%, #e0e7ff 100%); border: none; box-shadow: 0 10px 25px rgba(139, 92, 246, 0.15); }
-        .fc-header { font-weight: 900; color: #6d28d9; font-size: 1.2rem; border-bottom: 2px dashed #c4b5fd; padding-bottom: 10px; margin-bottom: 15px; display:flex; justify-content:space-between; }
-        .fc-result { background: rgba(255,255,255,0.8); border-radius: 12px; padding: 15px; margin-top: 15px; border: 1px solid white; backdrop-filter: blur(10px); }
-        .fc-highlight { font-size: 1.8rem; font-weight: 900; color: #be123c; text-align: center; margin-top: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-
         /* Truck Matrix */
         .truck-matrix-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 5px; border-radius: 12px; overflow: hidden; border: 1px solid #cbd5e1; }
         .truck-matrix-table th { background: #e2e8f0; color: #334155; padding: 10px 6px; font-weight: 800; border-bottom: 1px solid #cbd5e1; font-size: 0.9rem; }
@@ -118,38 +115,37 @@
         .st-pill { display: inline-block; padding: 4px 10px; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 800; min-width: 60px; box-shadow: var(--shadow-sm); }
         .st-over { background: #e0f2fe; color: #0284c7; } .st-miss { background: #fee2e2; color: #dc2626; } .st-ok { background: #dcfce7; color: #16a34a; } .st-none { color: #cbd5e1; font-weight: 400; font-size: 1.2rem; }
         
-        /* 🔥 V163: Redesigned Truck Detail Table 🔥 */
+        /* Detail Table (Inside truck details) */
         .truck-detail-block { background: white; border-radius: var(--radius-md); padding: 20px; margin-bottom: 20px; border: 1px solid #e2e8f0; box-shadow: var(--shadow-md); }
         .truck-detail-header { font-weight: 900; color: var(--text-dark); border-bottom: 2px dashed #e2e8f0; padding-bottom: 12px; margin-bottom: 15px; font-size: 1.2rem; display: flex; justify-content: space-between; align-items: center; }
-        
         .detail-table { width: 100%; border-collapse: separate; border-spacing: 0 5px; margin-top: 10px; }
         .detail-table th { background: transparent; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; padding-bottom: 5px; border: none; font-weight:800; }
         .detail-table td { background: #f8fafc; padding: 12px 8px; border: none; text-align: center; font-weight: 700; color: var(--text-dark); }
         .detail-table tr td:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; color: var(--text-muted); font-weight: 900; background:#f1f5f9;}
         .detail-table tr td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; font-size: 1.1rem;}
-        
         .dt-stock-val { color: #0369a1; background: #e0f2fe; padding: 4px 10px; border-radius: 6px; border: 1px solid #bae6fd; display:inline-block; min-width: 40px;}
         .dt-fresh-val { color: #15803d; background: #dcfce7; padding: 4px 10px; border-radius: 6px; border: 1px solid #bbf7d0; display:inline-block; min-width: 40px;}
         .dt-total-val { color: #ffffff; background: #334155; padding: 4px 12px; border-radius: 6px; font-weight: 900; display:inline-block; min-width: 45px;}
         .detail-summary-row td { background: transparent !important; border: none; padding-top: 15px; }
 
         /* Buttons */
-        .btn-history, .btn-del-mini, .btn-edit-mini { border: none; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
+        .btn-history, .btn-del-mini, .btn-edit-mini { border: none; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.15s; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
         .btn-history { background: var(--warning-grad); color: white; padding: 8px 14px; font-size: 0.9rem; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3); border-radius: 20px;}
         .btn-history:active { transform: scale(0.95); }
         
-        .btn-save-wiz { width: 100%; padding: 16px; background: var(--success-grad); color: white; border: none; border-radius: 14px; font-size: 1.3rem; font-weight: 900; margin-top: 15px; cursor: pointer; box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3); transition: 0.2s; }
+        .btn-save-wiz { width: 100%; padding: 16px; background: var(--success-grad); color: white; border: none; border-radius: 14px; font-size: 1.3rem; font-weight: 900; margin-top: 15px; cursor: pointer; box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3); transition: 0.15s; }
         .btn-save-wiz:active { transform: scale(0.98); }
         
-        .btn-stock-manager, .btn-view-history, .btn-downtime { width: 100%; padding: 16px; border: none; border-radius: 14px; font-size: 1.15rem; font-weight: 900; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.2s; }
+        .btn-stock-manager, .btn-view-history, .btn-downtime { width: 100%; padding: 16px; border: none; border-radius: 14px; font-size: 1.15rem; font-weight: 900; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.15s; }
         .btn-stock-manager { background: var(--warning-grad); color: white; box-shadow: 0 6px 15px rgba(245, 158, 11, 0.3); }
         .btn-downtime { background: var(--danger-grad); color: white; box-shadow: 0 6px 15px rgba(239, 68, 68, 0.3); }
         .btn-view-history { background: var(--text-dark); color: white; box-shadow: 0 6px 15px rgba(30, 41, 59, 0.3); margin-bottom: 25px; }
-        .btn-stock-manager:active, .btn-downtime:active, .btn-view-history:active { transform: scale(0.98); }
+        .btn-stock-manager:active, .btn-downtime:active, .btn-view-history:active { transform: scale(0.96); }
         
-        .btn-save-dist { width: 100%; padding: 14px; background: var(--success-grad); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 900; margin-top: 15px; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition:0.2s; }
-        .btn-save-dist:active { transform: scale(0.98); }
-        .btn-reset { background: #e2e8f0; color: #64748b; border: none; padding: 14px; width: 100%; margin-top: 20px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.2s; }
+        .btn-save-dist { width: 100%; padding: 14px; background: var(--success-grad); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 900; margin-top: 15px; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition:0.15s; }
+        .btn-save-dist:active { transform: scale(0.96); }
+        .btn-reset { background: #e2e8f0; color: #64748b; border: none; padding: 14px; width: 100%; margin-top: 20px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.15s; }
+        .btn-reset:active { background: #cbd5e1; }
         
         /* Layout Helpers */
         .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
@@ -158,8 +154,8 @@
         
         /* Floating Actions */
         .fab-container { position: fixed; bottom: 30px; right: 20px; z-index: 2000; }
-        .fab-main { width: 65px; height: 65px; border-radius: 50%; background: var(--success-grad); color: white; border: none; font-size: 36px; line-height: 1; font-weight: 300; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
-        .fab-main:active { transform: scale(0.9); }
+        .fab-main { width: 65px; height: 65px; border-radius: 50%; background: var(--success-grad); color: white; border: none; font-size: 36px; line-height: 1; font-weight: 300; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.15s; }
+        .fab-main:active { transform: scale(0.85); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
         
         /* Live Predictor Pill */
         .live-predictor-fab { position: fixed; bottom: 35px; left: 15px; z-index: 2000; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border: 2px solid #e2e8f0; color: var(--text-dark); padding: 10px 16px; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 800; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 10px; transition: 0.3s; }
@@ -184,19 +180,19 @@
         .btn-add-dist { width: 100%; padding: 14px; background: white; color: var(--primary); border: 2px dashed #bae6fd; border-radius: 12px; font-weight: 800; font-size:1rem; cursor: pointer; margin-top: 5px; transition:0.2s; }
         .btn-add-dist:active { background: #f0f9ff; }
         
-        /* 🔥 V163: History Modal Item Redesign 🔥 */
-        .hist-item { background: white; border: 1px solid #e2e8f0; padding: 16px; margin-bottom: 12px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm); transition: 0.2s; }
-        .hist-info { display: flex; flex-direction: column; gap: 4px; flex:1; }
-        .hist-time-title { font-size: 1.2rem; font-weight: 900; color: var(--text-dark); display: flex; align-items: center; gap: 8px; }
-        .hist-subtitle { font-size: 0.9rem; color: var(--text-muted); font-weight: 600; }
-        .hist-detail-box { background: #f8fafc; padding: 8px 12px; border-radius: 10px; font-size: 0.9rem; font-weight: 700; color: var(--primary); display: inline-block; margin-top: 6px; border: 1px solid #e2e8f0; }
-        .hist-actions-modern { display: flex; flex-direction: column; gap: 8px; margin-left:10px; }
-        
-        .btn-act-edit, .btn-act-del { border: none; padding: 8px 16px; border-radius: 10px; font-weight: 800; font-size: 0.9rem; cursor: pointer; transition: 0.2s; width:100%; }
-        .btn-act-edit { background: #fef3c7; color: #d97706; }
-        .btn-act-edit:active { background: #fde68a; }
-        .btn-act-del { background: #fee2e2; color: #dc2626; }
-        .btn-act-del:active { background: #fecaca; }
+        .btn-edit-mini { background: #fef9c3; color: #d97706; padding: 6px 12px;}
+        .btn-del-mini { background: #fee2e2; color: #dc2626; padding: 6px 12px;}
+
+        /* 🔥 V164: REDESIGNED HISTORY LIST (APP STYLE) 🔥 */
+        .history-list-wrapper { background: white; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: var(--shadow-sm); }
+        .hist-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background 0.2s; }
+        .hist-item:last-child { border-bottom: none; }
+        .hist-item:active { background: #f8fafc; }
+        .hist-info-left { display: flex; flex-direction: column; gap: 4px; }
+        .hist-time { font-size: 1.3rem; font-weight: 900; color: var(--text-dark); display: flex; align-items: center; gap: 8px; }
+        .hist-yield { font-size: 0.9rem; color: var(--text-muted); font-weight: 600; }
+        .hist-yield span { color: var(--primary); font-weight: 900; font-size: 1.05rem; }
+        .hist-arrow { color: #cbd5e1; font-weight: 900; font-size: 1.5rem; }
 
         /* Hide scrollbar for neatness */
         ::-webkit-scrollbar { width: 0px; background: transparent; }
@@ -270,7 +266,6 @@
     <div class="fab-container"><button class="fab-main" onclick="addDrop('prod')">+</button></div>
 
     <div id="page-summary" class="page">
-        
         <div class="modern-card card-body">
              <h3>📊 สรุปสถานะรายคัน (ขาด/เกิน)</h3>
              <div id="truck_report_container" style="overflow-x:auto;"></div>
@@ -313,7 +308,14 @@
                     <div class="cr-row" style="margin-top:8px; padding-top:8px; border-top:1px solid #e2e8f0;"><span class="cr-label cr-total">รวมผลิตทั้งหมด:</span> <span class="cr-val cr-total" id="rpt_total_prod" style="font-size:1.3rem;">0</span> กระสอบ</div>
                 </div>
                 <div class="cr-section">
-                    <div class="cr-header" style="background:var(--warning-grad);">⚖️ น้ำหนักรวม (Production Weight)</div>
+                    <div class="cr-header" style="background:var(--warning-grad);">⚖️ น้ำหนักเฉลี่ย (ต่อกระสอบ)</div>
+                    <div class="cr-row"><span class="cr-label">นน.เฉลี่ย หลอดใหญ่:</span> <span class="cr-val">20</span> กก.</div>
+                    <div class="cr-row"><span class="cr-label">นน.เฉลี่ย บดหยาบ:</span> <span class="cr-val">23</span> กก.</div>
+                    <div class="cr-row"><span class="cr-label">นน.เฉลี่ย บดละเอียด:</span> <span class="cr-val">24</span> กก.</div>
+                    <div class="cr-row"><span class="cr-label cr-total" style="color:#d97706;">นน.เฉลี่ยรวม:</span> <span class="cr-val cr-total" style="color:#d97706;">22</span> กก.</div>
+                </div>
+                <div class="cr-section">
+                    <div class="cr-header" style="background:var(--primary-grad);">🏋️ น้ำหนักรวม (Production Weight)</div>
                     <div class="cr-row"><span class="cr-label">นน.รวม หลอดใหญ่:</span> <span class="cr-val" id="rpt_w_hl">0</span> กก.</div>
                     <div class="cr-row"><span class="cr-label">นน.รวม บดหยาบ:</span> <span class="cr-val" id="rpt_w_bh">0</span> กก.</div>
                     <div class="cr-row"><span class="cr-label">นน.รวม บดละเอียด:</span> <span class="cr-val" id="rpt_w_bl">0</span> กก.</div>
@@ -403,7 +405,20 @@
     </div>
 
     <div id="stock_manager_modal" class="modal"><div class="modal-content"><div class="modal-header"><div class="modal-title">📦 จ่ายของเก่า (ห้องเย็น)</div><button class="btn-close-modal" onclick="closeStockManager()">×</button></div><div class="modal-body"><button class="btn-save-dist" style="width:100%; margin-top:0; margin-bottom:20px;" onclick="addDrop('stock'); closeStockManager(); openDistModal(DATA.drops[DATA.drops.length-1].id)">+ เพิ่มรายการเบิก</button><div id="stock_list_container"></div><div style="height:50px;"></div></div></div></div>
-    <div id="full_history_modal" class="modal"><div class="modal-content"><div class="modal-header"><div class="modal-title">🕒 ประวัติย้อนหลัง</div><button class="btn-close-modal" onclick="closeFullHistory()">×</button></div><div class="modal-body"><div id="full_history_list"></div><div style="height:50px;"></div></div></div></div>
+    
+    <div id="full_history_modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">🕒 ประวัติย้อนหลัง</div>
+                <button class="btn-close-modal" onclick="closeFullHistory()">×</button>
+            </div>
+            <div class="modal-body" style="background:#f8fafc;">
+                <div class="history-list-wrapper" id="full_history_list"></div>
+                <div style="height:50px;"></div>
+            </div>
+        </div>
+    </div>
+    
     <div id="history_modal" class="modal"><div class="modal-content"><div class="modal-header"><div class="modal-title" id="hist_title">🕒 ประวัติ</div><button class="btn-close-modal" onclick="closeHistoryModal()">×</button></div><div class="modal-body"><div id="history_list"></div><div style="height:50px;"></div></div></div></div>
     <div id="edit_past_modal" class="modal" style="display:none; align-items:center; justify-content:center;"><div class="modal-content" style="background:transparent; box-shadow:none;"><div class="modal-header" style="border-radius:16px 16px 0 0;"><div class="modal-title">✏️ แก้ไขรายการ</div><button class="btn-close-modal" onclick="closeEditPastModal()">×</button></div><div class="modal-body" id="edit_past_body" style="padding:0;"></div></div></div>
 
@@ -416,7 +431,6 @@
     let EDITING_DOWNTIME_ID = null;
     let SOURCE_MODAL = null;
     
-    // Global Prediction Variables
     let globalAvgTime = 38;
     let globalLastEventTime = null;
 
@@ -428,9 +442,8 @@
         initWizard();
         renderOrderInputs();
         renderDrops();
-        setTimeout(() => { calcAll(); }, 100);
+        setTimeout(() => { calcAll(); }, 50); // Faster initial render
         
-        // Start Live Predictor
         setInterval(updatePredictor, 60000); 
     });
 
@@ -444,12 +457,12 @@
         DATA.initStock = { hl: getNum(document.getElementById('init_hl').value), bh: getNum(document.getElementById('init_bh').value), bl: getNum(document.getElementById('init_bl').value) };
         
         if(!DATA.targetReserve) DATA.targetReserve = {hl:0, bh:0, bl:0};
-        DATA.targetReserve.hl = getNum(document.getElementById('fc_tar_hl').value);
-        DATA.targetReserve.bh = getNum(document.getElementById('fc_tar_bh').value);
-        DATA.targetReserve.bl = getNum(document.getElementById('fc_tar_bl').value);
-
+        if(document.getElementById('fc_tar_hl')) {
+            DATA.targetReserve.hl = getNum(document.getElementById('fc_tar_hl').value);
+            DATA.targetReserve.bh = getNum(document.getElementById('fc_tar_bh').value);
+            DATA.targetReserve.bl = getNum(document.getElementById('fc_tar_bl').value);
+        }
         localStorage.setItem(`ICE_DATA_${dateKey}`, JSON.stringify(DATA)); 
-        calcAll(); 
     }
     
     function loadData(dateKey) {
@@ -477,7 +490,6 @@
             isNewDay = true;
         }
 
-        // PULL ONLY ORDERS FROM PREVIOUS DAYS
         if (isNewDay) {
             let parts = dateKey.split('-');
             let checkDate = new Date(parts[0], parts[1]-1, parts[2]);
@@ -504,28 +516,41 @@
         document.getElementById('init_hl').value = DATA.initStock.hl || 0;
         document.getElementById('init_bh').value = DATA.initStock.bh || 0;
         document.getElementById('init_bl').value = DATA.initStock.bl || 0;
+        
+        if(document.getElementById('header_start_time_simple')) {
+            document.getElementById('header_start_time_simple').innerText = (DATA.times.start || "22:00") + ' น.';
+        }
     }
 
-    function changeDate() { const newDate = document.getElementById('setup_date').value; loadData(newDate); saveData(); renderOrderInputs(); renderDrops(); calcAll(); }
+    function changeDate() { const newDate = document.getElementById('setup_date').value; loadData(newDate); saveData(); calcAll(); renderOrderInputs(); renderDrops(); }
     function getNum(val) { return parseFloat(val) || 0; }
-    function updateStock() { saveData(); }
+    function updateStock() { saveData(); calcAll(); }
 
+    // 🔥 V164: Optimized addDrop to prevent visual delay on click 🔥
     function addDrop(type) {
-        const now = new Date();
-        const timeStr = now.toTimeString().substring(0, 5);
-        if(type === 'downtime') {
-            DATA.drops.push({ id: Date.now(), type: type, time: timeStr, time_end: timeStr });
-        } else {
-            DATA.drops.push({ id: Date.now(), type: type, time: timeStr, sackWithdraw: 0, p_in_room: { hl:0, bh:0, bl:0 }, dist: [] });
-        }
-        saveData(); renderDrops(); calcAll();
-        if(type === 'prod' || type === 'downtime') setTimeout(() => window.scrollTo(0, 0), 100); 
-        else openStockManager();
+        // Run logic slightly asynchronously to allow CSS :active state to render instantly
+        setTimeout(() => {
+            const now = new Date();
+            const timeStr = now.toTimeString().substring(0, 5);
+            if(type === 'downtime') {
+                DATA.drops.push({ id: Date.now(), type: type, time: timeStr, time_end: timeStr });
+            } else {
+                DATA.drops.push({ id: Date.now(), type: type, time: timeStr, sackWithdraw: 0, p_in_room: { hl:0, bh:0, bl:0 }, dist: [] });
+            }
+            saveData(); 
+            calcAll(); // calcAll must run before renderDrops to have accurate totals
+            renderDrops(); 
+            
+            if(type === 'prod' || type === 'downtime') {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                openStockManager();
+            }
+        }, 10);
     }
     
-    function deleteDrop(id) { if(confirm("ระบบจะลบข้อมูลนี้ทิ้ง ยืนยันหรือไม่?")) { DATA.drops = DATA.drops.filter(d => d.id !== id); saveData(); renderDrops(); calcAll(); if(document.getElementById('stock_manager_modal').style.display === 'block') openStockManager(); } }
+    function deleteDrop(id) { if(confirm("ระบบจะลบข้อมูลนี้ทิ้ง ยืนยันหรือไม่?")) { DATA.drops = DATA.drops.filter(d => d.id !== id); saveData(); calcAll(); renderDrops(); if(document.getElementById('stock_manager_modal').style.display === 'block') openStockManager(); } }
 
-    // --- DOWNTIME MODAL LOGIC ---
     function openDowntimeModal(id = null) {
         EDITING_DOWNTIME_ID = id;
         if(id) {
@@ -569,22 +594,21 @@
             DATA.drops.push({ id: Date.now(), type: 'downtime', time: tStart, time_end: tEnd });
         }
         saveData();
+        calcAll();
         closeDowntimeModal();
         renderDrops();
-        calcAll();
     }
 
     function deleteDowntime() {
         if(confirm('ลบรายการไฟดับนี้?')) {
             DATA.drops = DATA.drops.filter(x => x.id !== EDITING_DOWNTIME_ID);
             saveData();
+            calcAll();
             closeDowntimeModal();
             renderDrops();
-            calcAll();
         }
     }
     
-    // --- TIME ENGINE ---
     function getAdjustedMinutes(timeStr, startStr) { 
         if(!timeStr || !startStr) return 0; 
         let [h, m] = timeStr.split(':').map(Number); 
@@ -607,7 +631,6 @@
         container.innerHTML = '';
         
         const startTimeStr = document.getElementById('time_start').value || "22:00";
-        // SORT STRICTLY BY TIME
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
         
         const prodDrops = sortedDrops.filter(d => d.type === 'prod');
@@ -618,7 +641,6 @@
              return;
         }
 
-        // Render EXACTLY 1 card (The latest production card)
         let prevProd = prodDrops.length > 1 ? prodDrops[prodDrops.length - 2] : null;
         let prevTime = prevProd ? prevProd.time : startTimeStr;
         
@@ -656,17 +678,63 @@
         if(cat === 'time') d.time = val; 
         else if (cat === 'time_end') d.time_end = val;
         else if(cat === 'p_in_room') d.p_in_room[sub] = getNum(val);
-        saveData(); 
-        if(cat === 'p_in_room' || cat === 'dist_update') {
-            let hlProd = getNum(d.p_in_room.hl); let bhProd = getNum(d.p_in_room.bh); let blProd = getNum(d.p_in_room.bl);
-            if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') hlProd+=getNum(i.total); if(i.type==='bh') bhProd+=getNum(i.total); if(i.type==='bl') blProd+=getNum(i.total); }); }
-            const hlBatch = Math.ceil(hlProd/40)*40; const crushBatch = Math.ceil((bhProd+blProd)/40)*40;
-            const dw = document.getElementById(`disp_withdraw_${id}`); const du = document.getElementById(`disp_used_${id}`);
-            const dr1 = document.getElementById(`disp_rem_hl_${id}`); const dr2 = document.getElementById(`disp_rem_bod_${id}`);
-            if(dw) dw.innerText = `${hlBatch} / ${crushBatch}`; if(du) du.innerText = `${hlProd} / ${bhProd+blProd}`;
-            if(dr1) dr1.innerText = `หลอด:${hlBatch-hlProd}`; if(dr2) dr2.innerText = `บด:${crushBatch-(bhProd+blProd)}`;
+        saveData(); // calcAll is inside saveData
+    }
+
+    function getHistoricalAverages() {
+        let totalBOD = 0, countBOD = 0;
+        let totalHL = 0, countHL = 0;
+        
+        const currentDateStr = document.getElementById('setup_date').value;
+        if(!currentDateStr) return { avgHL: 70, avgBOD: 62 }; 
+        
+        let parts = currentDateStr.split('-');
+        let d = new Date(parts[0], parts[1]-1, parts[2]);
+
+        for(let i=0; i<=3; i++) {
+            let checkDate = new Date(d);
+            checkDate.setDate(d.getDate() - i);
+            let dateKey = checkDate.getFullYear() + '-' + String(checkDate.getMonth()+1).padStart(2,'0') + '-' + String(checkDate.getDate()).padStart(2,'0');
+            
+            let pastDataStr = localStorage.getItem(`ICE_DATA_${dateKey}`);
+            if(pastDataStr) {
+                try {
+                    let pastData = JSON.parse(pastDataStr);
+                    if(pastData && pastData.drops) {
+                        pastData.drops.forEach(drop => {
+                            if(drop.type === 'prod') {
+                                let p_hl = getNum(drop.p_in_room?.hl);
+                                let p_bh = getNum(drop.p_in_room?.bh);
+                                let p_bl = getNum(drop.p_in_room?.bl);
+                                if(drop.dist) {
+                                    drop.dist.forEach(distItem => {
+                                        if(distItem.type === 'hl') p_hl += getNum(distItem.total);
+                                        if(distItem.type === 'bh') p_bh += getNum(distItem.total);
+                                        if(distItem.type === 'bl') p_bl += getNum(distItem.total);
+                                    });
+                                }
+                                
+                                let bod_sum = p_bh + p_bl;
+                                
+                                if(p_hl === 0 && bod_sum > 0) {
+                                    totalBOD += bod_sum;
+                                    countBOD++;
+                                }
+                                if(bod_sum === 0 && p_hl > 0) {
+                                    totalHL += p_hl;
+                                    countHL++;
+                                }
+                            }
+                        });
+                    }
+                } catch(e) {}
+            }
         }
-        calcAll();
+
+        return {
+            avgHL: countHL > 0 ? (totalHL / countHL) : 70,
+            avgBOD: countBOD > 0 ? (totalBOD / countBOD) : 62
+        };
     }
 
     function calcAll() {
@@ -770,7 +838,6 @@
             }); }
         });
         
-        // 🔥 V163: TOTAL ROW DURATION RESTORED AND SPAN FIXED 🔥
         prodLogHtml += `<tr class="total-row">
             <td class="total-label" colspan="2" style="border-bottom-left-radius: 12px;">รวม</td>
             <td style="color:#38bdf8 !important; font-size:1.1rem;">${totalDuration}</td>
@@ -864,7 +931,6 @@
     
     function renderSummaryTable(mat) { let h = `<table class="truck-matrix-table"><thead><tr><th style="text-align:left;">รถ</th><th>หลอด</th><th>หยาบ</th><th>ละ..</th></tr></thead><tbody>`; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; h += `<tr><td class="truck-name-col">${t}</td>`; ICE_TYPES.forEach(ty => { const target = getNum(DATA.orders[`${tid}_${ty.id}`]); const sent = mat[tid][ty.id].fr + mat[tid][ty.id].st; let cell = `<span class="st-none">-</span>`; if(target > 0 || sent > 0) { const rem = target - sent; if(rem > 0) cell = `<span class="st-pill st-miss">ขาด ${rem}</span>`; else if(rem < 0) cell = `<span class="st-pill st-over">เกิน ${Math.abs(rem)}</span>`; else cell = `<span class="st-pill st-ok">ครบ</span>`; } h += `<td>${cell}</td>`; }); h += `</tr>`; }); h += `</tbody></table>`; document.getElementById('truck_report_container').innerHTML = h; }
     
-    // 🔥 V163: REDESIGNED TRUCK DETAIL TABLE 🔥
     function renderDetailTable(det) { let h = ''; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; if(det[tid]) { let hasData = false; let content = `<div class="truck-detail-block"><div class="truck-detail-header"><span>🚛 ${t}</span><button class="btn-history" onclick="openTruckHistory('${tid}')">🕒 ดูประวัติ</button></div>`; ICE_TYPES.forEach(ty => { if(det[tid][ty.id]) { const d = det[tid][ty.id]; const t_r1 = d.r1.fr+d.r1.st; const t_r2 = d.r2.fr+d.r2.st; const t_r3 = d.r3.fr+d.r3.st; const grand = t_r1+t_r2+t_r3; const ordered = getNum(DATA.orders[`${tid}_${ty.id}`]); if(grand > 0 || ordered > 0) { hasData = true; content += `
         <div style="margin-bottom:20px; background:#ffffff; border:1px solid #f1f5f9; border-radius:12px; padding:12px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding-bottom:8px; border-bottom:1px dashed #e2e8f0;">
@@ -882,51 +948,55 @@
             </table>
         </div>`; } } }); content += `</div>`; if(hasData) h += content; } }); if(h==='') h='<div style="text-align:center; padding:20px; color:#aaa;">ยังไม่มีข้อมูล</div>'; document.getElementById('truck_detail_container').innerHTML = h; }
     
-    function updateOrder(key, val) { DATA.orders[key] = getNum(val); saveData(); calcAll(); 
+    function updateOrder(key, val) { DATA.orders[key] = getNum(val); saveData(); // calcAll is inside saveData
         const tid = key.split('_')[0] + '_' + key.split('_')[1]; const hl = getNum(DATA.orders[tid+'_hl']); const bh = getNum(DATA.orders[tid+'_bh']); const bl = getNum(DATA.orders[tid+'_bl']); const sumEl = document.getElementById('ord_sum_'+tid); if(sumEl) sumEl.innerText = hl+bh+bl;
     }
     
-    function openFullHistory() { const container = document.getElementById('full_history_list'); container.innerHTML = ''; 
+    // 🔥 V164: REDESIGNED HISTORY MODAL LIST 🔥
+    function openFullHistory() { 
+        const container = document.getElementById('full_history_list'); 
+        container.innerHTML = ''; 
         const startTimeStr = document.getElementById('time_start').value;
-        const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(b.time, startTimeStr) - getAdjustedMinutes(a.time, startTimeStr)).reverse(); 
-        if (sortedDrops.length === 0) { container.innerHTML = '<div style="text-align:center; color:#aaa;">ไม่มีประวัติ</div>'; } else { sortedDrops.forEach((d, idx) => { 
-        if(d.type === 'prod') {
-            let prodTotal = getNum(d.p_in_room.hl) + getNum(d.p_in_room.bh) + getNum(d.p_in_room.bl); if(d.dist) d.dist.forEach(i => prodTotal += getNum(i.total)); const tag = (idx === 0) ? '<span class="hist-tag ht-fresh" style="background:#dcfce7; color:#16a34a;">ล่าสุด</span>' : ''; 
-            container.insertAdjacentHTML('beforeend', `<div class="hist-item" onclick="openEditPast(${d.id})" style="cursor:pointer; border:1px solid #e2e8f0;">
-                <div class="hist-info"><div><b style="font-weight:900; font-size:1.1rem;">${d.time}</b> ${tag}</div><div style="color:var(--text-muted); font-size:0.85rem; font-weight:600;">ยอดผลิตรวม: <b style="color:var(--primary); font-size:1rem;">${prodTotal}</b> กระสอบ</div></div>
-                <div style="color:var(--primary); font-weight:900; font-size:1.2rem;">></div>
-            </div>`); 
-        } else if (d.type === 'downtime') {
-            let dt = getMinDiff(d.time, d.time_end);
-            container.insertAdjacentHTML('beforeend', `<div class="hist-item" style="border-left: 4px solid #ef4444; cursor:pointer; background:#fef2f2;" onclick="openDowntimeModal(${d.id})">
-                <div class="hist-info"><div><b style="color:#b91c1c; font-weight:900; font-size:1.1rem;">${d.time} - ${d.time_end}</b></div><div style="color:#ef4444; font-size:0.85rem; font-weight:800;">หยุดเครื่อง/ไฟดับ (พัก ${dt} น.)</div></div>
-                <div style="color:#ef4444; font-weight:900; font-size:1.2rem;">></div>
-            </div>`);
-        }
-    }); } document.getElementById('full_history_modal').style.display = 'block'; }
+        const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(b.time, startTimeStr) - getAdjustedMinutes(a.time, startTimeStr)); 
+        
+        if (sortedDrops.length === 0) { 
+            container.innerHTML = '<div style="text-align:center; padding:30px; color:#94a3b8; font-weight:600;">ไม่มีประวัติการผลิต</div>'; 
+        } else { 
+            sortedDrops.forEach((d, idx) => { 
+                if(d.type === 'prod') {
+                    let prodTotal = getNum(d.p_in_room.hl) + getNum(d.p_in_room.bh) + getNum(d.p_in_room.bl); 
+                    if(d.dist) d.dist.forEach(i => prodTotal += getNum(i.total)); 
+                    const tag = (idx === 0) ? '<span style="background:#dcfce7; color:#16a34a; font-size:0.75rem; padding:2px 8px; border-radius:12px; margin-left:8px; vertical-align:middle;">ล่าสุด</span>' : ''; 
+                    
+                    container.insertAdjacentHTML('beforeend', `
+                    <div class="hist-item" onclick="openEditPast(${d.id})">
+                        <div class="hist-info-left">
+                            <div class="hist-time">${d.time} ${tag}</div>
+                            <div class="hist-yield">ยอดผลิตรวม: <span>${prodTotal}</span> กระสอบ</div>
+                        </div>
+                        <div class="hist-arrow">›</div>
+                    </div>`); 
+                } else if (d.type === 'downtime') {
+                    let dt = getMinDiff(d.time, d.time_end);
+                    container.insertAdjacentHTML('beforeend', `
+                    <div class="hist-item" style="background:#fef2f2;" onclick="openDowntimeModal(${d.id})">
+                        <div class="hist-info-left">
+                            <div class="hist-time" style="color:#dc2626;">${d.time} - ${d.time_end}</div>
+                            <div class="hist-yield" style="color:#ef4444;">หยุดเครื่อง/ไฟดับ <span style="color:#b91c1c;">(พัก ${dt} น.)</span></div>
+                        </div>
+                        <div class="hist-arrow" style="color:#fca5a5;">›</div>
+                    </div>`);
+                }
+            }); 
+        } 
+        document.getElementById('full_history_modal').style.display = 'block'; 
+    }
     function closeFullHistory() { document.getElementById('full_history_modal').style.display = 'none'; renderDrops(); calcAll(); }
     
-    // 🔥 V163: REDESIGNED HISTORY MODAL ITEM 🔥
     function openTruckHistory(tid) { const container = document.getElementById('history_list'); container.innerHTML = ''; document.getElementById('hist_title').innerText = `🕒 ประวัติ ${getTruckName(tid)}`; 
         const startTimeStr = document.getElementById('time_start').value;
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(a.time, startTimeStr)); 
-        let hasData = false; sortedDrops.forEach(d => { if(d.dist) { d.dist.forEach((item, idx) => { if(item.truck === tid) { hasData = true; 
-            const typeName = getTypeName(item.type); 
-            const typeBadge = d.type === 'prod' ? `<span class="st-pill st-ok" style="padding:2px 6px; font-size:0.7rem;">ผลิตใหม่</span>` : `<span class="st-pill st-over" style="padding:2px 6px; font-size:0.7rem;">ห้องเย็น</span>`;
-            
-            container.insertAdjacentHTML('beforeend', `
-            <div class="hist-item">
-                <div class="hist-info">
-                    <div class="hist-time-title">🕒 ${d.time} ${typeBadge}</div>
-                    <div class="hist-subtitle">ประเภท: <b>${typeName}</b></div>
-                    <div class="hist-detail-box">แถว 1,2,3 : ${item.r1} / ${item.r2} / ${item.r3} <br><span style="color:var(--text-dark);">รวม: <b style="font-size:1.1rem;">${item.total}</b> กระสอบ</span></div>
-                </div>
-                <div class="hist-actions-modern">
-                    <button class="btn-act-edit" onclick="closeHistoryModal(); SOURCE_MODAL='truck_history'; editDist(${d.id}, ${idx})">✏️ แก้ไข</button>
-                    <button class="btn-act-del" onclick="removeDist(${d.id}, ${idx}); closeHistoryModal();">🗑️ ลบ</button>
-                </div>
-            </div>`); 
-        } }); } }); if(!hasData) container.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa; font-weight:bold;">ไม่มีประวัติการขึ้นของสำหรับรถคันนี้</div>'; document.getElementById('history_modal').style.display = 'block'; }
+        let hasData = false; sortedDrops.forEach(d => { if(d.dist) { d.dist.forEach((item, idx) => { if(item.truck === tid) { hasData = true; const typeName = getTypeName(item.type); const typeLabel = d.type === 'prod' ? '<span class="hist-tag ht-fresh">ผลิต</span>' : '<span class="hist-tag ht-stock">ห้อง</span>'; container.insertAdjacentHTML('beforeend', `<div class="hist-item" style="border-radius:12px; border:1px solid #e2e8f0; margin-bottom:10px;"><div class="hist-info"><div><b style="font-weight:900; font-size:1.1rem;">${d.time}</b> ${typeLabel} : <span style="font-weight:800;">${typeName}</span></div><div style="color:var(--text-muted); font-weight:600; margin-top:4px;">(${item.r1}/${item.r2}/${item.r3}) = <b style="color:var(--primary); font-size:1.1rem;">${item.total}</b></div></div><div style="display:flex; flex-direction:column; gap:5px;"><button class="btn-edit-mini" onclick="closeHistoryModal(); SOURCE_MODAL='truck_history'; editDist(${d.id}, ${idx})">✏️ แก้ไข</button><button class="btn-del-mini" onclick="removeDist(${d.id}, ${idx}); closeHistoryModal();">🗑️ ลบ</button></div></div>`); } }); } }); if(!hasData) container.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">ไม่มีประวัติสำหรับรถคันนี้</div>'; document.getElementById('history_modal').style.display = 'block'; }
     function closeHistoryModal() { document.getElementById('history_modal').style.display = 'none'; }
     
     function openEditPast(id) { 
