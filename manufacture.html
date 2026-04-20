@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V159 (True Retroactive Timeline)</title>
+    <title>Smart Ice V160 (Live Predictor)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- Theme --- */
@@ -62,12 +62,6 @@
         .cr-total { color: #0277bd; font-size: 1.1rem; }
         .cr-header { font-weight: 800; color: #37474f; margin-bottom: 8px; font-size: 1.05rem; background: #eceff1; padding: 5px; border-radius: 4px; }
 
-        /* Forecast Card */
-        .forecast-card { background: linear-gradient(135deg, #e8eaf6 0%, #f3e5f5 100%); border: 2px solid #9c27b0; }
-        .fc-header { font-weight: 800; color: #6a1b9a; font-size: 1.1rem; border-bottom: 2px dashed #ce93d8; padding-bottom: 8px; margin-bottom: 15px; display:flex; justify-content:space-between; }
-        .fc-result { background: #fff; border-radius: 8px; padding: 12px; margin-top: 15px; border: 1px solid #e1bee7; }
-        .fc-highlight { font-size: 1.5rem; font-weight: 900; color: #d84315; text-align: center; margin-top: 5px; }
-
         /* Truck Matrix & Detail */
         .truck-matrix-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 5px; border: 1px solid #ddd; }
         .truck-matrix-table th { background: #eceff1; color: #546e7a; padding: 12px 8px; font-weight: 700; border-bottom: 2px solid #cfd8dc; font-size: 0.9rem; }
@@ -94,9 +88,17 @@
         .btn-del-mini { background: #ffcdd2; color: #c62828; border:none; border-radius:4px; padding: 4px 10px; font-size:0.8rem; cursor: pointer; font-weight:bold; }
         .btn-edit-mini { background: #fff9c4; color: #f57f17; border:1px solid #fbc02d; border-radius:4px; padding: 4px 10px; font-size:0.8rem; cursor: pointer; font-weight:bold; margin-right: 5px; }
         .btn-add-dist { width: 100%; padding: 12px; background: #eceff1; color: #546e7a; border: 1px dashed #90a4ae; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        
+        /* Floating Actions */
         .fab-container { position: fixed; bottom: 25px; right: 20px; z-index: 2000; }
         .fab-main { width: 65px; height: 65px; border-radius: 50%; background: #00c853; color: white; border: none; font-size: 32px; box-shadow: 0 6px 20px rgba(0,200,83,0.4); cursor: pointer; display: flex; align-items: center; justify-content: center; }
         
+        /* 🔥 V160: Live Predictor Pill 🔥 */
+        .live-predictor-fab { position: fixed; bottom: 25px; left: 15px; z-index: 2000; background: linear-gradient(135deg, #7b1fa2 0%, #ab47bc 100%); color: white; padding: 10px 15px; border-radius: 30px; font-size: 0.8rem; font-weight: bold; box-shadow: 0 4px 15px rgba(123, 31, 162, 0.4); border: 2px solid #fff; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .lpf-time { font-size: 1.1rem; color: #fff; font-weight: 900; }
+        .lpf-badge { background: white; color: #7b1fa2; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; }
+        .lpf-badge.overdue { background: #ff5252; color: white; }
+
         /* Modal Setup */
         .modal { display: none; position: fixed; z-index: 5000; left: 0; top: 0; width: 100%; height: 100%; overflow: hidden; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(3px); align-items: center; justify-content: center; }
         .modal-content { background-color: #f5f7fa; margin: 0; border-radius: 16px; width: 95%; max-width: 500px; max-height: 90vh; box-shadow: 0 10px 30px rgba(0,0,0,0.4); display: flex; flex-direction: column; position: relative; }
@@ -193,27 +195,15 @@
         
         <div style="height: 100px;"></div>
     </div>
+    
+    <div class="live-predictor-fab" id="live_predictor_fab">
+        🔮 ตกถัดไป <span class="lpf-time" id="pred_time">--:--</span>
+        <span class="lpf-badge" id="pred_countdown">--</span>
+    </div>
+    
     <div class="fab-container"><button class="fab-main" onclick="addDrop('prod')">+</button></div>
 
     <div id="page-summary" class="page">
-        
-        <div class="modern-card card-body forecast-card">
-            <div class="fc-header"><span>🔮 พยากรณ์การผลิต (Smart Forecast)</span></div>
-            <div style="font-size:0.85rem; color:#666; margin-bottom:10px;">กรอกจำนวนที่ต้องการเผื่อไว้ในห้องเย็น (หลังส่งของเสร็จ)</div>
-            <div class="grid-3">
-                <div><div class="input-label">เผื่อหลอด</div><input type="tel" id="fc_tar_hl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="saveData()"></div>
-                <div><div class="input-label">เผื่อหยาบ</div><input type="tel" id="fc_tar_bh" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="saveData()"></div>
-                <div><div class="input-label">เผื่อละเอียด</div><input type="tel" id="fc_tar_bl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="saveData()"></div>
-            </div>
-            
-            <div class="fc-result">
-                <div class="cr-row"><span class="cr-label">ขาด (ต้องผลิตเพิ่ม):</span> <span class="cr-val" id="fc_need_text" style="color:#c62828;">-</span></div>
-                <div class="cr-row"><span class="cr-label">ใช้เวลาอีกประมาณ:</span> <span class="cr-val" id="fc_duration_text">-</span></div>
-                <div style="text-align:center; margin-top:10px; font-weight:bold; color:#455a64;">คาดว่าจะเสร็จเวลา</div>
-                <div class="fc-highlight" id="fc_finish_time">--:-- น.</div>
-                <div id="fc_stat_info" style="font-size:0.75rem; color:#888; text-align:center; margin-top:10px; border-top:1px dashed #e1bee7; padding-top:8px;"></div>
-            </div>
-        </div>
 
         <div class="modern-card card-body">
              <h3>📊 สรุปสถานะรายคัน (ขาด/เกิน)</h3>
@@ -369,6 +359,10 @@
     let EDITING_DIST_IDX = null;
     let EDITING_DOWNTIME_ID = null;
     let SOURCE_MODAL = null;
+    
+    // Global Prediction Variables
+    let globalAvgTime = 38;
+    let globalLastEventTime = null;
 
     document.addEventListener('DOMContentLoaded', () => {
         const today = new Date().toISOString().split('T')[0];
@@ -379,9 +373,12 @@
         renderOrderInputs();
         renderDrops();
         setTimeout(() => { calcAll(); }, 100);
+        
+        // Start Live Predictor
+        setInterval(updatePredictor, 60000); 
     });
 
-    function getEmptyData() { return { times: { start: "22:00", stop: "06:00" }, initStock: { hl:0, bh:0, bl:0 }, targetReserve: { hl:0, bh:0, bl:0 }, orders: {}, drops: [] }; }
+    function getEmptyData() { return { times: { start: "22:00", stop: "06:00" }, initStock: { hl:0, bh:0, bl:0 }, orders: {}, drops: [] }; }
     
     function saveData() { 
         const dateKey = document.getElementById('setup_date').value;
@@ -389,12 +386,6 @@
         DATA.times.start = document.getElementById('time_start').value;
         DATA.times.stop = document.getElementById('time_stop').value;
         DATA.initStock = { hl: getNum(document.getElementById('init_hl').value), bh: getNum(document.getElementById('init_bh').value), bl: getNum(document.getElementById('init_bl').value) };
-        
-        if(!DATA.targetReserve) DATA.targetReserve = {hl:0, bh:0, bl:0};
-        DATA.targetReserve.hl = getNum(document.getElementById('fc_tar_hl').value);
-        DATA.targetReserve.bh = getNum(document.getElementById('fc_tar_bh').value);
-        DATA.targetReserve.bl = getNum(document.getElementById('fc_tar_bl').value);
-
         localStorage.setItem(`ICE_DATA_${dateKey}`, JSON.stringify(DATA)); 
         calcAll(); 
     }
@@ -408,7 +399,6 @@
                 DATA = JSON.parse(d); 
                 if(!DATA.drops) DATA.drops = []; 
                 if(!DATA.orders) DATA.orders = {}; 
-                if(!DATA.targetReserve) DATA.targetReserve = {hl:0, bh:0, bl:0};
                 if(!DATA.initStock) DATA.initStock = {hl:0, bh:0, bl:0};
                 
                 DATA.drops.forEach(drop => {
@@ -425,7 +415,6 @@
             isNewDay = true;
         }
 
-        // PULL ONLY ORDERS FROM PREVIOUS DAYS
         if (isNewDay) {
             let parts = dateKey.split('-');
             let checkDate = new Date(parts[0], parts[1]-1, parts[2]);
@@ -452,12 +441,6 @@
         document.getElementById('init_hl').value = DATA.initStock.hl || 0;
         document.getElementById('init_bh').value = DATA.initStock.bh || 0;
         document.getElementById('init_bl').value = DATA.initStock.bl || 0;
-        
-        if(document.getElementById('fc_tar_hl')) {
-            document.getElementById('fc_tar_hl').value = DATA.targetReserve.hl || 0;
-            document.getElementById('fc_tar_bh').value = DATA.targetReserve.bh || 0;
-            document.getElementById('fc_tar_bl').value = DATA.targetReserve.bl || 0;
-        }
     }
 
     function changeDate() { const newDate = document.getElementById('setup_date').value; loadData(newDate); saveData(); renderOrderInputs(); renderDrops(); calcAll(); }
@@ -467,15 +450,19 @@
     function addDrop(type) {
         const now = new Date();
         const timeStr = now.toTimeString().substring(0, 5);
-        DATA.drops.push({ id: Date.now(), type: type, time: timeStr, sackWithdraw: 0, p_in_room: { hl:0, bh:0, bl:0 }, dist: [] });
+        if(type === 'downtime') {
+            DATA.drops.push({ id: Date.now(), type: type, time: timeStr, time_end: timeStr });
+        } else {
+            DATA.drops.push({ id: Date.now(), type: type, time: timeStr, sackWithdraw: 0, p_in_room: { hl:0, bh:0, bl:0 }, dist: [] });
+        }
         saveData(); renderDrops(); calcAll();
-        if(type === 'prod') setTimeout(() => window.scrollTo(0, 0), 100); 
+        if(type === 'prod' || type === 'downtime') setTimeout(() => window.scrollTo(0, 0), 100); 
         else openStockManager();
     }
     
     function deleteDrop(id) { if(confirm("เจ้าสิลบอีหลีเบาะท้าว?")) { DATA.drops = DATA.drops.filter(d => d.id !== id); saveData(); renderDrops(); calcAll(); if(document.getElementById('stock_manager_modal').style.display === 'block') openStockManager(); } }
 
-    // --- 🔥 DOWNTIME MODAL LOGIC 🔥 ---
+    // --- DOWNTIME MODAL LOGIC ---
     function openDowntimeModal(id = null) {
         EDITING_DOWNTIME_ID = id;
         if(id) {
@@ -534,7 +521,7 @@
         }
     }
     
-    // --- 🔥 TIME ENGINE (ABSOLUTE SORTING) 🔥 ---
+    // --- TIME ENGINE ---
     function getAdjustedMinutes(timeStr, startStr) { 
         if(!timeStr || !startStr) return 0; 
         let [h, m] = timeStr.split(':').map(Number); 
@@ -568,7 +555,7 @@
              return;
         }
 
-        // Render EXACTLY 1 card (The latest production card)
+        // Render EXACTLY 1 card
         let prevProd = prodDrops.length > 1 ? prodDrops[prodDrops.length - 2] : null;
         let prevTime = prevProd ? prevProd.time : startTimeStr;
         
@@ -619,62 +606,6 @@
         calcAll();
     }
 
-    function getHistoricalAverages() {
-        let totalBOD = 0, countBOD = 0;
-        let totalHL = 0, countHL = 0;
-        
-        const currentDateStr = document.getElementById('setup_date').value;
-        if(!currentDateStr) return { avgHL: 70, avgBOD: 62 }; 
-        
-        let parts = currentDateStr.split('-');
-        let d = new Date(parts[0], parts[1]-1, parts[2]);
-
-        for(let i=0; i<=3; i++) {
-            let checkDate = new Date(d);
-            checkDate.setDate(d.getDate() - i);
-            let dateKey = checkDate.getFullYear() + '-' + String(checkDate.getMonth()+1).padStart(2,'0') + '-' + String(checkDate.getDate()).padStart(2,'0');
-            
-            let pastDataStr = localStorage.getItem(`ICE_DATA_${dateKey}`);
-            if(pastDataStr) {
-                try {
-                    let pastData = JSON.parse(pastDataStr);
-                    if(pastData && pastData.drops) {
-                        pastData.drops.forEach(drop => {
-                            if(drop.type === 'prod') {
-                                let p_hl = getNum(drop.p_in_room?.hl);
-                                let p_bh = getNum(drop.p_in_room?.bh);
-                                let p_bl = getNum(drop.p_in_room?.bl);
-                                if(drop.dist) {
-                                    drop.dist.forEach(distItem => {
-                                        if(distItem.type === 'hl') p_hl += getNum(distItem.total);
-                                        if(distItem.type === 'bh') p_bh += getNum(distItem.total);
-                                        if(distItem.type === 'bl') p_bl += getNum(distItem.total);
-                                    });
-                                }
-                                
-                                let bod_sum = p_bh + p_bl;
-                                
-                                if(p_hl === 0 && bod_sum > 0) {
-                                    totalBOD += bod_sum;
-                                    countBOD++;
-                                }
-                                if(bod_sum === 0 && p_hl > 0) {
-                                    totalHL += p_hl;
-                                    countHL++;
-                                }
-                            }
-                        });
-                    }
-                } catch(e) {}
-            }
-        }
-
-        return {
-            avgHL: countHL > 0 ? (totalHL / countHL) : 70,
-            avgBOD: countBOD > 0 ? (totalBOD / countBOD) : 62
-        };
-    }
-
     function calcAll() {
         let sumP={hl:0,bh:0,bl:0}, curHL=getNum(document.getElementById('init_hl').value), curBH=getNum(document.getElementById('init_bh').value), curBL=getNum(document.getElementById('init_bl').value);
         let totalSent=0, sentHL=0, sentBH=0, sentBL=0; 
@@ -698,7 +629,6 @@
         });
         totOrd = ordHL + ordBH + ordBL;
 
-        // 🔥 SORT BY TIME FOR PERFECT TABLE RENDERING 🔥
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
         let dropCount = 0;
 
@@ -711,7 +641,6 @@
                 let dtMins = getMinDiff(d.time, d.time_end || d.time);
                 pendingDowntime += dtMins;
                 
-                // RENDER DOWNTIME AS 2 ROWS IN TABLE
                 prodLogHtml += `
                 <tr style="background-color: #fff3e0;">
                     <td style="font-weight:bold; color:#78909c; text-align:center; border-right:none;">-</td>
@@ -737,13 +666,12 @@
                 sumP.hl += p_hl; sumP.bh += p_bh; sumP.bl += p_bl;
                 curHL += getNum(d.p_in_room.hl); curBH += getNum(d.p_in_room.bh); curBL += getNum(d.p_in_room.bl);
                 
-                // CALCULATE NET TIME
                 let grossDiff = getMinDiff(lastProdTime, d.time);
                 let netDiff = Math.max(0, grossDiff - pendingDowntime);
                 totalDuration += netDiff;
                 lastProdTime = d.time;
                 
-                pendingDowntime = 0; // reset
+                pendingDowntime = 0; 
                 
                 prodLogHtml += `<tr>
                     <td style="font-weight:bold; color:#546e7a; text-align:center; background:#eceff1;">${dropCount}</td>
@@ -814,60 +742,56 @@
             safeSet('rpt_avg_time', 0); safeSet('rpt_tons_day', 0); safeSet('rpt_avg_yield', 0); 
         }
 
-        // --- 🔮 FORECASTING LOGIC 🔮 ---
-        let tarHL = DATA.targetReserve ? DATA.targetReserve.hl : 0;
-        let tarBH = DATA.targetReserve ? DATA.targetReserve.bh : 0;
-        let tarBL = DATA.targetReserve ? DATA.targetReserve.bl : 0;
-
-        let remHL = Math.max(0, ordHL - sentHL);
-        let remBH = Math.max(0, ordBH - sentBH);
-        let remBL = Math.max(0, ordBL - sentBL);
-
-        let needHL = Math.max(0, (remHL + tarHL) - curHL);
-        let needBH = Math.max(0, (remBH + tarBH) - curBH);
-        let needBL = Math.max(0, (remBL + tarBL) - curBL);
-        let totalNeedBOD = needBH + needBL; 
-
-        let histAvg = getHistoricalAverages();
-        
-        let dropsForHL = needHL / histAvg.avgHL;
-        let dropsForBOD = totalNeedBOD / histAvg.avgBOD; 
-        
-        let totalDropsNeeded = Math.ceil(dropsForHL + dropsForBOD);
-
-        safeSet('fc_need_text', `หลอด ${needHL} | หยาบ ${needBH} | ละเอียด ${needBL}`);
-        
-        if (totalDropsNeeded > 0) {
-            let addMins = totalDropsNeeded * avgTime;
-            let hrs = Math.floor(addMins / 60);
-            let mins = Math.round(addMins % 60);
-            safeSet('fc_duration_text', `${totalDropsNeeded} ตก (ประมาณ ${hrs} ชม. ${mins} น.)`);
-            
-            let baseTimeStr = sortedDrops.length > 0 ? 
-                              (sortedDrops[sortedDrops.length-1].type === 'downtime' ? sortedDrops[sortedDrops.length-1].time_end : sortedDrops[sortedDrops.length-1].time)
-                              : startTimeStr;
-                              
-            let baseAbsMins = getAdjustedMinutes(baseTimeStr, startTimeStr);
-            let totalFinishMins = baseAbsMins + addMins;
-            
-            let [sh, sm] = startTimeStr.split(':').map(Number);
-            let finalRawMins = (sh * 60 + sm) + totalFinishMins;
-            
-            let fh = Math.floor(finalRawMins / 60) % 24;
-            let fm = Math.floor(finalRawMins % 60);
-            safeSet('fc_finish_time', `${String(fh).padStart(2, '0')}:${String(fm).padStart(2, '0')} น.`);
-        } else {
-            safeSet('fc_duration_text', "ไม่ต้องตกเพิ่มแล้ว");
-            safeSet('fc_finish_time', "เสร็จสิ้นตามเป้า! 🎉");
+        // 🔥 Set globals for the floating predictor 🔥
+        globalAvgTime = avgTime;
+        let lastEventStr = startTimeStr;
+        if(sortedDrops.length > 0) {
+            let ld = sortedDrops[sortedDrops.length-1];
+            lastEventStr = ld.type === 'downtime' ? (ld.time_end || ld.time) : ld.time;
         }
-        
-        if(document.getElementById('fc_stat_info')) {
-             document.getElementById('fc_stat_info').innerText = `*อ้างอิงสถิติผลิตล้วน 3 วันย้อนหลัง: หลอด ≈${Math.round(histAvg.avgHL)} ใบ/ตก, บด ≈${Math.round(histAvg.avgBOD)} ใบ/ตก`;
-        }
+        globalLastEventTime = lastEventStr;
+        updatePredictor(); // Update UI immediately
 
         renderSummaryTable(truckMat); renderDetailTable(truckDetail);
     }
     
+    // --- 🔥 LIVE PREDICTOR LOGIC 🔥 ---
+    function updatePredictor() {
+        if(!globalLastEventTime) return;
+        
+        let [lh, lm] = globalLastEventTime.split(':').map(Number);
+        let lastMins = lh * 60 + lm;
+        
+        let predMinsRaw = lastMins + globalAvgTime;
+        let p_h = Math.floor(predMinsRaw / 60) % 24;
+        let p_m = Math.floor(predMinsRaw % 60);
+        let predTimeStr = `${String(p_h).padStart(2, '0')}:${String(p_m).padStart(2, '0')}`;
+        
+        let predTimeEl = document.getElementById('pred_time');
+        if(predTimeEl) predTimeEl.innerText = predTimeStr;
+        
+        let now = new Date();
+        let currMins = now.getHours() * 60 + now.getMinutes();
+        
+        let diff = (p_h * 60 + p_m) - currMins;
+        if (diff < -720) diff += 1440; 
+        else if (diff > 720) diff -= 1440; 
+        
+        let badgeEl = document.getElementById('pred_countdown');
+        if(!badgeEl) return;
+        
+        if (diff > 0) {
+            badgeEl.innerText = `อีก ${diff} นาที`;
+            badgeEl.className = 'lpf-badge';
+        } else if (diff === 0) {
+            badgeEl.innerText = `กำลังตก!`;
+            badgeEl.className = 'lpf-badge overdue';
+        } else {
+            badgeEl.innerText = `เลยมาแล้ว ${Math.abs(diff)} นาที`;
+            badgeEl.className = 'lpf-badge overdue';
+        }
+    }
+
     function renderSummaryTable(mat) { let h = `<table class="truck-matrix-table"><thead><tr><th style="text-align:left;">รถ</th><th>หลอด</th><th>หยาบ</th><th>ละ..</th></tr></thead><tbody>`; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; h += `<tr><td class="truck-name-col">${t}</td>`; ICE_TYPES.forEach(ty => { const target = getNum(DATA.orders[`${tid}_${ty.id}`]); const sent = mat[tid][ty.id].fr + mat[tid][ty.id].st; let cell = `<span class="st-none">-</span>`; if(target > 0 || sent > 0) { const rem = target - sent; if(rem > 0) cell = `<span class="st-pill st-miss">ขาด ${rem}</span>`; else if(rem < 0) cell = `<span class="st-pill st-over">เกิน ${Math.abs(rem)}</span>`; else cell = `<span class="st-pill st-ok">ครบ</span>`; } h += `<td>${cell}</td>`; }); h += `</tr>`; }); h += `</tbody></table>`; document.getElementById('truck_report_container').innerHTML = h; }
     function renderDetailTable(det) { let h = ''; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; if(det[tid]) { let hasData = false; let content = `<div class="truck-detail-block"><div class="truck-detail-header"><span>🚛 ${t}</span><button class="btn-history" onclick="openTruckHistory('${tid}')">🕒 ดูประวัติ/แก้ไข</button></div>`; ICE_TYPES.forEach(ty => { if(det[tid][ty.id]) { const d = det[tid][ty.id]; const t_r1 = d.r1.fr+d.r1.st; const t_r2 = d.r2.fr+d.r2.st; const t_r3 = d.r3.fr+d.r3.st; const grand = t_r1+t_r2+t_r3; const ordered = getNum(DATA.orders[`${tid}_${ty.id}`]); if(grand > 0 || ordered > 0) { hasData = true; content += `<div style="margin-bottom:10px;"><div style="font-weight:bold; color:#0277bd;">${ty.label} <small style="color:#aaa;">(เป้า: ${ordered})</small></div><table class="detail-table"><thead><tr><th style="width:20%">แถว</th><th>เก่า</th><th>สด</th><th>รวม</th></tr></thead><tbody><tr><td>1</td><td class="dt-stock">${d.r1.st||'-'}</td><td class="dt-fresh">${d.r1.fr||'-'}</td><td>${t_r1}</td></tr><tr><td>2</td><td class="dt-stock">${d.r2.st||'-'}</td><td class="dt-fresh">${d.r2.fr||'-'}</td><td>${t_r2}</td></tr><tr><td>3</td><td class="dt-stock">${d.r3.st||'-'}</td><td class="dt-fresh">${d.r3.fr||'-'}</td><td>${t_r3}</td></tr><tr><td colspan="3" style="text-align:right; font-weight:bold;">รวม:</td><td class="dt-total">${grand}</td></tr></tbody></table></div>`; } } }); content += `</div>`; if(hasData) h += content; } }); if(h==='') h='<div style="text-align:center; padding:20px; color:#aaa;">ยังไม่มีข้อมูล</div>'; document.getElementById('truck_detail_container').innerHTML = h; }
     
@@ -877,7 +801,6 @@
     
     function openFullHistory() { const container = document.getElementById('full_history_list'); container.innerHTML = ''; 
         const startTimeStr = document.getElementById('time_start').value;
-        // เรียงใหม่เอาล่าสุดขึ้นก่อน
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(b.time, startTimeStr) - getAdjustedMinutes(a.time, startTimeStr)); 
         if (sortedDrops.length === 0) { container.innerHTML = '<div style="text-align:center; color:#aaa;">ไม่มีประวัติ</div>'; } else { sortedDrops.forEach((d, idx) => { 
         if(d.type === 'prod') {
