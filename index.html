@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V164 (Full-Width Headers)</title>
+    <title>Smart Ice V165 (Color-Coded Table)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
         /* --- Modern Premium Theme --- */
@@ -81,19 +81,21 @@
         .sack-split { font-size: 0.85rem; color: #555; display: flex; justify-content: center; gap: 5px; margin-top: 4px; }
         .ss-hl { color: #059669; font-weight:900; } .ss-bod { color: #7c3aed; font-weight:900; }
 
-        /* Report Table (Polished) */
+        /* 🔥 V165: Color-Coded Report Table 🔥 */
         .paper-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; margin-top: 5px; border-radius: 12px; overflow: hidden; border: 1px solid #cbd5e1; }
-        .paper-table th { background: #e2e8f0; border-right: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1; padding: 6px 2px; text-align: center; font-weight: 800; color: #334155; vertical-align: middle; line-height: 1.2; }
+        .paper-table th { border-right: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1; padding: 6px 2px; text-align: center; font-weight: 800; vertical-align: middle; line-height: 1.2; }
         .paper-table th:last-child { border-right: none; }
-        .paper-table td { border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; padding: 8px 2px; text-align: center; vertical-align: middle; color: #0f172a; font-weight: 700; font-size: 0.95rem; background: white; }
+        .paper-table td { border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; padding: 10px 2px; text-align: center; vertical-align: middle; font-weight: 800; font-size: 1rem; }
         .paper-table td:last-child { border-right: none; }
-        .pt-time { background: #f8fafc; font-weight: 900; font-size: 0.85rem; color: var(--text-dark); }
-        .pt-duration { background: #f8fafc; font-weight: 600; font-size: 0.8rem; color: var(--text-muted); } 
-        .pt-check { background: #f0f9ff; color: #0369a1; } 
-        .pt-prod { background: #f0fdf4; color: #15803d; } 
-        .pt-rem { background: #fffbeb; color: #b45309; } 
-        .sub-header { font-size: 0.75rem !important; color: #475569 !important; background: #f1f5f9 !important; }
-        .total-row td { background-color: #1e293b !important; color: white !important; font-weight: 900 !important; font-size: 0.95rem !important; border-color: #0f172a !important; padding: 12px 4px; }
+        
+        /* Column Colors */
+        .paper-table th.pt-time, .paper-table td.pt-time-col { background-color: #f8fafc !important; color: #1e293b; }
+        .paper-table th.pt-check, .paper-table td.pt-check { background-color: #e0f2fe !important; color: #0284c7; }
+        .paper-table th.pt-prod, .paper-table td.pt-prod { background-color: #dcfce7 !important; color: #15803d; }
+        .paper-table th.pt-rem, .paper-table td.pt-rem { background-color: #fef3c7 !important; color: #b45309; }
+        
+        .sub-header { font-size: 0.75rem !important; }
+        .total-row td { background-color: #1e293b !important; color: white !important; font-weight: 900 !important; font-size: 1rem !important; border-color: #0f172a !important; padding: 12px 4px; }
         .total-label { text-align: center !important; color: #fde047 !important; }
 
         /* Custom Report Box */
@@ -104,15 +106,7 @@
         .cr-label { font-weight: 800; color: #475569; }
         .cr-val { font-weight: 900; color: #0f172a; text-align: right; }
         .cr-total { color: var(--primary); font-size: 1.15rem; }
-        
-        /* 🔥 FULL-WIDTH HEADER UPDATE 🔥 */
-        .cr-header { 
-            font-weight: 900; color: white; margin-bottom: 12px; font-size: 1.1rem; 
-            background: var(--text-dark); padding: 10px 15px; border-radius: 8px; 
-            display: block; /* Changed from inline-block to block to span full width */
-            text-align: center; /* Center the text */
-            box-shadow: var(--shadow-sm); /* Added subtle shadow */
-        }
+        .cr-header { font-weight: 900; color: white; margin-bottom: 12px; font-size: 1.1rem; background: var(--text-dark); padding: 10px 15px; border-radius: 8px; display: block; text-align: center; box-shadow: var(--shadow-sm); }
 
         /* Truck Matrix */
         .truck-matrix-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 5px; border-radius: 12px; overflow: hidden; border: 1px solid #cbd5e1; }
@@ -273,7 +267,6 @@
     <div class="fab-container"><button class="fab-main" onclick="addDrop('prod')">+</button></div>
 
     <div id="page-summary" class="page">
-
         <div class="modern-card card-body">
              <h3>📊 สรุปสถานะรายคัน (ขาด/เกิน)</h3>
              <div id="truck_report_container" style="overflow-x:auto;"></div>
@@ -285,22 +278,22 @@
                 <table class="paper-table" id="prod_paper_table" style="margin-top:0; border:none; table-layout:fixed; width:100%;">
                     <thead>
                         <tr>
-                            <th rowspan="2" style="width:6%;">ลำดับ</th>
-                            <th style="width:14%;" id="prod_header_label_time">เวลา</th>
-                            <th rowspan="2" style="width:8%;">นาที/<br>ตก</th>
+                            <th rowspan="2" class="pt-time" style="width:6%;">ลำดับ</th>
+                            <th class="pt-time" style="width:14%;" id="prod_header_label_time">เวลา</th>
+                            <th rowspan="2" class="pt-time" style="width:8%;">นาที/<br>ตก</th>
                             <th colspan="2" class="pt-check" style="width:20%">เบิกกระสอบ</th>
                             <th colspan="3" class="pt-prod" style="width:30%">ผลการผลิต</th>
                             <th colspan="2" class="pt-rem" style="width:22%">กระสอบคงเหลือ</th>
                         </tr>
                         <tr>
-                            <th id="header_start_time_simple" style="color:#ea580c; font-weight:900; background:#f1f5f9; padding:2px;">22:00</th>
-                            <th class="pt-check sub-header" style="font-weight:700;">หลอด</th>
-                            <th class="pt-check sub-header" style="font-weight:700;">บด</th>
-                            <th class="pt-prod sub-header" style="font-weight:700; font-size:0.75rem;">หลอดใหญ่</th>
-                            <th class="pt-prod sub-header" style="font-weight:700; font-size:0.75rem;">บดหยาบ</th>
-                            <th class="pt-prod sub-header" style="font-weight:700; font-size:0.75rem;">ละเอียด</th>
-                            <th class="pt-rem sub-header" style="font-weight:700;">หลอด</th>
-                            <th class="pt-rem sub-header" style="font-weight:700;">บด</th>
+                            <th id="header_start_time_simple" class="pt-time sub-header" style="color:#ea580c; font-weight:900; background:#f8fafc !important; padding:2px;">22:00</th>
+                            <th class="pt-check sub-header">หลอด</th>
+                            <th class="pt-check sub-header">บด</th>
+                            <th class="pt-prod sub-header">หลอดใหญ่</th>
+                            <th class="pt-prod sub-header">บดหยาบ</th>
+                            <th class="pt-prod sub-header">ละเอียด</th>
+                            <th class="pt-rem sub-header">หลอด</th>
+                            <th class="pt-rem sub-header">บด</th>
                         </tr>
                     </thead>
                     <tbody id="prod_log_body"></tbody>
@@ -718,16 +711,16 @@
                 
                 prodLogHtml += `
                 <tr style="background-color: #fef2f2;">
-                    <td style="font-weight:900; color:#cbd5e1; text-align:center;">-</td>
-                    <td style="color:#ef4444; font-weight:900;">${d.time}</td>
-                    <td style="color:#ef4444;">-</td>
-                    <td colspan="7" style="color:#ef4444; font-weight:900; text-align:center; letter-spacing: 2px;">ปิดเครื่อง</td>
+                    <td class="pt-time-col" style="font-weight:900; color:#cbd5e1; text-align:center;">-</td>
+                    <td class="pt-time-col" style="color:#ef4444; font-weight:900;">${d.time}</td>
+                    <td class="pt-time-col" style="color:#ef4444;">-</td>
+                    <td colspan="7" style="background-color: #fef2f2 !important; color:#ef4444 !important; font-weight:900 !important; text-align:center; letter-spacing: 2px;">ปิดเครื่อง</td>
                 </tr>
                 <tr style="background-color: #f0fdf4;">
-                    <td style="font-weight:900; color:#cbd5e1; text-align:center;">-</td>
-                    <td style="color:#10b981; font-weight:900;">${d.time_end || d.time}</td>
-                    <td style="color:#10b981;">-</td>
-                    <td colspan="7" style="color:#10b981; font-weight:900; text-align:center; letter-spacing: 2px;">เปิดเครื่อง</td>
+                    <td class="pt-time-col" style="font-weight:900; color:#cbd5e1; text-align:center;">-</td>
+                    <td class="pt-time-col" style="color:#10b981; font-weight:900;">${d.time_end || d.time}</td>
+                    <td class="pt-time-col" style="color:#10b981;">-</td>
+                    <td colspan="7" style="background-color: #f0fdf4 !important; color:#10b981 !important; font-weight:900 !important; text-align:center; letter-spacing: 2px;">เปิดเครื่อง</td>
                 </tr>`;
             } 
             else if(d.type === 'prod') {
@@ -749,16 +742,16 @@
                 pendingDowntime = 0; 
                 
                 prodLogHtml += `<tr>
-                    <td style="font-weight:900; color:#475569; text-align:center; background:#f1f5f9;">${dropCount}</td>
-                    <td class="pt-time">${d.time}</td>
-                    <td class="pt-duration" style="line-height:1; font-weight:800; color:#0ea5e9;">${netDiff}</td>
-                    <td class="pt-check" style="font-weight:800;">${w_hl>0?w_hl:'-'}</td>
-                    <td class="pt-check" style="font-weight:800;">${w_bod>0?w_bod:'-'}</td>
-                    <td class="pt-prod" style="font-weight:800;">${p_hl||'-'}</td>
-                    <td class="pt-prod" style="font-weight:800;">${p_bh||'-'}</td>
-                    <td class="pt-prod" style="font-weight:800;">${p_bl||'-'}</td>
-                    <td class="pt-rem" style="font-weight:800;">${w_hl>0?r_hl:'-'}</td>
-                    <td class="pt-rem" style="font-weight:800;">${w_bod>0?r_bod:'-'}</td>
+                    <td class="pt-time-col" style="font-weight:900; text-align:center;">${dropCount}</td>
+                    <td class="pt-time-col" style="font-weight:900;">${d.time}</td>
+                    <td class="pt-time-col" style="line-height:1; font-weight:900; color:#0ea5e9;">${netDiff}</td>
+                    <td class="pt-check" style="font-weight:900;">${w_hl>0?w_hl:'-'}</td>
+                    <td class="pt-check" style="font-weight:900;">${w_bod>0?w_bod:'-'}</td>
+                    <td class="pt-prod" style="font-weight:900;">${p_hl||'-'}</td>
+                    <td class="pt-prod" style="font-weight:900;">${p_bh||'-'}</td>
+                    <td class="pt-prod" style="font-weight:900;">${p_bl||'-'}</td>
+                    <td class="pt-rem" style="font-weight:900;">${w_hl>0?r_hl:'-'}</td>
+                    <td class="pt-rem" style="font-weight:900;">${w_bod>0?r_bod:'-'}</td>
                 </tr>`;
             }
             if(d.dist) { d.dist.forEach(i => { 
@@ -784,9 +777,9 @@
         
         prodLogHtml += `<tr class="total-row">
             <td class="total-label" colspan="2" style="border-bottom-left-radius: 12px;">รวม</td>
-            <td style="color:#38bdf8 !important; font-size:1.1rem;">${totalDuration}</td>
-            <td style="color:#0ea5e9 !important;">${totalWithHL}</td>
-            <td style="color:#0ea5e9 !important;">${totalWithBod}</td>
+            <td style="color:#38bdf8 !important;">${totalDuration}</td>
+            <td style="color:#38bdf8 !important;">${totalWithHL}</td>
+            <td style="color:#38bdf8 !important;">${totalWithBod}</td>
             <td style="color:#34d399 !important;">${sumP.hl}</td>
             <td style="color:#34d399 !important;">${sumP.bh}</td>
             <td style="color:#34d399 !important;">${sumP.bl}</td>
@@ -938,7 +931,7 @@
     function openTruckHistory(tid) { const container = document.getElementById('history_list'); container.innerHTML = ''; document.getElementById('hist_title').innerText = `🕒 ประวัติ ${getTruckName(tid)}`; 
         const startTimeStr = document.getElementById('time_start').value;
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(a.time, startTimeStr)); 
-        let hasData = false; sortedDrops.forEach(d => { if(d.dist) { d.dist.forEach((item, idx) => { if(item.truck === tid) { hasData = true; const typeName = getTypeName(item.type); const typeLabel = d.type === 'prod' ? '<span class="hist-tag ht-fresh">ผลิต</span>' : '<span class="hist-tag ht-stock">ห้อง</span>'; container.insertAdjacentHTML('beforeend', `<div class="hist-item" style="border-radius:12px; border:1px solid #e2e8f0; margin-bottom:10px;"><div class="hist-info" style="flex:1;"><div><b style="font-weight:900; font-size:1.1rem;">${d.time}</b> ${typeLabel} : <span style="font-weight:800;">${typeName}</span></div><div style="color:var(--text-muted); font-weight:600; margin-top:4px;">(${item.r1}/${item.r2}/${item.r3}) = <b style="color:var(--primary); font-size:1.1rem;">${item.total}</b></div></div><div style="display:flex; flex-direction:column; gap:5px;"><button class="btn-edit-mini" onclick="closeHistoryModal(); SOURCE_MODAL='truck_history'; editDist(${d.id}, ${idx})">✏️ แก้ไข</button><button class="btn-del-mini" onclick="removeDist(${d.id}, ${idx}); closeHistoryModal();">🗑️ ลบ</button></div></div>`); } }); } }); if(!hasData) container.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa; font-weight:bold;">ไม่มีประวัติการขึ้นของสำหรับรถคันนี้</div>'; document.getElementById('history_modal').style.display = 'flex'; }
+        let hasData = false; sortedDrops.forEach(d => { if(d.dist) { d.dist.forEach((item, idx) => { if(item.truck === tid) { hasData = true; const typeName = getTypeName(item.type); const typeLabel = d.type === 'prod' ? '<span class="hist-tag ht-fresh">ผลิต</span>' : '<span class="hist-tag ht-stock">ห้อง</span>'; container.insertAdjacentHTML('beforeend', `<div class="hist-item" style="border-radius:12px; border:1px solid #e2e8f0; margin-bottom:10px;"><div class="hist-info" style="flex:1;"><div><b style="font-weight:900; font-size:1.1rem;">${d.time}</b> ${typeLabel} : <span style="font-weight:800;">${typeName}</span></div><div style="color:var(--text-muted); font-weight:600; margin-top:4px;">(${item.r1}/${item.r2}/${item.r3}) = <b style="color:var(--primary); font-size:1.1rem;">${item.total}</b></div></div><div style="display:flex; flex-direction:column; gap:5px;"><button class="btn-edit-mini" onclick="closeHistoryModal(); SOURCE_MODAL='truck_history'; editDist(${d.id}, ${idx})">✏️ แก้ไข</button><button class="btn-del-mini" onclick="removeDist(${d.id}, ${idx}); closeHistoryModal();">🗑️ ลบ</button></div></div>`); } }); } }); if(!hasData) container.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">ไม่มีประวัติสำหรับรถคันนี้</div>'; document.getElementById('history_modal').style.display = 'flex'; }
     function closeHistoryModal() { document.getElementById('history_modal').style.display = 'none'; }
     
     function openEditPast(id) { 
