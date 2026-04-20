@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V171 (Perfect PDF Final)</title>
+    <title>Smart Ice V172 (Fixed Signature Wrap)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
         /* --- Modern Premium Theme --- */
@@ -134,14 +134,18 @@
             .btn-history { background: var(--warning-grad); color: white; padding: 8px 14px; font-size: 0.9rem; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3); border-radius: 20px;}
             .btn-history:active { transform: scale(0.95); }
             
-            .btn-save-wiz, .btn-stock-manager, .btn-view-history, .btn-downtime, .btn-print, .btn-save-dist { width: 100%; padding: 16px; border: none; border-radius: 14px; font-size: 1.15rem; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.15s; margin-bottom: 12px; color:white;}
-            .btn-save-wiz { background: var(--success-grad); font-size: 1.3rem; margin-top: 15px; box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3); }
-            .btn-stock-manager { background: var(--warning-grad); box-shadow: 0 6px 15px rgba(245, 158, 11, 0.3); }
-            .btn-downtime { background: var(--danger-grad); box-shadow: 0 6px 15px rgba(239, 68, 68, 0.3); }
-            .btn-view-history { background: var(--text-dark); box-shadow: 0 6px 15px rgba(30, 41, 59, 0.3); margin-bottom: 25px; }
-            .btn-print { background: var(--purple-grad); box-shadow: 0 6px 15px rgba(139, 92, 246, 0.3); margin-top:15px; font-size:1.3rem; }
-            .btn-save-dist { background: var(--success-grad); border-radius: 12px; font-size: 1.1rem; margin-top: 15px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+            .btn-save-wiz { width: 100%; padding: 16px; background: var(--success-grad); color: white; border: none; border-radius: 14px; font-size: 1.3rem; font-weight: 900; margin-top: 15px; cursor: pointer; box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3); transition: 0.15s; }
+            .btn-save-wiz:active { transform: scale(0.98); }
             
+            .btn-stock-manager, .btn-view-history, .btn-downtime, .btn-print { width: 100%; padding: 16px; border: none; border-radius: 14px; font-size: 1.15rem; font-weight: 900; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.15s; }
+            .btn-stock-manager { background: var(--warning-grad); color: white; box-shadow: 0 6px 15px rgba(245, 158, 11, 0.3); }
+            .btn-downtime { background: var(--danger-grad); color: white; box-shadow: 0 6px 15px rgba(239, 68, 68, 0.3); }
+            .btn-view-history { background: var(--text-dark); color: white; box-shadow: 0 6px 15px rgba(30, 41, 59, 0.3); margin-bottom: 25px; }
+            .btn-print { background: var(--purple-grad); color: white; box-shadow: 0 6px 15px rgba(139, 92, 246, 0.3); margin-top:15px; font-size:1.3rem; }
+            .btn-stock-manager:active, .btn-downtime:active, .btn-view-history:active, .btn-print:active { transform: scale(0.96); }
+            
+            .btn-save-dist { width: 100%; padding: 14px; background: var(--success-grad); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 900; margin-top: 15px; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition:0.15s; }
+            .btn-save-dist:active { transform: scale(0.96); }
             .btn-reset { background: #e2e8f0; color: #64748b; border: none; padding: 14px; width: 100%; margin-top: 20px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.15s; }
             .btn-reset:active { background: #cbd5e1; }
             
@@ -196,7 +200,7 @@
             #print_area { display: none; }
         }
 
-        /* --- 🔥 V171: COMPACT A4 PDF PRINT STYLES 🔥 --- */
+        /* --- 🔥 V172: NO-WRAP PDF PRINT STYLES 🔥 --- */
         @media print {
             @page { size: A4 portrait; margin: 8mm; } 
             body { background: white !important; color: black !important; font-family: 'Sarabun', sans-serif; font-size: 10pt !important; padding: 0 !important; margin: 0 !important; }
@@ -207,22 +211,19 @@
             /* Show ONLY Print Area */
             #print_area { display: block !important; width: 100%; position: static; margin: 0 auto; }
             
-            /* 🔥 V171: Header Adjustments 🔥 */
             .print-header { text-align: center; font-weight: 900; font-size: 11pt; margin-bottom: 8px; line-height: 1.3; }
             .print-header .date-text { font-size: 10pt; font-weight: 600; color: #333; }
             
             /* Two Column Layout */
             .print-wrapper { display: flex; align-items: stretch; width: 100%; gap: 8px; }
-            .print-left { width: 73%; }
-            .print-right { width: 27%; border: 1.5px solid black; padding: 8px 10px; display: flex; flex-direction: column; }
+            .print-left { width: 72%; }
+            .print-right { width: 28%; border: 1.5px solid black; padding: 6px 8px; display: flex; flex-direction: column; }
             
             /* Main Data Table */
             .print-table { width: 100%; border-collapse: collapse; border: 1.5px solid black; table-layout: fixed; }
             .print-table th, .print-table td { border: 1px solid black; text-align: center; font-weight: 600; }
             
-            /* Compact Rows */
             .print-table th { padding: 4px 2px; font-size: 8.5pt; background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: 800;}
-            /* 🔥 V171: Sized for 30 rows exactly 🔥 */
             .print-table td { height: 21.5px; font-size: 9pt; padding: 1px; line-height: 1; }
             
             .print-downtime td { color: black; font-weight: 800; font-style: italic; background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
@@ -234,9 +235,9 @@
             .s-title { margin-top: 8px; margin-bottom: 4px; font-weight: 900; border-bottom: 1px solid black; padding-bottom: 2px; font-size: 10pt;}
             .s-title:first-child { margin-top: 0; }
             
-            /* 🔥 V171: Signatures adjusted 🔥 */
+            /* 🔥 V172: Signatures fixed wrap 🔥 */
             .sign-box { margin-top: auto; padding-top: 10px; } 
-            .sign-line { text-align: center; margin-top: 15px; font-size: 9pt; }
+            .sign-line { text-align: center; margin-top: 15px; font-size: 8.5pt; white-space: nowrap; } /* Prevent wrapping */
         }
     </style>
 </head>
@@ -754,62 +755,6 @@
         calcAll();
     }
 
-    function getHistoricalAverages() {
-        let totalBOD = 0, countBOD = 0;
-        let totalHL = 0, countHL = 0;
-        
-        const currentDateStr = document.getElementById('setup_date').value;
-        if(!currentDateStr) return { avgHL: 70, avgBOD: 62 }; 
-        
-        let parts = currentDateStr.split('-');
-        let d = new Date(parts[0], parts[1]-1, parts[2]);
-
-        for(let i=0; i<=3; i++) {
-            let checkDate = new Date(d);
-            checkDate.setDate(d.getDate() - i);
-            let dateKey = checkDate.getFullYear() + '-' + String(checkDate.getMonth()+1).padStart(2,'0') + '-' + String(checkDate.getDate()).padStart(2,'0');
-            
-            let pastDataStr = localStorage.getItem(`ICE_DATA_${dateKey}`);
-            if(pastDataStr) {
-                try {
-                    let pastData = JSON.parse(pastDataStr);
-                    if(pastData && pastData.drops) {
-                        pastData.drops.forEach(drop => {
-                            if(drop.type === 'prod') {
-                                let p_hl = getNum(drop.p_in_room?.hl);
-                                let p_bh = getNum(drop.p_in_room?.bh);
-                                let p_bl = getNum(drop.p_in_room?.bl);
-                                if(drop.dist) {
-                                    drop.dist.forEach(distItem => {
-                                        if(distItem.type === 'hl') p_hl += getNum(distItem.total);
-                                        if(distItem.type === 'bh') p_bh += getNum(distItem.total);
-                                        if(distItem.type === 'bl') p_bl += getNum(distItem.total);
-                                    });
-                                }
-                                
-                                let bod_sum = p_bh + p_bl;
-                                
-                                if(p_hl === 0 && bod_sum > 0) {
-                                    totalBOD += bod_sum;
-                                    countBOD++;
-                                }
-                                if(bod_sum === 0 && p_hl > 0) {
-                                    totalHL += p_hl;
-                                    countHL++;
-                                }
-                            }
-                        });
-                    }
-                } catch(e) {}
-            }
-        }
-
-        return {
-            avgHL: countHL > 0 ? (totalHL / countHL) : 70,
-            avgBOD: countBOD > 0 ? (totalBOD / countBOD) : 62
-        };
-    }
-
     function calcAll() {
         let sumP={hl:0,bh:0,bl:0}, curHL=getNum(document.getElementById('init_hl').value), curBH=getNum(document.getElementById('init_bh').value), curBL=getNum(document.getElementById('init_bl').value);
         let totalSent=0, sentHL=0, sentBH=0, sentBL=0; 
@@ -1086,7 +1031,7 @@
             </table>
         </div>`; } } }); content += `</div>`; if(hasData) h += content; } }); if(h==='') h='<div style="text-align:center; padding:20px; color:#aaa;">ยังไม่มีข้อมูล</div>'; document.getElementById('truck_detail_container').innerHTML = h; }
     
-    function updateOrder(key, val) { DATA.orders[key] = getNum(val); saveData(); 
+    function updateOrder(key, val) { DATA.orders[key] = getNum(val); saveData(); // calcAll is inside saveData
         const tid = key.split('_')[0] + '_' + key.split('_')[1]; const hl = getNum(DATA.orders[tid+'_hl']); const bh = getNum(DATA.orders[tid+'_bh']); const bl = getNum(DATA.orders[tid+'_bl']); const sumEl = document.getElementById('ord_sum_'+tid); if(sumEl) sumEl.innerText = hl+bh+bl;
     }
     
@@ -1300,7 +1245,7 @@
     function getTypeName(id) { return ICE_TYPES.find(x=>x.id===id).label; }
     function switchPage(id) { document.querySelectorAll('.page').forEach(x=>x.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active')); document.getElementById('page-'+id).classList.add('active'); const map={setup:0,production:1,summary:2}; document.querySelectorAll('.nav-btn')[map[id]].classList.add('active'); if(id==='summary'){calcAll(); window.scrollTo(0,0);} }
 
-    // --- 🔥 V171: COMPACT PDF PRINT FUNCTION 🔥 ---
+    // --- 🔥 V172: PRINT PDF FUNCTION (FIXED SIGNATURE WRAP) 🔥 ---
     function printReport() {
         saveData();
         
@@ -1478,8 +1423,8 @@
                 </div>
                 
                 <div class="sign-box">
-                    <div class="sign-line">ลงชื่อ ...................................... วิศวกรรม</div>
-                    <div class="sign-line">ลงชื่อ ...................................... ผู้จัดการสาขา</div>
+                    <div class="sign-line">ลงชื่อ .................................... วิศวกรรม</div>
+                    <div class="sign-line">ลงชื่อ .................................... ผู้จัดการสาขา</div>
                 </div>
             </div>
         </div>
