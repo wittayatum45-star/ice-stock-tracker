@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V162 (Optimized Summary)</title>
+    <title>Smart Ice V163 (UI Redesign & Fixes)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
         /* --- Modern Premium Theme --- */
@@ -79,7 +79,7 @@
         .sack-split { font-size: 0.85rem; color: #555; display: flex; justify-content: center; gap: 5px; margin-top: 4px; }
         .ss-hl { color: #059669; font-weight:900; } .ss-bod { color: #7c3aed; font-weight:900; }
 
-        /* Report Table (Polished) */
+        /* Report Table */
         .paper-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; margin-top: 5px; border-radius: 12px; overflow: hidden; border: 1px solid #cbd5e1; }
         .paper-table th { background: #e2e8f0; border-right: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1; padding: 6px 2px; text-align: center; font-weight: 800; color: #334155; vertical-align: middle; line-height: 1.2; }
         .paper-table th:last-child { border-right: none; }
@@ -104,19 +104,38 @@
         .cr-total { color: var(--primary); font-size: 1.15rem; }
         .cr-header { font-weight: 900; color: white; margin-bottom: 12px; font-size: 1.1rem; background: var(--text-dark); padding: 8px 12px; border-radius: 8px; display: inline-block; }
 
-        /* Truck Matrix & Detail */
+        /* Forecast Card */
+        .forecast-card { background: linear-gradient(135deg, #f3e8ff 0%, #e0e7ff 100%); border: none; box-shadow: 0 10px 25px rgba(139, 92, 246, 0.15); }
+        .fc-header { font-weight: 900; color: #6d28d9; font-size: 1.2rem; border-bottom: 2px dashed #c4b5fd; padding-bottom: 10px; margin-bottom: 15px; display:flex; justify-content:space-between; }
+        .fc-result { background: rgba(255,255,255,0.8); border-radius: 12px; padding: 15px; margin-top: 15px; border: 1px solid white; backdrop-filter: blur(10px); }
+        .fc-highlight { font-size: 1.8rem; font-weight: 900; color: #be123c; text-align: center; margin-top: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+
+        /* Truck Matrix */
         .truck-matrix-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 5px; border-radius: 12px; overflow: hidden; border: 1px solid #cbd5e1; }
         .truck-matrix-table th { background: #e2e8f0; color: #334155; padding: 10px 6px; font-weight: 800; border-bottom: 1px solid #cbd5e1; font-size: 0.9rem; }
         .truck-matrix-table td { border-bottom: 1px solid #e2e8f0; padding: 8px 4px; text-align: center; vertical-align: middle; background: white; }
         .truck-name-col { text-align: left; padding-left: 15px !important; font-weight: 900; color: var(--text-dark); font-size: 0.95rem; }
         .st-pill { display: inline-block; padding: 4px 10px; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 800; min-width: 60px; box-shadow: var(--shadow-sm); }
         .st-over { background: #e0f2fe; color: #0284c7; } .st-miss { background: #fee2e2; color: #dc2626; } .st-ok { background: #dcfce7; color: #16a34a; } .st-none { color: #cbd5e1; font-weight: 400; font-size: 1.2rem; }
-        .truck-detail-block { background: white; border-radius: var(--radius-md); padding: 15px; margin-bottom: 20px; border: 1px solid #e2e8f0; box-shadow: var(--shadow-sm); }
-        .truck-detail-header { font-weight: 900; color: var(--text-dark); border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 15px; font-size: 1.15rem; display: flex; justify-content: space-between; align-items: center; }
         
+        /* 🔥 V163: Redesigned Truck Detail Table 🔥 */
+        .truck-detail-block { background: white; border-radius: var(--radius-md); padding: 20px; margin-bottom: 20px; border: 1px solid #e2e8f0; box-shadow: var(--shadow-md); }
+        .truck-detail-header { font-weight: 900; color: var(--text-dark); border-bottom: 2px dashed #e2e8f0; padding-bottom: 12px; margin-bottom: 15px; font-size: 1.2rem; display: flex; justify-content: space-between; align-items: center; }
+        
+        .detail-table { width: 100%; border-collapse: separate; border-spacing: 0 5px; margin-top: 10px; }
+        .detail-table th { background: transparent; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; padding-bottom: 5px; border: none; font-weight:800; }
+        .detail-table td { background: #f8fafc; padding: 12px 8px; border: none; text-align: center; font-weight: 700; color: var(--text-dark); }
+        .detail-table tr td:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; color: var(--text-muted); font-weight: 900; background:#f1f5f9;}
+        .detail-table tr td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; font-size: 1.1rem;}
+        
+        .dt-stock-val { color: #0369a1; background: #e0f2fe; padding: 4px 10px; border-radius: 6px; border: 1px solid #bae6fd; display:inline-block; min-width: 40px;}
+        .dt-fresh-val { color: #15803d; background: #dcfce7; padding: 4px 10px; border-radius: 6px; border: 1px solid #bbf7d0; display:inline-block; min-width: 40px;}
+        .dt-total-val { color: #ffffff; background: #334155; padding: 4px 12px; border-radius: 6px; font-weight: 900; display:inline-block; min-width: 45px;}
+        .detail-summary-row td { background: transparent !important; border: none; padding-top: 15px; }
+
         /* Buttons */
         .btn-history, .btn-del-mini, .btn-edit-mini { border: none; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
-        .btn-history { background: var(--warning-grad); color: white; padding: 6px 12px; font-size: 0.85rem; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3); }
+        .btn-history { background: var(--warning-grad); color: white; padding: 8px 14px; font-size: 0.9rem; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3); border-radius: 20px;}
         .btn-history:active { transform: scale(0.95); }
         
         .btn-save-wiz { width: 100%; padding: 16px; background: var(--success-grad); color: white; border: none; border-radius: 14px; font-size: 1.3rem; font-weight: 900; margin-top: 15px; cursor: pointer; box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3); transition: 0.2s; }
@@ -142,8 +161,8 @@
         .fab-main { width: 65px; height: 65px; border-radius: 50%; background: var(--success-grad); color: white; border: none; font-size: 36px; line-height: 1; font-weight: 300; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
         .fab-main:active { transform: scale(0.9); }
         
-        /* 🔥 V162: Glassmorphism Floating Predictor 🔥 */
-        .live-predictor-fab { position: fixed; bottom: 35px; left: 15px; z-index: 2000; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); border: 2px solid #e2e8f0; color: var(--text-dark); padding: 10px 16px; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 800; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 10px; transition: 0.3s; }
+        /* Live Predictor Pill */
+        .live-predictor-fab { position: fixed; bottom: 35px; left: 15px; z-index: 2000; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border: 2px solid #e2e8f0; color: var(--text-dark); padding: 10px 16px; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 800; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 10px; transition: 0.3s; }
         .lpf-time { font-size: 1.25rem; color: #7c3aed; font-weight: 900; letter-spacing: 0.5px; }
         .lpf-badge { background: #f3e8ff; color: #6d28d9; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 900; }
         .lpf-badge.overdue { background: #fee2e2; color: #dc2626; }
@@ -165,16 +184,22 @@
         .btn-add-dist { width: 100%; padding: 14px; background: white; color: var(--primary); border: 2px dashed #bae6fd; border-radius: 12px; font-weight: 800; font-size:1rem; cursor: pointer; margin-top: 5px; transition:0.2s; }
         .btn-add-dist:active { background: #f0f9ff; }
         
-        .btn-edit-mini { background: #fef9c3; color: #d97706; padding: 6px 12px;}
-        .btn-del-mini { background: #fee2e2; color: #dc2626; padding: 6px 12px;}
+        /* 🔥 V163: History Modal Item Redesign 🔥 */
+        .hist-item { background: white; border: 1px solid #e2e8f0; padding: 16px; margin-bottom: 12px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm); transition: 0.2s; }
+        .hist-info { display: flex; flex-direction: column; gap: 4px; flex:1; }
+        .hist-time-title { font-size: 1.2rem; font-weight: 900; color: var(--text-dark); display: flex; align-items: center; gap: 8px; }
+        .hist-subtitle { font-size: 0.9rem; color: var(--text-muted); font-weight: 600; }
+        .hist-detail-box { background: #f8fafc; padding: 8px 12px; border-radius: 10px; font-size: 0.9rem; font-weight: 700; color: var(--primary); display: inline-block; margin-top: 6px; border: 1px solid #e2e8f0; }
+        .hist-actions-modern { display: flex; flex-direction: column; gap: 8px; margin-left:10px; }
+        
+        .btn-act-edit, .btn-act-del { border: none; padding: 8px 16px; border-radius: 10px; font-weight: 800; font-size: 0.9rem; cursor: pointer; transition: 0.2s; width:100%; }
+        .btn-act-edit { background: #fef3c7; color: #d97706; }
+        .btn-act-edit:active { background: #fde68a; }
+        .btn-act-del { background: #fee2e2; color: #dc2626; }
+        .btn-act-del:active { background: #fecaca; }
 
-        /* Detail Table (Inside truck details) */
-        .detail-table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; margin-top: 5px;}
-        .detail-table th { background: #f8fafc; padding: 8px 4px; border-bottom: 1px solid #e2e8f0;}
-        .detail-table td { padding: 10px 4px; border-bottom: 1px solid #f1f5f9; text-align: center; }
-        .dt-fresh { color: #16a34a; font-weight: 800; background: #f0fdf4; }
-        .dt-stock { color: #0284c7; font-weight: 800; background: #e0f2fe; }
-        .dt-total { font-weight: 900; color: white; background: var(--text-dark); }
+        /* Hide scrollbar for neatness */
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
     </style>
 </head>
 <body>
@@ -188,7 +213,7 @@
     <div class="order-status-bar">
         <div class="os-item">สั่งรวม: <span id="os_total">0</span></div>
         <div class="os-item">ส่งแล้ว: <span id="os_sent">0</span></div>
-        <div class="os-item">ค้างส่ง: <b id="os_remain" style="color:#ef4444;">0</b></div>
+        <div class="os-item">ค้างส่ง: <b id="os_remain" style="color:#dc2626;">0</b></div>
     </div>
 
     <div class="nav-bar">
@@ -245,6 +270,7 @@
     <div class="fab-container"><button class="fab-main" onclick="addDrop('prod')">+</button></div>
 
     <div id="page-summary" class="page">
+        
         <div class="modern-card card-body">
              <h3>📊 สรุปสถานะรายคัน (ขาด/เกิน)</h3>
              <div id="truck_report_container" style="overflow-x:auto;"></div>
@@ -404,10 +430,11 @@
         renderDrops();
         setTimeout(() => { calcAll(); }, 100);
         
+        // Start Live Predictor
         setInterval(updatePredictor, 60000); 
     });
 
-    function getEmptyData() { return { times: { start: "22:00", stop: "06:00" }, initStock: { hl:0, bh:0, bl:0 }, orders: {}, drops: [] }; }
+    function getEmptyData() { return { times: { start: "22:00", stop: "06:00" }, initStock: { hl:0, bh:0, bl:0 }, targetReserve: { hl:0, bh:0, bl:0 }, orders: {}, drops: [] }; }
     
     function saveData() { 
         const dateKey = document.getElementById('setup_date').value;
@@ -415,6 +442,12 @@
         DATA.times.start = document.getElementById('time_start').value;
         DATA.times.stop = document.getElementById('time_stop').value;
         DATA.initStock = { hl: getNum(document.getElementById('init_hl').value), bh: getNum(document.getElementById('init_bh').value), bl: getNum(document.getElementById('init_bl').value) };
+        
+        if(!DATA.targetReserve) DATA.targetReserve = {hl:0, bh:0, bl:0};
+        DATA.targetReserve.hl = getNum(document.getElementById('fc_tar_hl').value);
+        DATA.targetReserve.bh = getNum(document.getElementById('fc_tar_bh').value);
+        DATA.targetReserve.bl = getNum(document.getElementById('fc_tar_bl').value);
+
         localStorage.setItem(`ICE_DATA_${dateKey}`, JSON.stringify(DATA)); 
         calcAll(); 
     }
@@ -444,6 +477,7 @@
             isNewDay = true;
         }
 
+        // PULL ONLY ORDERS FROM PREVIOUS DAYS
         if (isNewDay) {
             let parts = dateKey.split('-');
             let checkDate = new Date(parts[0], parts[1]-1, parts[2]);
@@ -470,11 +504,6 @@
         document.getElementById('init_hl').value = DATA.initStock.hl || 0;
         document.getElementById('init_bh').value = DATA.initStock.bh || 0;
         document.getElementById('init_bl').value = DATA.initStock.bl || 0;
-        
-        // Update Simple Table Header Time (V162)
-        if(document.getElementById('header_start_time_simple')) {
-            document.getElementById('header_start_time_simple').innerText = (DATA.times.start || "22:00") + ' น.';
-        }
     }
 
     function changeDate() { const newDate = document.getElementById('setup_date').value; loadData(newDate); saveData(); renderOrderInputs(); renderDrops(); calcAll(); }
@@ -496,6 +525,7 @@
     
     function deleteDrop(id) { if(confirm("ระบบจะลบข้อมูลนี้ทิ้ง ยืนยันหรือไม่?")) { DATA.drops = DATA.drops.filter(d => d.id !== id); saveData(); renderDrops(); calcAll(); if(document.getElementById('stock_manager_modal').style.display === 'block') openStockManager(); } }
 
+    // --- DOWNTIME MODAL LOGIC ---
     function openDowntimeModal(id = null) {
         EDITING_DOWNTIME_ID = id;
         if(id) {
@@ -554,6 +584,7 @@
         }
     }
     
+    // --- TIME ENGINE ---
     function getAdjustedMinutes(timeStr, startStr) { 
         if(!timeStr || !startStr) return 0; 
         let [h, m] = timeStr.split(':').map(Number); 
@@ -576,6 +607,7 @@
         container.innerHTML = '';
         
         const startTimeStr = document.getElementById('time_start').value || "22:00";
+        // SORT STRICTLY BY TIME
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
         
         const prodDrops = sortedDrops.filter(d => d.type === 'prod');
@@ -586,6 +618,7 @@
              return;
         }
 
+        // Render EXACTLY 1 card (The latest production card)
         let prevProd = prodDrops.length > 1 ? prodDrops[prodDrops.length - 2] : null;
         let prevTime = prevProd ? prevProd.time : startTimeStr;
         
@@ -662,12 +695,15 @@
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
         let dropCount = 0;
 
+        if(document.getElementById('header_start_time_simple')) {
+            document.getElementById('header_start_time_simple').innerText = startTimeStr + ' น.';
+        }
+
         sortedDrops.forEach(d => {
             if(d.type === 'downtime') {
                 let dtMins = getMinDiff(d.time, d.time_end || d.time);
                 pendingDowntime += dtMins;
                 
-                // 🔥 V162: FIXED DOWNTIME ROW (NO COMPLEX COLSPANs) 🔥
                 prodLogHtml += `
                 <tr style="background-color: #fef2f2;">
                     <td style="font-weight:900; color:#cbd5e1; text-align:center;">-</td>
@@ -734,15 +770,17 @@
             }); }
         });
         
-        // 🔥 V162: FIXED TOTAL ROW (CORRECT UNIT ALIGNMENT) 🔥
+        // 🔥 V163: TOTAL ROW DURATION RESTORED AND SPAN FIXED 🔥
         prodLogHtml += `<tr class="total-row">
-            <td style="color:#fde047 !important;">รวม</td> <td>${totalDuration}</td> <td style="color:#38bdf8 !important; border-bottom:1px solid white;"></td> <td style="color:#0ea5e9 !important;">${totalWithHL}</td>
+            <td class="total-label" colspan="2" style="border-bottom-left-radius: 12px;">รวม</td>
+            <td style="color:#38bdf8 !important; font-size:1.1rem;">${totalDuration}</td>
+            <td style="color:#0ea5e9 !important;">${totalWithHL}</td>
             <td style="color:#0ea5e9 !important;">${totalWithBod}</td>
             <td style="color:#34d399 !important;">${sumP.hl}</td>
             <td style="color:#34d399 !important;">${sumP.bh}</td>
             <td style="color:#34d399 !important;">${sumP.bl}</td>
             <td style="color:#fbbf24 !important;">${totalRemHL}</td>
-            <td style="color:#fbbf24 !important;">${totalRemBod}</td>
+            <td style="color:#fbbf24 !important; border-bottom-right-radius: 12px;">${totalRemBod}</td>
         </tr>`;
 
         const safeSet = (id, val) => { if(document.getElementById(id)) document.getElementById(id).innerText = val; };
@@ -768,7 +806,7 @@
             safeSet('rpt_avg_time', 0); safeSet('rpt_tons_day', 0); safeSet('rpt_avg_yield', 0); 
         }
 
-        // --- 🔮 FLOATING PREDICTOR TICKER ---
+        // --- 🔮 LIVE PREDICTOR TICKER ---
         globalAvgTime = avgTime;
         let lastEventStr = startTimeStr;
         if(sortedDrops.length > 0) {
@@ -825,7 +863,24 @@
     }
     
     function renderSummaryTable(mat) { let h = `<table class="truck-matrix-table"><thead><tr><th style="text-align:left;">รถ</th><th>หลอด</th><th>หยาบ</th><th>ละ..</th></tr></thead><tbody>`; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; h += `<tr><td class="truck-name-col">${t}</td>`; ICE_TYPES.forEach(ty => { const target = getNum(DATA.orders[`${tid}_${ty.id}`]); const sent = mat[tid][ty.id].fr + mat[tid][ty.id].st; let cell = `<span class="st-none">-</span>`; if(target > 0 || sent > 0) { const rem = target - sent; if(rem > 0) cell = `<span class="st-pill st-miss">ขาด ${rem}</span>`; else if(rem < 0) cell = `<span class="st-pill st-over">เกิน ${Math.abs(rem)}</span>`; else cell = `<span class="st-pill st-ok">ครบ</span>`; } h += `<td>${cell}</td>`; }); h += `</tr>`; }); h += `</tbody></table>`; document.getElementById('truck_report_container').innerHTML = h; }
-    function renderDetailTable(det) { let h = ''; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; if(det[tid]) { let hasData = false; let content = `<div class="truck-detail-block"><div class="truck-detail-header"><span>🚛 ${t}</span><button class="btn-history" onclick="openTruckHistory('${tid}')">🕒 ดูประวัติ</button></div>`; ICE_TYPES.forEach(ty => { if(det[tid][ty.id]) { const d = det[tid][ty.id]; const t_r1 = d.r1.fr+d.r1.st; const t_r2 = d.r2.fr+d.r2.st; const t_r3 = d.r3.fr+d.r3.st; const grand = t_r1+t_r2+t_r3; const ordered = getNum(DATA.orders[`${tid}_${ty.id}`]); if(grand > 0 || ordered > 0) { hasData = true; content += `<div style="margin-bottom:10px;"><div style="font-weight:900; color:var(--primary); margin-bottom:5px;">${ty.label} <small style="color:var(--text-muted); font-weight:600;">(เป้า: ${ordered})</small></div><table class="detail-table"><thead><tr><th style="width:20%">แถว</th><th>เก่า</th><th>สด</th><th>รวม</th></tr></thead><tbody><tr><td>1</td><td class="dt-stock">${d.r1.st||'-'}</td><td class="dt-fresh">${d.r1.fr||'-'}</td><td>${t_r1}</td></tr><tr><td>2</td><td class="dt-stock">${d.r2.st||'-'}</td><td class="dt-fresh">${d.r2.fr||'-'}</td><td>${t_r2}</td></tr><tr><td>3</td><td class="dt-stock">${d.r3.st||'-'}</td><td class="dt-fresh">${d.r3.fr||'-'}</td><td>${t_r3}</td></tr><tr><td colspan="3" style="text-align:right; font-weight:900;">รวม:</td><td class="dt-total">${grand}</td></tr></tbody></table></div>`; } } }); content += `</div>`; if(hasData) h += content; } }); if(h==='') h='<div style="text-align:center; padding:20px; color:#aaa;">ยังไม่มีข้อมูล</div>'; document.getElementById('truck_detail_container').innerHTML = h; }
+    
+    // 🔥 V163: REDESIGNED TRUCK DETAIL TABLE 🔥
+    function renderDetailTable(det) { let h = ''; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; if(det[tid]) { let hasData = false; let content = `<div class="truck-detail-block"><div class="truck-detail-header"><span>🚛 ${t}</span><button class="btn-history" onclick="openTruckHistory('${tid}')">🕒 ดูประวัติ</button></div>`; ICE_TYPES.forEach(ty => { if(det[tid][ty.id]) { const d = det[tid][ty.id]; const t_r1 = d.r1.fr+d.r1.st; const t_r2 = d.r2.fr+d.r2.st; const t_r3 = d.r3.fr+d.r3.st; const grand = t_r1+t_r2+t_r3; const ordered = getNum(DATA.orders[`${tid}_${ty.id}`]); if(grand > 0 || ordered > 0) { hasData = true; content += `
+        <div style="margin-bottom:20px; background:#ffffff; border:1px solid #f1f5f9; border-radius:12px; padding:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding-bottom:8px; border-bottom:1px dashed #e2e8f0;">
+                <div style="font-weight:900; color:var(--primary); font-size:1.1rem;">${ty.label}</div>
+                <div style="font-size:0.8rem; color:var(--text-muted); font-weight:800; background:#f8fafc; padding:4px 10px; border-radius:20px;">เป้า: ${ordered}</div>
+            </div>
+            <table class="detail-table">
+                <thead><tr><th style="width:15%;">แถว</th><th style="width:28%;">เก่า (สต็อก)</th><th style="width:28%;">สด (ผลิต)</th><th>รวมแถว</th></tr></thead>
+                <tbody>
+                    <tr><td>1</td><td><span class="dt-stock-val">${d.r1.st||'-'}</span></td><td><span class="dt-fresh-val">${d.r1.fr||'-'}</span></td><td><span class="dt-total-val">${t_r1}</span></td></tr>
+                    <tr><td>2</td><td><span class="dt-stock-val">${d.r2.st||'-'}</span></td><td><span class="dt-fresh-val">${d.r2.fr||'-'}</span></td><td><span class="dt-total-val">${t_r2}</span></td></tr>
+                    <tr><td>3</td><td><span class="dt-stock-val">${d.r3.st||'-'}</span></td><td><span class="dt-fresh-val">${d.r3.fr||'-'}</span></td><td><span class="dt-total-val">${t_r3}</span></td></tr>
+                    <tr class="detail-summary-row"><td colspan="3" style="text-align:right; font-weight:900; color:var(--text-dark);">รวมจ่ายจริง:</td><td style="color:var(--primary); font-weight:900; font-size:1.2rem;">${grand}</td></tr>
+                </tbody>
+            </table>
+        </div>`; } } }); content += `</div>`; if(hasData) h += content; } }); if(h==='') h='<div style="text-align:center; padding:20px; color:#aaa;">ยังไม่มีข้อมูล</div>'; document.getElementById('truck_detail_container').innerHTML = h; }
     
     function updateOrder(key, val) { DATA.orders[key] = getNum(val); saveData(); calcAll(); 
         const tid = key.split('_')[0] + '_' + key.split('_')[1]; const hl = getNum(DATA.orders[tid+'_hl']); const bh = getNum(DATA.orders[tid+'_bh']); const bl = getNum(DATA.orders[tid+'_bl']); const sumEl = document.getElementById('ord_sum_'+tid); if(sumEl) sumEl.innerText = hl+bh+bl;
@@ -833,21 +888,45 @@
     
     function openFullHistory() { const container = document.getElementById('full_history_list'); container.innerHTML = ''; 
         const startTimeStr = document.getElementById('time_start').value;
-        const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(b.time, startTimeStr) - getAdjustedMinutes(a.time, startTimeStr)); 
+        const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(b.time, startTimeStr) - getAdjustedMinutes(a.time, startTimeStr)).reverse(); 
         if (sortedDrops.length === 0) { container.innerHTML = '<div style="text-align:center; color:#aaa;">ไม่มีประวัติ</div>'; } else { sortedDrops.forEach((d, idx) => { 
         if(d.type === 'prod') {
-            let prodTotal = getNum(d.p_in_room.hl) + getNum(d.p_in_room.bh) + getNum(d.p_in_room.bl); if(d.dist) d.dist.forEach(i => prodTotal += getNum(i.total)); const tag = (idx === 0) ? '<span class="hist-tag ht-fresh" style="background:#dcfce7; color:#16a34a;">ล่าสุด</span>' : ''; container.insertAdjacentHTML('beforeend', `<div class="hist-item" onclick="openEditPast(${d.id})" style="cursor:pointer; border:1px solid #e2e8f0;"><div class="hist-info"><div><b style="font-weight:900;">${d.time}</b> ${tag}</div><div style="color:var(--text-muted); font-size:0.85rem; font-weight:600;">ผลิต: ${prodTotal}</div></div><div style="color:var(--primary); font-weight:900;">></div></div>`); 
+            let prodTotal = getNum(d.p_in_room.hl) + getNum(d.p_in_room.bh) + getNum(d.p_in_room.bl); if(d.dist) d.dist.forEach(i => prodTotal += getNum(i.total)); const tag = (idx === 0) ? '<span class="hist-tag ht-fresh" style="background:#dcfce7; color:#16a34a;">ล่าสุด</span>' : ''; 
+            container.insertAdjacentHTML('beforeend', `<div class="hist-item" onclick="openEditPast(${d.id})" style="cursor:pointer; border:1px solid #e2e8f0;">
+                <div class="hist-info"><div><b style="font-weight:900; font-size:1.1rem;">${d.time}</b> ${tag}</div><div style="color:var(--text-muted); font-size:0.85rem; font-weight:600;">ยอดผลิตรวม: <b style="color:var(--primary); font-size:1rem;">${prodTotal}</b> กระสอบ</div></div>
+                <div style="color:var(--primary); font-weight:900; font-size:1.2rem;">></div>
+            </div>`); 
         } else if (d.type === 'downtime') {
             let dt = getMinDiff(d.time, d.time_end);
-            container.insertAdjacentHTML('beforeend', `<div class="hist-item" style="border-left: 4px solid #ef4444; cursor:pointer; background:#fef2f2;" onclick="openDowntimeModal(${d.id})"><div class="hist-info"><div><b style="color:#b91c1c; font-weight:900;">${d.time} - ${d.time_end}</b></div><div style="color:#ef4444; font-size:0.85rem; font-weight:800;">หยุดเครื่อง/ไฟดับ (${dt} น.)</div></div><div style="color:#ef4444; font-weight:900;">></div></div>`);
+            container.insertAdjacentHTML('beforeend', `<div class="hist-item" style="border-left: 4px solid #ef4444; cursor:pointer; background:#fef2f2;" onclick="openDowntimeModal(${d.id})">
+                <div class="hist-info"><div><b style="color:#b91c1c; font-weight:900; font-size:1.1rem;">${d.time} - ${d.time_end}</b></div><div style="color:#ef4444; font-size:0.85rem; font-weight:800;">หยุดเครื่อง/ไฟดับ (พัก ${dt} น.)</div></div>
+                <div style="color:#ef4444; font-weight:900; font-size:1.2rem;">></div>
+            </div>`);
         }
     }); } document.getElementById('full_history_modal').style.display = 'block'; }
     function closeFullHistory() { document.getElementById('full_history_modal').style.display = 'none'; renderDrops(); calcAll(); }
     
+    // 🔥 V163: REDESIGNED HISTORY MODAL ITEM 🔥
     function openTruckHistory(tid) { const container = document.getElementById('history_list'); container.innerHTML = ''; document.getElementById('hist_title').innerText = `🕒 ประวัติ ${getTruckName(tid)}`; 
         const startTimeStr = document.getElementById('time_start').value;
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(a.time, startTimeStr)); 
-        let hasData = false; sortedDrops.forEach(d => { if(d.dist) { d.dist.forEach((item, idx) => { if(item.truck === tid) { hasData = true; const typeName = getTypeName(item.type); const typeLabel = d.type === 'prod' ? '<span class="hist-tag ht-fresh">ผลิต</span>' : '<span class="hist-tag ht-stock">ห้อง</span>'; container.insertAdjacentHTML('beforeend', `<div class="hist-item"><div class="hist-info"><div><b style="font-weight:900;">${d.time}</b> ${typeLabel} : <span style="font-weight:800;">${typeName}</span></div><div style="color:var(--text-muted); font-weight:600;">(${item.r1}/${item.r2}/${item.r3}) = <b style="color:var(--text-dark);">${item.total}</b></div></div><div class="hist-actions"><button class="btn-edit-mini" onclick="closeHistoryModal(); SOURCE_MODAL='truck_history'; editDist(${d.id}, ${idx})">✏️ แก้</button><button class="btn-del-mini" onclick="removeDist(${d.id}, ${idx}); closeHistoryModal();">ลบ</button></div></div>`); } }); } }); if(!hasData) container.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">ไม่มีประวัติสำหรับรถคันนี้</div>'; document.getElementById('history_modal').style.display = 'block'; }
+        let hasData = false; sortedDrops.forEach(d => { if(d.dist) { d.dist.forEach((item, idx) => { if(item.truck === tid) { hasData = true; 
+            const typeName = getTypeName(item.type); 
+            const typeBadge = d.type === 'prod' ? `<span class="st-pill st-ok" style="padding:2px 6px; font-size:0.7rem;">ผลิตใหม่</span>` : `<span class="st-pill st-over" style="padding:2px 6px; font-size:0.7rem;">ห้องเย็น</span>`;
+            
+            container.insertAdjacentHTML('beforeend', `
+            <div class="hist-item">
+                <div class="hist-info">
+                    <div class="hist-time-title">🕒 ${d.time} ${typeBadge}</div>
+                    <div class="hist-subtitle">ประเภท: <b>${typeName}</b></div>
+                    <div class="hist-detail-box">แถว 1,2,3 : ${item.r1} / ${item.r2} / ${item.r3} <br><span style="color:var(--text-dark);">รวม: <b style="font-size:1.1rem;">${item.total}</b> กระสอบ</span></div>
+                </div>
+                <div class="hist-actions-modern">
+                    <button class="btn-act-edit" onclick="closeHistoryModal(); SOURCE_MODAL='truck_history'; editDist(${d.id}, ${idx})">✏️ แก้ไข</button>
+                    <button class="btn-act-del" onclick="removeDist(${d.id}, ${idx}); closeHistoryModal();">🗑️ ลบ</button>
+                </div>
+            </div>`); 
+        } }); } }); if(!hasData) container.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa; font-weight:bold;">ไม่มีประวัติการขึ้นของสำหรับรถคันนี้</div>'; document.getElementById('history_modal').style.display = 'block'; }
     function closeHistoryModal() { document.getElementById('history_modal').style.display = 'none'; }
     
     function openEditPast(id) { 
@@ -873,7 +952,7 @@
     
     function closeEditPastModal() { document.getElementById('edit_past_modal').style.display = 'none'; if(SOURCE_MODAL === 'history') openFullHistory(); else if(SOURCE_MODAL === 'stock') openStockManager(); else renderDrops(); calcAll(); }
     
-    function openStockManager() { const container = document.getElementById('stock_list_container'); container.innerHTML = ''; const stockDrops = DATA.drops.filter(d => d.type === 'stock').reverse(); if(stockDrops.length === 0) { container.innerHTML = '<div style="text-align:center; color:#aaa; margin-top:20px;">ไม่มีรายการเบิกของเก่า</div>'; } else { stockDrops.forEach(d => { let details = ''; if(d.dist) { d.dist.forEach((item, idx) => { details += `<div style="background:white; padding:8px; border-radius:8px; margin-top:8px; font-size:0.85rem; border:1px solid #f1f5f9; box-shadow:var(--shadow-sm);">🚛 ${getTruckName(item.truck)} (${getTypeName(item.type)}) : <b style="font-size:1rem; color:var(--text-dark);">${item.total}</b></div>`; }); } container.insertAdjacentHTML('beforeend', `<div style="background:#fffbeb; padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid #fef3c7;"><div style="display:flex; justify-content:space-between; font-weight:900; color:#d97706; font-size:1.1rem; align-items:center;"><span>📦 เบิก ${d.time}</span><button class="btn-del-mini" onclick="deleteDrop(${d.id})">ลบ</button></div>${details}<button class="btn-add-dist" style="background:white; border-color:#fde68a; color:#d97706;" onclick="openDistModal(${d.id})">+ เพิ่มจ่าย</button></div>`); }); } document.getElementById('stock_manager_modal').style.display = 'block'; }
+    function openStockManager() { const container = document.getElementById('stock_list_container'); container.innerHTML = ''; const stockDrops = DATA.drops.filter(d => d.type === 'stock').reverse(); if(stockDrops.length === 0) { container.innerHTML = '<div style="text-align:center; color:#aaa; margin-top:20px; font-weight:bold;">ไม่มีรายการเบิกของเก่าในวันนี้</div>'; } else { stockDrops.forEach(d => { let details = ''; if(d.dist) { d.dist.forEach((item, idx) => { details += `<div style="background:white; padding:8px; border-radius:8px; margin-top:8px; font-size:0.85rem; border:1px solid #f1f5f9; box-shadow:var(--shadow-sm);">🚛 ${getTruckName(item.truck)} (${getTypeName(item.type)}) : <b style="font-size:1rem; color:var(--text-dark);">${item.total}</b></div>`; }); } container.insertAdjacentHTML('beforeend', `<div style="background:#fffbeb; padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid #fef3c7;"><div style="display:flex; justify-content:space-between; font-weight:900; color:#d97706; font-size:1.1rem; align-items:center;"><span>📦 เบิก ${d.time}</span><button class="btn-act-del" style="width:auto; padding:6px 12px; font-size:0.8rem;" onclick="deleteDrop(${d.id})">ลบ</button></div>${details}<button class="btn-add-dist" style="background:white; border-color:#fde68a; color:#d97706;" onclick="openDistModal(${d.id})">+ เพิ่มจ่ายรถ</button></div>`); }); } document.getElementById('stock_manager_modal').style.display = 'block'; }
     function closeStockManager() { document.getElementById('stock_manager_modal').style.display = 'none'; renderDrops(); calcAll(); }
     function removeDist(dropId, idx) { const d = DATA.drops.find(x => x.id === dropId); if(d) { d.dist.splice(idx, 1); updateDropVal(dropId, 'dist_update', null, 0); saveData(); if(document.getElementById('stock_manager_modal').style.display === 'block') openStockManager(); else if(document.getElementById('edit_past_modal').style.display === 'flex') openEditPast(dropId); else renderDrops(); calcAll(); } }
     
