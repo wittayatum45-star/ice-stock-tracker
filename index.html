@@ -54,8 +54,9 @@
             .card-body { padding: 20px; }
             .card-body h3 { margin-top: 0; color: var(--text-dark); font-weight: 800; font-size: 1.15rem; display: flex; align-items: center; gap: 8px; margin-bottom: 15px; }
             
+            /* การันตีช่องกรอกตัวเลขให้อยู่ตรงกลางเสมอ */
             input[type="number"], input[type="tel"], input[type="time"], input[type="date"], input[type="text"], select { 
-                width: 100%; padding: 14px; font-size: 1.1rem; text-align: center; font-weight: 800; color: var(--text-dark);
+                width: 100%; padding: 14px; font-size: 1.1rem; text-align: center !important; font-weight: 800; color: var(--text-dark);
                 border: 2px solid #e2e8f0; border-radius: 12px; background: #f8fafc; transition: all 0.3s; font-family: 'Sarabun', sans-serif;
             }
             input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15); outline: none; background: #ffffff; }
@@ -90,14 +91,14 @@
             .total-row td { background-color: #1e293b !important; color: white !important; font-weight: 900 !important; font-size: 1rem !important; border-color: #0f172a !important; padding: 12px 4px; }
             .total-label { text-align: center !important; color: #fde047 !important; }
 
-            .custom-report { border: 2px solid #e2e8f0; border-radius: var(--radius-md); padding: 20px; margin-top: 20px; background: #f8fafc; }
-            .cr-section { margin-bottom: 15px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 15px; }
-            .cr-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-            .cr-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 1.05rem; }
-            .cr-label { font-weight: 800; color: #475569; }
+            /* Custom UI Report Box Matching the Picture */
+            .custom-report { border: 1.5px solid #1e3a8a; border-radius: var(--radius-md); padding: 15px; margin-top: 20px; background: #ffffff; box-shadow: var(--shadow-md);}
+            .cr-section { margin-bottom: 10px; }
+            .cr-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 1rem; border-bottom: 1px dotted #cbd5e1;}
+            .cr-row:last-child { border-bottom: none; }
+            .cr-label { font-weight: 600; color: #334155; }
             .cr-val { font-weight: 900; color: #0f172a; text-align: right; }
-            .cr-total { color: var(--primary); font-size: 1.15rem; }
-            .cr-header { font-weight: 900; color: white; margin-bottom: 12px; font-size: 1.1rem; background: var(--text-dark); padding: 10px 15px; border-radius: 8px; display: block; text-align: center; box-shadow: var(--shadow-sm); }
+            .cr-header { font-weight: 900; color: #1e3a8a; margin-bottom: 4px; font-size: 1.1rem; border-bottom: 2px solid #1e3a8a; padding-bottom: 2px; }
 
             .truck-matrix-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 5px; border-radius: 12px; overflow: hidden; border: 1px solid #cbd5e1; }
             .truck-matrix-table th { background: #e2e8f0; color: #334155; padding: 10px 6px; font-weight: 800; border-bottom: 1px solid #cbd5e1; font-size: 0.9rem; }
@@ -160,7 +161,7 @@
             #print_area { display: none; }
         }
 
-        /* --- 🔥 V175: PRINT PDF STYLES (COLORS & FIXED SIGNATURE) 🔥 --- */
+        /* --- 🔥 V175: PRINT PDF STYLES (MATCHING REFERENCE IMAGE) 🔥 --- */
         @media print {
             @page { size: A4 portrait; margin: 8mm; } 
             body { background: white !important; color: black !important; font-family: 'Sarabun', sans-serif; font-size: 10pt !important; padding: 0 !important; margin: 0 !important; }
@@ -174,7 +175,9 @@
             
             .print-wrapper { display: flex; align-items: stretch; width: 100%; gap: 8px; }
             .print-left { width: 72%; }
-            .print-right { width: 28%; border: 1.5px solid black; padding: 6px 8px; display: flex; flex-direction: column; }
+            
+            /* The Right Summary Box Formatted like the Reference Image */
+            .print-right { width: 28%; border: 1px solid #1e3a8a; border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; background: white;}
             
             .print-table { width: 100%; border-collapse: collapse; border: 1.5px solid black; table-layout: fixed; }
             .print-table th, .print-table td { border: 1px solid black; text-align: center; font-weight: 600; }
@@ -182,7 +185,7 @@
             .print-table th { padding: 4px 2px; font-size: 8.5pt; font-weight: 800;}
             .print-table td { height: 21.5px; font-size: 9pt; padding: 1px; line-height: 1; }
             
-            /* 🔥 V175: Column Colors for PDF 🔥 */
+            /* PDF Column Colors */
             .print-table td:nth-child(4), .print-table td:nth-child(5) { background-color: #e0f2fe !important; color: #0284c7 !important; }
             .print-table td:nth-child(6), .print-table td:nth-child(7), .print-table td:nth-child(8) { background-color: #dcfce7 !important; color: #15803d !important; }
             .print-table td:nth-child(9), .print-table td:nth-child(10) { background-color: #fef3c7 !important; color: #b45309 !important; }
@@ -190,14 +193,16 @@
             .print-downtime td { color: black; font-weight: 800; font-style: italic; background-color: #f1f5f9 !important; }
             .print-footer td { border-top: 1.5px solid black; font-weight: 900; background-color: #e2e8f0 !important; padding: 4px 1px; color: black !important;}
             
-            .s-line { display: flex; justify-content: space-between; margin-bottom: 4px; border-bottom: 1px dotted #ccc; padding-bottom: 2px; font-size: 9pt;}
-            .s-val { font-weight: 900; text-align: right; }
-            .s-title { margin-top: 8px; margin-bottom: 4px; font-weight: 900; border-bottom: 1px solid black; padding-bottom: 2px; font-size: 10pt;}
+            /* Exact match for Right Column Data */
+            .s-title { margin-top: 12px; margin-bottom: 6px; font-weight: 900; border-bottom: 2px solid #1e3a8a; padding-bottom: 2px; font-size: 11pt; color: #1e3a8a;}
             .s-title:first-child { margin-top: 0; }
+            .s-line { display: flex; justify-content: space-between; margin-bottom: 5px; border-bottom: 1px dotted #cbd5e1; padding-bottom: 3px; font-size: 9.5pt;}
+            .s-val { font-weight: 900; text-align: right; color: #111827;}
+            .s-label { color: #374151; font-weight: 600; }
             
-            /* 🔥 V175: Fixed Signature Box (Fewer dots, nowrap) 🔥 */
-            .sign-box { margin-top: auto; padding-top: 10px; } 
-            .sign-line { text-align: center; margin-top: 15px; font-size: 8.5pt; white-space: nowrap; } 
+            .sign-box { margin-top: auto; padding-top: 15px; } 
+            .sign-line { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 20px; font-size: 8.5pt; font-weight: bold;} 
+            .sign-dots { flex-grow: 1; border-bottom: 1px dotted #333; margin: 0 5px; position: relative; top: -3px; }
         }
     </style>
 </head>
@@ -275,7 +280,7 @@
             </div>
             <div class="grid-2" style="margin-bottom:10px;">
                 <div><div class="input-label">ค่า pH</div><input type="text" id="rpt_ph" value="7.1" oninput="saveData()"></div>
-                <div><div class="input-label">ค่า TDS</div><input type="text" id="rpt_tds" value="162" oninput="saveData()"></div>
+                <div><div class="input-label">ค่า TDS</div><input type="text" id="rpt_tds" value="172" oninput="saveData()"></div>
             </div>
             <div class="grid-2">
                 <div><div class="input-label">พนักงานผลิต (คน)</div><input type="number" id="rpt_staff_prod" value="4" oninput="saveData()"></div>
@@ -319,37 +324,49 @@
 
             <div class="custom-report">
                 <div class="cr-section">
-                    <div class="cr-header" style="background:var(--success-grad);">🏭 สรุปยอดผลิต</div>
-                    <div class="cr-row"><span class="cr-label">หลอดใหญ่:</span> <span class="cr-val" id="rpt_hl">0</span> กระสอบ</div>
-                    <div class="cr-row"><span class="cr-label">บดหยาบ:</span> <span class="cr-val" id="rpt_bh">0</span> กระสอบ</div>
-                    <div class="cr-row"><span class="cr-label">บดละเอียด:</span> <span class="cr-val" id="rpt_bl">0</span> กระสอบ</div>
-                    <div class="cr-row" style="margin-top:8px; padding-top:8px; border-top:1px solid #e2e8f0;"><span class="cr-label cr-total">รวมผลิตทั้งหมด:</span> <span class="cr-val cr-total" id="rpt_total_prod" style="font-size:1.3rem;">0</span> กระสอบ</div>
+                    <div class="cr-header">ข้อมูลสรุป</div>
+                    <div class="cr-row"><span class="cr-label">หลอดใหญ่</span> <span class="cr-val"><span id="rpt_hl">0</span> กระสอบ</span></div>
+                    <div class="cr-row"><span class="cr-label">บดหยาบ</span> <span class="cr-val"><span id="rpt_bh">0</span> กระสอบ</span></div>
+                    <div class="cr-row"><span class="cr-label">บดละเอียด</span> <span class="cr-val"><span id="rpt_bl">0</span> กระสอบ</span></div>
+                    <div class="cr-row" style="border-top:1.5px solid #cbd5e1; margin-top:2px; border-bottom:none;"><span class="cr-label" style="font-weight:800; color:#1e3a8a;">รวม</span> <span class="cr-val" style="color:#1e3a8a;"><span id="rpt_total_prod">0</span> กระสอบ</span></div>
                 </div>
+                
                 <div class="cr-section">
-                    <div class="cr-header" style="background:var(--warning-grad);">⚖️ น้ำหนักเฉลี่ย (ต่อกระสอบ)</div>
-                    <div class="cr-row"><span class="cr-label">นน.เฉลี่ย หลอดใหญ่:</span> <span class="cr-val">20</span> กก.</div>
-                    <div class="cr-row"><span class="cr-label">นน.เฉลี่ย บดหยาบ:</span> <span class="cr-val">23</span> กก.</div>
-                    <div class="cr-row"><span class="cr-label">นน.เฉลี่ย บดละเอียด:</span> <span class="cr-val">24</span> กก.</div>
-                    <div class="cr-row"><span class="cr-label cr-total" style="color:#d97706;">นน.เฉลี่ยรวม:</span> <span class="cr-val cr-total" style="color:#d97706;">22</span> กก.</div>
+                    <div class="cr-header">น้ำหนักเฉลี่ย</div>
+                    <div class="cr-row"><span class="cr-label">หลอดใหญ่</span> <span class="cr-val">20 กก.</span></div>
+                    <div class="cr-row"><span class="cr-label">บดหยาบ</span> <span class="cr-val">23 กก.</span></div>
+                    <div class="cr-row"><span class="cr-label">บดละเอียด</span> <span class="cr-val">24 กก.</span></div>
+                    <div class="cr-row" style="border-top:1.5px solid #cbd5e1; margin-top:2px; border-bottom:none;"><span class="cr-label" style="font-weight:800;">รวม</span> <span class="cr-val">22 กก.</span></div>
                 </div>
+
                 <div class="cr-section">
-                    <div class="cr-header" style="background:var(--primary-grad);">🏋️ น้ำหนักรวม (Production Weight)</div>
-                    <div class="cr-row"><span class="cr-label">นน.รวม หลอดใหญ่:</span> <span class="cr-val" id="rpt_w_hl">0</span> กก.</div>
-                    <div class="cr-row"><span class="cr-label">นน.รวม บดหยาบ:</span> <span class="cr-val" id="rpt_w_bh">0</span> กก.</div>
-                    <div class="cr-row"><span class="cr-label">นน.รวม บดละเอียด:</span> <span class="cr-val" id="rpt_w_bl">0</span> กก.</div>
-                    <div class="cr-row" style="margin-top:8px; padding-top:8px; border-top:1px solid #e2e8f0;"><span class="cr-label cr-total">น้ำหนักรวมทั้งหมด:</span> <span class="cr-val cr-total" id="rpt_total_weight" style="font-size:1.3rem;">0</span> กก.</div>
+                    <div class="cr-header">น้ำหนักรวม</div>
+                    <div class="cr-row"><span class="cr-label">หลอดใหญ่</span> <span class="cr-val"><span id="rpt_w_hl">0</span> กก.</span></div>
+                    <div class="cr-row"><span class="cr-label">บดหยาบ</span> <span class="cr-val"><span id="rpt_w_bh">0</span> กก.</span></div>
+                    <div class="cr-row"><span class="cr-label">บดละเอียด</span> <span class="cr-val"><span id="rpt_w_bl">0</span> กก.</span></div>
+                    <div class="cr-row" style="border-top:1.5px solid #cbd5e1; margin-top:2px; border-bottom:none;"><span class="cr-label" style="font-weight:800; color:#16a34a;">รวม</span> <span class="cr-val" style="color:#16a34a;"><span id="rpt_total_weight">0</span> กก.</span></div>
                 </div>
+
                 <div class="cr-section">
-                    <div class="cr-header" style="background:var(--purple-grad);">📊 สถิติ (Performance)</div>
-                    <div class="cr-row"><span class="cr-label">เวลาเฉลี่ย:</span> <span class="cr-val" id="rpt_avg_time">0</span> นาที/ตก</div>
-                    <div class="cr-row"><span class="cr-label">น้ำหนัก (กำลังผลิต):</span> <span class="cr-val" id="rpt_tons_day">0</span> ตัน/วัน</div>
-                    <div class="cr-row"><span class="cr-label">จำนวนเฉลี่ย:</span> <span class="cr-val" id="rpt_avg_yield">0</span> กระสอบ/ตก</div>
+                    <div class="cr-header">สถิติการผลิต</div>
+                    <div class="cr-row"><span class="cr-label">เวลาเฉลี่ย</span> <span class="cr-val"><span id="rpt_avg_time">0</span> นาที/ตก</span></div>
+                    <div class="cr-row"><span class="cr-label">น้ำหนัก</span> <span class="cr-val"><span id="rpt_tons_day">0</span> ตัน/วัน</span></div>
+                    <div class="cr-row"><span class="cr-label">จำนวนเฉลี่ย</span> <span class="cr-val"><span id="rpt_avg_yield">0</span> กระสอบ/ตก</span></div>
                 </div>
+
                 <div class="cr-section">
-                    <div class="cr-header" style="background:var(--text-dark);">📥 สรุปกระสอบ (Sack Audit)</div>
-                    <div class="cr-row" style="background:#fef3c7; padding:8px; border-radius:8px;"><span class="cr-label cr-total" style="color:#b45309;">เบิกกระสอบ (รวมทุกเครื่อง):</span> <span class="cr-val cr-total" id="rpt_sack_withdraw" style="color:#b45309; font-size:1.3rem;">0</span> ใบ</div>
-                    <div class="cr-row" style="margin-top:8px;"><span class="cr-label">กระสอบที่ใช้:</span> <span class="cr-val" id="rpt_sack_used">0</span> ใบ</div>
-                    <div class="cr-row"><span class="cr-label" style="color:#dc2626;">กระสอบคงเหลือ:</span> <span class="cr-val" id="rpt_rem_total_all" style="color:#dc2626;">0</span> ใบ</div>
+                    <div class="cr-header">สรุปกระสอบ</div>
+                    <div class="cr-row"><span class="cr-label">เบิกกระสอบรวม</span> <span class="cr-val"><span id="rpt_sack_withdraw">0</span> ใบ</span></div>
+                    <div class="cr-row"><span class="cr-label">กระสอบที่ใช้</span> <span class="cr-val"><span id="rpt_sack_used">0</span> ใบ</span></div>
+                    <div class="cr-row"><span class="cr-label" style="font-weight:800; color:#b45309;">กระสอบคงเหลือ</span> <span class="cr-val" style="color:#b45309;"><span id="rpt_rem_total_all">0</span> ใบ</span></div>
+                </div>
+
+                <div class="cr-section">
+                    <div class="cr-header">ข้อมูลอื่นๆ</div>
+                    <div class="cr-row"><span class="cr-label">ค่า pH</span> <span class="cr-val" id="disp_ph">7.1</span></div>
+                    <div class="cr-row"><span class="cr-label">ค่า TDS</span> <span class="cr-val" id="disp_tds">172</span></div>
+                    <div class="cr-row"><span class="cr-label">พนักงานผลิต</span> <span class="cr-val"><span id="disp_prod_staff">4</span> คน</span></div>
+                    <div class="cr-row"><span class="cr-label">วิศวกรรม</span> <span class="cr-val"><span id="disp_eng_staff">1</span> คน</span></div>
                 </div>
             </div>
         </div>
@@ -468,7 +485,7 @@
         setInterval(updatePredictor, 60000); 
     });
 
-    function getEmptyData() { return { times: { start: "22:00", stop: "06:00" }, initStock: { hl:0, bh:0, bl:0 }, reportInfo: { branch: 'วาริเทพเพ็ญ (W041)', machine: 'M1', ph: '7.1', tds: '162', prodStaff: 4, engStaff: 1 }, orders: {}, drops: [] }; }
+    function getEmptyData() { return { times: { start: "22:00", stop: "06:00" }, initStock: { hl:0, bh:0, bl:0 }, reportInfo: { branch: 'วาริเทพเพ็ญ (W041)', machine: 'M1', ph: '7.1', tds: '172', prodStaff: 4, engStaff: 1 }, orders: {}, drops: [] }; }
     
     function saveData() { 
         const dateKey = document.getElementById('setup_date').value;
@@ -499,7 +516,7 @@
                 DATA = JSON.parse(d); 
                 if(!DATA.drops) DATA.drops = []; 
                 if(!DATA.orders) DATA.orders = {}; 
-                if(!DATA.reportInfo) DATA.reportInfo = { branch: 'วาริเทพเพ็ญ (W041)', machine: 'M1', ph: '7.1', tds: '162', prodStaff: 4, engStaff: 1 };
+                if(!DATA.reportInfo) DATA.reportInfo = { branch: 'วาริเทพเพ็ญ (W041)', machine: 'M1', ph: '7.1', tds: '172', prodStaff: 4, engStaff: 1 };
                 if(!DATA.initStock) DATA.initStock = {hl:0, bh:0, bl:0};
                 
                 DATA.drops.forEach(drop => {
@@ -547,7 +564,7 @@
             document.getElementById('rpt_branch').value = DATA.reportInfo.branch || 'วาริเทพเพ็ญ (W041)';
             document.getElementById('rpt_machine').value = DATA.reportInfo.machine || 'M1';
             document.getElementById('rpt_ph').value = DATA.reportInfo.ph || '7.1';
-            document.getElementById('rpt_tds').value = DATA.reportInfo.tds || '162';
+            document.getElementById('rpt_tds').value = DATA.reportInfo.tds || '172';
             document.getElementById('rpt_staff_prod').value = DATA.reportInfo.prodStaff || 4;
             document.getElementById('rpt_staff_eng').value = DATA.reportInfo.engStaff || 1;
         }
@@ -850,6 +867,12 @@
         } else { 
             safeSet('rpt_avg_time', 0); safeSet('rpt_tons_day', 0); safeSet('rpt_avg_yield', 0); 
         }
+
+        // Sync values to the Display fields
+        safeSet('disp_ph', DATA.reportInfo.ph || '7.1');
+        safeSet('disp_tds', DATA.reportInfo.tds || '172');
+        safeSet('disp_prod_staff', DATA.reportInfo.prodStaff || '4');
+        safeSet('disp_eng_staff', DATA.reportInfo.engStaff || '1');
         
         window.REPORT_DATA = {
             sumHL: sumP.hl, sumBH: sumP.bh, sumBL: sumP.bl,
@@ -1200,23 +1223,30 @@
             `<span class="s-label">หลอดใหญ่</span> <span class="s-val">${rd.sumHL} กระสอบ</span>`,
             `<span class="s-label">บดหยาบ</span> <span class="s-val">${rd.sumBH} กระสอบ</span>`,
             `<span class="s-label">บดละเอียด</span> <span class="s-val">${rd.sumBL} กระสอบ</span>`,
-            `<span class="s-label" style="font-weight:800; color:#1e3a8a;">รวมผลิต</span> <span class="s-val" style="color:#1e3a8a;">${rd.totProd} กระสอบ</span>`,
+            `<span class="s-label" style="font-weight:900;">รวม</span> <span class="s-val" style="font-weight:900;">${rd.totProd} กระสอบ</span>`,
             ``, ``,
-            `<span class="s-label">หลอดใหญ่ (20 กก.)</span> <span class="s-val">${rd.wHL.toLocaleString()} กก.</span>`,
-            `<span class="s-label">บดหยาบ (23 กก.)</span> <span class="s-val">${rd.wBH.toLocaleString()} กก.</span>`,
-            `<span class="s-label">บดละเอียด (24 กก.)</span> <span class="s-val">${rd.wBL.toLocaleString()} กก.</span>`,
-            `<span class="s-label" style="font-weight:800; color:#16a34a;">น้ำหนักรวม</span> <span class="s-val" style="color:#16a34a;">${rd.totWeight.toLocaleString()} กก.</span>`,
+            `<span class="s-label">หลอดใหญ่</span> <span class="s-val">20 กก.</span>`,
+            `<span class="s-label">บดหยาบ</span> <span class="s-val">23 กก.</span>`,
+            `<span class="s-label">บดละเอียด</span> <span class="s-val">24 กก.</span>`,
+            `<span class="s-label" style="font-weight:900;">รวม</span> <span class="s-val" style="font-weight:900;">22 กก.</span>`,
+            ``, ``,
+            `<span class="s-label">หลอดใหญ่</span> <span class="s-val">${rd.wHL.toLocaleString()} กก.</span>`,
+            `<span class="s-label">บดหยาบ</span> <span class="s-val">${rd.wBH.toLocaleString()} กก.</span>`,
+            `<span class="s-label">บดละเอียด</span> <span class="s-val">${rd.wBL.toLocaleString()} กก.</span>`,
+            `<span class="s-label" style="font-weight:900;">รวม</span> <span class="s-val" style="font-weight:900;">${rd.totWeight.toLocaleString()} กก.</span>`,
             ``, ``,
             `<span class="s-label">เวลาเฉลี่ย</span> <span class="s-val">${rd.avgTime} นาที/ตก</span>`,
-            `<span class="s-label">กำลังผลิต</span> <span class="s-val">${rd.tonsDay} ตัน/วัน</span>`,
-            `<span class="s-label">จำนวนเฉลี่ย</span> <span class="s-val">${rd.avgYield} ใบ/ตก</span>`,
+            `<span class="s-label">น้ำหนัก</span> <span class="s-val">${rd.tonsDay} ตัน/วัน</span>`,
+            `<span class="s-label">จำนวนเฉลี่ย</span> <span class="s-val">${rd.avgYield} กระสอบ/ตก</span>`,
             ``, ``,
             `<span class="s-label">เบิกกระสอบรวม</span> <span class="s-val">${rd.withHL + rd.withBOD} ใบ</span>`,
             `<span class="s-label">กระสอบที่ใช้</span> <span class="s-val">${rd.usedAll} ใบ</span>`,
-            `<span class="s-label" style="font-weight:800; color:#b45309;">คงเหลือจริง</span> <span class="s-val" style="color:#b45309;">${rd.remHL + rd.remBOD} ใบ</span>`,
+            `<span class="s-label">กระสอบคงเหลือ</span> <span class="s-val">${rd.remHL + rd.remBOD} ใบ</span>`,
             ``, ``,
-            `<span class="s-label">ค่า pH / TDS</span> <span class="s-val">${info.ph} / ${info.tds}</span>`,
-            `<span class="s-label">พนง.ผลิต / วิศวฯ</span> <span class="s-val">${info.prodStaff} / ${info.engStaff} คน</span>`
+            `<span class="s-label">ค่า pH</span> <span class="s-val">${info.ph}</span>`,
+            `<span class="s-label">ค่า TDS</span> <span class="s-val">${info.tds}</span>`,
+            `<span class="s-label">พนักงานผลิต</span> <span class="s-val">${info.prodStaff} คน</span>`,
+            `<span class="s-label">วิศวกรรม</span> <span class="s-val">${info.engStaff} คน</span>`
         ];
 
         let html = `
@@ -1292,37 +1322,43 @@
             </div>
             
             <div class="print-right">
-                <div>
-                    <div class="s-title" style="margin-top:0;">สรุปผลการผลิต</div>
-                    <div class="s-line">${sumCol[0]}</div>
-                    <div class="s-line">${sumCol[1]}</div>
-                    <div class="s-line">${sumCol[2]}</div>
-                    <div class="s-line" style="border-top:1.5px solid #cbd5e1; margin-top:2px;">${sumCol[3]}</div>
-                    
-                    <div class="s-title">สรุปน้ำหนัก</div>
-                    <div class="s-line">${sumCol[6]}</div>
-                    <div class="s-line">${sumCol[7]}</div>
-                    <div class="s-line">${sumCol[8]}</div>
-                    <div class="s-line" style="border-top:1.5px solid #cbd5e1; margin-top:2px;">${sumCol[9]}</div>
-                    
-                    <div class="s-title">สถิติการผลิต</div>
-                    <div class="s-line">${sumCol[12]}</div>
-                    <div class="s-line">${sumCol[13]}</div>
-                    <div class="s-line">${sumCol[14]}</div>
-                    
-                    <div class="s-title">สรุปการใช้กระสอบ</div>
-                    <div class="s-line">${sumCol[17]}</div>
-                    <div class="s-line">${sumCol[18]}</div>
-                    <div class="s-line">${sumCol[19]}</div>
-                    
-                    <div class="s-title">ข้อมูลอื่นๆ</div>
-                    <div class="s-line">${sumCol[22] || `<span class="s-label">ค่า pH / TDS</span> <span class="s-val">${info.ph} / ${info.tds}</span>`}</div>
-                    <div class="s-line">${sumCol[23] || `<span class="s-label">พนักงาน / วิศวฯ</span> <span class="s-val">${info.prodStaff} / ${info.engStaff} คน</span>`}</div>
-                </div>
+                <div class="s-title" style="margin-top:0;">ข้อมูลสรุป</div>
+                <div class="s-line">${sumCol[0]}</div>
+                <div class="s-line">${sumCol[1]}</div>
+                <div class="s-line">${sumCol[2]}</div>
+                <div class="s-line" style="border-bottom:none;">${sumCol[3]}</div>
+                
+                <div class="s-title">น้ำหนักเฉลี่ย</div>
+                <div class="s-line">${sumCol[6]}</div>
+                <div class="s-line">${sumCol[7]}</div>
+                <div class="s-line">${sumCol[8]}</div>
+                <div class="s-line" style="border-bottom:none;">${sumCol[9]}</div>
+
+                <div class="s-title">น้ำหนักรวม</div>
+                <div class="s-line">${sumCol[12]}</div>
+                <div class="s-line">${sumCol[13]}</div>
+                <div class="s-line">${sumCol[14]}</div>
+                <div class="s-line" style="border-bottom:none;">${sumCol[15]}</div>
+                
+                <div class="s-title">สถิติการผลิต</div>
+                <div class="s-line">${sumCol[18]}</div>
+                <div class="s-line">${sumCol[19]}</div>
+                <div class="s-line" style="border-bottom:none;">${sumCol[20]}</div>
+                
+                <div class="s-title">สรุปกระสอบ</div>
+                <div class="s-line">${sumCol[23]}</div>
+                <div class="s-line">${sumCol[24]}</div>
+                <div class="s-line" style="border-bottom:none;">${sumCol[25]}</div>
+                
+                <div class="s-title">ข้อมูลอื่นๆ</div>
+                <div class="s-line">${sumCol[28]}</div>
+                <div class="s-line">${sumCol[29]}</div>
+                <div class="s-line">${sumCol[30]}</div>
+                <div class="s-line" style="border-bottom:none;">${sumCol[31]}</div>
                 
                 <div class="sign-box">
-                    <div class="sign-line">ลงชื่อ <span class="sign-dots">..............................</span> วิศวกรรม</div>
-                    <div class="sign-line">ลงชื่อ <span class="sign-dots">..............................</span> ผู้จัดการสาขา</div>
+                    <div class="sign-line"><span>ลงชื่อ</span> <span class="sign-dots"></span> <span>วิศวกรรม</span></div>
+                    <div class="sign-line"><span>ลงชื่อ</span> <span class="sign-dots"></span> <span>ผู้จัดการสาขา</span></div>
                 </div>
             </div>
         </div>
