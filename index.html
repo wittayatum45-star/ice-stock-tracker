@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V185 (Perfect PDF Pagination & UI Fix)</title>
+    <title>Smart Ice V188 (Perfect Pagination & Original Summary)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
         /* --- Modern Premium Theme (Screen UI) --- */
@@ -74,11 +74,12 @@
             .sack-split { font-size: 0.85rem; color: #555; display: flex; justify-content: center; gap: 5px; margin-top: 4px; }
             .ss-hl { color: #059669; font-weight:900; } .ss-bod { color: #7c3aed; font-weight:900; }
 
-            /* 🛠️ UI Fix: แก้ปัญหาตัวเลขหน้าจอเบียดกัน */
-            .paper-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.8rem; margin-top: 5px; border-radius: 12px; overflow: hidden; border: 1px solid #cbd5e1; }
-            .paper-table th { border-right: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1; padding: 6px 1px; text-align: center; font-weight: 800; vertical-align: middle; line-height: 1.1; background: #f8fafc; color: #1e293b;}
+            /* 🛠️ UI Fix: บังคับ min-width ให้โต๊ะไม่บีบตัวเลขรวมซ้อนกัน */
+            .table-responsive { overflow-x: auto; border-radius: 12px; border: 1px solid #cbd5e1; }
+            .paper-table { width: 100%; min-width: 620px; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; margin-top: 0; }
+            .paper-table th { border-right: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1; padding: 6px 2px; text-align: center; font-weight: 800; vertical-align: middle; line-height: 1.2; background: #f8fafc; color: #1e293b;}
             .paper-table th:last-child { border-right: none; }
-            .paper-table td { border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; padding: 8px 1px; text-align: center; vertical-align: middle; font-weight: 800; font-size: 0.95rem; background: white;}
+            .paper-table td { border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; padding: 10px 2px; text-align: center; vertical-align: middle; font-weight: 800; font-size: 0.95rem; background: white;}
             .paper-table td:last-child { border-right: none; }
             
             .paper-table th.pt-time, .paper-table td.pt-time-col { background-color: #f8fafc !important; color: #1e293b; }
@@ -86,17 +87,18 @@
             .paper-table th.pt-prod, .paper-table td.pt-prod { background-color: #dcfce7 !important; color: #15803d; }
             .paper-table th.pt-rem, .paper-table td.pt-rem { background-color: #fef3c7 !important; color: #b45309; }
             
-            .sub-header { font-size: 0.7rem !important; }
-            .total-row td { background-color: #1e293b !important; color: white !important; font-weight: 900 !important; font-size: 0.85rem !important; letter-spacing: -0.5px; border-color: #0f172a !important; padding: 10px 1px !important; }
-            .total-label { text-align: center !important; color: #fde047 !important; font-size:0.85rem !important; }
+            .sub-header { font-size: 0.75rem !important; }
+            .total-row td { background-color: #1e293b !important; color: white !important; font-weight: 900 !important; font-size: 0.9rem !important; border-color: #0f172a !important; padding: 10px 2px !important; letter-spacing: -0.5px; }
+            .total-label { text-align: center !important; color: #fde047 !important; }
 
-            .custom-report { border: 1.5px solid #1e3a8a; border-radius: var(--radius-md); padding: 15px; margin-top: 20px; background: #ffffff; box-shadow: var(--shadow-md);}
-            .cr-section { margin-bottom: 10px; }
-            .cr-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 1rem; border-bottom: 1px dotted #cbd5e1;}
+            /* Custom UI Report Box Matching the Original Picture */
+            .custom-report { border: 1.5px solid #64748b; border-radius: var(--radius-md); padding: 15px; margin-top: 20px; background: #ffffff; box-shadow: var(--shadow-sm);}
+            .cr-section { margin-bottom: 12px; }
+            .cr-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 1.05rem; border-bottom: 1px dotted #cbd5e1;}
             .cr-row:last-child { border-bottom: none; }
             .cr-label { font-weight: 600; color: #334155; }
             .cr-val { font-weight: 900; color: #0f172a; text-align: right; }
-            .cr-header { font-weight: 900; color: #1e3a8a; margin-bottom: 4px; font-size: 1.1rem; border-bottom: 2px solid #1e3a8a; padding-bottom: 2px; }
+            .cr-header { font-weight: 900; color: #1e293b; margin-bottom: 6px; font-size: 1.15rem; border-bottom: 2px solid #cbd5e1; padding-bottom: 4px; }
 
             .truck-matrix-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 5px; border-radius: 12px; overflow: hidden; border: 1px solid #cbd5e1; }
             .truck-matrix-table th { background: #e2e8f0; color: #334155; padding: 10px 6px; font-weight: 800; border-bottom: 1px solid #cbd5e1; font-size: 0.9rem; }
@@ -159,7 +161,7 @@
             #print_area { display: none; }
         }
 
-        /* --- 🔥 V185: PRINT PDF (BULLETPROOF PAGINATION & SIZING) 🔥 --- */
+        /* --- 🔥 V188: BULLETPROOF PAGINATION (Fixed Height & Splitting) 🔥 --- */
         @media print {
             @page { size: A4 portrait; margin: 8mm; } 
             body { background: white !important; color: black !important; font-family: 'Sarabun', sans-serif; font-size: 10pt !important; padding: 0 !important; margin: 0 !important; }
@@ -168,46 +170,47 @@
             body > *:not(#print_area) { display: none !important; }
             #print_area { display: block !important; width: 100%; position: static; margin: 0 auto; }
             
-            /* 🛠️ แก้บั๊กกล่องขาวหน้า 2 ด้วยการตั้งโครงสร้างแยกกันชัดเจน */
+            /* 🛠️ บังคับให้แต่หน้าตัดขาดจากกัน 100% */
             .print-page { 
                 page-break-after: always; 
                 width: 100%; 
-                margin-bottom: 20px; 
                 position: relative;
             }
-            .print-page:last-child { page-break-after: auto; margin-bottom: 0; }
+            .print-page:last-child { page-break-after: auto; }
 
             .print-header { text-align: center; font-weight: 900; font-size: 11pt; margin-bottom: 6px; line-height: 1.2; }
             .print-header .date-text { font-size: 10pt; font-weight: 600; color: #333; }
             
-            /* 🛠️ Float Layout: ป้องกัน Flexbox แตกใน Safari/iOS PDF */
+            /* 🛠️ ตี Layout แบบ Float เพื่อป้องกันขอบเละตอนขึ้นหน้าใหม่ */
             .print-wrapper { width: 100%; display: block; overflow: hidden; }
-            .print-left { float: left; width: 72%; }
-            .print-right { float: right; width: 27%; border: 1px solid #1e3a8a; border-radius: 6px; padding: 4px 8px; box-sizing: border-box; background: white; }
+            .print-left { float: left; width: 73%; }
             
+            /* กล่องขวา แบบออริจินัล (ขอบเทาเข้ม) */
+            .print-right { float: right; width: 26.5%; border: 1px solid #475569; border-radius: 4px; padding: 4px 8px; box-sizing: border-box; background: white; }
+            
+            /* บีบตารางซ้ายให้เล็กพอดี 32 บรรทัด */
             .print-table { width: 100%; border-collapse: collapse; border: 1.5px solid black; table-layout: fixed; }
             .print-table th, .print-table td { border: 1px solid black; text-align: center; font-weight: 600; }
-            
-            .print-table th { padding: 4px 1px; font-size: 8.5pt; font-weight: 800;}
-            .print-table td { height: 21.5px; font-size: 9pt; padding: 1px; line-height: 1; }
+            .print-table th { padding: 4px 1px; font-size: 8pt; font-weight: 800;}
+            .print-table td { height: 19.5px; font-size: 8.5pt; padding: 1px; line-height: 1; }
             
             .print-table td:nth-child(4), .print-table td:nth-child(5) { background-color: #e0f2fe !important; color: #0284c7 !important; }
             .print-table td:nth-child(6), .print-table td:nth-child(7), .print-table td:nth-child(8) { background-color: #dcfce7 !important; color: #15803d !important; }
             .print-table td:nth-child(9), .print-table td:nth-child(10) { background-color: #fef3c7 !important; color: #b45309 !important; }
 
             .print-downtime td { color: black; font-weight: 800; font-style: italic; background-color: #f1f5f9 !important; }
-            .print-footer td { border-top: 1.5px solid black; font-weight: 900; background-color: #e2e8f0 !important; padding: 4px 1px; color: black !important;}
+            .print-footer td { border-top: 1.5px solid black; font-weight: 900; background-color: #e2e8f0 !important; padding: 3px 1px; color: black !important;}
             
-            /* 🛠️ บีบช่องว่างเพื่อให้มั่นใจว่าลายเซ็นไม่ตกหน้ากระดาษ */
-            .s-title { margin-top: 4px; margin-bottom: 2px; font-weight: 900; border-bottom: 2px solid #1e3a8a; padding-bottom: 1px; font-size: 9pt; color: #1e3a8a;}
+            /* สไตล์กล่องขวา แบบออริจินัลเป๊ะๆ */
+            .s-title { margin-top: 4px; margin-bottom: 2px; font-weight: 900; border-bottom: 1px solid #475569; padding-bottom: 1px; font-size: 9pt; color: #1e293b;}
             .s-title:first-child { margin-top: 0; }
-            .s-line { display: flex; justify-content: space-between; margin-bottom: 1.5px; border-bottom: 1px dotted #cbd5e1; padding-bottom: 1px; font-size: 8pt;}
-            .s-val { font-weight: 900; text-align: right; color: #111827;}
-            .s-label { color: #374151; font-weight: 600; }
+            .s-line { display: flex; justify-content: space-between; margin-bottom: 1px; border-bottom: 1px dotted #cbd5e1; padding-bottom: 1px; font-size: 8pt;}
+            .s-val { font-weight: 900; text-align: right; color: #0f172a;}
+            .s-label { color: #475569; font-weight: 600; }
             
-            .sign-box { margin-top: 10px; padding-top: 2px; } 
-            .sign-line { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 12px; font-size: 8pt; font-weight: bold;} 
-            .sign-dots { flex-grow: 1; border-bottom: 1px dotted #333; margin: 0 4px; position: relative; top: -3px; }
+            .sign-box { margin-top: 8px; padding-top: 2px; } 
+            .sign-line { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 10px; font-size: 8pt; font-weight: bold;} 
+            .sign-dots { flex-grow: 1; border-bottom: 1px dotted #64748b; margin: 0 4px; position: relative; top: -3px; }
         }
     </style>
 </head>
@@ -301,8 +304,8 @@
 
         <div class="modern-card card-body">
             <h3>📝 บันทึกการผลิต (ตารางลงงาน)</h3>
-            <div style="overflow-x:auto; border-radius:12px; border:1px solid #cbd5e1;">
-                <table class="paper-table" id="prod_paper_table" style="margin-top:0; border:none; table-layout:fixed; width:100%;">
+            <div class="table-responsive">
+                <table class="paper-table" id="prod_paper_table">
                     <thead>
                         <tr>
                             <th rowspan="2" class="pt-time" style="width:6%;">ลำดับ</th>
@@ -333,43 +336,35 @@
                     <div class="cr-row"><span class="cr-label">หลอดใหญ่</span> <span class="cr-val"><span id="rpt_hl">0</span> กระสอบ</span></div>
                     <div class="cr-row"><span class="cr-label">บดหยาบ</span> <span class="cr-val"><span id="rpt_bh">0</span> กระสอบ</span></div>
                     <div class="cr-row"><span class="cr-label">บดละเอียด</span> <span class="cr-val"><span id="rpt_bl">0</span> กระสอบ</span></div>
-                    <div class="cr-row" style="border-top:1.5px solid #cbd5e1; margin-top:2px; border-bottom:none;"><span class="cr-label" style="font-weight:800; color:#1e3a8a;">รวม</span> <span class="cr-val" style="color:#1e3a8a;"><span id="rpt_total_prod">0</span> กระสอบ</span></div>
+                    <div class="cr-row" style="border-top:1px solid #cbd5e1; margin-top:2px; border-bottom:none;"><span class="cr-label" style="font-weight:800;">รวมผลิต</span> <span class="cr-val" style="font-weight:800;"><span id="rpt_total_prod">0</span> กระสอบ</span></div>
                 </div>
                 
                 <div class="cr-section">
                     <div class="cr-header">น้ำหนักเฉลี่ย</div>
-                    <div class="cr-row"><span class="cr-label">หลอดใหญ่</span> <span class="cr-val">20 กก.</span></div>
-                    <div class="cr-row"><span class="cr-label">บดหยาบ</span> <span class="cr-val">23 กก.</span></div>
-                    <div class="cr-row"><span class="cr-label">บดละเอียด</span> <span class="cr-val">24 กก.</span></div>
-                    <div class="cr-row" style="border-top:1.5px solid #cbd5e1; margin-top:2px; border-bottom:none;"><span class="cr-label" style="font-weight:800;">รวม</span> <span class="cr-val">22 กก.</span></div>
-                </div>
-
-                <div class="cr-section">
-                    <div class="cr-header">น้ำหนักรวม</div>
-                    <div class="cr-row"><span class="cr-label">หลอดใหญ่</span> <span class="cr-val"><span id="rpt_w_hl">0</span> กก.</span></div>
-                    <div class="cr-row"><span class="cr-label">บดหยาบ</span> <span class="cr-val"><span id="rpt_w_bh">0</span> กก.</span></div>
-                    <div class="cr-row"><span class="cr-label">บดละเอียด</span> <span class="cr-val"><span id="rpt_w_bl">0</span> กก.</span></div>
-                    <div class="cr-row" style="border-top:1.5px solid #cbd5e1; margin-top:2px; border-bottom:none;"><span class="cr-label" style="font-weight:800; color:#16a34a;">รวม</span> <span class="cr-val" style="color:#16a34a;"><span id="rpt_total_weight">0</span> กก.</span></div>
+                    <div class="cr-row"><span class="cr-label">หลอดใหญ่ (20 กก.)</span> <span class="cr-val"><span id="rpt_w_hl">0</span> กก.</span></div>
+                    <div class="cr-row"><span class="cr-label">บดหยาบ (23 กก.)</span> <span class="cr-val"><span id="rpt_w_bh">0</span> กก.</span></div>
+                    <div class="cr-row"><span class="cr-label">บดละเอียด (24 กก.)</span> <span class="cr-val"><span id="rpt_w_bl">0</span> กก.</span></div>
+                    <div class="cr-row" style="border-top:1px solid #cbd5e1; margin-top:2px; border-bottom:none;"><span class="cr-label" style="font-weight:800;">น้ำหนักรวม</span> <span class="cr-val" style="font-weight:800;"><span id="rpt_total_weight">0</span> กก.</span></div>
                 </div>
 
                 <div class="cr-section">
                     <div class="cr-header">สถิติการผลิต</div>
                     <div class="cr-row"><span class="cr-label">เวลาเฉลี่ย</span> <span class="cr-val"><span id="rpt_avg_time">0</span> นาที/ตก</span></div>
-                    <div class="cr-row"><span class="cr-label">น้ำหนัก</span> <span class="cr-val"><span id="rpt_tons_day">0</span> ตัน/วัน</span></div>
-                    <div class="cr-row"><span class="cr-label">จำนวนเฉลี่ย</span> <span class="cr-val"><span id="rpt_avg_yield">0</span> กระสอบ/ตก</span></div>
+                    <div class="cr-row"><span class="cr-label">กำลังผลิต</span> <span class="cr-val"><span id="rpt_tons_day">0</span> ตัน/วัน</span></div>
+                    <div class="cr-row"><span class="cr-label">จำนวนเฉลี่ย</span> <span class="cr-val"><span id="rpt_avg_yield">0</span> ใบ/ตก</span></div>
                 </div>
 
                 <div class="cr-section">
                     <div class="cr-header">สรุปกระสอบ</div>
                     <div class="cr-row"><span class="cr-label">เบิกกระสอบรวม</span> <span class="cr-val"><span id="rpt_sack_withdraw">0</span> ใบ</span></div>
                     <div class="cr-row"><span class="cr-label">กระสอบที่ใช้</span> <span class="cr-val"><span id="rpt_sack_used">0</span> ใบ</span></div>
-                    <div class="cr-row"><span class="cr-label" style="font-weight:800; color:#b45309;">กระสอบคงเหลือ</span> <span class="cr-val" style="color:#b45309;"><span id="rpt_rem_total_all">0</span> ใบ</span></div>
+                    <div class="cr-row"><span class="cr-label" style="font-weight:800;">คงเหลือจริง</span> <span class="cr-val" style="font-weight:800;"><span id="rpt_rem_total_all">0</span> ใบ</span></div>
                 </div>
 
                 <div class="cr-section">
                     <div class="cr-header">ข้อมูลอื่นๆ</div>
                     <div class="cr-row"><span class="cr-label">ค่า pH / TDS</span> <span class="cr-val"><span id="disp_ph">7.1</span> / <span id="disp_tds">172</span></span></div>
-                    <div class="cr-row"><span class="cr-label">พนักงานผลิต / วิศวฯ</span> <span class="cr-val"><span id="disp_prod_staff">4</span> / <span id="disp_eng_staff">1</span> คน</span></div>
+                    <div class="cr-row"><span class="cr-label">พนง.ผลิต / วิศวฯ</span> <span class="cr-val"><span id="disp_prod_staff">4</span> / <span id="disp_eng_staff">1</span> คน</span></div>
                 </div>
             </div>
         </div>
@@ -1178,7 +1173,7 @@
     function getTypeName(id) { return ICE_TYPES.find(x=>x.id===id).label; }
     function switchPage(id) { document.querySelectorAll('.page').forEach(x=>x.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active')); document.getElementById('page-'+id).classList.add('active'); const map={setup:0,production:1,summary:2}; document.querySelectorAll('.nav-btn')[map[id]].classList.add('active'); if(id==='summary'){calcAll(); window.scrollTo(0,0);} }
 
-    // --- 🔥 V185: PRINT PDF (PAGINATION PERFECT SYNC) 🔥 ---
+    // --- 🔥 V188: PRINT PDF (PAGINATION PERFECT SYNC) 🔥 ---
     function printReport() {
         saveData();
         
@@ -1230,12 +1225,13 @@
         });
 
         // --- PAGE CHUNKING LOGIC ---
+        // ตัดที่ 32 บรรทัดต่อ 1 แผ่นเสมอ เพื่อป้องกัน Browser ตัดขึ้นหน้าใหม่เองแล้ว Layout เละ
         const ROWS_PER_PAGE = 32;
         let chunks = [];
         for(let i = 0; i < renderItems.length; i += ROWS_PER_PAGE) {
             chunks.push(renderItems.slice(i, i + ROWS_PER_PAGE));
         }
-        if(chunks.length === 0) chunks.push([]);
+        if(chunks.length === 0) chunks.push([]); // กรณีไม่มีข้อมูลเลยให้สร้างแผ่นเปล่า 1 แผ่น
 
         let finalHtml = '';
         let globalProdCounter = 0;
@@ -1285,25 +1281,26 @@
             // 4. เวลาปิดเครื่องใส่เฉพาะหน้าสุดท้าย
             let footerTitle = pageIdx === chunks.length - 1 ? `รวม (ปิด ${document.getElementById('time_stop').value} น.)` : "รวม";
 
+            // ข้อมูลฝั่งขวา (จัดหน้าตาตามฉบับ Original เป๊ะๆ)
             let sumCol = [
                 `<span class="s-label">หลอดใหญ่</span> <span class="s-val">${c_sumHL} กระสอบ</span>`,
                 `<span class="s-label">บดหยาบ</span> <span class="s-val">${c_sumBH} กระสอบ</span>`,
                 `<span class="s-label">บดละเอียด</span> <span class="s-val">${c_sumBL} กระสอบ</span>`,
-                `<span class="s-label" style="font-weight:900; color:#1e3a8a;">รวมผลิต</span> <span class="s-val" style="color:#1e3a8a;">${c_totProd} กระสอบ</span>`,
-                ``, ``,
+                `<span class="s-label" style="font-weight:900;">รวมผลิต</span> <span class="s-val" style="font-weight:900;">${c_totProd} กระสอบ</span>`,
+                
                 `<span class="s-label">หลอดใหญ่ (20 กก.)</span> <span class="s-val">${c_wHL.toLocaleString()} กก.</span>`,
                 `<span class="s-label">บดหยาบ (23 กก.)</span> <span class="s-val">${c_wBH.toLocaleString()} กก.</span>`,
                 `<span class="s-label">บดละเอียด (24 กก.)</span> <span class="s-val">${c_wBL.toLocaleString()} กก.</span>`,
-                `<span class="s-label" style="font-weight:900; color:#16a34a;">น้ำหนักรวม</span> <span class="s-val" style="color:#16a34a;">${c_totWeight.toLocaleString()} กก.</span>`,
-                ``, ``,
+                `<span class="s-label" style="font-weight:900;">น้ำหนักรวม</span> <span class="s-val" style="font-weight:900;">${c_totWeight.toLocaleString()} กก.</span>`,
+                
                 `<span class="s-label">เวลาเฉลี่ย</span> <span class="s-val">${c_avgTime} นาที/ตก</span>`,
                 `<span class="s-label">กำลังผลิต</span> <span class="s-val">${c_tonsDay} ตัน/วัน</span>`,
                 `<span class="s-label">จำนวนเฉลี่ย</span> <span class="s-val">${c_avgYield} ใบ/ตก</span>`,
-                ``, ``,
+                
                 `<span class="s-label">เบิกกระสอบรวม</span> <span class="s-val">${c_withHL + c_withBOD} ใบ</span>`,
                 `<span class="s-label">กระสอบที่ใช้</span> <span class="s-val">${c_totProd} ใบ</span>`,
-                `<span class="s-label" style="color:#b45309;">คงเหลือจริง</span> <span class="s-val" style="color:#b45309;">${c_remHL + c_remBOD} ใบ</span>`,
-                ``, ``,
+                `<span class="s-label" style="font-weight:900;">คงเหลือจริง</span> <span class="s-val" style="font-weight:900;">${c_remHL + c_remBOD} ใบ</span>`,
+                
                 `<span class="s-label">ค่า pH / TDS</span> <span class="s-val">${info.ph} / ${info.tds}</span>`,
                 `<span class="s-label">พนง.ผลิต / วิศวฯ</span> <span class="s-val">${info.prodStaff} / ${info.engStaff} คน</span>`
             ];
@@ -1341,6 +1338,7 @@
                             <tbody>
             `;
 
+            // บังคับพิมพ์ให้ครบ 32 บรรทัด เพื่อให้ Layout สูงเท่ากันเสมอ
             for(let i=0; i<ROWS_PER_PAGE; i++) {
                 let item = chunk[i];
                 if(item && item.type === 'prod') {
@@ -1386,24 +1384,24 @@
                     <div class="s-line" style="border-bottom:none;">${sumCol[3]}</div>
                     
                     <div class="s-title">น้ำหนักเฉลี่ย</div>
+                    <div class="s-line">${sumCol[4]}</div>
+                    <div class="s-line">${sumCol[5]}</div>
                     <div class="s-line">${sumCol[6]}</div>
-                    <div class="s-line">${sumCol[7]}</div>
-                    <div class="s-line">${sumCol[8]}</div>
-                    <div class="s-line" style="border-bottom:none;">${sumCol[9]}</div>
+                    <div class="s-line" style="border-bottom:none;">${sumCol[7]}</div>
 
                     <div class="s-title">สถิติการผลิต</div>
-                    <div class="s-line">${sumCol[12]}</div>
-                    <div class="s-line">${sumCol[13]}</div>
-                    <div class="s-line" style="border-bottom:none;">${sumCol[14]}</div>
+                    <div class="s-line">${sumCol[8]}</div>
+                    <div class="s-line">${sumCol[9]}</div>
+                    <div class="s-line" style="border-bottom:none;">${sumCol[10]}</div>
                     
                     <div class="s-title">สรุปกระสอบ</div>
-                    <div class="s-line">${sumCol[17]}</div>
-                    <div class="s-line">${sumCol[18]}</div>
-                    <div class="s-line" style="border-bottom:none;">${sumCol[19]}</div>
+                    <div class="s-line">${sumCol[11]}</div>
+                    <div class="s-line">${sumCol[12]}</div>
+                    <div class="s-line" style="border-bottom:none;">${sumCol[13]}</div>
                     
                     <div class="s-title">ข้อมูลอื่นๆ</div>
-                    <div class="s-line">${sumCol[22]}</div>
-                    <div class="s-line" style="border-bottom:none;">${sumCol[23]}</div>
+                    <div class="s-line">${sumCol[14]}</div>
+                    <div class="s-line" style="border-bottom:none;">${sumCol[15]}</div>
                     
                     <div class="sign-box">
                         <div class="sign-line"><span>ลงชื่อ</span> <span class="sign-dots"></span> <span>วิศวกรรม</span></div>
