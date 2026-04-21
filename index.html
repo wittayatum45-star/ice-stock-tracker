@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V200 (Two-Row Downtime & Perfect Pagination)</title>
+    <title>Smart Ice V205 (Real-time Calc & No Keyboard Drop)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
         /* --- Modern Premium Theme (Screen UI) --- */
@@ -159,7 +159,7 @@
             #print_area { display: none; }
         }
 
-        /* --- 🔥 V200: PDF PERFECT PRINT & 2-ROW DOWNTIME 🔥 --- */
+        /* --- 🔥 V205: PDF PERFECT PRINT & 2-ROW DOWNTIME 🔥 --- */
         @media print {
             @page { size: A4 portrait; margin: 8mm; } 
             body { background: white !important; color: black !important; font-family: 'Sarabun', sans-serif; font-size: 10pt !important; padding: 0 !important; margin: 0 !important; }
@@ -727,13 +727,34 @@
         return `<div class="modern-card"><div class="card-header-flex"><div class="badge-box bg-prod"><span>น้ำแข็ง<br>ตก<br>(ผลิต)</span></div><input type="time" class="big-time-input" value="${d.time}" onchange="updateDropVal(${d.id}, 'time', null, this.value)"><span class="time-diff-badge">(+${netDiff} น.)</span><button class="btn-close-red" onclick="deleteDrop(${d.id})">×</button></div><div class="card-body" style="padding-top:0;"><div class="sack-row"><div class="sack-item"><div class="sack-label">เบิก (หลอด/บด)</div><div class="sack-val" id="disp_withdraw_${d.id}">${hlBatch} / ${crushBatch}</div></div><div class="sack-item"><div class="sack-label">ใช้ (หลอด/บด)</div><div class="sack-val" id="disp_used_${d.id}">${hlProd} / ${bhProd+blProd}</div></div><div class="sack-item"><div class="sack-label">คืน (หลอด/บด)</div><div class="sack-split"><span class="ss-hl" id="disp_rem_hl_${d.id}">หลอด:${hlRem}</span> <span class="ss-bod" id="disp_rem_bod_${d.id}">บด:${crushRem}</span></div></div></div><div class="grid-3"><div><div class="input-label">หลอด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.hl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'hl', this.value)"></div><div><div class="input-label">หยาบ (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bh)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bh', this.value)"></div><div><div class="input-label">ละเอียด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bl', this.value)"></div></div><div class="dist-container"><div style="font-size:0.85rem; color:var(--text-muted); font-weight:800; margin-bottom:5px; text-transform:uppercase;">รายการจ่ายเข้ารถ</div>${distHtml}<button class="btn-add-dist" onclick="openDistModal(${d.id})">+ เพิ่มรายการส่งเข้ารถ</button></div></div></div>`;
     }
 
+    // 🛠️ ฟังก์ชันใหม่: อัปเดตตัวเลขหน้าการ์ดโดยไม่ต้องวาด HTML ใหม่ (แก้แป้นพิมพ์หาย)
+    function updateCardStats(id) {
+        const d = DATA.drops.find(x => x.id === id);
+        if(!d) return;
+        let hlProd = getNum(d.p_in_room.hl); let bhProd = getNum(d.p_in_room.bh); let blProd = getNum(d.p_in_room.bl);
+        if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') hlProd+=getNum(i.total); if(i.type==='bh') bhProd+=getNum(i.total); if(i.type==='bl') blProd+=getNum(i.total); }); }
+        const hlBatch = Math.ceil(hlProd / 40) * 40; const crushBatch = Math.ceil((bhProd + blProd) / 40) * 40;
+        const hlRem = hlBatch - hlProd; const crushRem = crushBatch - (bhProd + blProd);
+        
+        const ew = document.getElementById(`disp_withdraw_${id}`); if(ew) ew.innerText = `${hlBatch} / ${crushBatch}`;
+        const eu = document.getElementById(`disp_used_${id}`); if(eu) eu.innerText = `${hlProd} / ${bhProd+blProd}`;
+        const erh = document.getElementById(`disp_rem_hl_${id}`); if(erh) erh.innerText = `หลอด:${hlRem}`;
+        const erb = document.getElementById(`disp_rem_bod_${id}`); if(erb) erb.innerText = `บด:${crushRem}`;
+    }
+
     function updateDropVal(id, cat, sub, val) {
         const d = DATA.drops.find(x => x.id === id); if(!d) return;
-        if(cat === 'time') d.time = val; 
-        else if (cat === 'time_end') d.time_end = val;
-        else if(cat === 'p_in_room') d.p_in_room[sub] = getNum(val);
+        if(cat === 'time') { d.time = val; }
+        else if (cat === 'time_end') { d.time_end = val; }
+        else if(cat === 'p_in_room') { d.p_in_room[sub] = getNum(val); }
+        
         saveData(); 
         calcAll();
+        
+        // 🛠️ ถ้าเปลี่ยนตัวเลข ให้ดึงค่าไปโชว์เฉยๆ แป้นพิมพ์จะได้ไม่หาย
+        if(cat === 'p_in_room') { updateCardStats(id); }
+        // ถ้าเปลี่ยนเวลา ต้องวาดตารางใหม่เพราะอาจจะสลับลำดับกัน
+        if(cat === 'time' || cat === 'time_end') { renderDrops(); } 
     }
 
     function calcAll() {
@@ -779,7 +800,6 @@
                 let dtMins = getMinDiff(d.time, d.time_end || d.time);
                 pendingDowntime += dtMins;
                 
-                // 🛠️ UI: แยกพักเครื่องเป็น 2 บรรทัดให้สอดคล้องกับการพิมพ์
                 prodLogHtml += `
                 <tr style="background-color: #fef2f2;" class="print-downtime">
                     <td class="pt-time-col" style="font-weight:900; color:#cbd5e1; text-align:center;">-</td>
@@ -1187,7 +1207,7 @@
     function getTypeName(id) { return ICE_TYPES.find(x=>x.id===id).label; }
     function switchPage(id) { document.querySelectorAll('.page').forEach(x=>x.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active')); document.getElementById('page-'+id).classList.add('active'); const map={setup:0,production:1,summary:2}; document.querySelectorAll('.nav-btn')[map[id]].classList.add('active'); if(id==='summary'){calcAll(); window.scrollTo(0,0);} }
 
-    // --- 🔥 V200: PRINT PDF (TWO ROW DOWNTIME + AUTO CLOSE TIME + RESET COUNTER) 🔥 ---
+    // --- 🔥 V205: PRINT PDF (TWO ROW DOWNTIME + AUTO CLOSE TIME + RESET COUNTER) 🔥 ---
     function printReport() {
         saveData();
         
@@ -1229,7 +1249,6 @@
                     raw_rhl: w_hl>0?(w_hl-p_hl):0, raw_rbod: w_bod>0?(w_bod-(p_bh+p_bl)):0
                 });
             } else if (d.type === 'downtime') {
-                // 🛠️ แยกข้อมูลพักเครื่องเป็น 2 บรรทัด (ปิด และ เปิด)
                 renderItems.push({ 
                     type: 'downtime_start', 
                     time: d.time,
@@ -1356,7 +1375,7 @@
                             <tbody>
             `;
 
-            let localProdCounter = 0; // 🛠️ นับเริ่ม 1 ใหม่เสมอในแต่ละหน้า
+            let localProdCounter = 0; 
 
             for(let i=0; i<ROWS_PER_PAGE; i++) {
                 let item = chunk[i];
@@ -1369,7 +1388,6 @@
                         <td>${item.rhl}</td><td>${item.rbod}</td>
                     </tr>`;
                 } else if (item && item.type === 'downtime_start') {
-                    // 🛠️ พิมพ์ 2 บรรทัด (ปิดเครื่อง - เปิดเครื่อง)
                     pageHtml += `<tr>
                         <td></td><td style="color:black;">${item.time}</td><td></td>
                         <td colspan="7" style="font-weight:900; letter-spacing:1px; background-color:#fef2f2 !important;">ปิดเครื่อง</td>
