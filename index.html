@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V205 (Real-time Calc & No Keyboard Drop)</title>
+    <title>Smart Ice V220 (Perfect Workflow & Realtime UI)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
         /* --- Modern Premium Theme (Screen UI) --- */
@@ -140,7 +140,10 @@
             .lpf-badge { background: #f3e8ff; color: #6d28d9; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 900; }
             .lpf-badge.overdue { background: #fee2e2; color: #dc2626; }
 
+            /* 🛠️ MODAL FIX Z-INDEX */
             .modal { display: none; position: fixed; z-index: 5000; left: 0; top: 0; width: 100%; height: 100%; overflow: hidden; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px); align-items: center; justify-content: center; }
+            #downtime_modal { z-index: 6000 !important; } /* ดันป๊อปอัปไฟดับให้มาอยู่บนสุดเสมอ */
+            
             .modal-content { background-color: var(--bg-main); margin: 0; border-radius: var(--radius-lg); width: 92%; max-width: 500px; max-height: 90vh; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; position: relative; overflow:hidden; }
             .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; background: white; border-bottom: 1px solid #f1f5f9; flex-shrink: 0; }
             .modal-title { font-size: 1.3rem; font-weight: 900; color: var(--text-dark); }
@@ -159,7 +162,7 @@
             #print_area { display: none; }
         }
 
-        /* --- 🔥 V205: PDF PERFECT PRINT & 2-ROW DOWNTIME 🔥 --- */
+        /* --- 🖨️ PDF PERFECT PRINT & 2-ROW DOWNTIME --- */
         @media print {
             @page { size: A4 portrait; margin: 8mm; } 
             body { background: white !important; color: black !important; font-family: 'Sarabun', sans-serif; font-size: 10pt !important; padding: 0 !important; margin: 0 !important; }
@@ -232,7 +235,7 @@
             <div class="input-label" style="text-align:left;">วันที่เปิดบิล</div>
             <input type="date" id="setup_date" onchange="changeDate()">
             <div class="grid-2" style="margin-top:15px;">
-                <div><div class="input-label">🟢 เวลาเปิด</div><input type="time" id="time_start" value="22:00" onchange="saveData()"></div>
+                <div><div class="input-label">🟢 เวลาเปิด</div><input type="time" id="time_start" value="22:00" onchange="saveData(); calcAll();"></div>
                 <div><div class="input-label">🔴 เวลาปิด (คำนวณอัตโนมัติ)</div><input type="time" id="time_stop" value="06:00" disabled style="background:#e2e8f0;"></div>
             </div>
         </div>
@@ -597,6 +600,7 @@
     
     function deleteDrop(id) { if(confirm("ระบบจะลบข้อมูลนี้ทิ้ง ยืนยันหรือไม่?")) { DATA.drops = DATA.drops.filter(d => d.id !== id); saveData(); calcAll(); renderDrops(); if(document.getElementById('stock_manager_modal').style.display === 'flex') openStockManager(); } }
 
+    /* 🛠️ แก้ไขให้หน้าต่างไฟดับ ทับหน้าต่างประวัติไปเลย ไม่ต้องซ่อนไปมา */
     function openDowntimeModal(id = null) {
         EDITING_DOWNTIME_ID = id;
         if(id) {
@@ -612,11 +616,7 @@
         
         document.getElementById('btn_delete_dt').style.display = id ? 'block' : 'none';
 
-        if(document.getElementById('edit_past_modal').style.display === 'flex') {
-            document.getElementById('edit_past_modal').style.display = 'none';
-            SOURCE_MODAL = 'edit_past';
-        } else if (document.getElementById('history_modal').style.display === 'flex') {
-            document.getElementById('history_modal').style.display = 'none';
+        if (document.getElementById('full_history_modal').style.display === 'flex') {
             SOURCE_MODAL = 'history';
         } else {
             SOURCE_MODAL = null;
@@ -626,8 +626,9 @@
 
     function closeDowntimeModal() {
         document.getElementById('downtime_modal').style.display = 'none';
-        if(SOURCE_MODAL === 'edit_past') openFullHistory();
-        else if(SOURCE_MODAL === 'history') document.getElementById('history_modal').style.display = 'flex';
+        if(SOURCE_MODAL === 'history') {
+            openFullHistory(); // โหลดหน้าประวัติใหม่เผื่อตัวเลขเปลี่ยน
+        }
     }
 
     function saveDowntime() {
@@ -669,7 +670,7 @@
         const anchor = document.getElementById('time_start').value || "22:00"; 
         const mStart = getAdjustedMinutes(start, anchor); 
         const mEnd = getAdjustedMinutes(end, anchor); 
-        return mEnd - mStart; 
+        return Math.max(0, mEnd - mStart); 
     }
 
     function addMinutesToTime(timeStr, addMins) {
@@ -678,6 +679,33 @@
         let date = new Date();
         date.setHours(h, m + addMins, 0, 0);
         return String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
+    }
+
+    // 🛠️ ฟังก์ชันใหม่: อัปเดตตัวเลขหน้าการ์ดโดยไม่ต้องวาด HTML ใหม่ (แก้แป้นพิมพ์หาย)
+    function updateCardStats(id) {
+        const d = DATA.drops.find(x => x.id === id);
+        if(!d) return;
+        let hlProd = getNum(d.p_in_room.hl); let bhProd = getNum(d.p_in_room.bh); let blProd = getNum(d.p_in_room.bl);
+        if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') hlProd+=getNum(i.total); if(i.type==='bh') bhProd+=getNum(i.total); if(i.type==='bl') blProd+=getNum(i.total); }); }
+        const hlBatch = Math.ceil(hlProd / 40) * 40; const crushBatch = Math.ceil((bhProd + blProd) / 40) * 40;
+        const hlRem = hlBatch - hlProd; const crushRem = crushBatch - (bhProd + blProd);
+        
+        const ew = document.getElementById(`disp_withdraw_${id}`); if(ew) ew.innerText = `${hlBatch} / ${crushBatch}`;
+        const eu = document.getElementById(`disp_used_${id}`); if(eu) eu.innerText = `${hlProd} / ${bhProd+blProd}`;
+        const erh = document.getElementById(`disp_rem_hl_${id}`); if(erh) erh.innerText = `หลอด:${hlRem}`;
+        const erb = document.getElementById(`disp_rem_bod_${id}`); if(erb) erb.innerText = `บด:${crushRem}`;
+    }
+
+    function updateDropVal(id, cat, sub, val) {
+        const d = DATA.drops.find(x => x.id === id); if(!d) return;
+        if(cat === 'time') { d.time = val; }
+        else if (cat === 'time_end') { d.time_end = val; }
+        else if(cat === 'p_in_room') { d.p_in_room[sub] = getNum(val); }
+        
+        saveData(); 
+        calcAll();
+        
+        if(cat === 'p_in_room') { updateCardStats(id); }
     }
 
     function renderDrops() {
@@ -709,52 +737,50 @@
         const grossDiff = getMinDiff(prevTime, latestProd.time);
         const netDiff = Math.max(0, grossDiff - dtToSubtract);
         
-        container.insertAdjacentHTML('beforeend', generateCardHtml(latestProd, netDiff));
-    }
+        // 🛠️ Render loop
+        sortedDrops.slice().reverse().forEach(d => {
+            if(d.type==='prod') {
+                let distHtml = '';
+                if(d.dist) {
+                   d.dist.forEach((item, idx) => {
+                       distHtml += `<div class="dist-item"><div class="dist-header"><span>🚛 ${getTruckName(item.truck)} - ${getTypeName(item.type)}</span><div><button class="btn-edit-mini" onclick="editDist(${d.id}, ${idx})">✏️</button><button class="btn-del-mini" onclick="removeDist(${d.id}, ${idx})">🗑️</button></div></div><div class="dist-rows">(${item.r1}/${item.r2}/${item.r3}) = <b>${item.total}</b></div></div>`;
+                   });
+                }
+                let hlProd = getNum(d.p_in_room.hl); let bhProd = getNum(d.p_in_room.bh); let blProd = getNum(d.p_in_room.bl);
+                if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') hlProd+=getNum(i.total); if(i.type==='bh') bhProd+=getNum(i.total); if(i.type==='bl') blProd+=getNum(i.total); }); }
+                const hlBatch = Math.ceil(hlProd / 40) * 40; const crushBatch = Math.ceil((bhProd + blProd) / 40) * 40;
+                const hlRem = hlBatch - hlProd; const crushRem = crushBatch - (bhProd + blProd);
 
-    function generateCardHtml(d, netDiff) {
-        let distHtml = '';
-        if(d.dist) {
-           d.dist.forEach((item, idx) => {
-               distHtml += `<div class="dist-item"><div class="dist-header"><span>🚛 ${getTruckName(item.truck)} - ${getTypeName(item.type)}</span><div><button class="btn-edit-mini" onclick="editDist(${d.id}, ${idx})">✏️</button><button class="btn-del-mini" onclick="removeDist(${d.id}, ${idx})">🗑️</button></div></div><div class="dist-rows">(${item.r1}/${item.r2}/${item.r3}) = <b>${item.total}</b></div></div>`;
-           });
-        }
-        let hlProd = getNum(d.p_in_room.hl); let bhProd = getNum(d.p_in_room.bh); let blProd = getNum(d.p_in_room.bl);
-        if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') hlProd+=getNum(i.total); if(i.type==='bh') bhProd+=getNum(i.total); if(i.type==='bl') blProd+=getNum(i.total); }); }
-        const hlBatch = Math.ceil(hlProd / 40) * 40; const crushBatch = Math.ceil((bhProd + blProd) / 40) * 40;
-        const hlRem = hlBatch - hlProd; const crushRem = crushBatch - (bhProd + blProd);
-
-        return `<div class="modern-card"><div class="card-header-flex"><div class="badge-box bg-prod"><span>น้ำแข็ง<br>ตก<br>(ผลิต)</span></div><input type="time" class="big-time-input" value="${d.time}" onchange="updateDropVal(${d.id}, 'time', null, this.value)"><span class="time-diff-badge">(+${netDiff} น.)</span><button class="btn-close-red" onclick="deleteDrop(${d.id})">×</button></div><div class="card-body" style="padding-top:0;"><div class="sack-row"><div class="sack-item"><div class="sack-label">เบิก (หลอด/บด)</div><div class="sack-val" id="disp_withdraw_${d.id}">${hlBatch} / ${crushBatch}</div></div><div class="sack-item"><div class="sack-label">ใช้ (หลอด/บด)</div><div class="sack-val" id="disp_used_${d.id}">${hlProd} / ${bhProd+blProd}</div></div><div class="sack-item"><div class="sack-label">คืน (หลอด/บด)</div><div class="sack-split"><span class="ss-hl" id="disp_rem_hl_${d.id}">หลอด:${hlRem}</span> <span class="ss-bod" id="disp_rem_bod_${d.id}">บด:${crushRem}</span></div></div></div><div class="grid-3"><div><div class="input-label">หลอด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.hl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'hl', this.value)"></div><div><div class="input-label">หยาบ (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bh)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bh', this.value)"></div><div><div class="input-label">ละเอียด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bl', this.value)"></div></div><div class="dist-container"><div style="font-size:0.85rem; color:var(--text-muted); font-weight:800; margin-bottom:5px; text-transform:uppercase;">รายการจ่ายเข้ารถ</div>${distHtml}<button class="btn-add-dist" onclick="openDistModal(${d.id})">+ เพิ่มรายการส่งเข้ารถ</button></div></div></div>`;
-    }
-
-    // 🛠️ ฟังก์ชันใหม่: อัปเดตตัวเลขหน้าการ์ดโดยไม่ต้องวาด HTML ใหม่ (แก้แป้นพิมพ์หาย)
-    function updateCardStats(id) {
-        const d = DATA.drops.find(x => x.id === id);
-        if(!d) return;
-        let hlProd = getNum(d.p_in_room.hl); let bhProd = getNum(d.p_in_room.bh); let blProd = getNum(d.p_in_room.bl);
-        if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') hlProd+=getNum(i.total); if(i.type==='bh') bhProd+=getNum(i.total); if(i.type==='bl') blProd+=getNum(i.total); }); }
-        const hlBatch = Math.ceil(hlProd / 40) * 40; const crushBatch = Math.ceil((bhProd + blProd) / 40) * 40;
-        const hlRem = hlBatch - hlProd; const crushRem = crushBatch - (bhProd + blProd);
-        
-        const ew = document.getElementById(`disp_withdraw_${id}`); if(ew) ew.innerText = `${hlBatch} / ${crushBatch}`;
-        const eu = document.getElementById(`disp_used_${id}`); if(eu) eu.innerText = `${hlProd} / ${bhProd+blProd}`;
-        const erh = document.getElementById(`disp_rem_hl_${id}`); if(erh) erh.innerText = `หลอด:${hlRem}`;
-        const erb = document.getElementById(`disp_rem_bod_${id}`); if(erb) erb.innerText = `บด:${crushRem}`;
-    }
-
-    function updateDropVal(id, cat, sub, val) {
-        const d = DATA.drops.find(x => x.id === id); if(!d) return;
-        if(cat === 'time') { d.time = val; }
-        else if (cat === 'time_end') { d.time_end = val; }
-        else if(cat === 'p_in_room') { d.p_in_room[sub] = getNum(val); }
-        
-        saveData(); 
-        calcAll();
-        
-        // 🛠️ ถ้าเปลี่ยนตัวเลข ให้ดึงค่าไปโชว์เฉยๆ แป้นพิมพ์จะได้ไม่หาย
-        if(cat === 'p_in_room') { updateCardStats(id); }
-        // ถ้าเปลี่ยนเวลา ต้องวาดตารางใหม่เพราะอาจจะสลับลำดับกัน
-        if(cat === 'time' || cat === 'time_end') { renderDrops(); } 
+                // 🛠️ แก้บั๊กแป้นเวลาพับหนี โดยไม่ใช้ onchange วาดหน้าใหม่
+                container.insertAdjacentHTML('beforeend', `<div class="modern-card">
+                    <div class="card-header-flex">
+                        <div class="badge-box bg-prod"><span>น้ำแข็ง<br>ตก</span></div>
+                        <input type="time" class="big-time-input" value="${d.time}" onchange="d.time=this.value; saveData(); calcAll();">
+                        <button class="btn-close-red" onclick="deleteDrop(${d.id})">×</button>
+                    </div>
+                    <div class="card-body" style="padding-top:0;">
+                        <div class="sack-row">
+                            <div class="sack-item"><div class="sack-label">เบิก (หลอด/บด)</div><div class="sack-val" id="disp_withdraw_${d.id}">${hlBatch} / ${crushBatch}</div></div>
+                            <div class="sack-item"><div class="sack-label">ใช้ (หลอด/บด)</div><div class="sack-val" id="disp_used_${d.id}">${hlProd} / ${bhProd+blProd}</div></div>
+                            <div class="sack-item"><div class="sack-label">คืน (หลอด/บด)</div><div class="sack-split"><span class="ss-hl" id="disp_rem_hl_${d.id}">หลอด:${hlRem}</span> <span class="ss-bod" id="disp_rem_bod_${d.id}">บด:${crushRem}</span></div></div>
+                        </div>
+                        <div class="grid-3">
+                            <div><div class="input-label">หลอด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.hl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'hl', this.value)"></div>
+                            <div><div class="input-label">หยาบ (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bh)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bh', this.value)"></div>
+                            <div><div class="input-label">ละเอียด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bl', this.value)"></div>
+                        </div>
+                        <div class="dist-container"><div style="font-size:0.85rem; color:var(--text-muted); font-weight:800; margin-bottom:5px; text-transform:uppercase;">รายการจ่ายเข้ารถ</div>${distHtml}<button class="btn-add-dist" onclick="openDistModal(${d.id})">+ เพิ่มรายการส่งเข้ารถ</button></div>
+                    </div>
+                </div>`);
+            } else {
+                container.insertAdjacentHTML('beforeend', `<div class="modern-card" style="border-left:6px solid #ef4444; background:#fef2f2; cursor:pointer;" onclick="openDowntimeModal(${d.id})">
+                    <div style="padding:15px; display:flex; justify-content:space-between; align-items:center;">
+                        <div style="font-weight:900; color:#dc2626; font-size:1.1rem;">⚡ บันทึกพักเครื่อง</div>
+                        <div style="color:#ef4444; font-weight:bold;">${d.time} - ${d.time_end||d.time}</div>
+                    </div>
+                </div>`);
+            }
+        });
     }
 
     function calcAll() {
@@ -1205,9 +1231,8 @@
     
     function getTruckName(id) { return TRUCKS[parseInt(id.replace('t',''))-1]; }
     function getTypeName(id) { return ICE_TYPES.find(x=>x.id===id).label; }
-    function switchPage(id) { document.querySelectorAll('.page').forEach(x=>x.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active')); document.getElementById('page-'+id).classList.add('active'); const map={setup:0,production:1,summary:2}; document.querySelectorAll('.nav-btn')[map[id]].classList.add('active'); if(id==='summary'){calcAll(); window.scrollTo(0,0);} }
 
-    // --- 🔥 V205: PRINT PDF (TWO ROW DOWNTIME + AUTO CLOSE TIME + RESET COUNTER) 🔥 ---
+    // --- 🔥 V220: PRINT PDF (TWO ROW DOWNTIME + AUTO CLOSE TIME + RESET COUNTER) 🔥 ---
     function printReport() {
         saveData();
         
