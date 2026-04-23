@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V220 (Perfect Workflow & Realtime UI)</title>
+    <title>Smart Ice V225 (Master Bug Fixed & Perfect Workflow)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
         /* --- Modern Premium Theme (Screen UI) --- */
@@ -224,9 +224,9 @@
     </div>
 
     <div class="nav-bar">
-        <button class="nav-btn active" onclick="switchPage('setup')">1. ตั้งค่า</button>
-        <button class="nav-btn" onclick="switchPage('production')">2. ผลิต/จ่าย</button>
-        <button class="nav-btn" onclick="switchPage('summary')">3. สรุปยอด</button>
+        <button class="nav-btn active" id="btn-setup" onclick="switchPage('setup')">1. ตั้งค่า</button>
+        <button class="nav-btn" id="btn-production" onclick="switchPage('production')">2. ผลิต/จ่าย</button>
+        <button class="nav-btn" id="btn-summary" onclick="switchPage('summary')">3. สรุปยอด</button>
     </div>
 
     <div id="page-setup" class="page active">
@@ -235,7 +235,8 @@
             <div class="input-label" style="text-align:left;">วันที่เปิดบิล</div>
             <input type="date" id="setup_date" onchange="changeDate()">
             <div class="grid-2" style="margin-top:15px;">
-                <div><div class="input-label">🟢 เวลาเปิด</div><input type="time" id="time_start" value="22:00" onchange="saveData(); calcAll();"></div>
+                <div><div class="input-label">🟢 เวลาเปิด</div>
+                <input type="time" id="time_start" value="22:00" onblur="saveData(); calcAll(); renderDrops();"></div>
                 <div><div class="input-label">🔴 เวลาปิด (คำนวณอัตโนมัติ)</div><input type="time" id="time_stop" value="06:00" disabled style="background:#e2e8f0;"></div>
             </div>
         </div>
@@ -600,7 +601,7 @@
     
     function deleteDrop(id) { if(confirm("ระบบจะลบข้อมูลนี้ทิ้ง ยืนยันหรือไม่?")) { DATA.drops = DATA.drops.filter(d => d.id !== id); saveData(); calcAll(); renderDrops(); if(document.getElementById('stock_manager_modal').style.display === 'flex') openStockManager(); } }
 
-    /* 🛠️ แก้ไขให้หน้าต่างไฟดับ ทับหน้าต่างประวัติไปเลย ไม่ต้องซ่อนไปมา */
+    /* 🛠️ แก้ไขให้หน้าต่างไฟดับ ทับหน้าต่างประวัติไปเลย */
     function openDowntimeModal(id = null) {
         EDITING_DOWNTIME_ID = id;
         if(id) {
@@ -627,7 +628,7 @@
     function closeDowntimeModal() {
         document.getElementById('downtime_modal').style.display = 'none';
         if(SOURCE_MODAL === 'history') {
-            openFullHistory(); // โหลดหน้าประวัติใหม่เผื่อตัวเลขเปลี่ยน
+            openFullHistory();
         }
     }
 
@@ -681,7 +682,7 @@
         return String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
     }
 
-    // 🛠️ ฟังก์ชันใหม่: อัปเดตตัวเลขหน้าการ์ดโดยไม่ต้องวาด HTML ใหม่ (แก้แป้นพิมพ์หาย)
+    // 🛠️ อัปเดตตัวเลขหน้าการ์ดโดยไม่ต้องวาด HTML ใหม่
     function updateCardStats(id) {
         const d = DATA.drops.find(x => x.id === id);
         if(!d) return;
@@ -706,6 +707,18 @@
         calcAll();
         
         if(cat === 'p_in_room') { updateCardStats(id); }
+    }
+
+    // 🛠️ อัปเดตเวลาเฉพาะเมื่อเบลอ (แก้แป้นพิมพ์หาย)
+    function updateTimeBlur(id, newTime) {
+        const d = DATA.drops.find(x => x.id === id);
+        if(!d) return;
+        if (d.time !== newTime) {
+            d.time = newTime;
+            saveData();
+            calcAll();
+            renderDrops(); 
+        }
     }
 
     function renderDrops() {
@@ -751,11 +764,11 @@
                 const hlBatch = Math.ceil(hlProd / 40) * 40; const crushBatch = Math.ceil((bhProd + blProd) / 40) * 40;
                 const hlRem = hlBatch - hlProd; const crushRem = crushBatch - (bhProd + blProd);
 
-                // 🛠️ แก้บั๊กแป้นเวลาพับหนี โดยไม่ใช้ onchange วาดหน้าใหม่
+                // 🛠️ แก้บั๊กแป้นเวลาพับหนี : ใช้ onblur
                 container.insertAdjacentHTML('beforeend', `<div class="modern-card">
                     <div class="card-header-flex">
                         <div class="badge-box bg-prod"><span>น้ำแข็ง<br>ตก</span></div>
-                        <input type="time" class="big-time-input" value="${d.time}" onchange="d.time=this.value; saveData(); calcAll();">
+                        <input type="time" class="big-time-input" value="${d.time}" onblur="updateTimeBlur(${d.id}, this.value)">
                         <button class="btn-close-red" onclick="deleteDrop(${d.id})">×</button>
                     </div>
                     <div class="card-body" style="padding-top:0;">
@@ -1187,6 +1200,23 @@
         CURRENT_DROP_ID = null; calcAll(); 
     }
     
+    /* 🛠️ แก้บั๊ก: การสลับหน้าต่างที่ทำให้สคริปต์พัง */
+    function switchPage(p) { 
+        // ซ่อนทุกเพจก่อน
+        document.querySelectorAll('.page').forEach(x => x.classList.remove('active')); 
+        document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
+        
+        // แสดงเพจที่เลือก
+        const targetPage = document.getElementById('page-' + p);
+        const targetBtn = document.getElementById('btn-' + p);
+        
+        if (targetPage) targetPage.classList.add('active');
+        if (targetBtn) targetBtn.classList.add('active');
+        
+        if(p === 'summary') calcAll();
+        window.scrollTo(0,0);
+    }
+    
     function renderOrderInputs() { 
         const c = document.getElementById('order_inputs'); 
         let h = '<table class="order-table"><thead><tr><th style="border-top-left-radius:12px;">รถ</th><th>หลอด</th><th>หยาบ</th><th>ละเอียด</th><th class="col-total" style="border-top-right-radius:12px;">รวม</th></tr></thead><tbody>'; 
@@ -1212,288 +1242,4 @@
                 <td style="font-weight:800; color:var(--text-dark);">${t}</td>
                 <td><input type="tel" value="${hl}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_hl',this.value)" style="padding:10px; font-size:1.2rem;"></td>
                 <td><input type="tel" value="${bh}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_bh',this.value)" style="padding:10px; font-size:1.2rem;"></td>
-                <td><input type="tel" value="${bl}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_bl',this.value)" style="padding:10px; font-size:1.2rem;"></td>
-                <td class="order-sum-col" id="ord_sum_${tid}" style="font-size:1.2rem;">${total}</td>
-            </tr>`; 
-        }); 
-
-        h += `<tr class="total-row">
-                <td class="total-label" style="border-bottom-left-radius:12px;">รวม</td>
-                <td id="master_sum_hl" style="font-size:1.1rem;">${sumAllHl}</td>
-                <td id="master_sum_bh" style="font-size:1.1rem;">${sumAllBh}</td>
-                <td id="master_sum_bl" style="font-size:1.1rem;">${sumAllBl}</td>
-                <td id="master_grand_total" style="color:#34d399; font-size:1.2rem; border-bottom-right-radius:12px;">${grandTotal}</td>
-              </tr>`;
-
-        h += '</tbody></table>'; 
-        c.innerHTML = h; 
-    }
-    
-    function getTruckName(id) { return TRUCKS[parseInt(id.replace('t',''))-1]; }
-    function getTypeName(id) { return ICE_TYPES.find(x=>x.id===id).label; }
-
-    // --- 🔥 V220: PRINT PDF (TWO ROW DOWNTIME + AUTO CLOSE TIME + RESET COUNTER) 🔥 ---
-    function printReport() {
-        saveData();
-        
-        const dateVal = document.getElementById('setup_date').value;
-        let thaiDateStr = '';
-        if(dateVal) {
-            const d = new Date(dateVal);
-            const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
-            thaiDateStr = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear() + 543}`;
-        }
-        
-        const rd = window.REPORT_DATA;
-        const info = DATA.reportInfo;
-        const startTimeStr = document.getElementById('time_start').value || "22:00";
-        
-        let renderItems = [];
-        rd.drops.forEach(d => {
-            if(d.type === 'prod') {
-                let p_hl = getNum(d.p_in_room.hl); let p_bh = getNum(d.p_in_room.bh); let p_bl = getNum(d.p_in_room.bl);
-                if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') p_hl+=getNum(i.total); if(i.type==='bh') p_bh+=getNum(i.total); if(i.type==='bl') p_bl+=getNum(i.total); }); }
-                const w_hl = Math.ceil(p_hl/40)*40; const w_bod = Math.ceil((p_bh+p_bl)/40)*40;
-                
-                let prevTime = startTimeStr;
-                let idx = rd.drops.findIndex(x => x.id === d.id);
-                for(let i=idx-1; i>=0; i--) { if(rd.drops[i].type==='prod'){ prevTime = rd.drops[i].time; break; } }
-                let dtSub = 0;
-                for(let i=0; i<idx; i++) { 
-                    if(rd.drops[i].type==='downtime' && getAdjustedMinutes(rd.drops[i].time, startTimeStr) >= getAdjustedMinutes(prevTime, startTimeStr)) {
-                        dtSub += getMinDiff(rd.drops[i].time, rd.drops[i].time_end);
-                    }
-                }
-                let netDiff = Math.max(0, getMinDiff(prevTime, d.time) - dtSub);
-
-                renderItems.push({
-                    type: 'prod', time: d.time, duration: netDiff,
-                    whl: w_hl||'', wbod: w_bod||'', phl: p_hl||'', pbh: p_bh||'', pbl: p_bl||'',
-                    rhl: w_hl>0?(w_hl-p_hl):'', rbod: w_bod>0?(w_bod-(p_bh+p_bl)):'',
-                    raw_whl: w_hl, raw_wbod: w_bod, raw_phl: p_hl, raw_pbh: p_bh, raw_pbl: p_bl,
-                    raw_rhl: w_hl>0?(w_hl-p_hl):0, raw_rbod: w_bod>0?(w_bod-(p_bh+p_bl)):0
-                });
-            } else if (d.type === 'downtime') {
-                renderItems.push({ 
-                    type: 'downtime_start', 
-                    time: d.time,
-                    end_time_val: d.time
-                });
-                renderItems.push({ 
-                    type: 'downtime_end', 
-                    time: d.time_end || d.time,
-                    end_time_val: d.time_end || d.time
-                });
-            }
-        });
-
-        const ROWS_PER_PAGE = 33;
-        let chunks = [];
-        for(let i = 0; i < renderItems.length; i += ROWS_PER_PAGE) {
-            chunks.push(renderItems.slice(i, i + ROWS_PER_PAGE));
-        }
-        if(chunks.length === 0) chunks.push([]); 
-
-        let finalHtml = '';
-
-        chunks.forEach((chunk, pageIdx) => {
-            let c_sumHL=0, c_sumBH=0, c_sumBL=0, c_totDuration=0;
-            let c_withHL=0, c_withBOD=0, c_remHL=0, c_remBOD=0;
-            let c_prodCount=0;
-            
-            chunk.forEach(item => {
-                if(item.type === 'prod') {
-                    c_sumHL += item.raw_phl;
-                    c_sumBH += item.raw_pbh;
-                    c_sumBL += item.raw_pbl;
-                    c_totDuration += item.duration;
-                    c_withHL += item.raw_whl;
-                    c_withBOD += item.raw_wbod;
-                    c_remHL += item.raw_rhl;
-                    c_remBOD += item.raw_rbod;
-                    c_prodCount++;
-                }
-            });
-            
-            let c_totProd = c_sumHL + c_sumBH + c_sumBL;
-            let c_wHL = c_sumHL * 20;
-            let c_wBH = c_sumBH * 23;
-            let c_wBL = c_sumBL * 24;
-            let c_totWeight = c_wHL + c_wBH + c_wBL;
-            let c_avgTime = c_prodCount > 0 ? Math.round(c_totDuration / c_prodCount) : 0;
-            let c_tonsDay = (c_totDuration > 0 && c_totWeight > 0) ? ((c_totWeight / c_totDuration) * 1440 / 1000).toFixed(2) : 0;
-            let c_avgYield = c_prodCount > 0 ? Math.round(c_totProd / c_prodCount) : 0;
-
-            let pageDateStr = pageIdx === 0 ? thaiDateStr : thaiDateStr + " (ต่อ)";
-
-            let pageStartTime = startTimeStr;
-            if (pageIdx > 0) {
-                let prevChunk = chunks[pageIdx - 1];
-                if(prevChunk && prevChunk.length > 0) {
-                    let lastItem = prevChunk[prevChunk.length - 1];
-                    pageStartTime = lastItem.end_time_val || lastItem.time;
-                }
-            }
-
-            let footerTitle = pageIdx === chunks.length - 1 ? `รวม (ปิด ${rd.timeStop} น.)` : "รวม";
-
-            let sumCol = [
-                `<span class="s-label">หลอดใหญ่</span> <span class="s-val">${c_sumHL} กระสอบ</span>`,
-                `<span class="s-label">บดหยาบ</span> <span class="s-val">${c_sumBH} กระสอบ</span>`,
-                `<span class="s-label">บดละเอียด</span> <span class="s-val">${c_sumBL} กระสอบ</span>`,
-                `<span class="s-label" style="font-weight:900;">รวม</span> <span class="s-val" style="font-weight:900;">${c_totProd} กระสอบ</span>`,
-                
-                `<span class="s-label">หลอดใหญ่</span> <span class="s-val">20 กก.</span>`,
-                `<span class="s-label">บดหยาบ</span> <span class="s-val">23 กก.</span>`,
-                `<span class="s-label">บดละเอียด</span> <span class="s-val">24 กก.</span>`,
-                `<span class="s-label" style="font-weight:900;">รวม</span> <span class="s-val" style="font-weight:900;">22 กก.</span>`,
-                
-                `<span class="s-label">หลอดใหญ่</span> <span class="s-val">${c_wHL.toLocaleString()} กก.</span>`,
-                `<span class="s-label">บดหยาบ</span> <span class="s-val">${c_wBH.toLocaleString()} กก.</span>`,
-                `<span class="s-label">บดละเอียด</span> <span class="s-val">${c_wBL.toLocaleString()} กก.</span>`,
-                `<span class="s-label" style="font-weight:900;">รวม</span> <span class="s-val" style="font-weight:900;">${c_totWeight.toLocaleString()} กก.</span>`,
-                
-                `<span class="s-label">เวลาเฉลี่ย</span> <span class="s-val">${c_avgTime} นาที/ตก</span>`,
-                `<span class="s-label">น้ำหนัก</span> <span class="s-val">${c_tonsDay} ตัน/วัน</span>`,
-                `<span class="s-label">จำนวนเฉลี่ย</span> <span class="s-val">${c_avgYield} กระสอบ/ตก</span>`,
-                
-                `<span class="s-label">เบิกกระสอบรวม</span> <span class="s-val">${c_withHL + c_withBOD} ใบ</span>`,
-                `<span class="s-label">กระสอบที่ใช้</span> <span class="s-val">${c_totProd} ใบ</span>`,
-                `<span class="s-label">กระสอบคงเหลือ</span> <span class="s-val">${c_remHL + c_remBOD} ใบ</span>`,
-                
-                `<span class="s-label">ค่า pH</span> <span class="s-val">${info.ph}</span>`,
-                `<span class="s-label">ค่า TDS</span> <span class="s-val">${info.tds}</span>`,
-                `<span class="s-label">พนักงานผลิต</span> <span class="s-val">${info.prodStaff} คน</span>`,
-                `<span class="s-label">วิศวกรรม</span> <span class="s-val">${info.engStaff} คน</span>`
-            ];
-
-            let pageHtml = `
-            <div class="print-page">
-                <div class="print-header">
-                    แบบฟอร์มบันทึกการผลิตน้ำแข็ง สาขา ${info.branch} เครื่องที่ ${info.machine}<br>
-                    <span class="date-text">ประจำวันที่ ${pageDateStr}</span>
-                </div>
-                
-                <div class="print-wrapper">
-                    <div class="print-left">
-                        <table class="print-table">
-                            <thead>
-                                <tr>
-                                    <th rowspan="2" style="width:5%;">ลำดับ</th>
-                                    <th style="width:13%;">เวลา</th>
-                                    <th rowspan="2" style="width:8%;">นาที/<br>ตก</th>
-                                    <th colspan="2" style="width:16%; background-color:#e0f2fe !important; color:#0284c7 !important;">เบิกกระสอบ</th>
-                                    <th colspan="3" style="width:30%; background-color:#dcfce7 !important; color:#15803d !important;">ผลการผลิต</th>
-                                    <th colspan="2" style="width:16%; background-color:#fef3c7 !important; color:#b45309 !important;">กระสอบคงเหลือ</th>
-                                </tr>
-                                <tr>
-                                    <th>เปิด ${pageStartTime} น.</th>
-                                    <th style="width:8%; background-color:#e0f2fe !important; color:#0284c7 !important;">หลอด</th>
-                                    <th style="width:8%; background-color:#e0f2fe !important; color:#0284c7 !important;">บด</th>
-                                    <th style="width:10%; background-color:#dcfce7 !important; color:#15803d !important;">หลอดใหญ่</th>
-                                    <th style="width:10%; background-color:#dcfce7 !important; color:#15803d !important;">บดหยาบ</th>
-                                    <th style="width:10%; background-color:#dcfce7 !important; color:#15803d !important;">ละเอียด</th>
-                                    <th style="width:8%; background-color:#fef3c7 !important; color:#b45309 !important;">หลอด</th>
-                                    <th style="width:8%; background-color:#fef3c7 !important; color:#b45309 !important;">บด</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-            `;
-
-            let localProdCounter = 0; 
-
-            for(let i=0; i<ROWS_PER_PAGE; i++) {
-                let item = chunk[i];
-                if(item && item.type === 'prod') {
-                    localProdCounter++;
-                    pageHtml += `<tr>
-                        <td>${localProdCounter}</td><td>${item.time}</td><td>${item.duration}</td>
-                        <td>${item.whl}</td><td>${item.wbod}</td>
-                        <td>${item.phl}</td><td>${item.pbh}</td><td>${item.pbl}</td>
-                        <td>${item.rhl}</td><td>${item.rbod}</td>
-                    </tr>`;
-                } else if (item && item.type === 'downtime_start') {
-                    pageHtml += `<tr>
-                        <td></td><td style="color:black;">${item.time}</td><td></td>
-                        <td colspan="7" style="font-weight:900; letter-spacing:1px; background-color:#fef2f2 !important;">ปิดเครื่อง</td>
-                    </tr>`;
-                } else if (item && item.type === 'downtime_end') {
-                    pageHtml += `<tr>
-                        <td></td><td style="color:black;">${item.time}</td><td></td>
-                        <td colspan="7" style="font-weight:900; letter-spacing:1px; background-color:#f0fdf4 !important;">เปิดเครื่อง</td>
-                    </tr>`;
-                } else {
-                    pageHtml += `<tr>
-                        <td></td><td></td><td></td>
-                        <td></td><td></td>
-                        <td></td><td></td><td></td>
-                        <td></td><td></td>
-                    </tr>`;
-                }
-            }
-
-            pageHtml += `
-                            <tr class="print-footer">
-                                <td colspan="2">${footerTitle}</td>
-                                <td>${c_totDuration}</td>
-                                <td>${c_withHL}</td><td>${c_withBOD}</td>
-                                <td>${c_sumHL}</td><td>${c_sumBH}</td><td>${c_sumBL}</td>
-                                <td>${c_remHL}</td><td>${c_remBOD}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div class="print-right">
-                    <div class="s-title" style="margin-top:0;">ข้อมูลสรุป</div>
-                    <div class="s-line">${sumCol[0]}</div>
-                    <div class="s-line">${sumCol[1]}</div>
-                    <div class="s-line">${sumCol[2]}</div>
-                    <div class="s-line" style="border-bottom:none;">${sumCol[3]}</div>
-                    
-                    <div class="s-title">น้ำหนักเฉลี่ย</div>
-                    <div class="s-line">${sumCol[4]}</div>
-                    <div class="s-line">${sumCol[5]}</div>
-                    <div class="s-line">${sumCol[6]}</div>
-                    <div class="s-line" style="border-bottom:none;">${sumCol[7]}</div>
-
-                    <div class="s-title">น้ำหนักรวม</div>
-                    <div class="s-line">${sumCol[8]}</div>
-                    <div class="s-line">${sumCol[9]}</div>
-                    <div class="s-line">${sumCol[10]}</div>
-                    <div class="s-line" style="border-bottom:none;">${sumCol[11]}</div>
-                    
-                    <div class="s-title">สถิติการผลิต</div>
-                    <div class="s-line">${sumCol[12]}</div>
-                    <div class="s-line">${sumCol[13]}</div>
-                    <div class="s-line" style="border-bottom:none;">${sumCol[14]}</div>
-                    
-                    <div class="s-title">สรุปกระสอบ</div>
-                    <div class="s-line">${sumCol[15]}</div>
-                    <div class="s-line">${sumCol[16]}</div>
-                    <div class="s-line" style="border-bottom:none;">${sumCol[17]}</div>
-                    
-                    <div class="s-title">ข้อมูลอื่นๆ</div>
-                    <div class="s-line">${sumCol[18]}</div>
-                    <div class="s-line">${sumCol[19]}</div>
-                    <div class="s-line">${sumCol[20]}</div>
-                    <div class="s-line" style="border-bottom:none;">${sumCol[21]}</div>
-                    
-                    <div class="sign-box">
-                        <div class="sign-line">ลงชื่อ <span class="sign-dots"></span> วิศวกรรม</div>
-                        <div class="sign-line">ลงชื่อ <span class="sign-dots"></span> ผู้จัดการสาขา</div>
-                    </div>
-                </div>
-            </div>
-            </div>
-            `;
-            
-            finalHtml += pageHtml;
-        });
-
-        document.getElementById('print_area').innerHTML = finalHtml;
-        setTimeout(() => { window.print(); }, 300);
-    }
-</script>
-</body>
-</html>
+                <td><input type="tel" value="${bl}" onfocus="if(this.value=='0')this.value=''" onblur="if
