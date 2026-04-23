@@ -3,206 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Ice V205 (Real-time Calc & No Keyboard Drop)</title>
+    <title>Smart Ice V220 (Perfect Workflow & Modal Fix)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
         /* --- Modern Premium Theme (Screen UI) --- */
         :root {
-            --bg-main: #f0f4f8;
-            --text-dark: #1e293b;
-            --text-muted: #64748b;
-            --card-bg: #ffffff;
-            --primary: #0ea5e9;
-            --primary-grad: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
-            --success: #10b981;
-            --success-grad: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            --danger: #ef4444;
-            --danger-grad: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
-            --warning: #f59e0b;
-            --warning-grad: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            --purple-grad: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
-            --dark-grad: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-            --shadow-sm: 0 2px 10px rgba(0,0,0,0.03);
-            --shadow-md: 0 8px 20px rgba(0,0,0,0.06);
-            --shadow-lg: 0 12px 25px rgba(0,0,0,0.1);
-            --shadow-color: 0 10px 20px rgba(14, 165, 233, 0.2);
-            --radius-md: 16px;
-            --radius-lg: 24px;
-            --radius-pill: 50px;
+            --bg-main: #f0f4f8; --text-dark: #1e293b; --text-muted: #64748b;
+            --card-bg: #ffffff; --primary: #0ea5e9; --primary-grad: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+            --success: #10b981; --danger: #ef4444; --warning: #f59e0b;
+            --radius-md: 16px; --radius-pill: 50px;
         }
 
         @media screen {
-            body { font-family: 'Sarabun', sans-serif; margin: 0; padding: 0; background: var(--bg-main); color: var(--text-dark); padding-bottom: 100px; font-size: 15px; -webkit-font-smoothing: antialiased; }
+            body { font-family: 'Sarabun', sans-serif; margin: 0; padding: 0; background: var(--bg-main); color: var(--text-dark); padding-bottom: 100px; -webkit-font-smoothing: antialiased; }
             * { box-sizing: border-box; }
-            button, input, select { touch-action: manipulation; }
             
-            .dashboard { position: sticky; top: 0; z-index: 1000; background: var(--dark-grad); color: white; padding: 15px 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); display: flex; justify-content: space-around; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; margin-bottom: 10px; }
-            .dash-item span { font-size: 0.8rem; color: #cbd5e1; display: block; margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-            .dash-item div { font-size: 1.6rem; font-weight: 900; color: #34d399; line-height: 1; text-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+            /* Header & Status */
+            .dashboard { position: sticky; top: 0; z-index: 1000; background: linear-gradient(135deg, #0f2027, #2c5364); color: white; padding: 15px 10px; display: flex; justify-content: space-around; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; }
+            .dash-item span { font-size: 0.8rem; color: #cbd5e1; display: block; }
+            .dash-item div { font-size: 1.6rem; font-weight: 900; color: #34d399; }
             
-            .order-status-bar { background: #fffbeb; border: 1px solid #fde68a; padding: 10px; text-align: center; font-size: 0.95rem; color: #d97706; font-weight: bold; display: flex; justify-content: space-around; border-radius: var(--radius-pill); margin: 0 10px 15px 10px; box-shadow: var(--shadow-sm); }
+            .order-status-bar { background: #fffbeb; border: 1px solid #fde68a; padding: 10px; text-align: center; font-size: 0.95rem; color: #d97706; font-weight: bold; display: flex; justify-content: space-around; border-radius: var(--radius-pill); margin: 10px; }
             
-            .nav-bar { display: flex; background: var(--card-bg); margin: 0 10px 20px 10px; border-radius: var(--radius-pill); padding: 6px; box-shadow: var(--shadow-md); position: sticky; top: 85px; z-index: 900; border: 1px solid #f1f5f9; }
-            .nav-btn { flex: 1; padding: 12px 5px; text-align: center; border: none; background: transparent; font-weight: 800; font-size: 0.9rem; color: var(--text-muted); cursor: pointer; border-radius: var(--radius-pill); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-            .nav-btn.active { background: var(--primary-grad); color: white; box-shadow: var(--shadow-color); transform: scale(1.02); }
-            
-            .page { display: none; padding: 0 10px 10px 10px; max-width: 800px; margin: 0 auto; }
-            .page.active { display: block; animation: fadeIn 0.3s ease; }
-            @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+            .nav-bar { display: flex; background: white; margin: 0 10px 20px 10px; border-radius: var(--radius-pill); padding: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+            .nav-btn { flex: 1; padding: 12px 5px; border: none; background: transparent; font-weight: 800; color: var(--text-muted); cursor: pointer; border-radius: var(--radius-pill); }
+            .nav-btn.active { background: var(--primary-grad); color: white; }
 
-            .modern-card { background: var(--card-bg); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); margin-bottom: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.8); }
-            .card-body { padding: 20px; }
-            .card-body h3 { margin-top: 0; color: var(--text-dark); font-weight: 800; font-size: 1.15rem; display: flex; align-items: center; gap: 8px; margin-bottom: 15px; }
+            .page { display: none; padding: 0 10px; max-width: 800px; margin: 0 auto; }
+            .page.active { display: block; }
+
+            .modern-card { background: white; border-radius: var(--radius-md); padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #edf2f7; }
             
+            /* Inputs */
             input[type="number"], input[type="tel"], input[type="time"], input[type="date"], input[type="text"], select { 
                 width: 100%; padding: 14px; font-size: 1.1rem; text-align: center !important; font-weight: 800; color: var(--text-dark);
-                border: 2px solid #e2e8f0; border-radius: 12px; background: #f8fafc; transition: all 0.3s; font-family: 'Sarabun', sans-serif;
+                border: 2px solid #e2e8f0; border-radius: 12px; background: #f8fafc; font-family: 'Sarabun', sans-serif;
             }
-            input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15); outline: none; background: #ffffff; }
+            input:focus, select:focus { border-color: var(--primary); outline: none; background: white; }
             
-            .card-header-flex { display: flex; align-items: center; padding: 15px; gap: 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
-            .badge-box { border-radius: 14px; padding: 8px; width: 75px; text-align: center; color: white; font-weight: 800; font-size: 0.75rem; display: flex; flex-direction: column; justify-content: center; height: 55px; box-shadow: var(--shadow-sm); }
-            .bg-prod { background: var(--success-grad); }
-            .big-time-input { font-size: 1.8rem !important; font-weight: 900 !important; color: var(--text-dark); border: none !important; background: transparent !important; width: 110px; text-align: center; padding: 0 !important; box-shadow: none !important; }
-            .time-diff-badge { font-size: 0.9rem; color: var(--primary); font-weight: 800; background: #e0f2fe; padding: 6px 10px; border-radius: var(--radius-pill); white-space: nowrap; }
-            .btn-close-red { width: 38px; height: 38px; border-radius: 10px; background: #fee2e2; color: #dc2626; border: none; font-size: 1.4rem; font-weight: bold; cursor: pointer; margin-left: auto; transition: 0.2s; display:flex; align-items:center; justify-content:center;}
-            
-            .sack-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; background: #f1f5f9; padding: 12px; border-radius: var(--radius-md); margin-bottom: 15px; }
-            .sack-item { text-align: center; background: white; padding: 8px 4px; border-radius: 10px; box-shadow: var(--shadow-sm); }
-            .sack-label { font-size: 0.7rem; color: var(--text-muted); font-weight: 800; margin-bottom: 4px; white-space: nowrap; }
-            .sack-val { font-size: 1.3rem; font-weight: 900; color: var(--text-dark); }
-            .sack-split { font-size: 0.85rem; color: #555; display: flex; justify-content: center; gap: 5px; margin-top: 4px; }
-            .ss-hl { color: #059669; font-weight:900; } .ss-bod { color: #7c3aed; font-weight:900; }
-
             .table-responsive { overflow-x: auto; border-radius: 12px; border: 1px solid #cbd5e1; }
-            .paper-table { width: 100%; min-width: 620px; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; margin-top: 0; }
-            .paper-table th { border-right: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1; padding: 6px 2px; text-align: center; font-weight: 800; vertical-align: middle; line-height: 1.2; background: #f8fafc; color: #1e293b;}
-            .paper-table th:last-child { border-right: none; }
-            .paper-table td { border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; padding: 10px 2px; text-align: center; vertical-align: middle; font-weight: 800; font-size: 0.95rem; background: white;}
-            .paper-table td:last-child { border-right: none; }
-            
-            .paper-table th.pt-time, .paper-table td.pt-time-col { background-color: #f8fafc !important; color: #1e293b; }
-            .paper-table th.pt-check, .paper-table td.pt-check { background-color: #e0f2fe !important; color: #0284c7; }
-            .paper-table th.pt-prod, .paper-table td.pt-prod { background-color: #dcfce7 !important; color: #15803d; }
-            .paper-table th.pt-rem, .paper-table td.pt-rem { background-color: #fef3c7 !important; color: #b45309; }
-            
-            .sub-header { font-size: 0.75rem !important; }
-            .total-row td { background-color: #1e293b !important; color: white !important; font-weight: 900 !important; font-size: 0.9rem !important; border-color: #0f172a !important; padding: 10px 2px !important; letter-spacing: -0.5px; }
-            .total-label { text-align: center !important; color: #fde047 !important; }
+            table { width: 100%; border-collapse: collapse; min-width: 600px; }
+            th { background: #f8fafc; padding: 10px; border: 1px solid #e2e8f0; font-size: 0.85rem; }
+            td { padding: 8px; border: 1px solid #e2e8f0; text-align: center; font-weight: 700; background: white; }
 
-            .custom-report { border: 1.5px solid #64748b; border-radius: var(--radius-md); padding: 15px; margin-top: 20px; background: #ffffff; box-shadow: var(--shadow-sm);}
-            .cr-section { margin-bottom: 12px; }
-            .cr-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 1.05rem; border-bottom: 1px dotted #cbd5e1;}
-            .cr-row:last-child { border-bottom: none; }
-            .cr-label { font-weight: 600; color: #334155; }
-            .cr-val { font-weight: 900; color: #0f172a; text-align: right; }
-            .cr-header { font-weight: 900; color: #1e293b; margin-bottom: 6px; font-size: 1.15rem; border-bottom: 2px solid #cbd5e1; padding-bottom: 4px; }
+            .sack-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+            .sack-item { background: #f8fafc; padding: 10px; border-radius: 10px; text-align: center; border: 1px solid #e2e8f0; }
+            .sack-item span { font-size: 0.75rem; color: var(--text-muted); font-weight: bold; }
+            .sack-val { font-size: 1.1rem; font-weight: 900; margin-top: 4px; }
 
-            .truck-matrix-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 5px; border-radius: 12px; overflow: hidden; border: 1px solid #cbd5e1; }
-            .truck-matrix-table th { background: #e2e8f0; color: #334155; padding: 10px 6px; font-weight: 800; border-bottom: 1px solid #cbd5e1; font-size: 0.9rem; }
-            .truck-matrix-table td { border-bottom: 1px solid #e2e8f0; padding: 8px 4px; text-align: center; vertical-align: middle; background: white; }
-            .truck-name-col { text-align: left; padding-left: 15px !important; font-weight: 900; color: var(--text-dark); font-size: 0.95rem; }
-            .st-pill { display: inline-block; padding: 4px 10px; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 800; min-width: 60px; box-shadow: var(--shadow-sm); }
-            .st-over { background: #e0f2fe; color: #0284c7; } .st-miss { background: #fee2e2; color: #dc2626; } .st-ok { background: #dcfce7; color: #16a34a; } .st-none { color: #cbd5e1; font-weight: 400; font-size: 1.2rem; }
-            
-            .truck-detail-block { background: white; border-radius: var(--radius-md); padding: 20px; margin-bottom: 20px; border: 1px solid #e2e8f0; box-shadow: var(--shadow-md); }
-            .truck-detail-header { font-weight: 900; color: var(--text-dark); border-bottom: 2px dashed #e2e8f0; padding-bottom: 12px; margin-bottom: 15px; font-size: 1.2rem; display: flex; justify-content: space-between; align-items: center; }
-            .detail-table { width: 100%; border-collapse: separate; border-spacing: 0 5px; margin-top: 10px; }
-            .detail-table th { background: transparent; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; padding-bottom: 5px; border: none; font-weight:800; }
-            .detail-table td { background: #f8fafc; padding: 12px 8px; border: none; text-align: center; font-weight: 700; color: var(--text-dark); }
-            .detail-table tr td:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; color: var(--text-muted); font-weight: 900; background:#f1f5f9;}
-            .detail-table tr td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; font-size: 1.1rem;}
-            .dt-stock-val { color: #0369a1; background: #e0f2fe; padding: 4px 10px; border-radius: 6px; border: 1px solid #bae6fd; display:inline-block; min-width: 40px;}
-            .dt-fresh-val { color: #15803d; background: #dcfce7; padding: 4px 10px; border-radius: 6px; border: 1px solid #bbf7d0; display:inline-block; min-width: 40px;}
-            .dt-total-val { color: #ffffff; background: #334155; padding: 4px 12px; border-radius: 6px; font-weight: 900; display:inline-block; min-width: 45px;}
-            .detail-summary-row td { background: transparent !important; border: none; padding-top: 15px; }
-
-            .btn-history, .btn-del-mini, .btn-edit-mini { border: none; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.15s; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
-            .btn-history { background: var(--warning-grad); color: white; padding: 8px 14px; font-size: 0.9rem; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3); border-radius: 20px;}
-            .btn-save-wiz, .btn-stock-manager, .btn-view-history, .btn-downtime, .btn-print, .btn-save-dist { width: 100%; padding: 16px; border: none; border-radius: 14px; font-size: 1.15rem; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.15s; margin-bottom: 12px; color:white;}
-            .btn-save-wiz { background: var(--success-grad); font-size: 1.3rem; margin-top: 15px; box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3); }
-            .btn-stock-manager { background: var(--warning-grad); box-shadow: 0 6px 15px rgba(245, 158, 11, 0.3); }
-            .btn-downtime { background: var(--danger-grad); box-shadow: 0 6px 15px rgba(239, 68, 68, 0.3); }
-            .btn-view-history { background: var(--text-dark); box-shadow: 0 6px 15px rgba(30, 41, 59, 0.3); margin-bottom: 25px; }
-            .btn-print { background: var(--purple-grad); box-shadow: 0 6px 15px rgba(139, 92, 246, 0.3); margin-top:15px; font-size:1.3rem; }
-            .btn-save-dist { background: var(--success-grad); border-radius: 12px; font-size: 1.1rem; margin-top: 15px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
-            .btn-reset { background: #e2e8f0; color: #64748b; border: none; padding: 14px; width: 100%; margin-top: 20px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.15s; }
-            
-            .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-            .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-            .input-label { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 800; text-align: center; text-transform: uppercase; }
-            
+            /* FAB */
             .fab-container { position: fixed; bottom: 30px; right: 20px; z-index: 2000; }
-            .fab-main { width: 65px; height: 65px; border-radius: 50%; background: var(--success-grad); color: white; border: none; font-size: 36px; line-height: 1; font-weight: 300; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.15s; }
+            .fab-main { width: 65px; height: 65px; border-radius: 50%; background: var(--success-grad); color: white; border: none; font-size: 36px; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.15s;}
+            .fab-main:active { transform: scale(0.85); }
             
-            .live-predictor-fab { position: fixed; bottom: 35px; left: 15px; z-index: 2000; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border: 2px solid #e2e8f0; color: var(--text-dark); padding: 10px 16px; border-radius: var(--radius-pill); font-size: 0.85rem; font-weight: 800; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 10px; transition: 0.3s; cursor: pointer;}
-            .lpf-time { font-size: 1.25rem; color: #7c3aed; font-weight: 900; letter-spacing: 0.5px; }
-            .lpf-badge { background: #f3e8ff; color: #6d28d9; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 900; }
-            .lpf-badge.overdue { background: #fee2e2; color: #dc2626; }
-
-            .modal { display: none; position: fixed; z-index: 5000; left: 0; top: 0; width: 100%; height: 100%; overflow: hidden; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px); align-items: center; justify-content: center; }
-            .modal-content { background-color: var(--bg-main); margin: 0; border-radius: var(--radius-lg); width: 92%; max-width: 500px; max-height: 90vh; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; position: relative; overflow:hidden; }
-            .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; background: white; border-bottom: 1px solid #f1f5f9; flex-shrink: 0; }
+            /* Buttons */
+            .btn-action { width: 100%; padding: 16px; border: none; border-radius: 14px; font-weight: 900; color: white; cursor: pointer; margin-bottom: 10px; font-size: 1.1rem; }
+            .btn-downtime { background: var(--danger-grad); }
+            .btn-stock { background: var(--warning-grad); }
+            .btn-print { background: var(--purple-grad); margin-top: 15px; }
+            
+            /* Modal 🛠️ เพิ่ม Z-index เผื่อซ้อนกัน */
+            .modal { display: none; position: fixed; z-index: 5000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px); align-items: center; justify-content: center; }
+            #downtime_modal { z-index: 5050; } /* บังคับให้อยู่หน้าสุดเสมอ */
+            
+            .modal-content { background-color: white; border-radius: var(--radius-lg); width: 92%; max-width: 500px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; }
+            .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #f1f5f9; }
             .modal-title { font-size: 1.3rem; font-weight: 900; color: var(--text-dark); }
-            .btn-close-modal { background: #f1f5f9; color: #64748b; border: none; font-size: 1.5rem; font-weight: bold; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; transition:0.2s;}
+            .btn-close-modal { background: #f1f5f9; color: #64748b; border: none; font-size: 1.5rem; font-weight: bold; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; }
             .modal-body { overflow-y: auto; padding: 20px; flex-grow: 1; }
 
             .history-list-wrapper { background: white; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: var(--shadow-sm); }
             .hist-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background 0.2s; }
-            .hist-item:last-child { border-bottom: none; }
-            .hist-info-left { display: flex; flex-direction: column; gap: 4px; }
             .hist-time { font-size: 1.3rem; font-weight: 900; color: var(--text-dark); display: flex; align-items: center; gap: 8px; }
             .hist-yield { font-size: 0.9rem; color: var(--text-muted); font-weight: 600; }
-            .hist-yield span { color: var(--primary); font-weight: 900; font-size: 1.05rem; }
-            .hist-arrow { color: #cbd5e1; font-weight: 900; font-size: 1.5rem; }
-
-            #print_area { display: none; }
         }
 
-        /* --- 🔥 V205: PDF PERFECT PRINT & 2-ROW DOWNTIME 🔥 --- */
+        /* --- 🖨️ PDF PRINT DESIGN --- */
         @media print {
-            @page { size: A4 portrait; margin: 8mm; } 
-            body { background: white !important; color: black !important; font-family: 'Sarabun', sans-serif; font-size: 10pt !important; padding: 0 !important; margin: 0 !important; }
-            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            
+            @page { size: A4 portrait; margin: 8mm; }
             body > *:not(#print_area) { display: none !important; }
-            #print_area { display: block !important; width: 100%; position: static; margin: 0 auto; }
-            
-            .print-page { 
-                page-break-after: always; 
-                width: 100%; 
-                position: relative;
-            }
+            #print_area { display: block !important; width: 100%; }
+            .print-page { page-break-after: always; display: block; overflow: hidden; }
             .print-page:last-child { page-break-after: auto; }
-
-            .print-header { text-align: center; font-weight: 900; font-size: 11pt; margin-bottom: 6px; line-height: 1.2; }
-            .print-header .date-text { font-size: 10pt; font-weight: 600; color: #333; }
             
-            .print-wrapper { width: 100%; display: block; overflow: hidden; }
+            .print-header { text-align: center; font-weight: 900; margin-bottom: 10px; }
+            .print-wrapper { width: 100%; display: block; clear: both; }
             .print-left { float: left; width: 73%; }
-            
-            .print-right { float: right; width: 26.5%; border: 1px solid #475569; border-radius: 4px; padding: 10px 12px; box-sizing: border-box; background: white; }
+            .print-right { float: right; width: 26.5%; border: 1px solid black; border-radius: 4px; padding: 6px; box-sizing: border-box; }
             
             .print-table { width: 100%; border-collapse: collapse; border: 1.5px solid black; table-layout: fixed; }
-            .print-table th, .print-table td { border: 1px solid black; text-align: center; font-weight: 600; }
-            .print-table th { padding: 4px 1px; font-size: 8pt; font-weight: 800;}
-            .print-table td { height: 19px; font-size: 8.5pt; padding: 1px; line-height: 1; }
-            
-            .print-table td:nth-child(4), .print-table td:nth-child(5) { background-color: #e0f2fe !important; color: #0284c7 !important; }
-            .print-table td:nth-child(6), .print-table td:nth-child(7), .print-table td:nth-child(8) { background-color: #dcfce7 !important; color: #15803d !important; }
-            .print-table td:nth-child(9), .print-table td:nth-child(10) { background-color: #fef3c7 !important; color: #b45309 !important; }
+            .print-table td, .print-table th { border: 1px solid black; text-align: center; padding: 2px; font-size: 8.5pt; height: 19px; }
+            .print-footer td { background-color: #e2e8f0 !important; font-weight: 900; border-top: 1.5px solid black; }
 
-            .print-footer td { border-top: 1.5px solid black; font-weight: 900; background-color: #e2e8f0 !important; padding: 3px 1px; color: black !important;}
+            .s-title { font-weight: 900; border-bottom: 1px solid black; margin-top: 5px; font-size: 9.5pt; color: #1e293b; }
+            .s-line { display: flex; justify-content: space-between; border-bottom: 1px dotted #ccc; padding: 1px 0; font-size: 8pt; }
+            .s-val { font-weight: 900; }
             
-            .s-title { margin-top: 8px; margin-bottom: 4px; font-weight: 900; border-bottom: 1px solid #475569; padding-bottom: 2px; font-size: 9.5pt; color: #1e293b;}
-            .s-title:first-child { margin-top: 0; }
-            .s-line { display: flex; justify-content: space-between; margin-bottom: 2px; border-bottom: 1px dotted #cbd5e1; padding-bottom: 2px; font-size: 8.5pt;}
-            .s-val { font-weight: 900; text-align: right; color: #0f172a;}
-            .s-label { color: #475569; font-weight: 600; }
-            
-            .sign-box { margin-top: 15px; padding-top: 5px; } 
-            .sign-line { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 20px; font-size: 8.5pt; font-weight: bold;} 
-            .sign-dots { flex-grow: 1; border-bottom: 1px dotted #64748b; margin: 0 6px; position: relative; top: -3px; }
+            .sign-box { margin-top: 20px; font-size: 8.5pt; }
+            .sign-line { display: flex; justify-content: space-between; margin-top: 15px; font-weight: bold; }
         }
     </style>
 </head>
@@ -221,161 +119,55 @@
     </div>
 
     <div class="nav-bar">
-        <button class="nav-btn active" onclick="switchPage('setup')">1. ตั้งค่า</button>
-        <button class="nav-btn" onclick="switchPage('production')">2. ผลิต/จ่าย</button>
-        <button class="nav-btn" onclick="switchPage('summary')">3. สรุปยอด</button>
+        <button class="nav-btn active" id="btn-setup" onclick="switchPage('setup')">1. ตั้งค่า</button>
+        <button class="nav-btn" id="btn-prod" onclick="switchPage('production')">2. ผลิต/จ่าย</button>
+        <button class="nav-btn" id="btn-sum" onclick="switchPage('summary')">3. สรุปยอด</button>
     </div>
 
     <div id="page-setup" class="page active">
-        <div class="modern-card card-body">
-            <h3>⚙️ ตั้งค่าประจำวัน</h3>
-            <div class="input-label" style="text-align:left;">วันที่เปิดบิล</div>
+        <div class="modern-card">
+            <h3 style="margin-top:0">⚙️ ตั้งค่าประจำวัน</h3>
             <input type="date" id="setup_date" onchange="changeDate()">
-            <div class="grid-2" style="margin-top:15px;">
-                <div><div class="input-label">🟢 เวลาเปิด</div><input type="time" id="time_start" value="22:00" onchange="saveData()"></div>
-                <div><div class="input-label">🔴 เวลาปิด (คำนวณอัตโนมัติ)</div><input type="time" id="time_stop" value="06:00" disabled style="background:#e2e8f0;"></div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:15px;">
+                <div><label style="font-size:0.7rem; font-weight:bold">🟢 เวลาเปิด</label>
+                <input type="time" id="time_start" value="22:00" onblur="saveData(); calcAll(); renderDrops();"></div>
+                <div><label style="font-size:0.7rem; font-weight:bold">🔴 เวลาปิด (Auto)</label><input type="time" id="time_stop" disabled style="background:#e2e8f0"></div>
             </div>
         </div>
-        <div class="modern-card card-body">
-            <h3>📦 สต็อกยกมา (เริ่มวันให้เป็น 0 เสมอ)</h3>
-            <div class="grid-3">
-                <div><div class="input-label">หลอด</div><input type="tel" id="init_hl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateStock()"></div>
-                <div><div class="input-label">หยาบ</div><input type="tel" id="init_bh" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateStock()"></div>
-                <div><div class="input-label">ละเอียด</div><input type="tel" id="init_bl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateStock()"></div>
+        <div class="modern-card">
+            <h3 style="margin-top:0">📦 สต็อกยกมา</h3>
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+                <input type="tel" id="init_hl" value="0" oninput="updateStock()">
+                <input type="tel" id="init_bh" value="0" oninput="updateStock()">
+                <input type="tel" id="init_bl" value="0" oninput="updateStock()">
             </div>
         </div>
-        <div class="modern-card card-body">
-            <h3>🚚 สั่งซื้อ (Master Order)</h3>
-            <div id="order_inputs" style="overflow-x:auto;"></div>
+        <div class="modern-card">
+            <h3 style="margin-top:0">🚚 สั่งซื้อ (Master Order)</h3>
+            <div id="order_inputs" class="table-responsive"></div>
         </div>
-        <button class="btn-reset" onclick="if(confirm('ระบบจะล้างข้อมูลของวันนี้ทั้งหมด ยืนยันหรือไม่?')){localStorage.clear(); localStorage.removeItem('LAST_DATE'); location.reload();}">🗑️ รีเซ็ตข้อมูล (เริ่มใหม่ทั้งหมด)</button>
-        <div style="height:50px;"></div>
+        <button class="btn-action" style="background:#64748b" onclick="if(confirm('ล้างข้อมูลทั้งหมด?')){localStorage.clear(); location.reload();}">🗑️ รีเซ็ตข้อมูล</button>
     </div>
 
     <div id="page-production" class="page">
-        <button class="btn-downtime" onclick="openDowntimeModal()">⚡ บันทึกไฟดับ / พักเครื่อง</button>
-        <div class="grid-2">
-            <button class="btn-stock-manager" style="margin-bottom:20px; font-size:1rem;" onclick="openStockManager()">📦 จ่ายของเก่า</button>
-            <button class="btn-view-history" style="margin-bottom:20px; font-size:1rem;" onclick="openFullHistory()">🕒 ประวัติย้อนหลัง</button>
+        <button class="btn-action btn-downtime" onclick="openDowntimeModal()">⚡ บันทึกไฟดับ / พักเครื่อง</button>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
+            <button class="btn-action" style="background:#d97706; font-size:1rem;" onclick="alert('ระบบจ่ายของเก่ากำลังพัฒนาเพิ่มเติมครับ')">📦 จ่ายของเก่า</button>
+            <button class="btn-action" style="background:#1e293b; font-size:1rem;" onclick="openFullHistory()">🕒 ประวัติย้อนหลัง</button>
         </div>
         <div id="drops_list"></div>
-        <div style="height: 120px;"></div>
     </div>
-    
-    <div class="live-predictor-fab" id="live_predictor_fab" onclick="switchPage('summary')">
-        <div style="display:flex; flex-direction:column; align-items:flex-start; justify-content:center;">
-            <span style="font-size:0.65rem; color:#64748b; text-transform:uppercase;">รอบถัดไป</span>
-            <span class="lpf-time" id="pred_time">--:--</span>
-        </div>
-        <span class="lpf-badge" id="pred_countdown">--</span>
-    </div>
-    <div class="fab-container"><button class="fab-main" onclick="addDrop('prod')">+</button></div>
 
     <div id="page-summary" class="page">
-        <div class="modern-card card-body" style="border:2px solid var(--primary);">
-            <h3 style="color:var(--primary);">📑 ข้อมูลออกรายงาน (PDF Form)</h3>
-            <div class="grid-2" style="margin-bottom:10px;">
-                <div><div class="input-label">สาขา</div><input type="text" id="rpt_branch" value="วาริเทพเพ็ญ (W041)" oninput="saveData()"></div>
-                <div><div class="input-label">เครื่องที่</div><input type="text" id="rpt_machine" value="M1" oninput="saveData()"></div>
+        <div class="modern-card" style="border:2px solid var(--primary);">
+            <h3 style="margin-top:0; color:var(--primary);">📑 ข้อมูลรายงาน</h3>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <input type="text" id="rpt_ph" placeholder="pH" oninput="saveData()">
+                <input type="text" id="rpt_tds" placeholder="TDS" oninput="saveData()">
             </div>
-            <div class="grid-2" style="margin-bottom:10px;">
-                <div><div class="input-label">ค่า pH</div><input type="text" id="rpt_ph" value="7.1" oninput="saveData()"></div>
-                <div><div class="input-label">ค่า TDS</div><input type="text" id="rpt_tds" value="172" oninput="saveData()"></div>
-            </div>
-            <div class="grid-2">
-                <div><div class="input-label">พนักงานผลิต (คน)</div><input type="number" id="rpt_staff_prod" value="4" oninput="saveData()"></div>
-                <div><div class="input-label">วิศวกรรม (คน)</div><input type="number" id="rpt_staff_eng" value="1" oninput="saveData()"></div>
-            </div>
-            <button class="btn-print" onclick="printReport()">🖨️ สร้างไฟล์ PDF</button>
-        </div>
-
-        <div class="modern-card card-body">
-             <h3>📊 สรุปสถานะรายคัน (ขาด/เกิน)</h3>
-             <div id="truck_report_container" style="overflow-x:auto;"></div>
-        </div>
-
-        <div class="modern-card card-body">
-            <h3>📝 บันทึกการผลิต (ตารางลงงาน)</h3>
-            <div class="table-responsive">
-                <table class="paper-table" id="prod_paper_table">
-                    <thead>
-                        <tr>
-                            <th rowspan="2" class="pt-time" style="width:6%;">ลำดับ</th>
-                            <th class="pt-time" style="width:14%;" id="prod_header_label_time">เวลา</th>
-                            <th rowspan="2" class="pt-time" style="width:8%;">นาที/<br>ตก</th>
-                            <th colspan="2" class="pt-check" style="width:20%">เบิกกระสอบ</th>
-                            <th colspan="3" class="pt-prod" style="width:30%">ผลการผลิต</th>
-                            <th colspan="2" class="pt-rem" style="width:22%">กระสอบคงเหลือ</th>
-                        </tr>
-                        <tr>
-                            <th id="header_start_time_simple" class="pt-time sub-header" style="color:#ea580c; font-weight:900; background:#f8fafc !important; padding:2px;">22:00</th>
-                            <th class="pt-check sub-header" style="font-weight:700;">หลอด</th>
-                            <th class="pt-check sub-header" style="font-weight:700;">บด</th>
-                            <th class="pt-prod sub-header" style="font-weight:700; font-size:0.75rem;">หลอดใหญ่</th>
-                            <th class="pt-prod sub-header" style="font-weight:700; font-size:0.75rem;">บดหยาบ</th>
-                            <th class="pt-prod sub-header" style="font-weight:700; font-size:0.75rem;">ละเอียด</th>
-                            <th class="pt-rem sub-header" style="font-weight:700;">หลอด</th>
-                            <th class="pt-rem sub-header" style="font-weight:700;">บด</th>
-                        </tr>
-                    </thead>
-                    <tbody id="prod_log_body"></tbody>
-                </table>
-            </div>
-
-            <div class="custom-report">
-                <div class="cr-section">
-                    <div class="cr-header">ข้อมูลสรุป</div>
-                    <div class="cr-row"><span class="cr-label">หลอดใหญ่</span> <span class="cr-val"><span id="rpt_hl">0</span> กระสอบ</span></div>
-                    <div class="cr-row"><span class="cr-label">บดหยาบ</span> <span class="cr-val"><span id="rpt_bh">0</span> กระสอบ</span></div>
-                    <div class="cr-row"><span class="cr-label">บดละเอียด</span> <span class="cr-val"><span id="rpt_bl">0</span> กระสอบ</span></div>
-                    <div class="cr-row" style="border-bottom:none;"><span class="cr-label" style="font-weight:800;">รวม</span> <span class="cr-val" style="font-weight:800;"><span id="rpt_total_prod">0</span> กระสอบ</span></div>
-                </div>
-                
-                <div class="cr-section">
-                    <div class="cr-header">น้ำหนักเฉลี่ย</div>
-                    <div class="cr-row"><span class="cr-label">หลอดใหญ่</span> <span class="cr-val">20 กก.</span></div>
-                    <div class="cr-row"><span class="cr-label">บดหยาบ</span> <span class="cr-val">23 กก.</span></div>
-                    <div class="cr-row"><span class="cr-label">บดละเอียด</span> <span class="cr-val">24 กก.</span></div>
-                    <div class="cr-row" style="border-bottom:none;"><span class="cr-label" style="font-weight:800;">รวม</span> <span class="cr-val">22 กก.</span></div>
-                </div>
-
-                <div class="cr-section">
-                    <div class="cr-header">น้ำหนักรวม</div>
-                    <div class="cr-row"><span class="cr-label">หลอดใหญ่</span> <span class="cr-val"><span id="rpt_w_hl">0</span> กก.</span></div>
-                    <div class="cr-row"><span class="cr-label">บดหยาบ</span> <span class="cr-val"><span id="rpt_w_bh">0</span> กก.</span></div>
-                    <div class="cr-row"><span class="cr-label">บดละเอียด</span> <span class="cr-val"><span id="rpt_w_bl">0</span> กก.</span></div>
-                    <div class="cr-row" style="border-bottom:none;"><span class="cr-label" style="font-weight:800;">รวม</span> <span class="cr-val" style="font-weight:800;"><span id="rpt_total_weight">0</span> กก.</span></div>
-                </div>
-
-                <div class="cr-section">
-                    <div class="cr-header">สถิติการผลิต</div>
-                    <div class="cr-row"><span class="cr-label">เวลาเฉลี่ย</span> <span class="cr-val"><span id="rpt_avg_time">0</span> นาที/ตก</span></div>
-                    <div class="cr-row"><span class="cr-label">น้ำหนัก</span> <span class="cr-val"><span id="rpt_tons_day">0</span> ตัน/วัน</span></div>
-                    <div class="cr-row"><span class="cr-label">จำนวนเฉลี่ย</span> <span class="cr-val"><span id="rpt_avg_yield">0</span> ใบ/ตก</span></div>
-                </div>
-
-                <div class="cr-section">
-                    <div class="cr-header">สรุปกระสอบ</div>
-                    <div class="cr-row"><span class="cr-label">เบิกกระสอบรวม</span> <span class="cr-val"><span id="rpt_sack_withdraw">0</span> ใบ</span></div>
-                    <div class="cr-row"><span class="cr-label">กระสอบที่ใช้</span> <span class="cr-val"><span id="rpt_sack_used">0</span> ใบ</span></div>
-                    <div class="cr-row" style="border-bottom:none;"><span class="cr-label" style="font-weight:800;">คงเหลือจริง</span> <span class="cr-val" style="font-weight:800;"><span id="rpt_rem_total_all">0</span> ใบ</span></div>
-                </div>
-
-                <div class="cr-section">
-                    <div class="cr-header">ข้อมูลอื่นๆ</div>
-                    <div class="cr-row"><span class="cr-label">ค่า pH / TDS</span> <span class="cr-val"><span id="disp_ph">7.1</span> / <span id="disp_tds">172</span></span></div>
-                    <div class="cr-row" style="border-bottom:none;"><span class="cr-label">พนักงานผลิต / วิศวฯ</span> <span class="cr-val"><span id="disp_prod_staff">4</span> / <span id="disp_eng_staff">1</span> คน</span></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="modern-card card-body">
-             <h3>📋 รายละเอียดการขึ้นของ</h3>
-             <div id="truck_detail_container"></div>
+            <button class="btn-action btn-print" onclick="printReport()">🖨️ สร้างไฟล์ PDF</button>
         </div>
     </div>
-
-    <div id="print_area"></div>
 
     <div id="downtime_modal" class="modal">
         <div class="modal-content">
@@ -384,218 +176,140 @@
                 <button class="btn-close-modal" style="background:white; color:#b91c1c;" onclick="closeDowntimeModal()">×</button>
             </div>
             <div class="modal-body">
-                <div class="grid-2">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
                     <div>
                         <label style="font-weight:900; color:#b91c1c; text-align:center; display:block; margin-bottom:8px;">เวลาที่ดับ</label>
-                        <input type="time" id="dt_start" style="color:#b91c1c; font-weight:900; background:#fecaca; border-color:#fca5a5;">
+                        <input type="time" id="dt_start" style="color:#b91c1c; background:#fecaca; border-color:#fca5a5;">
                     </div>
                     <div>
                         <label style="font-weight:900; color:#15803d; text-align:center; display:block; margin-bottom:8px;">เวลาที่ติด (เปิด)</label>
-                        <input type="time" id="dt_end" style="color:#15803d; font-weight:900; background:#dcfce7; border-color:#86efac;">
+                        <input type="time" id="dt_end" style="color:#15803d; background:#dcfce7; border-color:#86efac;">
                     </div>
                 </div>
-                <div style="display:flex; flex-direction:column; gap:10px; margin-top:25px;">
-                    <button class="btn-save-wiz" style="background:var(--danger-grad); margin-top:0;" onclick="saveDowntime()">💾 บันทึกลงตาราง</button>
-                    <button id="btn_delete_dt" class="btn-reset" style="background:transparent; color:#dc2626; border:2px solid #fca5a5; margin-top:0; display:none;" onclick="deleteDowntime()">🗑️ ลบรายการนี้</button>
-                </div>
-                <div style="height:20px;"></div>
+                <button class="btn-action" style="background:var(--danger-grad); margin-top:20px;" onclick="saveDowntime()">💾 บันทึกลงตาราง</button>
+                <button id="btn_delete_dt" class="btn-action" style="background:transparent; color:#dc2626; border:2px solid #fca5a5; display:none;" onclick="deleteDowntime()">🗑️ ลบรายการนี้</button>
             </div>
         </div>
     </div>
 
-    <div id="dist_modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title" id="wiz_title">🚛 จ่ายเข้ารถ</div>
-                <button class="btn-close-modal" onclick="closeDistModal()">×</button>
-            </div>
-            <div class="modal-body">
-                <div class="wiz-controls">
-                    <div style="flex:1;"><label class="input-label">เลือกคันรถ</label><select id="wiz_truck" class="wiz-select" onchange="updateWizStats()"></select></div>
-                    <div style="flex:1;"><label class="input-label">ประเภท</label><select id="wiz_type" class="wiz-select" onchange="updateWizStats()"></select></div>
-                </div>
-                <div class="wiz-status" style="background:#f0f9ff; border-color:#bae6fd;">
-                    <div class="wiz-status-text" style="color:#0284c7; font-weight:800;">ยอดคงเหลือ (จากเป้า)</div>
-                    <div class="wiz-remain" id="wiz_remain" style="color:#0ea5e9;">0</div>
-                </div>
-                <div class="row-inputs">
-                    <div class="row-group">
-                        <div class="row-label">แถว 1<br><span id="wiz_info_r1" style="font-size:0.75rem; font-weight:600; white-space:nowrap;"></span></div>
-                        <input type="tel" id="wiz_r1" placeholder="0" oninput="updateWizStats()" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'">
-                    </div>
-                    <div class="row-group">
-                        <div class="row-label">แถว 2<br><span id="wiz_info_r2" style="font-size:0.75rem; font-weight:600; white-space:nowrap;"></span></div>
-                        <input type="tel" id="wiz_r2" placeholder="0" oninput="updateWizStats()" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'">
-                    </div>
-                    <div class="row-group">
-                        <div class="row-label">แถว 3<br><span id="wiz_info_r3" style="font-size:0.75rem; font-weight:600; white-space:nowrap;"></span></div>
-                        <input type="tel" id="wiz_r3" placeholder="0" oninput="updateWizStats()" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'">
-                    </div>
-                </div>
-                <button class="btn-save-wiz" onclick="confirmDistSave()">💾 ยืนยันการบันทึก</button>
-                <div style="text-align:center; margin-top:15px; font-weight:800; color:#475569;">รวมที่กรอกรอบนี้: <span id="wiz_total_sum" style="color:var(--primary); font-size:1.2rem;">0</span></div>
-                <div style="height:100px;"></div>
-            </div>
-        </div>
-    </div>
-
-    <div id="stock_manager_modal" class="modal"><div class="modal-content"><div class="modal-header"><div class="modal-title">📦 จ่ายของเก่า (ห้องเย็น)</div><button class="btn-close-modal" onclick="closeStockManager()">×</button></div><div class="modal-body"><button class="btn-save-dist" style="width:100%; margin-top:0; margin-bottom:20px;" onclick="addDrop('stock'); closeStockManager(); openDistModal(DATA.drops[DATA.drops.length-1].id)">+ เพิ่มรายการเบิก</button><div id="stock_list_container"></div><div style="height:50px;"></div></div></div></div>
-    
     <div id="full_history_modal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="height:90vh;">
             <div class="modal-header">
                 <div class="modal-title">🕒 ประวัติย้อนหลัง</div>
                 <button class="btn-close-modal" onclick="closeFullHistory()">×</button>
             </div>
-            <div class="modal-body" style="background:#f8fafc;">
+            <div class="modal-body" style="background:#f8fafc; padding:10px;">
                 <div class="history-list-wrapper" id="full_history_list"></div>
-                <div style="height:50px;"></div>
             </div>
         </div>
     </div>
-    
-    <div id="history_modal" class="modal"><div class="modal-content"><div class="modal-header"><div class="modal-title" id="hist_title">🕒 ประวัติ</div><button class="btn-close-modal" onclick="closeHistoryModal()">×</button></div><div class="modal-body"><div id="history_list"></div><div style="height:50px;"></div></div></div></div>
-    <div id="edit_past_modal" class="modal" style="display:none; align-items:center; justify-content:center;"><div class="modal-content" style="background:transparent; box-shadow:none;"><div class="modal-header" style="border-radius:16px 16px 0 0;"><div class="modal-title">✏️ แก้ไขรายการ</div><button class="btn-close-modal" onclick="closeEditPastModal()">×</button></div><div class="modal-body" id="edit_past_body" style="padding:0;"></div></div></div>
+
+    <div class="fab-container"><button class="fab-main" onclick="addDrop('prod')">+</button></div>
+    <div id="print_area"></div>
 
 <script>
     const TRUCKS = ["รถ 1", "รถ 2", "รถ 3", "รถ 4", "รถ 5", "รถ 6", "รถ 7", "รถ 8", "รถ 9"];
-    const ICE_TYPES = [ { id: 'hl', label: 'หลอด' }, { id: 'bh', label: 'หยาบ' }, { id: 'bl', label: 'ละเอียด' } ];
-    let DATA = getEmptyData();
-    let CURRENT_DROP_ID = null;
-    let EDITING_DIST_IDX = null;
+    let DATA = { times:{start:"22:00"}, initStock:{hl:0, bh:0, bl:0}, reportInfo:{ph:'7.1', tds:'172', branch:'วาริเทพเพ็ญ (W041)', machine:'M1', prodStaff:4, engStaff:1}, orders:{}, drops:[] };
     let EDITING_DOWNTIME_ID = null;
     let SOURCE_MODAL = null;
-    
-    let globalAvgTime = 38;
-    let globalLastEventTime = null;
-    window.REPORT_DATA = {};
 
     document.addEventListener('DOMContentLoaded', () => {
         const today = new Date().toISOString().split('T')[0];
         const savedDate = localStorage.getItem('LAST_DATE') || today;
         document.getElementById('setup_date').value = savedDate;
         loadData(savedDate);
-        initWizard();
         renderOrderInputs();
         renderDrops();
-        setTimeout(() => { calcAll(); }, 50); 
-        
-        setInterval(updatePredictor, 60000); 
+        calcAll();
     });
 
-    function getEmptyData() { return { times: { start: "22:00", stop: "06:00" }, initStock: { hl:0, bh:0, bl:0 }, reportInfo: { branch: 'วาริเทพเพ็ญ (W041)', machine: 'M1', ph: '7.1', tds: '172', prodStaff: 4, engStaff: 1 }, orders: {}, drops: [] }; }
-    
+    function getNum(v) { return parseFloat(v) || 0; }
+
     function saveData() { 
-        const dateKey = document.getElementById('setup_date').value;
-        localStorage.setItem('LAST_DATE', dateKey); 
+        const key = document.getElementById('setup_date').value;
+        localStorage.setItem('LAST_DATE', key);
         DATA.times.start = document.getElementById('time_start').value;
-        DATA.initStock = { hl: getNum(document.getElementById('init_hl').value), bh: getNum(document.getElementById('init_bh').value), bl: getNum(document.getElementById('init_bl').value) };
-        
-        if(!DATA.reportInfo) DATA.reportInfo = { branch: 'วาริเทพเพ็ญ (W041)', machine: 'M1', ph: '', tds: '', prodStaff: 0, engStaff: 0 };
-        if(document.getElementById('rpt_branch')) {
-            DATA.reportInfo.branch = document.getElementById('rpt_branch').value;
-            DATA.reportInfo.machine = document.getElementById('rpt_machine').value;
-            DATA.reportInfo.ph = document.getElementById('rpt_ph').value;
-            DATA.reportInfo.tds = document.getElementById('rpt_tds').value;
-            DATA.reportInfo.prodStaff = getNum(document.getElementById('rpt_staff_prod').value);
-            DATA.reportInfo.engStaff = getNum(document.getElementById('rpt_staff_eng').value);
-        }
-
-        localStorage.setItem(`ICE_DATA_${dateKey}`, JSON.stringify(DATA)); 
+        DATA.reportInfo.ph = document.getElementById('rpt_ph').value;
+        DATA.reportInfo.tds = document.getElementById('rpt_tds').value;
+        DATA.initStock = { hl:getNum(document.getElementById('init_hl').value), bh:getNum(document.getElementById('init_bh').value), bl:getNum(document.getElementById('init_bl').value) };
+        localStorage.setItem(`ICE_DATA_${key}`, JSON.stringify(DATA)); 
     }
-    
-    function loadData(dateKey) {
-        const d = localStorage.getItem(`ICE_DATA_${dateKey}`);
-        let isNewDay = false;
 
-        if(d) { 
-            try { 
-                DATA = JSON.parse(d); 
-                if(!DATA.drops) DATA.drops = []; 
-                if(!DATA.orders) DATA.orders = {}; 
-                if(!DATA.reportInfo) DATA.reportInfo = { branch: 'วาริเทพเพ็ญ (W041)', machine: 'M1', ph: '7.1', tds: '172', prodStaff: 4, engStaff: 1 };
-                if(!DATA.initStock) DATA.initStock = {hl:0, bh:0, bl:0};
-                
-                DATA.drops.forEach(drop => {
-                   if(!drop.p_in_room) drop.p_in_room = {hl:0,bh:0,bl:0};
-                   if(drop.dist) drop.dist.forEach(i => i.total = getNum(i.r1)+getNum(i.r2)+getNum(i.r3));
-                   if(drop.type === 'downtime' && !drop.time_end) drop.time_end = drop.time; 
-                });
-            } catch(e) { 
-                DATA = getEmptyData(); 
-                isNewDay = true;
-            } 
-        } else { 
-            DATA = getEmptyData(); 
-            isNewDay = true;
-        }
-
-        if (isNewDay) {
-            let parts = dateKey.split('-');
-            let checkDate = new Date(parts[0], parts[1]-1, parts[2]);
-
-            for (let i = 1; i <= 7; i++) {
-                checkDate.setDate(checkDate.getDate() - 1);
-                let pastKey = checkDate.getFullYear() + '-' + String(checkDate.getMonth()+1).padStart(2,'0') + '-' + String(checkDate.getDate()).padStart(2,'0');
-                let pastDStr = localStorage.getItem(`ICE_DATA_${pastKey}`);
-                if (pastDStr) {
-                    try {
-                        let pastD = JSON.parse(pastDStr);
-                        if (pastD && pastD.orders && Object.keys(pastD.orders).some(k => getNum(pastD.orders[k]) > 0)) {
-                            DATA.orders = JSON.parse(JSON.stringify(pastD.orders));
-                            DATA.initStock = { hl: 0, bh: 0, bl: 0 };
-                            break;
-                        }
-                    } catch(e) {}
-                }
-            }
-        }
-
-        document.getElementById('time_start').value = DATA.times.start || "22:00";
+    function loadData(key) {
+        const d = localStorage.getItem(`ICE_DATA_${key}`);
+        if(d) DATA = JSON.parse(d);
+        document.getElementById('rpt_ph').value = DATA.reportInfo.ph || '7.1';
+        document.getElementById('rpt_tds').value = DATA.reportInfo.tds || '172';
+        document.getElementById('time_start').value = DATA.times.start || '22:00';
         document.getElementById('init_hl').value = DATA.initStock.hl || 0;
         document.getElementById('init_bh').value = DATA.initStock.bh || 0;
         document.getElementById('init_bl').value = DATA.initStock.bl || 0;
-        
-        if(document.getElementById('rpt_branch')) {
-            document.getElementById('rpt_branch').value = DATA.reportInfo.branch || 'วาริเทพเพ็ญ (W041)';
-            document.getElementById('rpt_machine').value = DATA.reportInfo.machine || 'M1';
-            document.getElementById('rpt_ph').value = DATA.reportInfo.ph || '7.1';
-            document.getElementById('rpt_tds').value = DATA.reportInfo.tds || '172';
-            document.getElementById('rpt_staff_prod').value = DATA.reportInfo.prodStaff || 4;
-            document.getElementById('rpt_staff_eng').value = DATA.reportInfo.engStaff || 1;
-        }
-
-        if(document.getElementById('header_start_time_simple')) {
-            document.getElementById('header_start_time_simple').innerText = (DATA.times.start || "22:00") + ' น.';
-        }
     }
 
-    function changeDate() { const newDate = document.getElementById('setup_date').value; loadData(newDate); saveData(); calcAll(); renderOrderInputs(); renderDrops(); }
-    function getNum(val) { return parseFloat(val) || 0; }
+    function changeDate() { loadData(document.getElementById('setup_date').value); renderOrderInputs(); renderDrops(); calcAll(); }
     function updateStock() { saveData(); calcAll(); }
 
-    function addDrop(type) {
-        setTimeout(() => {
-            const now = new Date();
-            const timeStr = now.toTimeString().substring(0, 5);
-            if(type === 'downtime') {
-                DATA.drops.push({ id: Date.now(), type: type, time: timeStr, time_end: timeStr });
-            } else {
-                DATA.drops.push({ id: Date.now(), type: type, time: timeStr, sackWithdraw: 0, p_in_room: { hl:0, bh:0, bl:0 }, dist: [] });
-            }
-            saveData(); 
-            calcAll(); 
-            renderDrops(); 
-            
-            if(type === 'prod' || type === 'downtime') {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            } else {
-                openStockManager();
-            }
-        }, 10);
+    function updateOrderValue(tid, type, val) {
+        DATA.orders[`${tid}_${type}`] = getNum(val);
+        saveData();
+        const rowSum = getNum(DATA.orders[`${tid}_hl`]) + getNum(DATA.orders[`${tid}_bh`]) + getNum(DATA.orders[`${tid}_bl`]);
+        document.getElementById(`sum_${tid}`).innerText = rowSum;
+        
+        let tHL=0, tBH=0, tBL=0;
+        TRUCKS.forEach((_, i) => {
+            const id = `t${i+1}`;
+            tHL += getNum(DATA.orders[`${id}_hl`]);
+            tBH += getNum(DATA.orders[`${id}_bh`]);
+            tBL += getNum(DATA.orders[`${id}_bl`]);
+        });
+        document.getElementById('f_hl').innerText = tHL;
+        document.getElementById('f_bh').innerText = tBH;
+        document.getElementById('f_bl').innerText = tBL;
+        document.getElementById('f_total').innerText = tHL + tBH + tBL;
     }
-    
-    function deleteDrop(id) { if(confirm("ระบบจะลบข้อมูลนี้ทิ้ง ยืนยันหรือไม่?")) { DATA.drops = DATA.drops.filter(d => d.id !== id); saveData(); calcAll(); renderDrops(); if(document.getElementById('stock_manager_modal').style.display === 'flex') openStockManager(); } }
+
+    function renderOrderInputs() {
+        const c = document.getElementById('order_inputs');
+        let h = '<table><thead><tr><th>รถ</th><th>หลอด</th><th>หยาบ</th><th>ละเอียด</th><th>รวม</th></tr></thead><tbody>';
+        let tHL=0, tBH=0, tBL=0;
+        TRUCKS.forEach((t, i) => {
+            const id = `t${i+1}`;
+            const v1 = DATA.orders[`${id}_hl`]||0, v2 = DATA.orders[`${id}_bh`]||0, v3 = DATA.orders[`${id}_bl`]||0;
+            const sum = v1+v2+v3; tHL+=v1; tBH+=v2; tBL+=v3;
+            h += `<tr><td>${t}</td>
+                <td><input type="tel" value="${v1}" oninput="updateOrderValue('${id}','hl',this.value)"></td>
+                <td><input type="tel" value="${v2}" oninput="updateOrderValue('${id}','bh',this.value)"></td>
+                <td><input type="tel" value="${v3}" oninput="updateOrderValue('${id}','bl',this.value)"></td>
+                <td id="sum_${id}" style="color:var(--primary); font-weight:900;">${sum}</td></tr>`;
+        });
+        h += `<tr style="background:#1e293b; color:white"><td style="background:#1e293b">รวม</td><td id="f_hl">${tHL}</td><td id="f_bh">${tBH}</td><td id="f_bl">${tBL}</td><td id="f_total">${tHL+tBH+tBL}</td></tr></tbody></table>`;
+        c.innerHTML = h;
+    }
+
+    /* 🛠️ MODAL LOGIC (DOWNTIME vs HISTORY FIX) */
+    function openFullHistory() {
+        const c = document.getElementById('full_history_list'); c.innerHTML = '';
+        const startT = document.getElementById('time_start').value;
+        const sorted = DATA.drops.slice().sort((a,b) => getAdjustedMinutes(b.time, startT) - getAdjustedMinutes(a.time, startT));
+        
+        sorted.forEach(d => {
+            if(d.type === 'prod') {
+                const sumP = getNum(d.p_in_room.hl) + getNum(d.p_in_room.bh) + getNum(d.p_in_room.bl);
+                c.insertAdjacentHTML('beforeend', `<div class="hist-item" style="border-bottom:1px solid #f1f5f9;">
+                    <div style="flex:1"><div class="hist-time">${d.time}</div><div class="hist-yield">ยอดผลิตรวม: <b style="color:var(--primary)">${sumP}</b> กระสอบ</div></div>
+                </div>`);
+            } else {
+                let diff = getMinDiff(d.time, d.time_end || d.time);
+                c.insertAdjacentHTML('beforeend', `<div class="hist-item" style="background:#fef2f2; border-bottom:1px solid #fecaca; cursor:pointer;" onclick="openDowntimeModal(${d.id})">
+                    <div style="flex:1"><div class="hist-time" style="color:#dc2626;">${d.time} - ${d.time_end||d.time}</div><div class="hist-yield" style="color:#ef4444;">หยุดเครื่อง/ไฟดับ (พัก ${diff} น.)</div></div>
+                    <div style="font-size:1.5rem; color:#fca5a5;">›</div>
+                </div>`);
+            }
+        });
+        document.getElementById('full_history_modal').style.display = 'flex';
+    }
+
+    function closeFullHistory() { document.getElementById('full_history_modal').style.display = 'none'; renderDrops(); calcAll(); }
 
     function openDowntimeModal(id = null) {
         EDITING_DOWNTIME_ID = id;
@@ -604,20 +318,16 @@
             document.getElementById('dt_start').value = d.time;
             document.getElementById('dt_end').value = d.time_end || d.time;
         } else {
-            const now = new Date();
-            const timeStr = now.toTimeString().substring(0, 5);
+            const timeStr = new Date().toTimeString().substring(0, 5);
             document.getElementById('dt_start').value = timeStr;
             document.getElementById('dt_end').value = timeStr;
         }
         
         document.getElementById('btn_delete_dt').style.display = id ? 'block' : 'none';
 
-        if(document.getElementById('edit_past_modal').style.display === 'flex') {
-            document.getElementById('edit_past_modal').style.display = 'none';
-            SOURCE_MODAL = 'edit_past';
-        } else if (document.getElementById('history_modal').style.display === 'flex') {
-            document.getElementById('history_modal').style.display = 'none';
-            SOURCE_MODAL = 'history';
+        // 🛠️ ไม่ซ่อนประวัติ แต่เปิดทับด้านหน้าไปเลยด้วย z-index
+        if (document.getElementById('full_history_modal').style.display === 'flex') {
+            SOURCE_MODAL = 'full_history';
         } else {
             SOURCE_MODAL = null;
         }
@@ -626,848 +336,256 @@
 
     function closeDowntimeModal() {
         document.getElementById('downtime_modal').style.display = 'none';
-        if(SOURCE_MODAL === 'edit_past') openFullHistory();
-        else if(SOURCE_MODAL === 'history') document.getElementById('history_modal').style.display = 'flex';
+        if(SOURCE_MODAL === 'full_history') {
+            openFullHistory(); // โหลดข้อมูลประวัติใหม่เผื่อมีการแก้เวลา
+        }
     }
 
     function saveDowntime() {
-        const tStart = document.getElementById('dt_start').value;
-        const tEnd = document.getElementById('dt_end').value;
+        const tStart = document.getElementById('dt_start').value, tEnd = document.getElementById('dt_end').value;
         if(EDITING_DOWNTIME_ID) {
             const d = DATA.drops.find(x => x.id === EDITING_DOWNTIME_ID);
             if(d) { d.time = tStart; d.time_end = tEnd; }
         } else {
             DATA.drops.push({ id: Date.now(), type: 'downtime', time: tStart, time_end: tEnd });
         }
-        saveData();
-        calcAll();
-        closeDowntimeModal();
-        renderDrops();
+        saveData(); calcAll(); closeDowntimeModal(); renderDrops();
     }
 
     function deleteDowntime() {
         if(confirm('ลบรายการไฟดับนี้?')) {
             DATA.drops = DATA.drops.filter(x => x.id !== EDITING_DOWNTIME_ID);
-            saveData();
-            calcAll();
-            closeDowntimeModal();
-            renderDrops();
+            saveData(); calcAll(); closeDowntimeModal(); renderDrops();
         }
     }
-    
-    function getAdjustedMinutes(timeStr, startStr) { 
-        if(!timeStr || !startStr) return 0; 
-        let [h, m] = timeStr.split(':').map(Number); 
-        let [sh, sm] = startStr.split(':').map(Number); 
-        let mins = h * 60 + m; 
-        let sMins = sh * 60 + sm; 
-        if (mins < sMins) mins += 1440; 
-        return mins; 
+
+    function updateDropVal(id, sub, val) {
+        const d = DATA.drops.find(x => x.id === id); if(!d) return;
+        d.p_in_room[sub] = getNum(val); saveData();
+        
+        let hlP = d.p_in_room.hl, bhP = d.p_in_room.bh, blP = d.p_in_room.bl;
+        const wHL = Math.ceil(hlP/40)*40, wBOD = Math.ceil((bhP+blP)/40)*40;
+        
+        document.getElementById(`w_${id}`).innerText = `${wHL} / ${wBOD}`;
+        document.getElementById(`u_${id}`).innerText = `${hlP} / ${bhP+blP}`;
+        document.getElementById(`r_${id}`).innerHTML = `<div style="color:#15803d">หลอด:${wHL-hlP}</div><div style="color:#7c3aed">บด:${wBOD-(bhP+blP)}</div>`;
+        calcAll();
     }
 
+    // 🛠️ ฟังก์ชันแก้บั๊กเวลาพับหนี : ทำงานตอนเลิกพิมพ์หรือจิ้มด้านนอก (onblur)
+    function updateTimeBlur(id, newTime) {
+        const d = DATA.drops.find(x => x.id === id);
+        if(!d) return;
+        if (d.time !== newTime) {
+            d.time = newTime;
+            saveData();
+            calcAll();
+            renderDrops(); // รีเรนเดอร์จัดเรียงใหม่หลังจากเลิกเลื่อนเวลาแล้วเท่านั้น!
+        }
+    }
+
+    function addDrop(type) {
+        const time = new Date().toTimeString().substring(0,5);
+        DATA.drops.push({ id:Date.now(), type, time, p_in_room:{hl:0,bh:0,bl:0} });
+        saveData(); renderDrops(); calcAll();
+    }
+
+    function renderDrops() {
+        const c = document.getElementById('drops_list'); c.innerHTML = '';
+        const startT = document.getElementById('time_start').value;
+        const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startT) - getAdjustedMinutes(b.time, startT));
+        
+        sortedDrops.slice().reverse().forEach(d => {
+            if(d.type==='prod') {
+                // 🛠️ เปลี่ยน onchange เป็น onblur แก้คีย์บอร์ดหาย
+                c.insertAdjacentHTML('beforeend', `<div class="modern-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span style="font-size:1.5rem">🕒</span>
+                            <input type="time" value="${d.time}" style="width:120px; font-size:1.4rem; padding:5px; border:none; background:transparent;" onblur="updateTimeBlur(${d.id}, this.value)">
+                        </div>
+                        <button style="border:none; background:#fee2e2; color:red; border-radius:8px; padding:8px 15px; font-weight:bold; cursor:pointer;" onclick="deleteDrop(${d.id})">ลบตกลงนี้</button>
+                    </div>
+                    <div class="sack-row">
+                        <div class="sack-item"><span>เบิก (หลอด/บด)</span><div class="sack-val" id="w_${d.id}">0/0</div></div>
+                        <div class="sack-item"><span>ใช้ (หลอด/บด)</span><div class="sack-val" id="u_${d.id}">0/0</div></div>
+                        <div class="sack-item"><span>คืน (หลอด/บด)</span><div id="r_${d.id}" style="font-size:0.75rem; font-weight:900; margin-top:4px;"></div></div>
+                    </div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+                        <div><label style="font-size:0.7rem; color:var(--text-muted); font-weight:bold; text-align:center; display:block;">หลอด</label><input type="tel" value="${d.p_in_room.hl}" oninput="updateDropVal(${d.id},'hl',this.value)"></div>
+                        <div><label style="font-size:0.7rem; color:var(--text-muted); font-weight:bold; text-align:center; display:block;">หยาบ</label><input type="tel" value="${d.p_in_room.bh}" oninput="updateDropVal(${d.id},'bh',this.value)"></div>
+                        <div><label style="font-size:0.7rem; color:var(--text-muted); font-weight:bold; text-align:center; display:block;">ละเอียด</label><input type="tel" value="${d.p_in_room.bl}" oninput="updateDropVal(${d.id},'bl',this.value)"></div>
+                    </div>
+                </div>`);
+                updateDropVal(d.id, 'hl', d.p_in_room.hl);
+            } else {
+                c.insertAdjacentHTML('beforeend', `<div class="modern-card" style="border-left:6px solid #ef4444; background:#fef2f2; cursor:pointer;" onclick="openDowntimeModal(${d.id})">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="font-weight:900; color:#dc2626; font-size:1.1rem;">⚡ บันทึกพักเครื่อง</div>
+                        <div style="color:#ef4444; font-weight:bold;">${d.time} - ${d.time_end||d.time}</div>
+                    </div>
+                    <div style="font-size:0.85rem; color:#991b1b; margin-top:5px;">คลิกเพื่อแก้ไขเวลา</div>
+                </div>`);
+            }
+        });
+    }
+
+    function deleteDrop(id) { if(confirm("ต้องการลบจริงหรือไม่?")) { DATA.drops = DATA.drops.filter(x=>x.id!==id); saveData(); renderDrops(); calcAll(); } }
+
+    function getAdjustedMinutes(timeStr, startStr) { 
+        let [h, m] = timeStr.split(':').map(Number), [sh, sm] = startStr.split(':').map(Number); 
+        let mins = h * 60 + m, sMins = sh * 60 + sm; 
+        return (mins < sMins) ? mins + 1440 : mins; 
+    }
     function getMinDiff(start, end) { 
-        const anchor = document.getElementById('time_start').value || "22:00"; 
-        const mStart = getAdjustedMinutes(start, anchor); 
-        const mEnd = getAdjustedMinutes(end, anchor); 
-        return mEnd - mStart; 
+        const mStart = getAdjustedMinutes(start, document.getElementById('time_start').value); 
+        const mEnd = getAdjustedMinutes(end, document.getElementById('time_start').value); 
+        return Math.max(0, mEnd - mStart); 
+    }
+
+    function calcAll() {
+        let totalHL=0, totalBH=0, totalBL=0;
+        DATA.drops.forEach(d => { if(d.type==='prod'){ totalHL+=d.p_in_room.hl; totalBH+=d.p_in_room.bh; totalBL+=d.p_in_room.bl; } });
+        document.getElementById('dash_hl').innerText = totalHL;
+        document.getElementById('dash_bh').innerText = totalBH;
+        document.getElementById('dash_bl').innerText = totalBL;
+    }
+
+    function switchPage(p) { 
+        document.querySelectorAll('.page').forEach(x=>x.classList.remove('active')); 
+        document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+        document.getElementById('page-'+p).classList.add('active');
+        document.getElementById('btn-'+p.substring(0,3)).classList.add('active');
+        if(p==='summary') calcAll();
     }
 
     function addMinutesToTime(timeStr, addMins) {
         if(!timeStr) return "00:00";
         let [h, m] = timeStr.split(':').map(Number);
-        let date = new Date();
-        date.setHours(h, m + addMins, 0, 0);
-        return String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
+        let date = new Date(); date.setHours(h, m + addMins, 0, 0);
+        return String(date.getHours()).padStart(2,'0')+':'+String(date.getMinutes()).padStart(2,'0');
     }
 
-    function renderDrops() {
-        const container = document.getElementById('drops_list');
-        container.innerHTML = '';
-        
-        const startTimeStr = document.getElementById('time_start').value || "22:00";
-        const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
-        
-        const prodDrops = sortedDrops.filter(d => d.type === 'prod');
-        const latestProd = prodDrops[prodDrops.length - 1]; 
-        
-        if (!latestProd) {
-             container.innerHTML = '<div style="text-align:center; color:#94a3b8; margin-top:30px; font-weight:bold; font-size:1.1rem;">กด + เริ่มผลิตน้ำแข็งตกแรกได้เลย! 🧊</div>';
-             return;
-        }
-
-        let prevProd = prodDrops.length > 1 ? prodDrops[prodDrops.length - 2] : null;
-        let prevTime = prevProd ? prevProd.time : startTimeStr;
-        
-        let dtToSubtract = 0;
-        sortedDrops.forEach(td => {
-            if(td.type === 'downtime' && 
-               getAdjustedMinutes(td.time, startTimeStr) >= getAdjustedMinutes(prevTime, startTimeStr) && 
-               getAdjustedMinutes(td.time, startTimeStr) <= getAdjustedMinutes(latestProd.time, startTimeStr)) {
-                dtToSubtract += getMinDiff(td.time, td.time_end || td.time);
-            }
-        });
-        const grossDiff = getMinDiff(prevTime, latestProd.time);
-        const netDiff = Math.max(0, grossDiff - dtToSubtract);
-        
-        container.insertAdjacentHTML('beforeend', generateCardHtml(latestProd, netDiff));
-    }
-
-    function generateCardHtml(d, netDiff) {
-        let distHtml = '';
-        if(d.dist) {
-           d.dist.forEach((item, idx) => {
-               distHtml += `<div class="dist-item"><div class="dist-header"><span>🚛 ${getTruckName(item.truck)} - ${getTypeName(item.type)}</span><div><button class="btn-edit-mini" onclick="editDist(${d.id}, ${idx})">✏️</button><button class="btn-del-mini" onclick="removeDist(${d.id}, ${idx})">🗑️</button></div></div><div class="dist-rows">(${item.r1}/${item.r2}/${item.r3}) = <b>${item.total}</b></div></div>`;
-           });
-        }
-        let hlProd = getNum(d.p_in_room.hl); let bhProd = getNum(d.p_in_room.bh); let blProd = getNum(d.p_in_room.bl);
-        if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') hlProd+=getNum(i.total); if(i.type==='bh') bhProd+=getNum(i.total); if(i.type==='bl') blProd+=getNum(i.total); }); }
-        const hlBatch = Math.ceil(hlProd / 40) * 40; const crushBatch = Math.ceil((bhProd + blProd) / 40) * 40;
-        const hlRem = hlBatch - hlProd; const crushRem = crushBatch - (bhProd + blProd);
-
-        return `<div class="modern-card"><div class="card-header-flex"><div class="badge-box bg-prod"><span>น้ำแข็ง<br>ตก<br>(ผลิต)</span></div><input type="time" class="big-time-input" value="${d.time}" onchange="updateDropVal(${d.id}, 'time', null, this.value)"><span class="time-diff-badge">(+${netDiff} น.)</span><button class="btn-close-red" onclick="deleteDrop(${d.id})">×</button></div><div class="card-body" style="padding-top:0;"><div class="sack-row"><div class="sack-item"><div class="sack-label">เบิก (หลอด/บด)</div><div class="sack-val" id="disp_withdraw_${d.id}">${hlBatch} / ${crushBatch}</div></div><div class="sack-item"><div class="sack-label">ใช้ (หลอด/บด)</div><div class="sack-val" id="disp_used_${d.id}">${hlProd} / ${bhProd+blProd}</div></div><div class="sack-item"><div class="sack-label">คืน (หลอด/บด)</div><div class="sack-split"><span class="ss-hl" id="disp_rem_hl_${d.id}">หลอด:${hlRem}</span> <span class="ss-bod" id="disp_rem_bod_${d.id}">บด:${crushRem}</span></div></div></div><div class="grid-3"><div><div class="input-label">หลอด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.hl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'hl', this.value)"></div><div><div class="input-label">หยาบ (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bh)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bh', this.value)"></div><div><div class="input-label">ละเอียด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bl', this.value)"></div></div><div class="dist-container"><div style="font-size:0.85rem; color:var(--text-muted); font-weight:800; margin-bottom:5px; text-transform:uppercase;">รายการจ่ายเข้ารถ</div>${distHtml}<button class="btn-add-dist" onclick="openDistModal(${d.id})">+ เพิ่มรายการส่งเข้ารถ</button></div></div></div>`;
-    }
-
-    // 🛠️ ฟังก์ชันใหม่: อัปเดตตัวเลขหน้าการ์ดโดยไม่ต้องวาด HTML ใหม่ (แก้แป้นพิมพ์หาย)
-    function updateCardStats(id) {
-        const d = DATA.drops.find(x => x.id === id);
-        if(!d) return;
-        let hlProd = getNum(d.p_in_room.hl); let bhProd = getNum(d.p_in_room.bh); let blProd = getNum(d.p_in_room.bl);
-        if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') hlProd+=getNum(i.total); if(i.type==='bh') bhProd+=getNum(i.total); if(i.type==='bl') blProd+=getNum(i.total); }); }
-        const hlBatch = Math.ceil(hlProd / 40) * 40; const crushBatch = Math.ceil((bhProd + blProd) / 40) * 40;
-        const hlRem = hlBatch - hlProd; const crushRem = crushBatch - (bhProd + blProd);
-        
-        const ew = document.getElementById(`disp_withdraw_${id}`); if(ew) ew.innerText = `${hlBatch} / ${crushBatch}`;
-        const eu = document.getElementById(`disp_used_${id}`); if(eu) eu.innerText = `${hlProd} / ${bhProd+blProd}`;
-        const erh = document.getElementById(`disp_rem_hl_${id}`); if(erh) erh.innerText = `หลอด:${hlRem}`;
-        const erb = document.getElementById(`disp_rem_bod_${id}`); if(erb) erb.innerText = `บด:${crushRem}`;
-    }
-
-    function updateDropVal(id, cat, sub, val) {
-        const d = DATA.drops.find(x => x.id === id); if(!d) return;
-        if(cat === 'time') { d.time = val; }
-        else if (cat === 'time_end') { d.time_end = val; }
-        else if(cat === 'p_in_room') { d.p_in_room[sub] = getNum(val); }
-        
-        saveData(); 
-        calcAll();
-        
-        // 🛠️ ถ้าเปลี่ยนตัวเลข ให้ดึงค่าไปโชว์เฉยๆ แป้นพิมพ์จะได้ไม่หาย
-        if(cat === 'p_in_room') { updateCardStats(id); }
-        // ถ้าเปลี่ยนเวลา ต้องวาดตารางใหม่เพราะอาจจะสลับลำดับกัน
-        if(cat === 'time' || cat === 'time_end') { renderDrops(); } 
-    }
-
-    function calcAll() {
-        let sumP={hl:0,bh:0,bl:0}, curHL=getNum(document.getElementById('init_hl').value), curBH=getNum(document.getElementById('init_bh').value), curBL=getNum(document.getElementById('init_bl').value);
-        let totalSent=0, sentHL=0, sentBH=0, sentBL=0; 
-        let totalWithHL=0, totalWithBod=0, totalRemHL=0, totalRemBod=0, totalUsedAll=0, totalDuration=0;
-        let prodLogHtml = '';
-        
-        const startTimeStr = document.getElementById('time_start').value || "22:00";
-        let lastProdTime = startTimeStr;
-        let pendingDowntime = 0;
-        let truckMat = {}; let truckDetail = {};
-        
-        let ordHL = 0, ordBH = 0, ordBL = 0, totOrd = 0;
-        
-        TRUCKS.forEach((t,i) => { 
-            let tid = `t${i+1}`; 
-            truckMat[tid] = {hl:{fr:0,st:0}, bh:{fr:0,st:0}, bl:{fr:0,st:0}}; 
-            truckDetail[tid] = { hl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bh: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} } }; 
-            ordHL += getNum(DATA.orders[`${tid}_hl`]);
-            ordBH += getNum(DATA.orders[`${tid}_bh`]);
-            ordBL += getNum(DATA.orders[`${tid}_bl`]);
-        });
-        totOrd = ordHL + ordBH + ordBL;
-
-        const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
-        let dropCount = 0;
-
-        if(document.getElementById('header_start_time_simple')) {
-            document.getElementById('header_start_time_simple').innerText = startTimeStr + ' น.';
-        }
-
-        let autoCloseTimeStr = startTimeStr;
-        if(sortedDrops.length > 0) {
-            let lastItem = sortedDrops[sortedDrops.length-1];
-            let lastT = lastItem.type === 'downtime' ? (lastItem.time_end || lastItem.time) : lastItem.time;
-            autoCloseTimeStr = addMinutesToTime(lastT, 10);
-        }
-        document.getElementById('time_stop').value = autoCloseTimeStr;
-
-        sortedDrops.forEach(d => {
-            if(d.type === 'downtime') {
-                let dtMins = getMinDiff(d.time, d.time_end || d.time);
-                pendingDowntime += dtMins;
-                
-                prodLogHtml += `
-                <tr style="background-color: #fef2f2;" class="print-downtime">
-                    <td class="pt-time-col" style="font-weight:900; color:#cbd5e1; text-align:center;">-</td>
-                    <td class="pt-time-col" style="color:#ef4444; font-weight:900;">${d.time}</td>
-                    <td class="pt-time-col" style="color:#ef4444;">-</td>
-                    <td colspan="7" style="background-color: #fef2f2 !important; color:#ef4444 !important; font-weight:900 !important; text-align:center; letter-spacing: 2px;">ปิดเครื่อง</td>
-                </tr>
-                <tr style="background-color: #f0fdf4;" class="print-downtime">
-                    <td class="pt-time-col" style="font-weight:900; color:#cbd5e1; text-align:center;">-</td>
-                    <td class="pt-time-col" style="color:#10b981; font-weight:900;">${d.time_end || d.time}</td>
-                    <td class="pt-time-col" style="color:#10b981;">-</td>
-                    <td colspan="7" style="background-color: #f0fdf4 !important; color:#10b981 !important; font-weight:900 !important; text-align:center; letter-spacing: 2px;">เปิดเครื่อง</td>
-                </tr>`;
-            } 
-            else if(d.type === 'prod') {
-                dropCount++; 
-                let p_hl=0, p_bh=0, p_bl=0;
-                p_hl = getNum(d.p_in_room.hl); p_bh = getNum(d.p_in_room.bh); p_bl = getNum(d.p_in_room.bl);
-                if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') p_hl+=getNum(i.total); if(i.type==='bh') p_bh+=getNum(i.total); if(i.type==='bl') p_bl+=getNum(i.total); }); }
-                const w_hl = Math.ceil(p_hl/40)*40; const w_bod = Math.ceil((p_bh+p_bl)/40)*40;
-                const r_hl = w_hl - p_hl; const r_bod = w_bod - (p_bh+p_bl);
-                totalWithHL += w_hl; totalWithBod += w_bod; totalRemHL += r_hl; totalRemBod += r_bod; totalUsedAll += (p_hl + p_bh + p_bl);
-                sumP.hl += p_hl; sumP.bh += p_bh; sumP.bl += p_bl;
-                curHL += getNum(d.p_in_room.hl); curBH += getNum(d.p_in_room.bh); curBL += getNum(d.p_in_room.bl);
-                
-                let grossDiff = getMinDiff(lastProdTime, d.time);
-                let netDiff = Math.max(0, grossDiff - pendingDowntime);
-                totalDuration += netDiff;
-                lastProdTime = d.time;
-                
-                pendingDowntime = 0; 
-                
-                prodLogHtml += `<tr>
-                    <td class="pt-time-col" style="font-weight:900; text-align:center;">${dropCount}</td>
-                    <td class="pt-time-col" style="font-weight:900;">${d.time}</td>
-                    <td class="pt-time-col" style="line-height:1; font-weight:900; color:#0ea5e9;">${netDiff}</td>
-                    <td class="pt-check" style="font-weight:900;">${w_hl>0?w_hl:'-'}</td>
-                    <td class="pt-check" style="font-weight:900;">${w_bod>0?w_bod:'-'}</td>
-                    <td class="pt-prod" style="font-weight:900;">${p_hl||'-'}</td>
-                    <td class="pt-prod" style="font-weight:900;">${p_bh||'-'}</td>
-                    <td class="pt-prod" style="font-weight:900;">${p_bl||'-'}</td>
-                    <td class="pt-rem" style="font-weight:900;">${w_hl>0?r_hl:'-'}</td>
-                    <td class="pt-rem" style="font-weight:900;">${w_bod>0?r_bod:'-'}</td>
-                </tr>`;
-            }
-            if(d.dist) { d.dist.forEach(i => { 
-                const total = getNum(i.total); 
-                totalSent += total; 
-                if(i.type === 'hl') sentHL += total;
-                if(i.type === 'bh') sentBH += total;
-                if(i.type === 'bl') sentBL += total;
-                const field = d.type === 'prod' ? 'fr' : 'st'; 
-                truckMat[i.truck][i.type][field] += total; 
-                if(truckDetail[i.truck] && truckDetail[i.truck][i.type]) { 
-                    truckDetail[i.truck][i.type].r1[field] += getNum(i.r1); 
-                    truckDetail[i.truck][i.type].r2[field] += getNum(i.r2); 
-                    truckDetail[i.truck][i.type].r3[field] += getNum(i.r3); 
-                } 
-                if(d.type === 'stock') { 
-                    if(i.type==='hl') curHL -= total; 
-                    if(i.type==='bh') curBH -= total; 
-                    if(i.type==='bl') curBL -= total; 
-                } 
-            }); }
-        });
-        
-        prodLogHtml += `<tr class="total-row print-footer">
-            <td class="total-label" colspan="2" style="border-bottom-left-radius: 12px;">รวม (ปิด ${autoCloseTimeStr} น.)</td>
-            <td style="color:#38bdf8 !important;">${totalDuration}</td>
-            <td style="color:#38bdf8 !important;">${totalWithHL}</td>
-            <td style="color:#38bdf8 !important;">${totalWithBod}</td>
-            <td style="color:#34d399 !important;">${sumP.hl}</td>
-            <td style="color:#34d399 !important;">${sumP.bh}</td>
-            <td style="color:#34d399 !important;">${sumP.bl}</td>
-            <td style="color:#fbbf24 !important;">${totalRemHL}</td>
-            <td style="color:#fbbf24 !important; border-bottom-right-radius: 12px;">${totalRemBod}</td>
-        </tr>`;
-
-        const safeSet = (id, val) => { if(document.getElementById(id)) document.getElementById(id).innerText = val; };
-        document.getElementById('prod_log_body').innerHTML = prodLogHtml;
-        safeSet('dash_hl', curHL); safeSet('dash_bh', curBH); safeSet('dash_bl', curBL);
-        safeSet('os_total', totOrd); safeSet('os_sent', totalSent); safeSet('os_remain', totOrd - totalSent);
-
-        safeSet('rpt_hl', sumP.hl); safeSet('rpt_bh', sumP.bh); safeSet('rpt_bl', sumP.bl); safeSet('rpt_total_prod', sumP.hl + sumP.bh + sumP.bl);
-        const totW = ((sumP.hl*20) + (sumP.bh*23) + (sumP.bl*24));
-        safeSet('rpt_total_weight', totW.toLocaleString()); safeSet('rpt_w_hl', (sumP.hl*20).toLocaleString()); safeSet('rpt_w_bh', (sumP.bh*23).toLocaleString()); safeSet('rpt_w_bl', (sumP.bl*24).toLocaleString());
-        safeSet('rpt_sack_withdraw', totalWithHL + totalWithBod); safeSet('rpt_sack_used', totalUsedAll); safeSet('rpt_rem_total_all', totalRemHL + totalRemBod);
-
-        const prodDropsCount = DATA.drops.filter(d => d.type==='prod').length;
-        let avgTime = 38; 
-        
-        if(prodDropsCount > 0) {
-            avgTime = Math.round(totalDuration / prodDropsCount) || 38;
-            safeSet('rpt_avg_time', avgTime);
-            let tonsDay = 0; if (totalDuration > 0) { tonsDay = (totW / totalDuration) * 1440 / 1000; }
-            safeSet('rpt_tons_day', tonsDay.toFixed(2)); 
-            safeSet('rpt_avg_yield', Math.round((sumP.hl+sumP.bh+sumP.bl) / prodDropsCount));
-        } else { 
-            safeSet('rpt_avg_time', 0); safeSet('rpt_tons_day', 0); safeSet('rpt_avg_yield', 0); 
-        }
-
-        safeSet('disp_ph', DATA.reportInfo.ph || '7.1');
-        safeSet('disp_tds', DATA.reportInfo.tds || '172');
-        safeSet('disp_prod_staff', DATA.reportInfo.prodStaff || '4');
-        safeSet('disp_eng_staff', DATA.reportInfo.engStaff || '1');
-        
-        window.REPORT_DATA = {
-            sumHL: sumP.hl, sumBH: sumP.bh, sumBL: sumP.bl,
-            totProd: sumP.hl + sumP.bh + sumP.bl,
-            totWeight: totW,
-            wHL: sumP.hl * 20, wBH: sumP.bh * 23, wBL: sumP.bl * 24,
-            avgTime: avgTime, tonsDay: (totW > 0 && totalDuration > 0) ? ((totW / totalDuration) * 1440 / 1000).toFixed(2) : 0, avgYield: Math.round((sumP.hl+sumP.bh+sumP.bl) / prodDropsCount) || 0,
-            withHL: totalWithHL, withBOD: totalWithBod,
-            usedAll: totalUsedAll,
-            remHL: totalRemHL, remBOD: totalRemBod,
-            totDuration: totalDuration,
-            drops: sortedDrops,
-            timeStop: autoCloseTimeStr
-        };
-
-        globalAvgTime = avgTime;
-        let lastEventStr = startTimeStr;
-        if(sortedDrops.length > 0) {
-            let ld = sortedDrops[sortedDrops.length-1];
-            lastEventStr = ld.type === 'downtime' ? (ld.time_end || ld.time) : ld.time;
-        }
-        globalLastEventTime = lastEventStr;
-        updatePredictor(); 
-
-        renderSummaryTable(truckMat); renderDetailTable(truckDetail);
-    }
-
-    function updatePredictor() {
-        if(!globalLastEventTime) return;
-        
-        let [lh, lm] = globalLastEventTime.split(':').map(Number);
-        let lastMins = lh * 60 + lm;
-        
-        let predMinsRaw = lastMins + globalAvgTime;
-        let p_h = Math.floor(predMinsRaw / 60) % 24;
-        let p_m = Math.floor(predMinsRaw % 60);
-        let predTimeStr = `${String(p_h).padStart(2, '0')}:${String(p_m).padStart(2, '0')}`;
-        
-        let predTimeEl = document.getElementById('pred_time');
-        if(predTimeEl) predTimeEl.innerText = predTimeStr;
-        
-        let now = new Date();
-        let currMins = now.getHours() * 60 + now.getMinutes();
-        
-        let diff = (p_h * 60 + p_m) - currMins;
-        if (diff < -720) diff += 1440; 
-        else if (diff > 720) diff -= 1440; 
-        
-        let badgeEl = document.getElementById('pred_countdown');
-        let fabEl = document.getElementById('live_predictor_fab');
-        if(!badgeEl || !fabEl) return;
-        
-        if(DATA.drops.length === 0) {
-            fabEl.style.display = 'none';
-        } else {
-            fabEl.style.display = 'flex';
-            if (diff > 0) {
-                badgeEl.innerText = `อีก ${diff} นาที`;
-                badgeEl.className = 'lpf-badge';
-            } else if (diff === 0) {
-                badgeEl.innerText = `กำลังตก!`;
-                badgeEl.className = 'lpf-badge overdue';
-            } else {
-                badgeEl.innerText = `เลยมา ${Math.abs(diff)} น.`;
-                badgeEl.className = 'lpf-badge overdue';
-            }
-        }
-    }
-    
-    function renderSummaryTable(mat) { let h = `<table class="truck-matrix-table"><thead><tr><th style="text-align:left;">รถ</th><th>หลอด</th><th>หยาบ</th><th>ละ..</th></tr></thead><tbody>`; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; h += `<tr><td class="truck-name-col">${t}</td>`; ICE_TYPES.forEach(ty => { const target = getNum(DATA.orders[`${tid}_${ty.id}`]); const sent = mat[tid][ty.id].fr + mat[tid][ty.id].st; let cell = `<span class="st-none">-</span>`; if(target > 0 || sent > 0) { const rem = target - sent; if(rem > 0) cell = `<span class="st-pill st-miss">ขาด ${rem}</span>`; else if(rem < 0) cell = `<span class="st-pill st-over">เกิน ${Math.abs(rem)}</span>`; else cell = `<span class="st-pill st-ok">ครบ</span>`; } h += `<td>${cell}</td>`; }); h += `</tr>`; }); h += `</tbody></table>`; document.getElementById('truck_report_container').innerHTML = h; }
-    
-    function renderDetailTable(det) { let h = ''; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; if(det[tid]) { let hasData = false; let content = `<div class="truck-detail-block"><div class="truck-detail-header"><span>🚛 ${t}</span><button class="btn-history" onclick="openTruckHistory('${tid}')">🕒 ดูประวัติ</button></div>`; ICE_TYPES.forEach(ty => { if(det[tid][ty.id]) { const d = det[tid][ty.id]; const t_r1 = d.r1.fr+d.r1.st; const t_r2 = d.r2.fr+d.r2.st; const t_r3 = d.r3.fr+d.r3.st; const grand = t_r1+t_r2+t_r3; const ordered = getNum(DATA.orders[`${tid}_${ty.id}`]); if(grand > 0 || ordered > 0) { hasData = true; content += `
-        <div style="margin-bottom:20px; background:#ffffff; border:1px solid #f1f5f9; border-radius:12px; padding:12px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding-bottom:8px; border-bottom:1px dashed #e2e8f0;">
-                <div style="font-weight:900; color:var(--primary); font-size:1.1rem;">${ty.label}</div>
-                <div style="font-size:0.8rem; color:var(--text-muted); font-weight:800; background:#f8fafc; padding:4px 10px; border-radius:20px;">เป้า: ${ordered}</div>
-            </div>
-            <table class="detail-table">
-                <thead><tr><th style="width:15%;">แถว</th><th style="width:28%;">เก่า (สต็อก)</th><th style="width:28%;">สด (ผลิต)</th><th>รวมแถว</th></tr></thead>
-                <tbody>
-                    <tr><td>1</td><td><span class="dt-stock-val">${d.r1.st||'-'}</span></td><td><span class="dt-fresh-val">${d.r1.fr||'-'}</span></td><td><span class="dt-total-val">${t_r1}</span></td></tr>
-                    <tr><td>2</td><td><span class="dt-stock-val">${d.r2.st||'-'}</span></td><td><span class="dt-fresh-val">${d.r2.fr||'-'}</span></td><td><span class="dt-total-val">${t_r2}</span></td></tr>
-                    <tr><td>3</td><td><span class="dt-stock-val">${d.r3.st||'-'}</span></td><td><span class="dt-fresh-val">${d.r3.fr||'-'}</span></td><td><span class="dt-total-val">${t_r3}</span></td></tr>
-                    <tr class="detail-summary-row"><td colspan="3" style="text-align:right; font-weight:900; color:var(--text-dark);">รวมจ่ายจริง:</td><td style="color:var(--primary); font-weight:900; font-size:1.2rem;">${grand}</td></tr>
-                </tbody>
-            </table>
-        </div>`; } } }); content += `</div>`; if(hasData) h += content; } }); if(h==='') h='<div style="text-align:center; padding:20px; color:#aaa;">ยังไม่มีข้อมูล</div>'; document.getElementById('truck_detail_container').innerHTML = h; }
-    
-    function updateOrder(key, val) { DATA.orders[key] = getNum(val); saveData(); 
-        const tid = key.split('_')[0] + '_' + key.split('_')[1]; const hl = getNum(DATA.orders[tid+'_hl']); const bh = getNum(DATA.orders[tid+'_bh']); const bl = getNum(DATA.orders[tid+'_bl']); const sumEl = document.getElementById('ord_sum_'+tid); if(sumEl) sumEl.innerText = hl+bh+bl;
-    }
-    
-    function openFullHistory() { 
-        const container = document.getElementById('full_history_list'); 
-        container.innerHTML = ''; 
-        const startTimeStr = document.getElementById('time_start').value;
-        const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(b.time, startTimeStr) - getAdjustedMinutes(a.time, startTimeStr)).reverse(); 
-        
-        if (sortedDrops.length === 0) { 
-            container.innerHTML = '<div style="text-align:center; padding:30px; color:#94a3b8; font-weight:600;">ไม่มีประวัติการผลิต</div>'; 
-        } else { 
-            sortedDrops.forEach((d, idx) => { 
-                if(d.type === 'prod') {
-                    let prodTotal = getNum(d.p_in_room.hl) + getNum(d.p_in_room.bh) + getNum(d.p_in_room.bl); 
-                    if(d.dist) d.dist.forEach(i => prodTotal += getNum(i.total)); 
-                    const tag = (idx === 0) ? '<span style="background:#dcfce7; color:#16a34a; font-size:0.75rem; padding:2px 8px; border-radius:12px; margin-left:8px; vertical-align:middle;">ล่าสุด</span>' : ''; 
-                    
-                    container.insertAdjacentHTML('beforeend', `
-                    <div class="hist-item" onclick="openEditPast(${d.id})">
-                        <div class="hist-info-left">
-                            <div class="hist-time">${d.time} ${tag}</div>
-                            <div class="hist-yield">ยอดผลิตรวม: <span>${prodTotal}</span> กระสอบ</div>
-                        </div>
-                        <div class="hist-arrow">›</div>
-                    </div>`); 
-                } else if (d.type === 'downtime') {
-                    let dt = getMinDiff(d.time, d.time_end);
-                    container.insertAdjacentHTML('beforeend', `
-                    <div class="hist-item" style="background:#fef2f2;" onclick="openDowntimeModal(${d.id})">
-                        <div class="hist-info-left">
-                            <div class="hist-time" style="color:#dc2626;">${d.time} - ${d.time_end}</div>
-                            <div class="hist-yield" style="color:#ef4444;">หยุดเครื่อง/ไฟดับ <span style="color:#b91c1c;">(พัก ${dt} น.)</span></div>
-                        </div>
-                        <div class="hist-arrow" style="color:#fca5a5;">›</div>
-                    </div>`);
-                }
-            }); 
-        } 
-        document.getElementById('full_history_modal').style.display = 'flex'; 
-    }
-    function closeFullHistory() { document.getElementById('full_history_modal').style.display = 'none'; renderDrops(); calcAll(); }
-    
-    function openTruckHistory(tid) { const container = document.getElementById('history_list'); container.innerHTML = ''; document.getElementById('hist_title').innerText = `🕒 ประวัติ ${getTruckName(tid)}`; 
-        const startTimeStr = document.getElementById('time_start').value;
-        const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(a.time, startTimeStr)); 
-        let hasData = false; sortedDrops.forEach(d => { if(d.dist) { d.dist.forEach((item, idx) => { if(item.truck === tid) { hasData = true; const typeName = getTypeName(item.type); const typeLabel = d.type === 'prod' ? '<span class="hist-tag ht-fresh">ผลิต</span>' : '<span class="hist-tag ht-stock">ห้อง</span>'; container.insertAdjacentHTML('beforeend', `<div class="hist-item" style="border-radius:12px; border:1px solid #e2e8f0; margin-bottom:10px;"><div class="hist-info" style="flex:1;"><div><b style="font-weight:900; font-size:1.1rem;">${d.time}</b> ${typeLabel} : <span style="font-weight:800;">${typeName}</span></div><div style="color:var(--text-muted); font-weight:600; margin-top:4px;">(${item.r1}/${item.r2}/${item.r3}) = <b style="color:var(--primary); font-size:1.1rem;">${item.total}</b></div></div><div style="display:flex; flex-direction:column; gap:5px;"><button class="btn-edit-mini" onclick="closeHistoryModal(); SOURCE_MODAL='truck_history'; editDist(${d.id}, ${idx})">✏️ แก้ไข</button><button class="btn-del-mini" onclick="removeDist(${d.id}, ${idx}); closeHistoryModal();">🗑️ ลบ</button></div></div>`); } }); } }); if(!hasData) container.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">ไม่มีประวัติสำหรับรถคันนี้</div>'; document.getElementById('history_modal').style.display = 'flex'; }
-    function closeHistoryModal() { document.getElementById('history_modal').style.display = 'none'; }
-    
-    function openEditPast(id) { 
-        const startTimeStr = document.getElementById('time_start').value;
-        const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
-        const idx = sortedDrops.findIndex(x => x.id === id);
-        const d = sortedDrops[idx];
-        if(!d) return; 
-        
-        document.getElementById('full_history_modal').style.display = 'none'; document.getElementById('stock_manager_modal').style.display = 'none'; if(document.getElementById('stock_manager_modal').style.display === 'flex') SOURCE_MODAL = 'stock'; else if(document.getElementById('full_history_modal').style.display === 'flex') SOURCE_MODAL = 'history'; else SOURCE_MODAL = null; 
-    
-        if(d.type === 'prod') { 
-            let prevProdIdx = -1;
-            for(let i=idx-1; i>=0; i--) { if(sortedDrops[i].type === 'prod') { prevProdIdx = i; break; } }
-            let prevTime = prevProdIdx >= 0 ? sortedDrops[prevProdIdx].time : startTimeStr;
-            let dtSub = 0;
-            for(let i=prevProdIdx+1; i<idx; i++) { if(sortedDrops[i].type==='downtime') dtSub += getMinDiff(sortedDrops[i].time, sortedDrops[i].time_end || sortedDrops[i].time); }
-            let netDiff = Math.max(0, getMinDiff(prevTime, d.time) - dtSub);
-            document.getElementById('edit_past_body').innerHTML = generateCardHtml(d, netDiff); 
-            document.getElementById('edit_past_modal').style.display = 'flex'; 
-        }
-    }
-    
-    function closeEditPastModal() { document.getElementById('edit_past_modal').style.display = 'none'; if(SOURCE_MODAL === 'history') openFullHistory(); else if(SOURCE_MODAL === 'stock') openStockManager(); else renderDrops(); calcAll(); }
-    
-    function openStockManager() { const container = document.getElementById('stock_list_container'); container.innerHTML = ''; const stockDrops = DATA.drops.filter(d => d.type === 'stock').reverse(); if(stockDrops.length === 0) { container.innerHTML = '<div style="text-align:center; color:#aaa; margin-top:20px; font-weight:bold;">ไม่มีรายการเบิกของเก่าในวันนี้</div>'; } else { stockDrops.forEach(d => { let details = ''; if(d.dist) { d.dist.forEach((item, idx) => { details += `<div style="background:white; padding:8px; border-radius:8px; margin-top:8px; font-size:0.85rem; border:1px solid #f1f5f9; box-shadow:var(--shadow-sm);">🚛 ${getTruckName(item.truck)} (${getTypeName(item.type)}) : <b style="font-size:1rem; color:var(--text-dark);">${item.total}</b></div>`; }); } container.insertAdjacentHTML('beforeend', `<div style="background:#fffbeb; padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid #fef3c7;"><div style="display:flex; justify-content:space-between; font-weight:900; color:#d97706; font-size:1.1rem; align-items:center;"><span>📦 เบิก ${d.time}</span><button class="btn-act-del" style="width:auto; padding:6px 12px; font-size:0.8rem;" onclick="deleteDrop(${d.id})">ลบ</button></div>${details}<button class="btn-add-dist" style="background:white; border-color:#fde68a; color:#d97706;" onclick="openDistModal(${d.id})">+ เพิ่มจ่ายรถ</button></div>`); }); } document.getElementById('stock_manager_modal').style.display = 'flex'; } 
-    function closeStockManager() { document.getElementById('stock_manager_modal').style.display = 'none'; renderDrops(); calcAll(); }
-    function removeDist(dropId, idx) { const d = DATA.drops.find(x => x.id === dropId); if(d) { d.dist.splice(idx, 1); updateDropVal(dropId, 'dist_update', null, 0); saveData(); if(document.getElementById('stock_manager_modal').style.display === 'flex') openStockManager(); else if(document.getElementById('edit_past_modal').style.display === 'flex') openEditPast(dropId); else renderDrops(); calcAll(); } }
-    
-    function initWizard() { const tSel = document.getElementById('wiz_truck'); const tySel = document.getElementById('wiz_type'); tSel.innerHTML = TRUCKS.map((t,i) => `<option value="t${i+1}">${t}</option>`).join(''); tySel.innerHTML = ICE_TYPES.map(ty => `<option value="${ty.id}">${ty.label}</option>`).join(''); }
-    function openDistModal(dropId) { 
-        if(document.getElementById('edit_past_modal').style.display === 'flex') { document.getElementById('edit_past_modal').style.display = 'none'; SOURCE_MODAL = 'edit_past'; } 
-        else if (document.getElementById('stock_manager_modal').style.display === 'flex') { document.getElementById('stock_manager_modal').style.display = 'none'; SOURCE_MODAL = 'stock'; } 
-        else { SOURCE_MODAL = null; } 
-        initWizard(); CURRENT_DROP_ID = dropId; EDITING_DIST_IDX = null; const d = DATA.drops.find(x => x.id === dropId); document.getElementById('wiz_r1').value = ''; document.getElementById('wiz_r2').value = ''; document.getElementById('wiz_r3').value = ''; updateWizStats(); document.getElementById('wiz_title').innerText = d.type === 'prod' ? '🚛 จ่ายของผลิตใหม่' : '📦 จ่ายของเก่า'; document.getElementById('dist_modal').style.display = 'flex'; 
-    }
-    function editDist(dropId, idx) { 
-        if(document.getElementById('edit_past_modal').style.display === 'flex') { document.getElementById('edit_past_modal').style.display = 'none'; SOURCE_MODAL = 'edit_past'; } 
-        else if (document.getElementById('history_modal').style.display === 'flex') { document.getElementById('history_modal').style.display = 'none'; SOURCE_MODAL = 'truck_history'; }
-        else if (document.getElementById('stock_manager_modal').style.display === 'flex') { document.getElementById('stock_manager_modal').style.display = 'none'; SOURCE_MODAL = 'stock'; } 
-        else { SOURCE_MODAL = null; } 
-        initWizard(); CURRENT_DROP_ID = dropId; EDITING_DIST_IDX = idx; const d = DATA.drops.find(x => x.id === dropId); const item = d.dist[idx]; document.getElementById('wiz_truck').value = item.truck; document.getElementById('wiz_type').value = item.type; document.getElementById('wiz_r1').value = item.r1; document.getElementById('wiz_r2').value = item.r2; document.getElementById('wiz_r3').value = item.r3; updateWizStats(); document.getElementById('wiz_title').innerText = '✏️ แก้ไขรายการ'; document.getElementById('dist_modal').style.display = 'flex'; 
-    }
-    function closeDistModal() { 
-        document.getElementById('dist_modal').style.display = 'none'; 
-        CURRENT_DROP_ID = null; 
-        if(SOURCE_MODAL === 'stock') openStockManager(); 
-        else if (SOURCE_MODAL === 'edit_past') { /* Will just close, user can reopen history */ }
-    }
-    
-    function updateWizStats() { 
-        const tid = document.getElementById('wiz_truck').value; 
-        const typeId = document.getElementById('wiz_type').value; 
-        
-        let totalSent = 0; 
-        let sumR = [0, 0, 0]; 
-        
-        DATA.drops.forEach(d => { 
-            if(d.dist) { 
-                d.dist.forEach((item, idx) => { 
-                    if(d.id === CURRENT_DROP_ID && idx === EDITING_DIST_IDX) return; 
-                    if(item.truck === tid && item.type === typeId) { 
-                        totalSent += getNum(item.total); 
-                    } 
-                    if(item.truck === tid) {
-                        sumR[0] += getNum(item.r1);
-                        sumR[1] += getNum(item.r2);
-                        sumR[2] += getNum(item.r3);
-                    }
-                }); 
-            } 
-        }); 
-        
-        const r1 = getNum(document.getElementById('wiz_r1').value); 
-        const r2 = getNum(document.getElementById('wiz_r2').value); 
-        const r3 = getNum(document.getElementById('wiz_r3').value); 
-        const currentTotal = r1 + r2 + r3; 
-        
-        const target = getNum(DATA.orders[`${tid}_${typeId}`]); 
-        const remain = target - (totalSent + currentTotal); 
-        
-        document.getElementById('wiz_total_sum').innerText = currentTotal; 
-        const remEl = document.getElementById('wiz_remain'); 
-        if (target === 0) { remEl.innerText = "ไม่ได้สั่ง"; remEl.className = 'wiz-remain'; remEl.style.color = "var(--text-muted)";} 
-        else if (remain > 0) { remEl.innerText = `ขาด ${remain}`; remEl.className = 'wiz-remain st-miss'; remEl.style.color = "#dc2626"; } 
-        else if (remain < 0) { remEl.innerText = `เกิน ${Math.abs(remain)}`; remEl.className = 'wiz-remain st-over'; remEl.style.color = "#0284c7"; } 
-        else { remEl.innerText = "ครบแล้ว ✅"; remEl.className = 'wiz-remain st-ok'; remEl.style.color = "#16a34a"; } 
-
-        const updateRowUI = (idx, currentInput) => {
-            const el = document.getElementById(`wiz_info_r${idx+1}`);
-            const totalInRow = sumR[idx] + currentInput;
-            const diff = 36 - totalInRow;
-            
-            if (totalInRow === 0) {
-                el.innerHTML = `<span style="color:#94a3b8;">(ว่าง ขาด 36)</span>`;
-            } else if (diff > 0) {
-                el.innerHTML = `<span style="color:#0ea5e9;">(รวม ${totalInRow} ขาด ${diff})</span>`;
-            } else if (diff < 0) {
-                el.innerHTML = `<span style="color:#ef4444;">(รวม ${totalInRow} เกิน ${Math.abs(diff)}!)</span>`;
-            } else {
-                el.innerHTML = `<span style="color:#10b981;">(ครบ 36 ใบ ✅)</span>`;
-            }
-        };
-
-        updateRowUI(0, r1);
-        updateRowUI(1, r2);
-        updateRowUI(2, r3);
-    }
-    
-    function confirmDistSave() { 
-        if (!CURRENT_DROP_ID) return; 
-        const d = DATA.drops.find(x => x.id === CURRENT_DROP_ID); 
-        const r1 = getNum(document.getElementById('wiz_r1').value); const r2 = getNum(document.getElementById('wiz_r2').value); const r3 = getNum(document.getElementById('wiz_r3').value); const total = r1 + r2 + r3; if (total === 0) { alert('กรุณาใส่จำนวน'); return; } const newData = { truck: document.getElementById('wiz_truck').value, type: document.getElementById('wiz_type').value, r1: r1, r2: r2, r3: r3, total: total }; 
-        if(EDITING_DIST_IDX !== null) { d.dist[EDITING_DIST_IDX] = newData; } else { if(!d.dist) d.dist = []; d.dist.push(newData); } 
-        updateDropVal(CURRENT_DROP_ID, 'dist_update', null, 0); 
-        document.getElementById('dist_modal').style.display = 'none'; 
-        if (SOURCE_MODAL === 'edit_past') { openEditPast(CURRENT_DROP_ID); } else if (SOURCE_MODAL === 'stock') { openStockManager(); } else if (SOURCE_MODAL === 'truck_history') { openTruckHistory(newData.truck); } else { renderDrops(); } 
-        CURRENT_DROP_ID = null; calcAll(); 
-    }
-    
-    function renderOrderInputs() { 
-        const c = document.getElementById('order_inputs'); 
-        let h = '<table class="order-table"><thead><tr><th style="border-top-left-radius:12px;">รถ</th><th>หลอด</th><th>หยาบ</th><th>ละเอียด</th><th class="col-total" style="border-top-right-radius:12px;">รวม</th></tr></thead><tbody>'; 
-        
-        let sumAllHl = 0;
-        let sumAllBh = 0;
-        let sumAllBl = 0;
-        let grandTotal = 0;
-
-        TRUCKS.forEach((t, i) => { 
-            const tid = `t${i+1}`; 
-            const hl = DATA.orders[tid+'_hl']||0; 
-            const bh = DATA.orders[tid+'_bh']||0; 
-            const bl = DATA.orders[tid+'_bl']||0; 
-            const total = getNum(hl) + getNum(bh) + getNum(bl); 
-            
-            sumAllHl += getNum(hl);
-            sumAllBh += getNum(bh);
-            sumAllBl += getNum(bl);
-            grandTotal += total;
-
-            h += `<tr>
-                <td style="font-weight:800; color:var(--text-dark);">${t}</td>
-                <td><input type="tel" value="${hl}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_hl',this.value)" style="padding:10px; font-size:1.2rem;"></td>
-                <td><input type="tel" value="${bh}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_bh',this.value)" style="padding:10px; font-size:1.2rem;"></td>
-                <td><input type="tel" value="${bl}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_bl',this.value)" style="padding:10px; font-size:1.2rem;"></td>
-                <td class="order-sum-col" id="ord_sum_${tid}" style="font-size:1.2rem;">${total}</td>
-            </tr>`; 
-        }); 
-
-        h += `<tr class="total-row">
-                <td class="total-label" style="border-bottom-left-radius:12px;">รวม</td>
-                <td id="master_sum_hl" style="font-size:1.1rem;">${sumAllHl}</td>
-                <td id="master_sum_bh" style="font-size:1.1rem;">${sumAllBh}</td>
-                <td id="master_sum_bl" style="font-size:1.1rem;">${sumAllBl}</td>
-                <td id="master_grand_total" style="color:#34d399; font-size:1.2rem; border-bottom-right-radius:12px;">${grandTotal}</td>
-              </tr>`;
-
-        h += '</tbody></table>'; 
-        c.innerHTML = h; 
-    }
-    
-    function getTruckName(id) { return TRUCKS[parseInt(id.replace('t',''))-1]; }
-    function getTypeName(id) { return ICE_TYPES.find(x=>x.id===id).label; }
-    function switchPage(id) { document.querySelectorAll('.page').forEach(x=>x.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active')); document.getElementById('page-'+id).classList.add('active'); const map={setup:0,production:1,summary:2}; document.querySelectorAll('.nav-btn')[map[id]].classList.add('active'); if(id==='summary'){calcAll(); window.scrollTo(0,0);} }
-
-    // --- 🔥 V205: PRINT PDF (TWO ROW DOWNTIME + AUTO CLOSE TIME + RESET COUNTER) 🔥 ---
+    /* 🛠️ PDF PRINT LOGIC (V220 2-ROW DOWNTIME + AUTO CLOSE + RESET COUNT) */
     function printReport() {
         saveData();
+        const startT = DATA.times.start;
+        const sorted = DATA.drops.slice().sort((a,b) => getAdjustedMinutes(a.time, startT) - getAdjustedMinutes(b.time, startT));
         
-        const dateVal = document.getElementById('setup_date').value;
-        let thaiDateStr = '';
-        if(dateVal) {
-            const d = new Date(dateVal);
-            const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
-            thaiDateStr = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear() + 543}`;
-        }
-        
-        const rd = window.REPORT_DATA;
-        const info = DATA.reportInfo;
-        const startTimeStr = document.getElementById('time_start').value || "22:00";
-        
-        let renderItems = [];
-        rd.drops.forEach(d => {
-            if(d.type === 'prod') {
-                let p_hl = getNum(d.p_in_room.hl); let p_bh = getNum(d.p_in_room.bh); let p_bl = getNum(d.p_in_room.bl);
-                if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') p_hl+=getNum(i.total); if(i.type==='bh') p_bh+=getNum(i.total); if(i.type==='bl') p_bl+=getNum(i.total); }); }
-                const w_hl = Math.ceil(p_hl/40)*40; const w_bod = Math.ceil((p_bh+p_bl)/40)*40;
+        let rItems = [];
+        sorted.forEach(d => {
+            if(d.type==='prod') {
+                const wHL = Math.ceil(d.p_in_room.hl/40)*40, wBOD = Math.ceil((d.p_in_room.bh+d.p_in_room.bl)/40)*40;
                 
-                let prevTime = startTimeStr;
-                let idx = rd.drops.findIndex(x => x.id === d.id);
-                for(let i=idx-1; i>=0; i--) { if(rd.drops[i].type==='prod'){ prevTime = rd.drops[i].time; break; } }
-                let dtSub = 0;
-                for(let i=0; i<idx; i++) { 
-                    if(rd.drops[i].type==='downtime' && getAdjustedMinutes(rd.drops[i].time, startTimeStr) >= getAdjustedMinutes(prevTime, startTimeStr)) {
-                        dtSub += getMinDiff(rd.drops[i].time, rd.drops[i].time_end);
-                    }
-                }
-                let netDiff = Math.max(0, getMinDiff(prevTime, d.time) - dtSub);
-
-                renderItems.push({
-                    type: 'prod', time: d.time, duration: netDiff,
-                    whl: w_hl||'', wbod: w_bod||'', phl: p_hl||'', pbh: p_bh||'', pbl: p_bl||'',
-                    rhl: w_hl>0?(w_hl-p_hl):'', rbod: w_bod>0?(w_bod-(p_bh+p_bl)):'',
-                    raw_whl: w_hl, raw_wbod: w_bod, raw_phl: p_hl, raw_pbh: p_bh, raw_pbl: p_bl,
-                    raw_rhl: w_hl>0?(w_hl-p_hl):0, raw_rbod: w_bod>0?(w_bod-(p_bh+p_bl)):0
+                let pTime = startT, idx = sorted.findIndex(x=>x.id===d.id);
+                for(let i=idx-1; i>=0; i--) { if(sorted[i].type==='prod'){ pTime = sorted[i].time; break; } }
+                let dSub = 0;
+                for(let i=0; i<idx; i++) { if(sorted[i].type==='downtime' && getAdjustedMinutes(sorted[i].time, startT) >= getAdjustedMinutes(pTime, startT)) dSub += getMinDiff(sorted[i].time, sorted[i].time_end); }
+                
+                rItems.push({ type:'prod', time:d.time, diff: Math.max(0, getMinDiff(pTime, d.time)-dSub),
+                    whl:wHL, wbod:wBOD, phl:d.p_in_room.hl, pbh:d.p_in_room.bh, pbl:d.p_in_room.bl,
+                    rhl:wHL-d.p_in_room.hl, rbod:wBOD-(d.p_in_room.bh+d.p_in_room.bl)
                 });
-            } else if (d.type === 'downtime') {
-                renderItems.push({ 
-                    type: 'downtime_start', 
-                    time: d.time,
-                    end_time_val: d.time
-                });
-                renderItems.push({ 
-                    type: 'downtime_end', 
-                    time: d.time_end || d.time,
-                    end_time_val: d.time_end || d.time
-                });
+            } else {
+                rItems.push({ type:'dt_start', time:d.time, diff: getMinDiff(d.time, d.time_end||d.time) });
+                rItems.push({ type:'dt_end', time:d.time_end || d.time });
             }
         });
 
-        const ROWS_PER_PAGE = 33;
-        let chunks = [];
-        for(let i = 0; i < renderItems.length; i += ROWS_PER_PAGE) {
-            chunks.push(renderItems.slice(i, i + ROWS_PER_PAGE));
-        }
-        if(chunks.length === 0) chunks.push([]); 
-
+        const ROWS = 33;
         let finalHtml = '';
+        let dStr = document.getElementById('setup_date').value.split('-');
+        let mNames = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+        let thDate = `${parseInt(dStr[2])} ${mNames[parseInt(dStr[1])-1]} ${parseInt(dStr[0])+543}`;
 
-        chunks.forEach((chunk, pageIdx) => {
-            let c_sumHL=0, c_sumBH=0, c_sumBL=0, c_totDuration=0;
-            let c_withHL=0, c_withBOD=0, c_remHL=0, c_remBOD=0;
-            let c_prodCount=0;
-            
-            chunk.forEach(item => {
-                if(item.type === 'prod') {
-                    c_sumHL += item.raw_phl;
-                    c_sumBH += item.raw_pbh;
-                    c_sumBL += item.raw_pbl;
-                    c_totDuration += item.duration;
-                    c_withHL += item.raw_whl;
-                    c_withBOD += item.raw_wbod;
-                    c_remHL += item.raw_rhl;
-                    c_remBOD += item.raw_rbod;
-                    c_prodCount++;
-                }
-            });
-            
-            let c_totProd = c_sumHL + c_sumBH + c_sumBL;
-            let c_wHL = c_sumHL * 20;
-            let c_wBH = c_sumBH * 23;
-            let c_wBL = c_sumBL * 24;
-            let c_totWeight = c_wHL + c_wBH + c_wBL;
-            let c_avgTime = c_prodCount > 0 ? Math.round(c_totDuration / c_prodCount) : 0;
-            let c_tonsDay = (c_totDuration > 0 && c_totWeight > 0) ? ((c_totWeight / c_totDuration) * 1440 / 1000).toFixed(2) : 0;
-            let c_avgYield = c_prodCount > 0 ? Math.round(c_totProd / c_prodCount) : 0;
-
-            let pageDateStr = pageIdx === 0 ? thaiDateStr : thaiDateStr + " (ต่อ)";
-
-            let pageStartTime = startTimeStr;
-            if (pageIdx > 0) {
-                let prevChunk = chunks[pageIdx - 1];
-                if(prevChunk && prevChunk.length > 0) {
-                    let lastItem = prevChunk[prevChunk.length - 1];
-                    pageStartTime = lastItem.end_time_val || lastItem.time;
-                }
+        for(let p=0; p < Math.ceil(rItems.length/ROWS) || p===0; p++) {
+            let chunk = rItems.slice(p*ROWS, (p+1)*ROWS);
+            let sHL=0, sBH=0, sBL=0, sWHL=0, sWBOD=0, sRHL=0, sRBOD=0, tDur=0, tCount=0;
+            let openTime = startT;
+            if(p>0 && rItems[p*ROWS - 1]) {
+                openTime = rItems[p*ROWS - 1].type === 'dt_start' ? rItems[p*ROWS - 1].time : (rItems[p*ROWS - 1].time_end || rItems[p*ROWS - 1].time);
             }
 
-            let footerTitle = pageIdx === chunks.length - 1 ? `รวม (ปิด ${rd.timeStop} น.)` : "รวม";
+            chunk.forEach(i => { if(i.type==='prod'){ sHL+=i.phl; sBH+=i.pbh; sBL+=i.pbl; sWHL+=i.whl; sWBOD+=i.wbod; sRHL+=i.rhl; sRBOD+=i.rbod; tDur+=i.diff; tCount++; } });
+            
+            let closeTime = addMinutesToTime(chunk[chunk.length-1]?.time || startT, 10);
+            let footer = (p === Math.ceil(rItems.length/ROWS)-1) ? `รวม (ปิด ${closeTime} น.)` : "รวม";
 
-            let sumCol = [
-                `<span class="s-label">หลอดใหญ่</span> <span class="s-val">${c_sumHL} กระสอบ</span>`,
-                `<span class="s-label">บดหยาบ</span> <span class="s-val">${c_sumBH} กระสอบ</span>`,
-                `<span class="s-label">บดละเอียด</span> <span class="s-val">${c_sumBL} กระสอบ</span>`,
-                `<span class="s-label" style="font-weight:900;">รวม</span> <span class="s-val" style="font-weight:900;">${c_totProd} กระสอบ</span>`,
-                
-                `<span class="s-label">หลอดใหญ่</span> <span class="s-val">20 กก.</span>`,
-                `<span class="s-label">บดหยาบ</span> <span class="s-val">23 กก.</span>`,
-                `<span class="s-label">บดละเอียด</span> <span class="s-val">24 กก.</span>`,
-                `<span class="s-label" style="font-weight:900;">รวม</span> <span class="s-val" style="font-weight:900;">22 กก.</span>`,
-                
-                `<span class="s-label">หลอดใหญ่</span> <span class="s-val">${c_wHL.toLocaleString()} กก.</span>`,
-                `<span class="s-label">บดหยาบ</span> <span class="s-val">${c_wBH.toLocaleString()} กก.</span>`,
-                `<span class="s-label">บดละเอียด</span> <span class="s-val">${c_wBL.toLocaleString()} กก.</span>`,
-                `<span class="s-label" style="font-weight:900;">รวม</span> <span class="s-val" style="font-weight:900;">${c_totWeight.toLocaleString()} กก.</span>`,
-                
-                `<span class="s-label">เวลาเฉลี่ย</span> <span class="s-val">${c_avgTime} นาที/ตก</span>`,
-                `<span class="s-label">น้ำหนัก</span> <span class="s-val">${c_tonsDay} ตัน/วัน</span>`,
-                `<span class="s-label">จำนวนเฉลี่ย</span> <span class="s-val">${c_avgYield} กระสอบ/ตก</span>`,
-                
-                `<span class="s-label">เบิกกระสอบรวม</span> <span class="s-val">${c_withHL + c_withBOD} ใบ</span>`,
-                `<span class="s-label">กระสอบที่ใช้</span> <span class="s-val">${c_totProd} ใบ</span>`,
-                `<span class="s-label">กระสอบคงเหลือ</span> <span class="s-val">${c_remHL + c_remBOD} ใบ</span>`,
-                
-                `<span class="s-label">ค่า pH</span> <span class="s-val">${info.ph}</span>`,
-                `<span class="s-label">ค่า TDS</span> <span class="s-val">${info.tds}</span>`,
-                `<span class="s-label">พนักงานผลิต</span> <span class="s-val">${info.prodStaff} คน</span>`,
-                `<span class="s-label">วิศวกรรม</span> <span class="s-val">${info.engStaff} คน</span>`
-            ];
+            let pTotal = sHL+sBH+sBL;
+            let avgTime = tCount>0 ? Math.round(tDur/tCount) : 0;
+            let tWeight = (sHL*20)+(sBH*23)+(sBL*24);
+            let tons = tDur>0 ? ((tWeight/tDur)*1440/1000).toFixed(2) : 0;
+            let avgY = tCount>0 ? Math.round(pTotal/tCount) : 0;
 
-            let pageHtml = `
-            <div class="print-page">
-                <div class="print-header">
-                    แบบฟอร์มบันทึกการผลิตน้ำแข็ง สาขา ${info.branch} เครื่องที่ ${info.machine}<br>
-                    <span class="date-text">ประจำวันที่ ${pageDateStr}</span>
-                </div>
-                
+            let pageHtml = `<div class="print-page">
+                <div class="print-header">แบบฟอร์มบันทึกการผลิตน้ำแข็ง สาขา ${DATA.reportInfo.branch} เครื่องที่ ${DATA.reportInfo.machine}<br>ประจำวันที่ ${thDate} ${p>0?'(ต่อ)':''}</div>
                 <div class="print-wrapper">
                     <div class="print-left">
                         <table class="print-table">
-                            <thead>
-                                <tr>
-                                    <th rowspan="2" style="width:5%;">ลำดับ</th>
-                                    <th style="width:13%;">เวลา</th>
-                                    <th rowspan="2" style="width:8%;">นาที/<br>ตก</th>
-                                    <th colspan="2" style="width:16%; background-color:#e0f2fe !important; color:#0284c7 !important;">เบิกกระสอบ</th>
-                                    <th colspan="3" style="width:30%; background-color:#dcfce7 !important; color:#15803d !important;">ผลการผลิต</th>
-                                    <th colspan="2" style="width:16%; background-color:#fef3c7 !important; color:#b45309 !important;">กระสอบคงเหลือ</th>
-                                </tr>
-                                <tr>
-                                    <th>เปิด ${pageStartTime} น.</th>
-                                    <th style="width:8%; background-color:#e0f2fe !important; color:#0284c7 !important;">หลอด</th>
-                                    <th style="width:8%; background-color:#e0f2fe !important; color:#0284c7 !important;">บด</th>
-                                    <th style="width:10%; background-color:#dcfce7 !important; color:#15803d !important;">หลอดใหญ่</th>
-                                    <th style="width:10%; background-color:#dcfce7 !important; color:#15803d !important;">บดหยาบ</th>
-                                    <th style="width:10%; background-color:#dcfce7 !important; color:#15803d !important;">ละเอียด</th>
-                                    <th style="width:8%; background-color:#fef3c7 !important; color:#b45309 !important;">หลอด</th>
-                                    <th style="width:8%; background-color:#fef3c7 !important; color:#b45309 !important;">บด</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-            `;
-
-            let localProdCounter = 0; 
-
-            for(let i=0; i<ROWS_PER_PAGE; i++) {
-                let item = chunk[i];
-                if(item && item.type === 'prod') {
-                    localProdCounter++;
-                    pageHtml += `<tr>
-                        <td>${localProdCounter}</td><td>${item.time}</td><td>${item.duration}</td>
-                        <td>${item.whl}</td><td>${item.wbod}</td>
-                        <td>${item.phl}</td><td>${item.pbh}</td><td>${item.pbl}</td>
-                        <td>${item.rhl}</td><td>${item.rbod}</td>
-                    </tr>`;
-                } else if (item && item.type === 'downtime_start') {
-                    pageHtml += `<tr>
-                        <td></td><td style="color:black;">${item.time}</td><td></td>
-                        <td colspan="7" style="font-weight:900; letter-spacing:1px; background-color:#fef2f2 !important;">ปิดเครื่อง</td>
-                    </tr>`;
-                } else if (item && item.type === 'downtime_end') {
-                    pageHtml += `<tr>
-                        <td></td><td style="color:black;">${item.time}</td><td></td>
-                        <td colspan="7" style="font-weight:900; letter-spacing:1px; background-color:#f0fdf4 !important;">เปิดเครื่อง</td>
-                    </tr>`;
-                } else {
-                    pageHtml += `<tr>
-                        <td></td><td></td><td></td>
-                        <td></td><td></td>
-                        <td></td><td></td><td></td>
-                        <td></td><td></td>
-                    </tr>`;
-                }
+                            <thead><tr><th rowspan="2">ลำดับ</th><th rowspan="2">เวลา<br><span style="font-size:0.7rem">เปิด ${openTime} น.</span></th><th rowspan="2">นาที/<br>ตก</th><th colspan="2">เบิกกระสอบ</th><th colspan="3">ผลการผลิต</th><th colspan="2">กระสอบคงเหลือ</th></tr>
+                            <tr><th>หลอด</th><th>บด</th><th>หลอดใหญ่</th><th>บดหยาบ</th><th>ละเอียด</th><th>หลอด</th><th>บด</th></tr></thead>
+                            <tbody>`;
+            
+            let localCount = 0;
+            for(let r=0; r<ROWS; r++) {
+                let item = chunk[r];
+                if(item) {
+                    if(item.type==='prod') {
+                        localCount++;
+                        pageHtml += `<tr><td>${localCount}</td><td>${item.time}</td><td>${item.diff}</td><td>${item.whl||''}</td><td>${item.wbod||''}</td><td>${item.phl||''}</td><td>${item.pbh||''}</td><td>${item.pbl||''}</td><td>${item.rhl||''}</td><td>${item.rbod||''}</td></tr>`;
+                    } else if(item.type==='dt_start') {
+                        pageHtml += `<tr style="background:#fef2f2"><td></td><td>${item.time}</td><td></td><td colspan="7"><b>ปิดเครื่อง (พัก ${item.diff} น.)</b></td></tr>`;
+                    } else {
+                        pageHtml += `<tr style="background:#f0fdf4"><td></td><td>${item.time}</td><td></td><td colspan="7"><b>เปิดเครื่อง</b></td></tr>`;
+                    }
+                } else { pageHtml += `<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>`; }
             }
 
-            pageHtml += `
-                            <tr class="print-footer">
-                                <td colspan="2">${footerTitle}</td>
-                                <td>${c_totDuration}</td>
-                                <td>${c_withHL}</td><td>${c_withBOD}</td>
-                                <td>${c_sumHL}</td><td>${c_sumBH}</td><td>${c_sumBL}</td>
-                                <td>${c_remHL}</td><td>${c_remBOD}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div class="print-right">
-                    <div class="s-title" style="margin-top:0;">ข้อมูลสรุป</div>
-                    <div class="s-line">${sumCol[0]}</div>
-                    <div class="s-line">${sumCol[1]}</div>
-                    <div class="s-line">${sumCol[2]}</div>
-                    <div class="s-line" style="border-bottom:none;">${sumCol[3]}</div>
-                    
-                    <div class="s-title">น้ำหนักเฉลี่ย</div>
-                    <div class="s-line">${sumCol[4]}</div>
-                    <div class="s-line">${sumCol[5]}</div>
-                    <div class="s-line">${sumCol[6]}</div>
-                    <div class="s-line" style="border-bottom:none;">${sumCol[7]}</div>
-
-                    <div class="s-title">น้ำหนักรวม</div>
-                    <div class="s-line">${sumCol[8]}</div>
-                    <div class="s-line">${sumCol[9]}</div>
-                    <div class="s-line">${sumCol[10]}</div>
-                    <div class="s-line" style="border-bottom:none;">${sumCol[11]}</div>
-                    
-                    <div class="s-title">สถิติการผลิต</div>
-                    <div class="s-line">${sumCol[12]}</div>
-                    <div class="s-line">${sumCol[13]}</div>
-                    <div class="s-line" style="border-bottom:none;">${sumCol[14]}</div>
-                    
-                    <div class="s-title">สรุปกระสอบ</div>
-                    <div class="s-line">${sumCol[15]}</div>
-                    <div class="s-line">${sumCol[16]}</div>
-                    <div class="s-line" style="border-bottom:none;">${sumCol[17]}</div>
-                    
-                    <div class="s-title">ข้อมูลอื่นๆ</div>
-                    <div class="s-line">${sumCol[18]}</div>
-                    <div class="s-line">${sumCol[19]}</div>
-                    <div class="s-line">${sumCol[20]}</div>
-                    <div class="s-line" style="border-bottom:none;">${sumCol[21]}</div>
-                    
-                    <div class="sign-box">
-                        <div class="sign-line">ลงชื่อ <span class="sign-dots"></span> วิศวกรรม</div>
-                        <div class="sign-line">ลงชื่อ <span class="sign-dots"></span> ผู้จัดการสาขา</div>
+            pageHtml += `<tr class="print-footer"><td colspan="2">${footer}</td><td>${tDur}</td><td>${sWHL}</td><td>${sWBOD}</td><td>${sHL}</td><td>${sBH}</td><td>${sBL}</td><td>${sRHL}</td><td>${sRBOD}</td></tr>
+                        </tbody></table></div>
+                    <div class="print-right">
+                        <div class="s-title" style="margin-top:0">ข้อมูลสรุป</div>
+                        <div class="s-line"><span>หลอดใหญ่</span><span class="s-val">${sHL} กระสอบ</span></div>
+                        <div class="s-line"><span>บดหยาบ</span><span class="s-val">${sBH} กระสอบ</span></div>
+                        <div class="s-line"><span>บดละเอียด</span><span class="s-val">${sBL} กระสอบ</span></div>
+                        <div class="s-line" style="border-bottom:none"><span>รวมผลิต</span><span class="s-val">${pTotal} กระสอบ</span></div>
+                        
+                        <div class="s-title">น้ำหนักเฉลี่ย</div>
+                        <div class="s-line"><span>หลอดใหญ่</span><span class="s-val">20 กก.</span></div>
+                        <div class="s-line"><span>บดหยาบ</span><span class="s-val">23 กก.</span></div>
+                        <div class="s-line"><span>บดละเอียด</span><span class="s-val">24 กก.</span></div>
+                        <div class="s-line" style="border-bottom:none"><span>รวม</span><span class="s-val">22 กก.</span></div>
+                        
+                        <div class="s-title">น้ำหนักรวม</div>
+                        <div class="s-line"><span>หลอดใหญ่</span><span class="s-val">${(sHL*20).toLocaleString()} กก.</span></div>
+                        <div class="s-line"><span>บดหยาบ</span><span class="s-val">${(sBH*23).toLocaleString()} กก.</span></div>
+                        <div class="s-line"><span>บดละเอียด</span><span class="s-val">${(sBL*24).toLocaleString()} กก.</span></div>
+                        <div class="s-line" style="border-bottom:none"><span>รวม</span><span class="s-val">${tWeight.toLocaleString()} กก.</span></div>
+                        
+                        <div class="s-title">สถิติการผลิต</div>
+                        <div class="s-line"><span>เวลาเฉลี่ย</span><span class="s-val">${avgTime} นาที/ตก</span></div>
+                        <div class="s-line"><span>กำลังผลิต</span><span class="s-val">${tons} ตัน/วัน</span></div>
+                        <div class="s-line" style="border-bottom:none"><span>จำนวนเฉลี่ย</span><span class="s-val">${avgY} ใบ/ตก</span></div>
+                        
+                        <div class="s-title">สรุปกระสอบ</div>
+                        <div class="s-line"><span>เบิกกระสอบรวม</span><span class="s-val">${sWHL+sWBOD} ใบ</span></div>
+                        <div class="s-line"><span>กระสอบที่ใช้</span><span class="s-val">${pTotal} ใบ</span></div>
+                        <div class="s-line" style="border-bottom:none"><span>คงเหลือจริง</span><span class="s-val">${sRHL+sRBOD} ใบ</span></div>
+                        
+                        <div class="s-title">ข้อมูลอื่นๆ</div>
+                        <div class="s-line"><span>ค่า pH / TDS</span><span class="s-val">${DATA.reportInfo.ph} / ${DATA.reportInfo.tds}</span></div>
+                        <div class="s-line" style="border-bottom:none"><span>พนักงาน / วิศวฯ</span><span class="s-val">${DATA.reportInfo.prodStaff} / ${DATA.reportInfo.engStaff} คน</span></div>
+                        
+                        <div class="sign-box">
+                            <div class="sign-line">ลงชื่อ <span class="sign-dots"></span> วิศวกรรม</div>
+                            <div class="sign-line">ลงชื่อ <span class="sign-dots"></span> ผู้จัดการสาขา</div>
+                        </div>
                     </div>
-                </div>
-            </div>
-            </div>
-            `;
-            
+                </div></div>`;
             finalHtml += pageHtml;
-        });
-
+        }
         document.getElementById('print_area').innerHTML = finalHtml;
-        setTimeout(() => { window.print(); }, 300);
+        window.print();
     }
 </script>
 </body>
