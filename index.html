@@ -180,7 +180,6 @@
             }
             .print-page:last-child { page-break-after: auto; }
 
-            /* 🛠️ แก้ไข .print-header ตรงนี้: ดัน padding-top ลงมาป้องกันการตัดไม้โท/สระอี */
             .print-header { 
                 text-align: center; 
                 font-weight: 900; 
@@ -497,7 +496,6 @@
     });
 
     function getEmptyData() { 
-        /* 🛠️ แก้ไขค่าเริ่มต้น วาริเทพเพ็ญ -> วารีเทพเพ็ญ */
         return { times: { start: "22:00", stop: "06:00" }, initStock: { hl:0, bh:0, bl:0 }, reportInfo: { branch: 'วารีเทพเพ็ญ (W041)', machine: 'M1', ph: '7.1', tds: '172', prodStaff: 4, engStaff: 1 }, orders: {}, drops: [] }; 
     }
     
@@ -527,6 +525,12 @@
         if(d) { 
             try { 
                 DATA = JSON.parse(d); 
+                
+                /* 👻 ดักผีข้อมูลเก่า! ถ้าโหลดมาแล้วยังเป็น วาริเทพเพ็ญ ให้เปลี่ยนเป็น วารีเทพเพ็ญ ทันที */
+                if(DATA.reportInfo && DATA.reportInfo.branch === 'วาริเทพเพ็ญ (W041)') {
+                    DATA.reportInfo.branch = 'วารีเทพเพ็ญ (W041)';
+                }
+
                 if(!DATA.drops) DATA.drops = []; 
                 if(!DATA.orders) DATA.orders = {}; 
                 if(!DATA.reportInfo) DATA.reportInfo = { branch: 'วารีเทพเพ็ญ (W041)', machine: 'M1', ph: '7.1', tds: '172', prodStaff: 4, engStaff: 1 };
@@ -573,7 +577,6 @@
         document.getElementById('init_bl').value = DATA.initStock.bl || 0;
         
         if(document.getElementById('rpt_branch')) {
-            /* 🛠️ แก้ไขค่า Default การดึงข้อมูล */
             document.getElementById('rpt_branch').value = DATA.reportInfo.branch || 'วารีเทพเพ็ญ (W041)';
             document.getElementById('rpt_machine').value = DATA.reportInfo.machine || 'M1';
             document.getElementById('rpt_ph').value = DATA.reportInfo.ph || '7.1';
@@ -629,7 +632,6 @@
         
         document.getElementById('btn_delete_dt').style.display = id ? 'block' : 'none';
 
-        /* 🛠️ แก้ไข: จัดการ Z-Index กรณีเปิดป๊อปอัพไฟดับซ้อนจากหน้าประวัติรวม */
         if(document.getElementById('edit_past_modal').style.display === 'flex') {
             document.getElementById('edit_past_modal').style.display = 'none';
             SOURCE_MODAL = 'edit_past';
@@ -647,7 +649,6 @@
 
     function closeDowntimeModal() {
         document.getElementById('downtime_modal').style.display = 'none';
-        /* 🛠️ แก้ไข: คืนค่าการเปิดหน้าประวัติรวม */
         if(SOURCE_MODAL === 'edit_past') openFullHistory();
         else if(SOURCE_MODAL === 'full_history') openFullHistory();
         else if(SOURCE_MODAL === 'history') document.getElementById('history_modal').style.display = 'flex';
@@ -747,7 +748,6 @@
         const hlBatch = Math.ceil(hlProd / 40) * 40; const crushBatch = Math.ceil((bhProd + blProd) / 40) * 40;
         const hlRem = hlBatch - hlProd; const crushRem = crushBatch - (bhProd + blProd);
 
-        /* 🛠️ แก้ไข: เปลี่ยน onchange ของเวลาเป็น onblur เพื่อไม่ให้แป้นพิมพ์เด้งลงไปเอง */
         return `<div class="modern-card"><div class="card-header-flex"><div class="badge-box bg-prod"><span>น้ำแข็ง<br>ตก<br>(ผลิต)</span></div><input type="time" class="big-time-input" value="${d.time}" onblur="updateDropVal(${d.id}, 'time', null, this.value)"><span class="time-diff-badge">(+${netDiff} น.)</span><button class="btn-close-red" onclick="deleteDrop(${d.id})">×</button></div><div class="card-body" style="padding-top:0;"><div class="sack-row"><div class="sack-item"><div class="sack-label">เบิก (หลอด/บด)</div><div class="sack-val" id="disp_withdraw_${d.id}">${hlBatch} / ${crushBatch}</div></div><div class="sack-item"><div class="sack-label">ใช้ (หลอด/บด)</div><div class="sack-val" id="disp_used_${d.id}">${hlProd} / ${bhProd+blProd}</div></div><div class="sack-item"><div class="sack-label">คืน (หลอด/บด)</div><div class="sack-split"><span class="ss-hl" id="disp_rem_hl_${d.id}">หลอด:${hlRem}</span> <span class="ss-bod" id="disp_rem_bod_${d.id}">บด:${crushRem}</span></div></div></div><div class="grid-3"><div><div class="input-label">หลอด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.hl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'hl', this.value)"></div><div><div class="input-label">หยาบ (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bh)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bh', this.value)"></div><div><div class="input-label">ละเอียด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bl', this.value)"></div></div><div class="dist-container"><div style="font-size:0.85rem; color:var(--text-muted); font-weight:800; margin-bottom:5px; text-transform:uppercase;">รายการจ่ายเข้ารถ</div>${distHtml}<button class="btn-add-dist" onclick="openDistModal(${d.id})">+ เพิ่มรายการส่งเข้ารถ</button></div></div></div>`;
     }
 
@@ -1022,7 +1022,6 @@
         const container = document.getElementById('full_history_list'); 
         container.innerHTML = ''; 
         const startTimeStr = document.getElementById('time_start').value;
-        /* 🛠️ แก้ไข: ลบ .reverse() ออกเพื่อให้เรียงล่าสุดไว้บนสุดจริง ๆ */
         const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(b.time, startTimeStr) - getAdjustedMinutes(a.time, startTimeStr)); 
         
         if (sortedDrops.length === 0) { 
@@ -1491,7 +1490,6 @@
         setTimeout(() => { window.print(); }, 300);
     }
     
-    /* 🚀 เพิ่มตัวป้องกันมือลั่นปิดแท็บโดยไม่ได้ตั้งใจ */
     window.addEventListener('beforeunload', function (e) {
         const confirmationMessage = 'คุณกำลังจะออกจากหน้านี้ ข้อมูลถูกบันทึกในเครื่องแล้ว แต่อยากยืนยันการออกหรือไม่?';
         e.returnValue = confirmationMessage; 
