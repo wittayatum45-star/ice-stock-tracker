@@ -200,10 +200,12 @@
             .print-table th { padding: 4px 1px; font-size: 8pt; font-weight: 800;}
             .print-table td { height: 19px; font-size: 8.5pt; padding: 1px; line-height: 1; }
             
-            .print-table td:nth-child(4), .print-table td:nth-child(5) { background-color: #e0f2fe !important; color: #0284c7 !important; }
-            .print-table td:nth-child(6), .print-table td:nth-child(7), .print-table td:nth-child(8) { background-color: #dcfce7 !important; color: #15803d !important; }
-            .print-table td:nth-child(9), .print-table td:nth-child(10) { background-color: #fef3c7 !important; color: #b45309 !important; }
+            /* 🛠️ แก้ไข: เปลี่ยนวิธีการระบุสีจาก nth-child มาใช้ Class เฉพาะ เพื่อป้องกันสีทะลุเมื่อยุบช่อง (colspan) */
+            .print-table td.pc-check { background-color: #e0f2fe !important; color: #0284c7 !important; }
+            .print-table td.pc-prod { background-color: #dcfce7 !important; color: #15803d !important; }
+            .print-table td.pc-rem { background-color: #fef3c7 !important; color: #b45309 !important; }
 
+            /* 🛠️ แก้ไข: ทำให้แถบสรุปรวมท้ายตารางเป็นสีเทาสะอาดตา ป้องกันสีเพี้ยน */
             .print-footer td { border-top: 1.5px solid black; font-weight: 900; background-color: #e2e8f0 !important; padding: 3px 1px; color: black !important;}
             
             .s-title { margin-top: 8px; margin-bottom: 4px; font-weight: 900; border-bottom: 1px solid #475569; padding-bottom: 2px; font-size: 9.5pt; color: #1e293b;}
@@ -526,7 +528,6 @@
             try { 
                 DATA = JSON.parse(d); 
                 
-                /* 👻 ดักผีข้อมูลเก่า! ถ้าโหลดมาแล้วยังเป็น วาริเทพเพ็ญ ให้เปลี่ยนเป็น วารีเทพเพ็ญ ทันที */
                 if(DATA.reportInfo && DATA.reportInfo.branch === 'วาริเทพเพ็ญ (W041)') {
                     DATA.reportInfo.branch = 'วารีเทพเพ็ญ (W041)';
                 }
@@ -1401,28 +1402,30 @@
                 let item = chunk[i];
                 if(item && item.type === 'prod') {
                     localProdCounter++;
+                    /* 🛠️ แก้ไข: เปลี่ยนไปใช้ Class กะบุสีแทน nth-child เพื่อกันสีเพี้ยนเมื่อยุบช่อง */
                     pageHtml += `<tr>
                         <td>${localProdCounter}</td><td>${item.time}</td><td>${item.duration}</td>
-                        <td>${item.whl}</td><td>${item.wbod}</td>
-                        <td>${item.phl}</td><td>${item.pbh}</td><td>${item.pbl}</td>
-                        <td>${item.rhl}</td><td>${item.rbod}</td>
+                        <td class="pc-check">${item.whl}</td><td class="pc-check">${item.wbod}</td>
+                        <td class="pc-prod">${item.phl}</td><td class="pc-prod">${item.pbh}</td><td class="pc-prod">${item.pbl}</td>
+                        <td class="pc-rem">${item.rhl}</td><td class="pc-rem">${item.rbod}</td>
                     </tr>`;
                 } else if (item && item.type === 'downtime_start') {
+                    /* 🛠️ แก้ไข: แถวพักเครื่อง จะไม่ใส่ Class สี เพื่อไม่ให้โดนสีฟ้าทับจนเละเทะ */
                     pageHtml += `<tr>
                         <td></td><td style="color:black;">${item.time}</td><td></td>
-                        <td colspan="7" style="font-weight:900; letter-spacing:1px; background-color:#fef2f2 !important;">ปิดเครื่อง</td>
+                        <td colspan="7" style="font-weight:900; letter-spacing:1px; background-color:#fef2f2 !important; color:#dc2626 !important;">ปิดเครื่อง</td>
                     </tr>`;
                 } else if (item && item.type === 'downtime_end') {
                     pageHtml += `<tr>
                         <td></td><td style="color:black;">${item.time}</td><td></td>
-                        <td colspan="7" style="font-weight:900; letter-spacing:1px; background-color:#f0fdf4 !important;">เปิดเครื่อง</td>
+                        <td colspan="7" style="font-weight:900; letter-spacing:1px; background-color:#f0fdf4 !important; color:#16a34a !important;">เปิดเครื่อง</td>
                     </tr>`;
                 } else {
                     pageHtml += `<tr>
                         <td></td><td></td><td></td>
-                        <td></td><td></td>
-                        <td></td><td></td><td></td>
-                        <td></td><td></td>
+                        <td class="pc-check"></td><td class="pc-check"></td>
+                        <td class="pc-prod"></td><td class="pc-prod"></td><td class="pc-prod"></td>
+                        <td class="pc-rem"></td><td class="pc-rem"></td>
                     </tr>`;
                 }
             }
