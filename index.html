@@ -1518,7 +1518,27 @@
         });
 
         document.getElementById('print_area').innerHTML = finalHtml;
-        setTimeout(() => { window.print(); }, 300);
+        setTimeout(() => { window.print(); }, // Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBVirNpmGi1r53mf7pNnV59RGzEFKo4PS4",
+  authDomain: "smart-ice-tumnaaa.firebaseapp.com",
+  projectId: "smart-ice-tumnaaa",
+  storageBucket: "smart-ice-tumnaaa.firebasestorage.app",
+  messagingSenderId: "349663033743",
+  appId: "1:349663033743:web:adf6793310195fb06e73fa",
+  measurementId: "G-08Z6KE1KFN"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);  
     }
     
     window.addEventListener('beforeunload', function (e) {
