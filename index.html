@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Smart Ice">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#0ea5e9">
-    <title>Smart Ice V205 (Real-time Calc & No Keyboard Drop)</title>
+    <title>Smart Ice V206 (Cloud Sync & Real-time Calc)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
         /* --- Modern Premium Theme (Screen UI) --- */
@@ -261,7 +261,7 @@
             <div id="order_inputs" style="overflow-x:auto;"></div>
         </div>
         
-        <button class="btn-reset" onclick="if(confirm('ระบบจะล้างข้อมูลเฉพาะของวันนี้ ยืนยันหรือไม่?')){ const d = document.getElementById('setup_date').value; localStorage.removeItem('ICE_DATA_' + d); location.reload(); }">🗑️ รีเซ็ตข้อมูลเฉพาะวันนี้</button>
+        <button class="btn-reset" onclick="resetTodayData()">🗑️ รีเซ็ตข้อมูลเฉพาะวันนี้</button>
         <div style="height:50px;"></div>
     </div>
 
@@ -470,6 +470,38 @@
     <div id="history_modal" class="modal"><div class="modal-content"><div class="modal-header"><div class="modal-title" id="hist_title">🕒 ประวัติ</div><button class="btn-close-modal" onclick="closeHistoryModal()">×</button></div><div class="modal-body"><div id="history_list"></div><div style="height:50px;"></div></div></div></div>
     <div id="edit_past_modal" class="modal" style="display:none; align-items:center; justify-content:center;"><div class="modal-content" style="background:transparent; box-shadow:none;"><div class="modal-header" style="border-radius:16px 16px 0 0;"><div class="modal-title">✏️ แก้ไขรายการ</div><button class="btn-close-modal" onclick="closeEditPastModal()">×</button></div><div class="modal-body" id="edit_past_body" style="padding:0;"></div></div></div>
 
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    // ข้อมูล Config จากที่ลูกศิษย์ให้มา
+    const firebaseConfig = {
+        apiKey: "AIzaSyBVirNpmGi1r53mf7pNnV59RGzEFKo4PS4",
+        authDomain: "smart-ice-tumnaaa.firebaseapp.com",
+        projectId: "smart-ice-tumnaaa",
+        storageBucket: "smart-ice-tumnaaa.firebasestorage.app",
+        messagingSenderId: "349663033743",
+        appId: "1:349663033743:web:adf6793310195fb06e73fa"
+    };
+
+    try {
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // โยนของเล่น Firebase ออกมาให้ JS ตัวหลักใช้งานได้
+        window.fbDb = db;
+        window.fbDoc = doc;
+        window.fbSetDoc = setDoc;
+        window.fbOnSnapshot = onSnapshot;
+        
+        // ส่งสัญญาณบอกตัวหลักว่า Firebase พร้อมรบแล้ว!
+        window.dispatchEvent(new Event('firebase-ready'));
+        console.log("🔥 Firebase Cloud Sync Ready!");
+    } catch(e) {
+        console.error("Firebase Init Error: ", e);
+    }
+</script>
+
 <script>
     const TRUCKS = ["รถ 1", "รถ 2", "รถ 3", "รถ 4", "รถ 5", "รถ 6", "รถ 7", "รถ 8", "รถ 9"];
     const ICE_TYPES = [ { id: 'hl', label: 'หลอด' }, { id: 'bh', label: 'หยาบ' }, { id: 'bl', label: 'ละเอียด' } ];
@@ -481,6 +513,7 @@
     
     let globalAvgTime = 38;
     let globalLastEventTime = null;
+    let unsubscribeFB = null; // ตัวแปรเก็บหูทิพย์ฟัง Cloud
     window.REPORT_DATA = {};
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -495,6 +528,70 @@
         
         setInterval(updatePredictor, 60000); 
     });
+
+    // 🚀 2. ฟังก์ชันเริ่มซิงค์ข้อมูลจาก Cloud (รับสัญญาณจาก Module ด้านบน)
+    window.addEventListener('firebase-ready', () => {
+        const dateKey = document.getElementById('setup_date').value;
+        syncFromFirebase(dateKey);
+    });
+
+    function syncFromFirebase(dateKey) {
+        if(!window.fbDb) return;
+        if(unsubscribeFB) unsubscribeFB(); // ปิดหูฟังอันเก่า
+        
+        const docRef = window.fbDoc(window.fbDb, "ice_production", dateKey);
+        
+        // เปิดหูทิพย์ฟัง Cloud
+        unsubscribeFB = window.fbOnSnapshot(docRef, (docSnap) => {
+            if(docSnap.exists()) {
+                const remoteData = docSnap.data();
+                const localStr = localStorage.getItem(`ICE_DATA_${dateKey}`);
+                
+                // ถ้าข้อมูลบน Cloud ไม่เหมือนในเครื่อง (มีคนอื่นอัปเดต)
+                if(JSON.stringify(remoteData) !== localStr) {
+                    console.log("☁️ Data updated from cloud!");
+                    DATA = remoteData;
+                    localStorage.setItem(`ICE_DATA_${dateKey}`, JSON.stringify(DATA));
+                    
+                    // เช็คว่าผู้ใช้กำลังพิมพ์ช่องไหนอยู่หรือเปล่า (กันแป้นพิมพ์พับ)
+                    const activeTag = document.activeElement ? document.activeElement.tagName : '';
+                    const activeType = document.activeElement ? document.activeElement.type : '';
+                    if(activeTag === 'INPUT' && (activeType === 'text' || activeType === 'tel' || activeType === 'number' || activeType === 'time')) {
+                        // ปล่อยให้พิมพ์ต่อ ค่อยอัปเดตตอนพิมพ์เสร็จ
+                    } else {
+                        refreshUI(); // สั่งวาดหน้าจอใหม่ด้วยข้อมูล Cloud
+                    }
+                }
+            }
+        });
+    }
+
+    // ฟังก์ชันสั่งวาด UI ใหม่เมื่อได้ข้อมูลจาก Cloud
+    function refreshUI() {
+        document.getElementById('time_start').value = DATA.times.start || "22:00";
+        document.getElementById('init_hl').value = DATA.initStock.hl || 0;
+        document.getElementById('init_bh').value = DATA.initStock.bh || 0;
+        document.getElementById('init_bl').value = DATA.initStock.bl || 0;
+        if(document.getElementById('rpt_branch')) {
+            document.getElementById('rpt_branch').value = DATA.reportInfo.branch || 'วารีเทพเพ็ญ (W041)';
+            document.getElementById('rpt_machine').value = DATA.reportInfo.machine || 'M1';
+            document.getElementById('rpt_ph').value = DATA.reportInfo.ph || '7.1';
+            document.getElementById('rpt_tds').value = DATA.reportInfo.tds || '172';
+            document.getElementById('rpt_staff_prod').value = DATA.reportInfo.prodStaff || 4;
+            document.getElementById('rpt_staff_eng').value = DATA.reportInfo.engStaff || 1;
+        }
+        renderOrderInputs();
+        renderDrops();
+        calcAll();
+    }
+
+    // ฟังก์ชันส่งข้อมูลขึ้น Cloud
+    function pushToFirebase() {
+        if(!window.fbDb) return;
+        const dateKey = document.getElementById('setup_date').value;
+        const docRef = window.fbDoc(window.fbDb, "ice_production", dateKey);
+        window.fbSetDoc(docRef, DATA).catch(e => console.error("FB Save Error", e));
+    }
 
     function getEmptyData() { 
         return { times: { start: "22:00", stop: "06:00" }, initStock: { hl:0, bh:0, bl:0 }, reportInfo: { branch: 'วารีเทพเพ็ญ (W041)', machine: 'M1', ph: '7.1', tds: '172', prodStaff: 4, engStaff: 1 }, orders: {}, drops: [] }; 
@@ -517,6 +614,7 @@
         }
 
         localStorage.setItem(`ICE_DATA_${dateKey}`, JSON.stringify(DATA)); 
+        pushToFirebase(); // 🚀 ส่งขึ้น Cloud ทันทีที่เซฟ
     }
     
     function loadData(dateKey) {
@@ -590,9 +688,33 @@
         }
     }
 
-    function changeDate() { const newDate = document.getElementById('setup_date').value; loadData(newDate); saveData(); calcAll(); renderOrderInputs(); renderDrops(); }
+    function changeDate() { 
+        const newDate = document.getElementById('setup_date').value; 
+        loadData(newDate); 
+        saveData(); 
+        calcAll(); 
+        renderOrderInputs(); 
+        renderDrops(); 
+        syncFromFirebase(newDate); // ซิงค์วันที่ใหม่
+    }
+    
     function getNum(val) { return parseFloat(val) || 0; }
     function updateStock() { saveData(); calcAll(); }
+
+    /* 🛠️ รีเซ็ตเฉพาะวันนี้ และเคลียร์บน Cloud ด้วย */
+    function resetTodayData() {
+        if(confirm('ระบบจะล้างข้อมูลเฉพาะของวันนี้ ยืนยันหรือไม่?')) {
+            const dateKey = document.getElementById('setup_date').value; 
+            localStorage.removeItem('ICE_DATA_' + dateKey); 
+            
+            if(window.fbDb) {
+                const docRef = window.fbDoc(window.fbDb, "ice_production", dateKey);
+                window.fbSetDoc(docRef, getEmptyData()).then(() => location.reload());
+            } else {
+                location.reload();
+            }
+        }
+    }
 
     function addDrop(type) {
         setTimeout(() => {
@@ -1014,20 +1136,17 @@
             </table>
         </div>`; } } }); content += `</div>`; if(hasData) h += content; } }); if(h==='') h='<div style="text-align:center; padding:20px; color:#aaa;">ยังไม่มีข้อมูล</div>'; document.getElementById('truck_detail_container').innerHTML = h; }
     
-    /* 🛠️ แก้ไข: ฟังก์ชันอัปเดตช่องสั่งซื้อแบบ Real-time */
     function updateOrder(key, val) { 
         DATA.orders[key] = getNum(val); 
         saveData(); 
         
-        // 1. อัปเดตผลรวมแนวนอน (รายคัน)
-        const tid = key.split('_')[0]; // ได้ค่า 't1', 't2', ...
+        const tid = key.split('_')[0]; 
         const hl = getNum(DATA.orders[tid+'_hl']); 
         const bh = getNum(DATA.orders[tid+'_bh']); 
         const bl = getNum(DATA.orders[tid+'_bl']); 
         const sumEl = document.getElementById('ord_sum_'+tid); 
         if(sumEl) sumEl.innerText = hl + bh + bl;
         
-        // 2. อัปเดตผลรวมแนวตั้ง (ตารางแถวสุดท้าย)
         let sumAllHl = 0, sumAllBh = 0, sumAllBl = 0, grandTotal = 0;
         TRUCKS.forEach((t, i) => {
             let id = `t${i+1}`;
@@ -1045,7 +1164,6 @@
         if(document.getElementById('master_sum_bl')) document.getElementById('master_sum_bl').innerText = sumAllBl;
         if(document.getElementById('master_grand_total')) document.getElementById('master_grand_total').innerText = grandTotal;
 
-        // 3. สั่งให้ Dashboard หน้าสรุปอัปเดตด้วย
         calcAll();
     }
     
@@ -1518,27 +1636,7 @@
         });
 
         document.getElementById('print_area').innerHTML = finalHtml;
-        setTimeout(() => { window.print(); }, // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyBVirNpmGi1r53mf7pNnV59RGzEFKo4PS4",
-  authDomain: "smart-ice-tumnaaa.firebaseapp.com",
-  projectId: "smart-ice-tumnaaa",
-  storageBucket: "smart-ice-tumnaaa.firebasestorage.app",
-  messagingSenderId: "349663033743",
-  appId: "1:349663033743:web:adf6793310195fb06e73fa",
-  measurementId: "G-08Z6KE1KFN"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);  
+        setTimeout(() => { window.print(); }, 300);
     }
     
     window.addEventListener('beforeunload', function (e) {
