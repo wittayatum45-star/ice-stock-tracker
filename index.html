@@ -131,7 +131,7 @@
             .btn-view-history { background: var(--text-dark); box-shadow: 0 6px 15px rgba(30, 41, 59, 0.3); margin-bottom: 25px; }
             .btn-print { background: var(--purple-grad); box-shadow: 0 6px 15px rgba(139, 92, 246, 0.3); margin-top:15px; font-size:1.3rem; }
             .btn-save-dist { background: var(--success-grad); border-radius: 12px; font-size: 1.1rem; margin-top: 15px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
-            .btn-reset { background: #e2e8f0; color: #64748b; border: none; padding: 14px; width: 100%; margin-top: 20px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.15s; }
+            .btn-reset { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; padding: 14px; width: 100%; margin-top: 20px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.15s; }
             
             .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
             .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -200,12 +200,10 @@
             .print-table th { padding: 4px 1px; font-size: 8pt; font-weight: 800;}
             .print-table td { height: 19px; font-size: 8.5pt; padding: 1px; line-height: 1; }
             
-            /* 🛠️ แก้ไข: เปลี่ยนวิธีการระบุสีจาก nth-child มาใช้ Class เฉพาะ เพื่อป้องกันสีทะลุเมื่อยุบช่อง (colspan) */
             .print-table td.pc-check { background-color: #e0f2fe !important; color: #0284c7 !important; }
             .print-table td.pc-prod { background-color: #dcfce7 !important; color: #15803d !important; }
             .print-table td.pc-rem { background-color: #fef3c7 !important; color: #b45309 !important; }
 
-            /* 🛠️ แก้ไข: ทำให้แถบสรุปรวมท้ายตารางเป็นสีเทาสะอาดตา ป้องกันสีเพี้ยน */
             .print-footer td { border-top: 1.5px solid black; font-weight: 900; background-color: #e2e8f0 !important; padding: 3px 1px; color: black !important;}
             
             .s-title { margin-top: 8px; margin-bottom: 4px; font-weight: 900; border-bottom: 1px solid #475569; padding-bottom: 2px; font-size: 9.5pt; color: #1e293b;}
@@ -262,7 +260,8 @@
             <h3>🚚 สั่งซื้อ (Master Order)</h3>
             <div id="order_inputs" style="overflow-x:auto;"></div>
         </div>
-        <button class="btn-reset" onclick="if(confirm('ระบบจะล้างข้อมูลของวันนี้ทั้งหมด ยืนยันหรือไม่?')){localStorage.clear(); localStorage.removeItem('LAST_DATE'); location.reload();}">🗑️ รีเซ็ตข้อมูล (เริ่มใหม่ทั้งหมด)</button>
+        
+        <button class="btn-reset" onclick="if(confirm('ระบบจะล้างข้อมูลเฉพาะของวันนี้ ยืนยันหรือไม่?')){ const d = document.getElementById('setup_date').value; localStorage.removeItem('ICE_DATA_' + d); location.reload(); }">🗑️ รีเซ็ตข้อมูลเฉพาะวันนี้</button>
         <div style="height:50px;"></div>
     </div>
 
@@ -1015,8 +1014,39 @@
             </table>
         </div>`; } } }); content += `</div>`; if(hasData) h += content; } }); if(h==='') h='<div style="text-align:center; padding:20px; color:#aaa;">ยังไม่มีข้อมูล</div>'; document.getElementById('truck_detail_container').innerHTML = h; }
     
-    function updateOrder(key, val) { DATA.orders[key] = getNum(val); saveData(); 
-        const tid = key.split('_')[0] + '_' + key.split('_')[1]; const hl = getNum(DATA.orders[tid+'_hl']); const bh = getNum(DATA.orders[tid+'_bh']); const bl = getNum(DATA.orders[tid+'_bl']); const sumEl = document.getElementById('ord_sum_'+tid); if(sumEl) sumEl.innerText = hl+bh+bl;
+    /* 🛠️ แก้ไข: ฟังก์ชันอัปเดตช่องสั่งซื้อแบบ Real-time */
+    function updateOrder(key, val) { 
+        DATA.orders[key] = getNum(val); 
+        saveData(); 
+        
+        // 1. อัปเดตผลรวมแนวนอน (รายคัน)
+        const tid = key.split('_')[0]; // ได้ค่า 't1', 't2', ...
+        const hl = getNum(DATA.orders[tid+'_hl']); 
+        const bh = getNum(DATA.orders[tid+'_bh']); 
+        const bl = getNum(DATA.orders[tid+'_bl']); 
+        const sumEl = document.getElementById('ord_sum_'+tid); 
+        if(sumEl) sumEl.innerText = hl + bh + bl;
+        
+        // 2. อัปเดตผลรวมแนวตั้ง (ตารางแถวสุดท้าย)
+        let sumAllHl = 0, sumAllBh = 0, sumAllBl = 0, grandTotal = 0;
+        TRUCKS.forEach((t, i) => {
+            let id = `t${i+1}`;
+            let rHl = getNum(DATA.orders[id+'_hl']);
+            let rBh = getNum(DATA.orders[id+'_bh']);
+            let rBl = getNum(DATA.orders[id+'_bl']);
+            sumAllHl += rHl;
+            sumAllBh += rBh;
+            sumAllBl += rBl;
+            grandTotal += (rHl + rBh + rBl);
+        });
+
+        if(document.getElementById('master_sum_hl')) document.getElementById('master_sum_hl').innerText = sumAllHl;
+        if(document.getElementById('master_sum_bh')) document.getElementById('master_sum_bh').innerText = sumAllBh;
+        if(document.getElementById('master_sum_bl')) document.getElementById('master_sum_bl').innerText = sumAllBl;
+        if(document.getElementById('master_grand_total')) document.getElementById('master_grand_total').innerText = grandTotal;
+
+        // 3. สั่งให้ Dashboard หน้าสรุปอัปเดตด้วย
+        calcAll();
     }
     
     function openFullHistory() { 
@@ -1402,7 +1432,6 @@
                 let item = chunk[i];
                 if(item && item.type === 'prod') {
                     localProdCounter++;
-                    /* 🛠️ แก้ไข: เปลี่ยนไปใช้ Class กะบุสีแทน nth-child เพื่อกันสีเพี้ยนเมื่อยุบช่อง */
                     pageHtml += `<tr>
                         <td>${localProdCounter}</td><td>${item.time}</td><td>${item.duration}</td>
                         <td class="pc-check">${item.whl}</td><td class="pc-check">${item.wbod}</td>
@@ -1410,7 +1439,6 @@
                         <td class="pc-rem">${item.rhl}</td><td class="pc-rem">${item.rbod}</td>
                     </tr>`;
                 } else if (item && item.type === 'downtime_start') {
-                    /* 🛠️ แก้ไข: แถวพักเครื่อง จะไม่ใส่ Class สี เพื่อไม่ให้โดนสีฟ้าทับจนเละเทะ */
                     pageHtml += `<tr>
                         <td></td><td style="color:black;">${item.time}</td><td></td>
                         <td colspan="7" style="font-weight:900; letter-spacing:1px; background-color:#fef2f2 !important; color:#dc2626 !important;">ปิดเครื่อง</td>
