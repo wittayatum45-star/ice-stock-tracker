@@ -3,6 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Smart Ice">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0ea5e9">
     <title>Smart Ice V205 (Real-time Calc & No Keyboard Drop)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
@@ -175,7 +180,14 @@
             }
             .print-page:last-child { page-break-after: auto; }
 
-            .print-header { text-align: center; font-weight: 900; font-size: 11pt; margin-bottom: 6px; line-height: 1.2; }
+            .print-header { 
+                text-align: center; 
+                font-weight: 900; 
+                font-size: 11pt; 
+                margin-bottom: 6px; 
+                line-height: 1.5; 
+                padding-top: 8px; 
+            }
             .print-header .date-text { font-size: 10pt; font-weight: 600; color: #333; }
             
             .print-wrapper { width: 100%; display: block; overflow: hidden; }
@@ -275,7 +287,7 @@
         <div class="modern-card card-body" style="border:2px solid var(--primary);">
             <h3 style="color:var(--primary);">📑 ข้อมูลออกรายงาน (PDF Form)</h3>
             <div class="grid-2" style="margin-bottom:10px;">
-                <div><div class="input-label">สาขา</div><input type="text" id="rpt_branch" value="วาริเทพเพ็ญ (W041)" oninput="saveData()"></div>
+                <div><div class="input-label">สาขา</div><input type="text" id="rpt_branch" value="วารีเทพเพ็ญ (W041)" oninput="saveData()"></div>
                 <div><div class="input-label">เครื่องที่</div><input type="text" id="rpt_machine" value="M1" oninput="saveData()"></div>
             </div>
             <div class="grid-2" style="margin-bottom:10px;">
@@ -483,7 +495,9 @@
         setInterval(updatePredictor, 60000); 
     });
 
-    function getEmptyData() { return { times: { start: "22:00", stop: "06:00" }, initStock: { hl:0, bh:0, bl:0 }, reportInfo: { branch: 'วาริเทพเพ็ญ (W041)', machine: 'M1', ph: '7.1', tds: '172', prodStaff: 4, engStaff: 1 }, orders: {}, drops: [] }; }
+    function getEmptyData() { 
+        return { times: { start: "22:00", stop: "06:00" }, initStock: { hl:0, bh:0, bl:0 }, reportInfo: { branch: 'วารีเทพเพ็ญ (W041)', machine: 'M1', ph: '7.1', tds: '172', prodStaff: 4, engStaff: 1 }, orders: {}, drops: [] }; 
+    }
     
     function saveData() { 
         const dateKey = document.getElementById('setup_date').value;
@@ -491,7 +505,7 @@
         DATA.times.start = document.getElementById('time_start').value;
         DATA.initStock = { hl: getNum(document.getElementById('init_hl').value), bh: getNum(document.getElementById('init_bh').value), bl: getNum(document.getElementById('init_bl').value) };
         
-        if(!DATA.reportInfo) DATA.reportInfo = { branch: 'วาริเทพเพ็ญ (W041)', machine: 'M1', ph: '', tds: '', prodStaff: 0, engStaff: 0 };
+        if(!DATA.reportInfo) DATA.reportInfo = { branch: 'วารีเทพเพ็ญ (W041)', machine: 'M1', ph: '', tds: '', prodStaff: 0, engStaff: 0 };
         if(document.getElementById('rpt_branch')) {
             DATA.reportInfo.branch = document.getElementById('rpt_branch').value;
             DATA.reportInfo.machine = document.getElementById('rpt_machine').value;
@@ -511,9 +525,15 @@
         if(d) { 
             try { 
                 DATA = JSON.parse(d); 
+                
+                /* 👻 ดักผีข้อมูลเก่า! ถ้าโหลดมาแล้วยังเป็น วาริเทพเพ็ญ ให้เปลี่ยนเป็น วารีเทพเพ็ญ ทันที */
+                if(DATA.reportInfo && DATA.reportInfo.branch === 'วาริเทพเพ็ญ (W041)') {
+                    DATA.reportInfo.branch = 'วารีเทพเพ็ญ (W041)';
+                }
+
                 if(!DATA.drops) DATA.drops = []; 
                 if(!DATA.orders) DATA.orders = {}; 
-                if(!DATA.reportInfo) DATA.reportInfo = { branch: 'วาริเทพเพ็ญ (W041)', machine: 'M1', ph: '7.1', tds: '172', prodStaff: 4, engStaff: 1 };
+                if(!DATA.reportInfo) DATA.reportInfo = { branch: 'วารีเทพเพ็ญ (W041)', machine: 'M1', ph: '7.1', tds: '172', prodStaff: 4, engStaff: 1 };
                 if(!DATA.initStock) DATA.initStock = {hl:0, bh:0, bl:0};
                 
                 DATA.drops.forEach(drop => {
@@ -557,7 +577,7 @@
         document.getElementById('init_bl').value = DATA.initStock.bl || 0;
         
         if(document.getElementById('rpt_branch')) {
-            document.getElementById('rpt_branch').value = DATA.reportInfo.branch || 'วาริเทพเพ็ญ (W041)';
+            document.getElementById('rpt_branch').value = DATA.reportInfo.branch || 'วารีเทพเพ็ญ (W041)';
             document.getElementById('rpt_machine').value = DATA.reportInfo.machine || 'M1';
             document.getElementById('rpt_ph').value = DATA.reportInfo.ph || '7.1';
             document.getElementById('rpt_tds').value = DATA.reportInfo.tds || '172';
@@ -615,6 +635,9 @@
         if(document.getElementById('edit_past_modal').style.display === 'flex') {
             document.getElementById('edit_past_modal').style.display = 'none';
             SOURCE_MODAL = 'edit_past';
+        } else if (document.getElementById('full_history_modal').style.display === 'flex') {
+            document.getElementById('full_history_modal').style.display = 'none';
+            SOURCE_MODAL = 'full_history';
         } else if (document.getElementById('history_modal').style.display === 'flex') {
             document.getElementById('history_modal').style.display = 'none';
             SOURCE_MODAL = 'history';
@@ -627,6 +650,7 @@
     function closeDowntimeModal() {
         document.getElementById('downtime_modal').style.display = 'none';
         if(SOURCE_MODAL === 'edit_past') openFullHistory();
+        else if(SOURCE_MODAL === 'full_history') openFullHistory();
         else if(SOURCE_MODAL === 'history') document.getElementById('history_modal').style.display = 'flex';
     }
 
@@ -724,10 +748,9 @@
         const hlBatch = Math.ceil(hlProd / 40) * 40; const crushBatch = Math.ceil((bhProd + blProd) / 40) * 40;
         const hlRem = hlBatch - hlProd; const crushRem = crushBatch - (bhProd + blProd);
 
-        return `<div class="modern-card"><div class="card-header-flex"><div class="badge-box bg-prod"><span>น้ำแข็ง<br>ตก<br>(ผลิต)</span></div><input type="time" class="big-time-input" value="${d.time}" onchange="updateDropVal(${d.id}, 'time', null, this.value)"><span class="time-diff-badge">(+${netDiff} น.)</span><button class="btn-close-red" onclick="deleteDrop(${d.id})">×</button></div><div class="card-body" style="padding-top:0;"><div class="sack-row"><div class="sack-item"><div class="sack-label">เบิก (หลอด/บด)</div><div class="sack-val" id="disp_withdraw_${d.id}">${hlBatch} / ${crushBatch}</div></div><div class="sack-item"><div class="sack-label">ใช้ (หลอด/บด)</div><div class="sack-val" id="disp_used_${d.id}">${hlProd} / ${bhProd+blProd}</div></div><div class="sack-item"><div class="sack-label">คืน (หลอด/บด)</div><div class="sack-split"><span class="ss-hl" id="disp_rem_hl_${d.id}">หลอด:${hlRem}</span> <span class="ss-bod" id="disp_rem_bod_${d.id}">บด:${crushRem}</span></div></div></div><div class="grid-3"><div><div class="input-label">หลอด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.hl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'hl', this.value)"></div><div><div class="input-label">หยาบ (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bh)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bh', this.value)"></div><div><div class="input-label">ละเอียด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bl', this.value)"></div></div><div class="dist-container"><div style="font-size:0.85rem; color:var(--text-muted); font-weight:800; margin-bottom:5px; text-transform:uppercase;">รายการจ่ายเข้ารถ</div>${distHtml}<button class="btn-add-dist" onclick="openDistModal(${d.id})">+ เพิ่มรายการส่งเข้ารถ</button></div></div></div>`;
+        return `<div class="modern-card"><div class="card-header-flex"><div class="badge-box bg-prod"><span>น้ำแข็ง<br>ตก<br>(ผลิต)</span></div><input type="time" class="big-time-input" value="${d.time}" onblur="updateDropVal(${d.id}, 'time', null, this.value)"><span class="time-diff-badge">(+${netDiff} น.)</span><button class="btn-close-red" onclick="deleteDrop(${d.id})">×</button></div><div class="card-body" style="padding-top:0;"><div class="sack-row"><div class="sack-item"><div class="sack-label">เบิก (หลอด/บด)</div><div class="sack-val" id="disp_withdraw_${d.id}">${hlBatch} / ${crushBatch}</div></div><div class="sack-item"><div class="sack-label">ใช้ (หลอด/บด)</div><div class="sack-val" id="disp_used_${d.id}">${hlProd} / ${bhProd+blProd}</div></div><div class="sack-item"><div class="sack-label">คืน (หลอด/บด)</div><div class="sack-split"><span class="ss-hl" id="disp_rem_hl_${d.id}">หลอด:${hlRem}</span> <span class="ss-bod" id="disp_rem_bod_${d.id}">บด:${crushRem}</span></div></div></div><div class="grid-3"><div><div class="input-label">หลอด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.hl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'hl', this.value)"></div><div><div class="input-label">หยาบ (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bh)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bh', this.value)"></div><div><div class="input-label">ละเอียด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bl', this.value)"></div></div><div class="dist-container"><div style="font-size:0.85rem; color:var(--text-muted); font-weight:800; margin-bottom:5px; text-transform:uppercase;">รายการจ่ายเข้ารถ</div>${distHtml}<button class="btn-add-dist" onclick="openDistModal(${d.id})">+ เพิ่มรายการส่งเข้ารถ</button></div></div></div>`;
     }
 
-    // 🛠️ ฟังก์ชันใหม่: อัปเดตตัวเลขหน้าการ์ดโดยไม่ต้องวาด HTML ใหม่ (แก้แป้นพิมพ์หาย)
     function updateCardStats(id) {
         const d = DATA.drops.find(x => x.id === id);
         if(!d) return;
@@ -751,9 +774,7 @@
         saveData(); 
         calcAll();
         
-        // 🛠️ ถ้าเปลี่ยนตัวเลข ให้ดึงค่าไปโชว์เฉยๆ แป้นพิมพ์จะได้ไม่หาย
         if(cat === 'p_in_room') { updateCardStats(id); }
-        // ถ้าเปลี่ยนเวลา ต้องวาดตารางใหม่เพราะอาจจะสลับลำดับกัน
         if(cat === 'time' || cat === 'time_end') { renderDrops(); } 
     }
 
@@ -1001,7 +1022,7 @@
         const container = document.getElementById('full_history_list'); 
         container.innerHTML = ''; 
         const startTimeStr = document.getElementById('time_start').value;
-        const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(b.time, startTimeStr) - getAdjustedMinutes(a.time, startTimeStr)).reverse(); 
+        const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(b.time, startTimeStr) - getAdjustedMinutes(a.time, startTimeStr)); 
         
         if (sortedDrops.length === 0) { 
             container.innerHTML = '<div style="text-align:center; padding:30px; color:#94a3b8; font-weight:600;">ไม่มีประวัติการผลิต</div>'; 
@@ -1207,7 +1228,6 @@
     function getTypeName(id) { return ICE_TYPES.find(x=>x.id===id).label; }
     function switchPage(id) { document.querySelectorAll('.page').forEach(x=>x.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active')); document.getElementById('page-'+id).classList.add('active'); const map={setup:0,production:1,summary:2}; document.querySelectorAll('.nav-btn')[map[id]].classList.add('active'); if(id==='summary'){calcAll(); window.scrollTo(0,0);} }
 
-    // --- 🔥 V205: PRINT PDF (TWO ROW DOWNTIME + AUTO CLOSE TIME + RESET COUNTER) 🔥 ---
     function printReport() {
         saveData();
         
@@ -1469,6 +1489,12 @@
         document.getElementById('print_area').innerHTML = finalHtml;
         setTimeout(() => { window.print(); }, 300);
     }
+    
+    window.addEventListener('beforeunload', function (e) {
+        const confirmationMessage = 'คุณกำลังจะออกจากหน้านี้ ข้อมูลถูกบันทึกในเครื่องแล้ว แต่อยากยืนยันการออกหรือไม่?';
+        e.returnValue = confirmationMessage; 
+        return confirmationMessage;
+    });
 </script>
 </body>
 </html>
