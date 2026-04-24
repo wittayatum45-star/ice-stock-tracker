@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Smart Ice">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#0ea5e9">
-    <title>Smart Ice V206 (Cloud Sync & Real-time Calc)</title>
+    <title>Smart Ice V207 (Classic Firebase & Seamless Sync)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
         /* --- Modern Premium Theme (Screen UI) --- */
@@ -470,11 +470,11 @@
     <div id="history_modal" class="modal"><div class="modal-content"><div class="modal-header"><div class="modal-title" id="hist_title">🕒 ประวัติ</div><button class="btn-close-modal" onclick="closeHistoryModal()">×</button></div><div class="modal-body"><div id="history_list"></div><div style="height:50px;"></div></div></div></div>
     <div id="edit_past_modal" class="modal" style="display:none; align-items:center; justify-content:center;"><div class="modal-content" style="background:transparent; box-shadow:none;"><div class="modal-header" style="border-radius:16px 16px 0 0;"><div class="modal-title">✏️ แก้ไขรายการ</div><button class="btn-close-modal" onclick="closeEditPastModal()">×</button></div><div class="modal-body" id="edit_past_body" style="padding:0;"></div></div></div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
 
-    // ข้อมูล Config จากที่ลูกศิษย์ให้มา
+<script>
+    // 🚀 2. ปลุกเสก Firebase ทันทีที่โหลดหน้าเว็บ
     const firebaseConfig = {
         apiKey: "AIzaSyBVirNpmGi1r53mf7pNnV59RGzEFKo4PS4",
         authDomain: "smart-ice-tumnaaa.firebaseapp.com",
@@ -484,25 +484,9 @@
         appId: "1:349663033743:web:adf6793310195fb06e73fa"
     };
 
-    try {
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        
-        // โยนของเล่น Firebase ออกมาให้ JS ตัวหลักใช้งานได้
-        window.fbDb = db;
-        window.fbDoc = doc;
-        window.fbSetDoc = setDoc;
-        window.fbOnSnapshot = onSnapshot;
-        
-        // ส่งสัญญาณบอกตัวหลักว่า Firebase พร้อมรบแล้ว!
-        window.dispatchEvent(new Event('firebase-ready'));
-        console.log("🔥 Firebase Cloud Sync Ready!");
-    } catch(e) {
-        console.error("Firebase Init Error: ", e);
-    }
-</script>
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-<script>
     const TRUCKS = ["รถ 1", "รถ 2", "รถ 3", "รถ 4", "รถ 5", "รถ 6", "รถ 7", "รถ 8", "รถ 9"];
     const ICE_TYPES = [ { id: 'hl', label: 'หลอด' }, { id: 'bh', label: 'หยาบ' }, { id: 'bl', label: 'ละเอียด' } ];
     let DATA = getEmptyData();
@@ -520,59 +504,47 @@
         const today = new Date().toISOString().split('T')[0];
         const savedDate = localStorage.getItem('LAST_DATE') || today;
         document.getElementById('setup_date').value = savedDate;
+        
         loadData(savedDate);
         initWizard();
         renderOrderInputs();
         renderDrops();
         setTimeout(() => { calcAll(); }, 50); 
         
+        // 🚀 สั่งเปิดหูทิพย์ฟัง Cloud ทันที!
+        syncFromFirebase(savedDate);
+        
         setInterval(updatePredictor, 60000); 
     });
 
-    // 🚀 2. ฟังก์ชันเริ่มซิงค์ข้อมูลจาก Cloud (รับสัญญาณจาก Module ด้านบน)
-    window.addEventListener('firebase-ready', () => {
-        const dateKey = document.getElementById('setup_date').value;
-        syncFromFirebase(dateKey);
-    });
-
+    // 🚀 3. ฟังก์ชันดึงข้อมูลจาก Cloud และอัปเดตหน้าจอแบบเนียนๆ
     function syncFromFirebase(dateKey) {
-        if(!window.fbDb) return;
         if(unsubscribeFB) unsubscribeFB(); // ปิดหูฟังอันเก่า
         
-        const docRef = window.fbDoc(window.fbDb, "ice_production", dateKey);
-        
-        // เปิดหูทิพย์ฟัง Cloud
-        unsubscribeFB = window.fbOnSnapshot(docRef, (docSnap) => {
-            if(docSnap.exists()) {
-                const remoteData = docSnap.data();
+        unsubscribeFB = db.collection("ice_production").doc(dateKey).onSnapshot((doc) => {
+            if(doc.exists) {
+                const remoteData = doc.data();
                 const localStr = localStorage.getItem(`ICE_DATA_${dateKey}`);
                 
-                // ถ้าข้อมูลบน Cloud ไม่เหมือนในเครื่อง (มีคนอื่นอัปเดต)
                 if(JSON.stringify(remoteData) !== localStr) {
-                    console.log("☁️ Data updated from cloud!");
+                    console.log("☁️ ได้รับข้อมูลใหม่จาก Cloud!");
                     DATA = remoteData;
                     localStorage.setItem(`ICE_DATA_${dateKey}`, JSON.stringify(DATA));
-                    
-                    // เช็คว่าผู้ใช้กำลังพิมพ์ช่องไหนอยู่หรือเปล่า (กันแป้นพิมพ์พับ)
-                    const activeTag = document.activeElement ? document.activeElement.tagName : '';
-                    const activeType = document.activeElement ? document.activeElement.type : '';
-                    if(activeTag === 'INPUT' && (activeType === 'text' || activeType === 'tel' || activeType === 'number' || activeType === 'time')) {
-                        // ปล่อยให้พิมพ์ต่อ ค่อยอัปเดตตอนพิมพ์เสร็จ
-                    } else {
-                        refreshUI(); // สั่งวาดหน้าจอใหม่ด้วยข้อมูล Cloud
-                    }
+                    refreshUI_Smart(); // 🚀 เรียกใช้การอัปเดตแบบฉลาด แป้นพิมพ์ไม่หาย
                 }
             }
         });
     }
 
-    // ฟังก์ชันสั่งวาด UI ใหม่เมื่อได้ข้อมูลจาก Cloud
-    function refreshUI() {
+    // 🚀 4. อัปเดตหน้าจอเฉพาะจุดที่ไม่ได้กำลังพิมพ์อยู่ (Smart Refresh)
+    function refreshUI_Smart() {
         document.getElementById('time_start').value = DATA.times.start || "22:00";
-        document.getElementById('init_hl').value = DATA.initStock.hl || 0;
-        document.getElementById('init_bh').value = DATA.initStock.bh || 0;
-        document.getElementById('init_bl').value = DATA.initStock.bl || 0;
-        if(document.getElementById('rpt_branch')) {
+        
+        let elInitHl = document.getElementById('init_hl'); if(document.activeElement !== elInitHl) elInitHl.value = DATA.initStock.hl || 0;
+        let elInitBh = document.getElementById('init_bh'); if(document.activeElement !== elInitBh) elInitBh.value = DATA.initStock.bh || 0;
+        let elInitBl = document.getElementById('init_bl'); if(document.activeElement !== elInitBl) elInitBl.value = DATA.initStock.bl || 0;
+        
+        if(document.getElementById('rpt_branch') && document.activeElement !== document.getElementById('rpt_branch')) {
             document.getElementById('rpt_branch').value = DATA.reportInfo.branch || 'วารีเทพเพ็ญ (W041)';
             document.getElementById('rpt_machine').value = DATA.reportInfo.machine || 'M1';
             document.getElementById('rpt_ph').value = DATA.reportInfo.ph || '7.1';
@@ -580,17 +552,29 @@
             document.getElementById('rpt_staff_prod').value = DATA.reportInfo.prodStaff || 4;
             document.getElementById('rpt_staff_eng').value = DATA.reportInfo.engStaff || 1;
         }
-        renderOrderInputs();
+
+        TRUCKS.forEach((t, i) => {
+            let tid = `t${i+1}`;
+            let hl = getNum(DATA.orders[tid+'_hl']);
+            let bh = getNum(DATA.orders[tid+'_bh']);
+            let bl = getNum(DATA.orders[tid+'_bl']);
+
+            let elHl = document.getElementById(`inp_ord_${tid}_hl`);
+            if(elHl && document.activeElement !== elHl) elHl.value = hl || '';
+            let elBh = document.getElementById(`inp_ord_${tid}_bh`);
+            if(elBh && document.activeElement !== elBh) elBh.value = bh || '';
+            let elBl = document.getElementById(`inp_ord_${tid}_bl`);
+            if(elBl && document.activeElement !== elBl) elBl.value = bl || '';
+        });
+
         renderDrops();
         calcAll();
     }
 
-    // ฟังก์ชันส่งข้อมูลขึ้น Cloud
+    // 🚀 5. ฟังก์ชันส่งข้อมูลขึ้น Cloud
     function pushToFirebase() {
-        if(!window.fbDb) return;
         const dateKey = document.getElementById('setup_date').value;
-        const docRef = window.fbDoc(window.fbDb, "ice_production", dateKey);
-        window.fbSetDoc(docRef, DATA).catch(e => console.error("FB Save Error", e));
+        db.collection("ice_production").doc(dateKey).set(DATA).catch(e => console.error("FB Save Error:", e));
     }
 
     function getEmptyData() { 
@@ -614,7 +598,7 @@
         }
 
         localStorage.setItem(`ICE_DATA_${dateKey}`, JSON.stringify(DATA)); 
-        pushToFirebase(); // 🚀 ส่งขึ้น Cloud ทันทีที่เซฟ
+        pushToFirebase(); // 🚀 ส่งขึ้น Cloud ທันที
     }
     
     function loadData(dateKey) {
@@ -695,24 +679,19 @@
         calcAll(); 
         renderOrderInputs(); 
         renderDrops(); 
-        syncFromFirebase(newDate); // ซิงค์วันที่ใหม่
+        syncFromFirebase(newDate); // 🚀 เปลี่ยนไปซิงค์วันที่ใหม่
     }
     
     function getNum(val) { return parseFloat(val) || 0; }
     function updateStock() { saveData(); calcAll(); }
 
-    /* 🛠️ รีเซ็ตเฉพาะวันนี้ และเคลียร์บน Cloud ด้วย */
     function resetTodayData() {
         if(confirm('ระบบจะล้างข้อมูลเฉพาะของวันนี้ ยืนยันหรือไม่?')) {
             const dateKey = document.getElementById('setup_date').value; 
             localStorage.removeItem('ICE_DATA_' + dateKey); 
             
-            if(window.fbDb) {
-                const docRef = window.fbDoc(window.fbDb, "ice_production", dateKey);
-                window.fbSetDoc(docRef, getEmptyData()).then(() => location.reload());
-            } else {
-                location.reload();
-            }
+            // ลบของใน Cloud ด้วย
+            db.collection("ice_production").doc(dateKey).set(getEmptyData()).then(() => location.reload());
         }
     }
 
@@ -1136,6 +1115,7 @@
             </table>
         </div>`; } } }); content += `</div>`; if(hasData) h += content; } }); if(h==='') h='<div style="text-align:center; padding:20px; color:#aaa;">ยังไม่มีข้อมูล</div>'; document.getElementById('truck_detail_container').innerHTML = h; }
     
+    // 🚀 6. ผูก ID ให้กับตาราง Master Order เพื่อให้อัปเดตตรงจุดได้
     function updateOrder(key, val) { 
         DATA.orders[key] = getNum(val); 
         saveData(); 
@@ -1147,23 +1127,6 @@
         const sumEl = document.getElementById('ord_sum_'+tid); 
         if(sumEl) sumEl.innerText = hl + bh + bl;
         
-        let sumAllHl = 0, sumAllBh = 0, sumAllBl = 0, grandTotal = 0;
-        TRUCKS.forEach((t, i) => {
-            let id = `t${i+1}`;
-            let rHl = getNum(DATA.orders[id+'_hl']);
-            let rBh = getNum(DATA.orders[id+'_bh']);
-            let rBl = getNum(DATA.orders[id+'_bl']);
-            sumAllHl += rHl;
-            sumAllBh += rBh;
-            sumAllBl += rBl;
-            grandTotal += (rHl + rBh + rBl);
-        });
-
-        if(document.getElementById('master_sum_hl')) document.getElementById('master_sum_hl').innerText = sumAllHl;
-        if(document.getElementById('master_sum_bh')) document.getElementById('master_sum_bh').innerText = sumAllBh;
-        if(document.getElementById('master_sum_bl')) document.getElementById('master_sum_bl').innerText = sumAllBl;
-        if(document.getElementById('master_grand_total')) document.getElementById('master_grand_total').innerText = grandTotal;
-
         calcAll();
     }
     
@@ -1331,32 +1294,27 @@
         CURRENT_DROP_ID = null; calcAll(); 
     }
     
+    // 🚀 7. ใส่ ID ให้ตารางเพื่อให้อัปเดตตรงจุดได้ ไม่กระพริบ
     function renderOrderInputs() { 
         const c = document.getElementById('order_inputs'); 
         let h = '<table class="order-table"><thead><tr><th style="border-top-left-radius:12px;">รถ</th><th>หลอด</th><th>หยาบ</th><th>ละเอียด</th><th class="col-total" style="border-top-right-radius:12px;">รวม</th></tr></thead><tbody>'; 
         
-        let sumAllHl = 0;
-        let sumAllBh = 0;
-        let sumAllBl = 0;
-        let grandTotal = 0;
+        let sumAllHl = 0; let sumAllBh = 0; let sumAllBl = 0; let grandTotal = 0;
 
         TRUCKS.forEach((t, i) => { 
             const tid = `t${i+1}`; 
-            const hl = DATA.orders[tid+'_hl']||0; 
-            const bh = DATA.orders[tid+'_bh']||0; 
-            const bl = DATA.orders[tid+'_bl']||0; 
+            const hl = DATA.orders[tid+'_hl']||''; 
+            const bh = DATA.orders[tid+'_bh']||''; 
+            const bl = DATA.orders[tid+'_bl']||''; 
             const total = getNum(hl) + getNum(bh) + getNum(bl); 
             
-            sumAllHl += getNum(hl);
-            sumAllBh += getNum(bh);
-            sumAllBl += getNum(bl);
-            grandTotal += total;
+            sumAllHl += getNum(hl); sumAllBh += getNum(bh); sumAllBl += getNum(bl); grandTotal += total;
 
             h += `<tr>
                 <td style="font-weight:800; color:var(--text-dark);">${t}</td>
-                <td><input type="tel" value="${hl}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_hl',this.value)" style="padding:10px; font-size:1.2rem;"></td>
-                <td><input type="tel" value="${bh}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_bh',this.value)" style="padding:10px; font-size:1.2rem;"></td>
-                <td><input type="tel" value="${bl}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_bl',this.value)" style="padding:10px; font-size:1.2rem;"></td>
+                <td><input type="tel" id="inp_ord_${tid}_hl" value="${hl}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_hl',this.value)" style="padding:10px; font-size:1.2rem;"></td>
+                <td><input type="tel" id="inp_ord_${tid}_bh" value="${bh}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_bh',this.value)" style="padding:10px; font-size:1.2rem;"></td>
+                <td><input type="tel" id="inp_ord_${tid}_bl" value="${bl}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_bl',this.value)" style="padding:10px; font-size:1.2rem;"></td>
                 <td class="order-sum-col" id="ord_sum_${tid}" style="font-size:1.2rem;">${total}</td>
             </tr>`; 
         }); 
