@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Smart Ice">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#0ea5e9">
-    <title>Smart Ice V205 (Real-time Calc & No Keyboard Drop)</title>
+    <title>Smart Ice V210 (Production - Live Sync)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
         /* --- Modern Premium Theme (Screen UI) --- */
@@ -131,7 +131,7 @@
             .btn-view-history { background: var(--text-dark); box-shadow: 0 6px 15px rgba(30, 41, 59, 0.3); margin-bottom: 25px; }
             .btn-print { background: var(--purple-grad); box-shadow: 0 6px 15px rgba(139, 92, 246, 0.3); margin-top:15px; font-size:1.3rem; }
             .btn-save-dist { background: var(--success-grad); border-radius: 12px; font-size: 1.1rem; margin-top: 15px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
-            .btn-reset { background: #e2e8f0; color: #64748b; border: none; padding: 14px; width: 100%; margin-top: 20px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.15s; }
+            .btn-reset { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; padding: 14px; width: 100%; margin-top: 20px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.15s; }
             
             .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
             .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -164,56 +164,33 @@
             #print_area { display: none; }
         }
 
-        /* --- 🔥 V205: PDF PERFECT PRINT & 2-ROW DOWNTIME 🔥 --- */
+        /* --- 🔥 PDF PERFECT PRINT & 2-ROW DOWNTIME 🔥 --- */
         @media print {
             @page { size: A4 portrait; margin: 8mm; } 
             body { background: white !important; color: black !important; font-family: 'Sarabun', sans-serif; font-size: 10pt !important; padding: 0 !important; margin: 0 !important; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            
             body > *:not(#print_area) { display: none !important; }
             #print_area { display: block !important; width: 100%; position: static; margin: 0 auto; }
-            
-            .print-page { 
-                page-break-after: always; 
-                width: 100%; 
-                position: relative;
-            }
+            .print-page { page-break-after: always; width: 100%; position: relative; }
             .print-page:last-child { page-break-after: auto; }
-
-            .print-header { 
-                text-align: center; 
-                font-weight: 900; 
-                font-size: 11pt; 
-                margin-bottom: 6px; 
-                line-height: 1.5; 
-                padding-top: 8px; 
-            }
+            .print-header { text-align: center; font-weight: 900; font-size: 11pt; margin-bottom: 6px; line-height: 1.5; padding-top: 8px; }
             .print-header .date-text { font-size: 10pt; font-weight: 600; color: #333; }
-            
             .print-wrapper { width: 100%; display: block; overflow: hidden; }
             .print-left { float: left; width: 73%; }
-            
             .print-right { float: right; width: 26.5%; border: 1px solid #475569; border-radius: 4px; padding: 10px 12px; box-sizing: border-box; background: white; }
-            
             .print-table { width: 100%; border-collapse: collapse; border: 1.5px solid black; table-layout: fixed; }
             .print-table th, .print-table td { border: 1px solid black; text-align: center; font-weight: 600; }
             .print-table th { padding: 4px 1px; font-size: 8pt; font-weight: 800;}
             .print-table td { height: 19px; font-size: 8.5pt; padding: 1px; line-height: 1; }
-            
-            /* 🛠️ แก้ไข: เปลี่ยนวิธีการระบุสีจาก nth-child มาใช้ Class เฉพาะ เพื่อป้องกันสีทะลุเมื่อยุบช่อง (colspan) */
             .print-table td.pc-check { background-color: #e0f2fe !important; color: #0284c7 !important; }
             .print-table td.pc-prod { background-color: #dcfce7 !important; color: #15803d !important; }
             .print-table td.pc-rem { background-color: #fef3c7 !important; color: #b45309 !important; }
-
-            /* 🛠️ แก้ไข: ทำให้แถบสรุปรวมท้ายตารางเป็นสีเทาสะอาดตา ป้องกันสีเพี้ยน */
             .print-footer td { border-top: 1.5px solid black; font-weight: 900; background-color: #e2e8f0 !important; padding: 3px 1px; color: black !important;}
-            
             .s-title { margin-top: 8px; margin-bottom: 4px; font-weight: 900; border-bottom: 1px solid #475569; padding-bottom: 2px; font-size: 9.5pt; color: #1e293b;}
             .s-title:first-child { margin-top: 0; }
             .s-line { display: flex; justify-content: space-between; margin-bottom: 2px; border-bottom: 1px dotted #cbd5e1; padding-bottom: 2px; font-size: 8.5pt;}
             .s-val { font-weight: 900; text-align: right; color: #0f172a;}
             .s-label { color: #475569; font-weight: 600; }
-            
             .sign-box { margin-top: 15px; padding-top: 5px; } 
             .sign-line { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 20px; font-size: 8.5pt; font-weight: bold;} 
             .sign-dots { flex-grow: 1; border-bottom: 1px dotted #64748b; margin: 0 6px; position: relative; top: -3px; }
@@ -262,7 +239,8 @@
             <h3>🚚 สั่งซื้อ (Master Order)</h3>
             <div id="order_inputs" style="overflow-x:auto;"></div>
         </div>
-        <button class="btn-reset" onclick="if(confirm('ระบบจะล้างข้อมูลของวันนี้ทั้งหมด ยืนยันหรือไม่?')){localStorage.clear(); localStorage.removeItem('LAST_DATE'); location.reload();}">🗑️ รีเซ็ตข้อมูล (เริ่มใหม่ทั้งหมด)</button>
+        
+        <button class="btn-reset" onclick="resetTodayData()">🗑️ รีเซ็ตข้อมูลเฉพาะวันนี้</button>
         <div style="height:50px;"></div>
     </div>
 
@@ -471,7 +449,22 @@
     <div id="history_modal" class="modal"><div class="modal-content"><div class="modal-header"><div class="modal-title" id="hist_title">🕒 ประวัติ</div><button class="btn-close-modal" onclick="closeHistoryModal()">×</button></div><div class="modal-body"><div id="history_list"></div><div style="height:50px;"></div></div></div></div>
     <div id="edit_past_modal" class="modal" style="display:none; align-items:center; justify-content:center;"><div class="modal-content" style="background:transparent; box-shadow:none;"><div class="modal-header" style="border-radius:16px 16px 0 0;"><div class="modal-title">✏️ แก้ไขรายการ</div><button class="btn-close-modal" onclick="closeEditPastModal()">×</button></div><div class="modal-body" id="edit_past_body" style="padding:0;"></div></div></div>
 
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+
 <script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBVirNpmGi1r53mf7pNnV59RGzEFKo4PS4",
+        authDomain: "smart-ice-tumnaaa.firebaseapp.com",
+        projectId: "smart-ice-tumnaaa",
+        storageBucket: "smart-ice-tumnaaa.firebasestorage.app",
+        messagingSenderId: "349663033743",
+        appId: "1:349663033743:web:adf6793310195fb06e73fa"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
     const TRUCKS = ["รถ 1", "รถ 2", "รถ 3", "รถ 4", "รถ 5", "รถ 6", "รถ 7", "รถ 8", "รถ 9"];
     const ICE_TYPES = [ { id: 'hl', label: 'หลอด' }, { id: 'bh', label: 'หยาบ' }, { id: 'bl', label: 'ละเอียด' } ];
     let DATA = getEmptyData();
@@ -482,20 +475,82 @@
     
     let globalAvgTime = 38;
     let globalLastEventTime = null;
+    let unsubscribeFB = null; 
     window.REPORT_DATA = {};
 
     document.addEventListener('DOMContentLoaded', () => {
         const today = new Date().toISOString().split('T')[0];
         const savedDate = localStorage.getItem('LAST_DATE') || today;
         document.getElementById('setup_date').value = savedDate;
+        
         loadData(savedDate);
         initWizard();
         renderOrderInputs();
         renderDrops();
         setTimeout(() => { calcAll(); }, 50); 
         
+        syncFromFirebase(savedDate);
         setInterval(updatePredictor, 60000); 
     });
+
+    function syncFromFirebase(dateKey) {
+        if(unsubscribeFB) unsubscribeFB(); 
+        
+        // 🚀 ของจริงใช้กระดาน ice_production
+        unsubscribeFB = db.collection("ice_production").doc(dateKey).onSnapshot((doc) => {
+            if(doc.exists) {
+                const remoteData = doc.data();
+                const localStr = localStorage.getItem(`ICE_DATA_${dateKey}`);
+                
+                if(JSON.stringify(remoteData) !== localStr) {
+                    console.log("☁️ ได้รับข้อมูลใหม่จาก Cloud (กระดานจริง)!");
+                    DATA = remoteData;
+                    localStorage.setItem(`ICE_DATA_${dateKey}`, JSON.stringify(DATA));
+                    refreshUI_Smart(); 
+                }
+            }
+        });
+    }
+
+    function refreshUI_Smart() {
+        document.getElementById('time_start').value = DATA.times.start || "22:00";
+        
+        let elInitHl = document.getElementById('init_hl'); if(document.activeElement !== elInitHl) elInitHl.value = DATA.initStock.hl || 0;
+        let elInitBh = document.getElementById('init_bh'); if(document.activeElement !== elInitBh) elInitBh.value = DATA.initStock.bh || 0;
+        let elInitBl = document.getElementById('init_bl'); if(document.activeElement !== elInitBl) elInitBl.value = DATA.initStock.bl || 0;
+        
+        if(document.getElementById('rpt_branch') && document.activeElement !== document.getElementById('rpt_branch')) {
+            document.getElementById('rpt_branch').value = DATA.reportInfo.branch || 'วารีเทพเพ็ญ (W041)';
+            document.getElementById('rpt_machine').value = DATA.reportInfo.machine || 'M1';
+            document.getElementById('rpt_ph').value = DATA.reportInfo.ph || '7.1';
+            document.getElementById('rpt_tds').value = DATA.reportInfo.tds || '172';
+            document.getElementById('rpt_staff_prod').value = DATA.reportInfo.prodStaff || 4;
+            document.getElementById('rpt_staff_eng').value = DATA.reportInfo.engStaff || 1;
+        }
+
+        TRUCKS.forEach((t, i) => {
+            let tid = `t${i+1}`;
+            let hl = getNum(DATA.orders[tid+'_hl']);
+            let bh = getNum(DATA.orders[tid+'_bh']);
+            let bl = getNum(DATA.orders[tid+'_bl']);
+
+            let elHl = document.getElementById(`inp_ord_${tid}_hl`);
+            if(elHl && document.activeElement !== elHl) elHl.value = hl || '';
+            let elBh = document.getElementById(`inp_ord_${tid}_bh`);
+            if(elBh && document.activeElement !== elBh) elBh.value = bh || '';
+            let elBl = document.getElementById(`inp_ord_${tid}_bl`);
+            if(elBl && document.activeElement !== elBl) elBl.value = bl || '';
+        });
+
+        updateMasterOrderTotals();
+        renderDrops();
+        calcAll();
+    }
+
+    function pushToFirebase() {
+        const dateKey = document.getElementById('setup_date').value;
+        db.collection("ice_production").doc(dateKey).set(DATA).catch(e => console.error("FB Save Error:", e));
+    }
 
     function getEmptyData() { 
         return { times: { start: "22:00", stop: "06:00" }, initStock: { hl:0, bh:0, bl:0 }, reportInfo: { branch: 'วารีเทพเพ็ญ (W041)', machine: 'M1', ph: '7.1', tds: '172', prodStaff: 4, engStaff: 1 }, orders: {}, drops: [] }; 
@@ -518,6 +573,7 @@
         }
 
         localStorage.setItem(`ICE_DATA_${dateKey}`, JSON.stringify(DATA)); 
+        pushToFirebase(); 
     }
     
     function loadData(dateKey) {
@@ -591,9 +647,26 @@
         }
     }
 
-    function changeDate() { const newDate = document.getElementById('setup_date').value; loadData(newDate); saveData(); calcAll(); renderOrderInputs(); renderDrops(); }
+    function changeDate() { 
+        const newDate = document.getElementById('setup_date').value; 
+        loadData(newDate); 
+        saveData(); 
+        calcAll(); 
+        renderOrderInputs(); 
+        renderDrops(); 
+        syncFromFirebase(newDate); 
+    }
+    
     function getNum(val) { return parseFloat(val) || 0; }
     function updateStock() { saveData(); calcAll(); }
+
+    function resetTodayData() {
+        if(confirm('ระบบจะล้างข้อมูลเฉพาะของวันนี้ (ตัวจริง) ยืนยันหรือไม่?')) {
+            const dateKey = document.getElementById('setup_date').value; 
+            localStorage.removeItem('ICE_DATA_' + dateKey); 
+            db.collection("ice_production").doc(dateKey).set(getEmptyData()).then(() => location.reload());
+        }
+    }
 
     function addDrop(type) {
         setTimeout(() => {
@@ -1015,8 +1088,35 @@
             </table>
         </div>`; } } }); content += `</div>`; if(hasData) h += content; } }); if(h==='') h='<div style="text-align:center; padding:20px; color:#aaa;">ยังไม่มีข้อมูล</div>'; document.getElementById('truck_detail_container').innerHTML = h; }
     
-    function updateOrder(key, val) { DATA.orders[key] = getNum(val); saveData(); 
-        const tid = key.split('_')[0] + '_' + key.split('_')[1]; const hl = getNum(DATA.orders[tid+'_hl']); const bh = getNum(DATA.orders[tid+'_bh']); const bl = getNum(DATA.orders[tid+'_bl']); const sumEl = document.getElementById('ord_sum_'+tid); if(sumEl) sumEl.innerText = hl+bh+bl;
+    function updateMasterOrderTotals() {
+        let sumAllHl = 0, sumAllBh = 0, sumAllBl = 0, grandTotal = 0;
+        TRUCKS.forEach((t, i) => {
+            let tid = `t${i+1}`;
+            let hl = getNum(DATA.orders[tid+'_hl']);
+            let bh = getNum(DATA.orders[tid+'_bh']);
+            let bl = getNum(DATA.orders[tid+'_bl']);
+            let rowTotal = hl + bh + bl;
+
+            let rowSumEl = document.getElementById('ord_sum_'+tid);
+            if(rowSumEl) rowSumEl.innerText = rowTotal;
+
+            sumAllHl += hl;
+            sumAllBh += bh;
+            sumAllBl += bl;
+            grandTotal += rowTotal;
+        });
+
+        if(document.getElementById('master_sum_hl')) document.getElementById('master_sum_hl').innerText = sumAllHl;
+        if(document.getElementById('master_sum_bh')) document.getElementById('master_sum_bh').innerText = sumAllBh;
+        if(document.getElementById('master_sum_bl')) document.getElementById('master_sum_bl').innerText = sumAllBl;
+        if(document.getElementById('master_grand_total')) document.getElementById('master_grand_total').innerText = grandTotal;
+    }
+
+    function updateOrder(key, val) { 
+        DATA.orders[key] = getNum(val); 
+        updateMasterOrderTotals();
+        saveData(); 
+        calcAll();
     }
     
     function openFullHistory() { 
@@ -1187,28 +1287,22 @@
         const c = document.getElementById('order_inputs'); 
         let h = '<table class="order-table"><thead><tr><th style="border-top-left-radius:12px;">รถ</th><th>หลอด</th><th>หยาบ</th><th>ละเอียด</th><th class="col-total" style="border-top-right-radius:12px;">รวม</th></tr></thead><tbody>'; 
         
-        let sumAllHl = 0;
-        let sumAllBh = 0;
-        let sumAllBl = 0;
-        let grandTotal = 0;
+        let sumAllHl = 0; let sumAllBh = 0; let sumAllBl = 0; let grandTotal = 0;
 
         TRUCKS.forEach((t, i) => { 
             const tid = `t${i+1}`; 
-            const hl = DATA.orders[tid+'_hl']||0; 
-            const bh = DATA.orders[tid+'_bh']||0; 
-            const bl = DATA.orders[tid+'_bl']||0; 
+            const hl = DATA.orders[tid+'_hl']||''; 
+            const bh = DATA.orders[tid+'_bh']||''; 
+            const bl = DATA.orders[tid+'_bl']||''; 
             const total = getNum(hl) + getNum(bh) + getNum(bl); 
             
-            sumAllHl += getNum(hl);
-            sumAllBh += getNum(bh);
-            sumAllBl += getNum(bl);
-            grandTotal += total;
+            sumAllHl += getNum(hl); sumAllBh += getNum(bh); sumAllBl += getNum(bl); grandTotal += total;
 
             h += `<tr>
                 <td style="font-weight:800; color:var(--text-dark);">${t}</td>
-                <td><input type="tel" value="${hl}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_hl',this.value)" style="padding:10px; font-size:1.2rem;"></td>
-                <td><input type="tel" value="${bh}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_bh',this.value)" style="padding:10px; font-size:1.2rem;"></td>
-                <td><input type="tel" value="${bl}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_bl',this.value)" style="padding:10px; font-size:1.2rem;"></td>
+                <td><input type="tel" id="inp_ord_${tid}_hl" value="${hl}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_hl',this.value)" style="padding:10px; font-size:1.2rem;"></td>
+                <td><input type="tel" id="inp_ord_${tid}_bh" value="${bh}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_bh',this.value)" style="padding:10px; font-size:1.2rem;"></td>
+                <td><input type="tel" id="inp_ord_${tid}_bl" value="${bl}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_bl',this.value)" style="padding:10px; font-size:1.2rem;"></td>
                 <td class="order-sum-col" id="ord_sum_${tid}" style="font-size:1.2rem;">${total}</td>
             </tr>`; 
         }); 
@@ -1402,7 +1496,6 @@
                 let item = chunk[i];
                 if(item && item.type === 'prod') {
                     localProdCounter++;
-                    /* 🛠️ แก้ไข: เปลี่ยนไปใช้ Class กะบุสีแทน nth-child เพื่อกันสีเพี้ยนเมื่อยุบช่อง */
                     pageHtml += `<tr>
                         <td>${localProdCounter}</td><td>${item.time}</td><td>${item.duration}</td>
                         <td class="pc-check">${item.whl}</td><td class="pc-check">${item.wbod}</td>
@@ -1410,7 +1503,6 @@
                         <td class="pc-rem">${item.rhl}</td><td class="pc-rem">${item.rbod}</td>
                     </tr>`;
                 } else if (item && item.type === 'downtime_start') {
-                    /* 🛠️ แก้ไข: แถวพักเครื่อง จะไม่ใส่ Class สี เพื่อไม่ให้โดนสีฟ้าทับจนเละเทะ */
                     pageHtml += `<tr>
                         <td></td><td style="color:black;">${item.time}</td><td></td>
                         <td colspan="7" style="font-weight:900; letter-spacing:1px; background-color:#fef2f2 !important; color:#dc2626 !important;">ปิดเครื่อง</td>
