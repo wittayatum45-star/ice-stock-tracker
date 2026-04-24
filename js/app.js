@@ -873,4 +873,292 @@ function renderOrderInputs() {
         h += `<tr>
             <td style="font-weight:800; color:var(--text-dark);">${t}</td>
             <td><input type="tel" id="inp_ord_${tid}_hl" value="${hl}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_hl',this.value)" style="padding:10px; font-size:1.2rem;"></td>
-            <td><input type="tel" id="inp_ord_${tid}_bh" value="${bh}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput
+            <td><input type="tel" id="inp_ord_${tid}_bh" value="${bh}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_bh',this.value)" style="padding:10px; font-size:1.2rem;"></td>
+            <td><input type="tel" id="inp_ord_${tid}_bl" value="${bl}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_bl',this.value)" style="padding:10px; font-size:1.2rem;"></td>
+            <td class="order-sum-col" id="ord_sum_${tid}" style="font-size:1.2rem;">${total}</td>
+        </tr>`; 
+    }); 
+
+    h += `<tr class="total-row">
+            <td class="total-label" style="border-bottom-left-radius:12px;">รวม</td>
+            <td id="master_sum_hl" style="font-size:1.1rem;">${sumAllHl}</td>
+            <td id="master_sum_bh" style="font-size:1.1rem;">${sumAllBh}</td>
+            <td id="master_sum_bl" style="font-size:1.1rem;">${sumAllBl}</td>
+            <td id="master_grand_total" style="color:#34d399; font-size:1.2rem; border-bottom-right-radius:12px;">${grandTotal}</td>
+          </tr>`;
+
+    h += '</tbody></table>'; 
+    c.innerHTML = h; 
+}
+
+function getTruckName(id) { return TRUCKS[parseInt(id.replace('t',''))-1]; }
+function getTypeName(id) { return ICE_TYPES.find(x=>x.id===id).label; }
+function switchPage(id) { document.querySelectorAll('.page').forEach(x=>x.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active')); document.getElementById('page-'+id).classList.add('active'); const map={setup:0,production:1,summary:2}; document.querySelectorAll('.nav-btn')[map[id]].classList.add('active'); if(id==='summary'){calcAll(); window.scrollTo(0,0);} }
+
+function printReport() {
+    saveData();
+    
+    const dateVal = document.getElementById('setup_date').value;
+    let thaiDateStr = '';
+    if(dateVal) {
+        const d = new Date(dateVal);
+        const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+        thaiDateStr = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear() + 543}`;
+    }
+    
+    const rd = window.REPORT_DATA;
+    const info = DATA.reportInfo;
+    const startTimeStr = document.getElementById('time_start').value || "22:00";
+    
+    let renderItems = [];
+    rd.drops.forEach(d => {
+        if(d.type === 'prod') {
+            let p_hl = getNum(d.p_in_room.hl); let p_bh = getNum(d.p_in_room.bh); let p_bl = getNum(d.p_in_room.bl);
+            if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') p_hl+=getNum(i.total); if(i.type==='bh') p_bh+=getNum(i.total); if(i.type==='bl') p_bl+=getNum(i.total); }); }
+            const w_hl = Math.ceil(p_hl/40)*40; const w_bod = Math.ceil((p_bh+p_bl)/40)*40;
+            
+            let prevTime = startTimeStr;
+            let idx = rd.drops.findIndex(x => x.id === d.id);
+            for(let i=idx-1; i>=0; i--) { if(rd.drops[i].type==='prod'){ prevTime = rd.drops[i].time; break; } }
+            let dtSub = 0;
+            for(let i=0; i<idx; i++) { 
+                if(rd.drops[i].type==='downtime' && getAdjustedMinutes(rd.drops[i].time, startTimeStr) >= getAdjustedMinutes(prevTime, startTimeStr)) {
+                    dtSub += getMinDiff(rd.drops[i].time, rd.drops[i].time_end);
+                }
+            }
+            let netDiff = Math.max(0, getMinDiff(prevTime, d.time) - dtSub);
+
+            renderItems.push({
+                type: 'prod', time: d.time, duration: netDiff,
+                whl: w_hl||'', wbod: w_bod||'', phl: p_hl||'', pbh: p_bh||'', pbl: p_bl||'',
+                rhl: w_hl>0?(w_hl-p_hl):'', rbod: w_bod>0?(w_bod-(p_bh+p_bl)):'',
+                raw_whl: w_hl, raw_wbod: w_bod, raw_phl: p_hl, raw_pbh: p_bh, raw_pbl: p_bl,
+                raw_rhl: w_hl>0?(w_hl-p_hl):0, raw_rbod: w_bod>0?(w_bod-(p_bh+p_bl)):0
+            });
+        } else if (d.type === 'downtime') {
+            renderItems.push({ 
+                type: 'downtime_start', 
+                time: d.time,
+                end_time_val: d.time
+            });
+            renderItems.push({ 
+                type: 'downtime_end', 
+                time: d.time_end || d.time,
+                end_time_val: d.time_end || d.time
+            });
+        }
+    });
+
+    const ROWS_PER_PAGE = 33;
+    let chunks = [];
+    for(let i = 0; i < renderItems.length; i += ROWS_PER_PAGE) {
+        chunks.push(renderItems.slice(i, i + ROWS_PER_PAGE));
+    }
+    if(chunks.length === 0) chunks.push([]); 
+
+    let finalHtml = '';
+
+    chunks.forEach((chunk, pageIdx) => {
+        let c_sumHL=0, c_sumBH=0, c_sumBL=0, c_totDuration=0;
+        let c_withHL=0, c_withBOD=0, c_remHL=0, c_remBOD=0;
+        let c_prodCount=0;
+        
+        chunk.forEach(item => {
+            if(item.type === 'prod') {
+                c_sumHL += item.raw_phl;
+                c_sumBH += item.raw_pbh;
+                c_sumBL += item.raw_pbl;
+                c_totDuration += item.duration;
+                c_withHL += item.raw_whl;
+                c_withBOD += item.raw_wbod;
+                c_remHL += item.raw_rhl;
+                c_remBOD += item.raw_rbod;
+                c_prodCount++;
+            }
+        });
+        
+        let c_totProd = c_sumHL + c_sumBH + c_sumBL;
+        let c_wHL = c_sumHL * 20;
+        let c_wBH = c_sumBH * 23;
+        let c_wBL = c_sumBL * 24;
+        let c_totWeight = c_wHL + c_wBH + c_wBL;
+        let c_avgTime = c_prodCount > 0 ? Math.round(c_totDuration / c_prodCount) : 0;
+        let c_tonsDay = (c_totDuration > 0 && c_totWeight > 0) ? ((c_totWeight / c_totDuration) * 1440 / 1000).toFixed(2) : 0;
+        let c_avgYield = c_prodCount > 0 ? Math.round(c_totProd / c_prodCount) : 0;
+
+        let pageDateStr = pageIdx === 0 ? thaiDateStr : thaiDateStr + " (ต่อ)";
+
+        let pageStartTime = startTimeStr;
+        if (pageIdx > 0) {
+            let prevChunk = chunks[pageIdx - 1];
+            if(prevChunk && prevChunk.length > 0) {
+                let lastItem = prevChunk[prevChunk.length - 1];
+                pageStartTime = lastItem.end_time_val || lastItem.time;
+            }
+        }
+
+        let footerTitle = pageIdx === chunks.length - 1 ? `รวม (ปิด ${rd.timeStop} น.)` : "รวม";
+
+        let sumCol = [
+            `<span class="s-label">หลอดใหญ่</span> <span class="s-val">${c_sumHL} กระสอบ</span>`,
+            `<span class="s-label">บดหยาบ</span> <span class="s-val">${c_sumBH} กระสอบ</span>`,
+            `<span class="s-label">บดละเอียด</span> <span class="s-val">${c_sumBL} กระสอบ</span>`,
+            `<span class="s-label" style="font-weight:900;">รวม</span> <span class="s-val" style="font-weight:900;">${c_totProd} กระสอบ</span>`,
+            
+            `<span class="s-label">หลอดใหญ่</span> <span class="s-val">20 กก.</span>`,
+            `<span class="s-label">บดหยาบ</span> <span class="s-val">23 กก.</span>`,
+            `<span class="s-label">บดละเอียด</span> <span class="s-val">24 กก.</span>`,
+            `<span class="s-label" style="font-weight:900;">รวม</span> <span class="s-val" style="font-weight:900;">22 กก.</span>`,
+            
+            `<span class="s-label">หลอดใหญ่</span> <span class="s-val">${c_wHL.toLocaleString()} กก.</span>`,
+            `<span class="s-label">บดหยาบ</span> <span class="s-val">${c_wBH.toLocaleString()} กก.</span>`,
+            `<span class="s-label">บดละเอียด</span> <span class="s-val">${c_wBL.toLocaleString()} กก.</span>`,
+            `<span class="s-label" style="font-weight:900;">รวม</span> <span class="s-val" style="font-weight:900;">${c_totWeight.toLocaleString()} กก.</span>`,
+            
+            `<span class="s-label">เวลาเฉลี่ย</span> <span class="s-val">${c_avgTime} นาที/ตก</span>`,
+            `<span class="s-label">น้ำหนัก</span> <span class="s-val">${c_tonsDay} ตัน/วัน</span>`,
+            `<span class="s-label">จำนวนเฉลี่ย</span> <span class="s-val">${c_avgYield} กระสอบ/ตก</span>`,
+            
+            `<span class="s-label">เบิกกระสอบรวม</span> <span class="s-val">${c_withHL + c_withBOD} ใบ</span>`,
+            `<span class="s-label">กระสอบที่ใช้</span> <span class="s-val">${c_totProd} ใบ</span>`,
+            `<span class="s-label">กระสอบคงเหลือ</span> <span class="s-val">${c_remHL + c_remBOD} ใบ</span>`,
+            
+            `<span class="s-label">ค่า pH</span> <span class="s-val">${info.ph}</span>`,
+            `<span class="s-label">ค่า TDS</span> <span class="s-val">${info.tds}</span>`,
+            `<span class="s-label">พนักงานผลิต</span> <span class="s-val">${info.prodStaff} คน</span>`,
+            `<span class="s-label">วิศวกรรม</span> <span class="s-val">${info.engStaff} คน</span>`
+        ];
+
+        let pageHtml = `
+        <div class="print-page">
+            <div class="print-header">
+                แบบฟอร์มบันทึกการผลิตน้ำแข็ง สาขา ${info.branch} เครื่องที่ ${info.machine}<br>
+                <span class="date-text">ประจำวันที่ ${pageDateStr}</span>
+            </div>
+            
+            <div class="print-wrapper">
+                <div class="print-left">
+                    <table class="print-table">
+                        <thead>
+                            <tr>
+                                <th rowspan="2" style="width:5%;">ลำดับ</th>
+                                <th style="width:13%;">เวลา</th>
+                                <th rowspan="2" style="width:8%;">นาที/<br>ตก</th>
+                                <th colspan="2" style="width:16%; background-color:#e0f2fe !important; color:#0284c7 !important;">เบิกกระสอบ</th>
+                                <th colspan="3" style="width:30%; background-color:#dcfce7 !important; color:#15803d !important;">ผลการผลิต</th>
+                                <th colspan="2" style="width:16%; background-color:#fef3c7 !important; color:#b45309 !important;">กระสอบคงเหลือ</th>
+                            </tr>
+                            <tr>
+                                <th>เปิด ${pageStartTime} น.</th>
+                                <th style="width:8%; background-color:#e0f2fe !important; color:#0284c7 !important;">หลอด</th>
+                                <th style="width:8%; background-color:#e0f2fe !important; color:#0284c7 !important;">บด</th>
+                                <th style="width:10%; background-color:#dcfce7 !important; color:#15803d !important;">หลอดใหญ่</th>
+                                <th style="width:10%; background-color:#dcfce7 !important; color:#15803d !important;">บดหยาบ</th>
+                                <th style="width:10%; background-color:#dcfce7 !important; color:#15803d !important;">ละเอียด</th>
+                                <th style="width:8%; background-color:#fef3c7 !important; color:#b45309 !important;">หลอด</th>
+                                <th style="width:8%; background-color:#fef3c7 !important; color:#b45309 !important;">บด</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        `;
+
+        let localProdCounter = 0; 
+
+        for(let i=0; i<ROWS_PER_PAGE; i++) {
+            let item = chunk[i];
+            if(item && item.type === 'prod') {
+                localProdCounter++;
+                pageHtml += `<tr>
+                    <td>${localProdCounter}</td><td>${item.time}</td><td>${item.duration}</td>
+                    <td class="pc-check">${item.whl}</td><td class="pc-check">${item.wbod}</td>
+                    <td class="pc-prod">${item.phl}</td><td class="pc-prod">${item.pbh}</td><td class="pc-prod">${item.pbl}</td>
+                    <td class="pc-rem">${item.rhl}</td><td class="pc-rem">${item.rbod}</td>
+                </tr>`;
+            } else if (item && item.type === 'downtime_start') {
+                pageHtml += `<tr>
+                    <td></td><td style="color:black;">${item.time}</td><td></td>
+                    <td colspan="7" style="font-weight:900; letter-spacing:1px; background-color:#fef2f2 !important; color:#dc2626 !important;">ปิดเครื่อง</td>
+                </tr>`;
+            } else if (item && item.type === 'downtime_end') {
+                pageHtml += `<tr>
+                    <td></td><td style="color:black;">${item.time}</td><td></td>
+                    <td colspan="7" style="font-weight:900; letter-spacing:1px; background-color:#f0fdf4 !important; color:#16a34a !important;">เปิดเครื่อง</td>
+                </tr>`;
+            } else {
+                pageHtml += `<tr>
+                    <td></td><td></td><td></td>
+                    <td class="pc-check"></td><td class="pc-check"></td>
+                    <td class="pc-prod"></td><td class="pc-prod"></td><td class="pc-prod"></td>
+                    <td class="pc-rem"></td><td class="pc-rem"></td>
+                </tr>`;
+            }
+        }
+
+        pageHtml += `
+                        <tr class="print-footer">
+                            <td colspan="2">${footerTitle}</td>
+                            <td>${c_totDuration}</td>
+                            <td>${c_withHL}</td><td>${c_withBOD}</td>
+                            <td>${c_sumHL}</td><td>${c_sumBH}</td><td>${c_sumBL}</td>
+                            <td>${c_remHL}</td><td>${c_remBOD}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="print-right">
+                <div class="s-title" style="margin-top:0;">ข้อมูลสรุป</div>
+                <div class="s-line">${sumCol[0]}</div>
+                <div class="s-line">${sumCol[1]}</div>
+                <div class="s-line">${sumCol[2]}</div>
+                <div class="s-line" style="border-bottom:none;">${sumCol[3]}</div>
+                
+                <div class="s-title">น้ำหนักเฉลี่ย</div>
+                <div class="s-line">${sumCol[4]}</div>
+                <div class="s-line">${sumCol[5]}</div>
+                <div class="s-line">${sumCol[6]}</div>
+                <div class="s-line" style="border-bottom:none;">${sumCol[7]}</div>
+
+                <div class="s-title">น้ำหนักรวม</div>
+                <div class="s-line">${sumCol[8]}</div>
+                <div class="s-line">${sumCol[9]}</div>
+                <div class="s-line">${sumCol[10]}</div>
+                <div class="s-line" style="border-bottom:none;">${sumCol[11]}</div>
+                
+                <div class="s-title">สถิติการผลิต</div>
+                <div class="s-line">${sumCol[12]}</div>
+                <div class="s-line">${sumCol[13]}</div>
+                <div class="s-line" style="border-bottom:none;">${sumCol[14]}</div>
+                
+                <div class="s-title">สรุปกระสอบ</div>
+                <div class="s-line">${sumCol[15]}</div>
+                <div class="s-line">${sumCol[16]}</div>
+                <div class="s-line" style="border-bottom:none;">${sumCol[17]}</div>
+                
+                <div class="s-title">ข้อมูลอื่นๆ</div>
+                <div class="s-line">${sumCol[18]}</div>
+                <div class="s-line">${sumCol[19]}</div>
+                <div class="s-line">${sumCol[20]}</div>
+                <div class="s-line" style="border-bottom:none;">${sumCol[21]}</div>
+                
+                <div class="sign-box">
+                    <div class="sign-line">ลงชื่อ <span class="sign-dots"></span> วิศวกรรม</div>
+                    <div class="sign-line">ลงชื่อ <span class="sign-dots"></span> ผู้จัดการสาขา</div>
+                </div>
+            </div>
+        </div>
+        </div>
+        `;
+        
+        finalHtml += pageHtml;
+    });
+
+    document.getElementById('print_area').innerHTML = finalHtml;
+    setTimeout(() => { window.print(); }, 300);
+}
+
+window.addEventListener('beforeunload', function (e) {
+    const confirmationMessage = 'คุณกำลังจะออกจากหน้านี้ ข้อมูลถูกบันทึกในเครื่องแล้ว แต่อยากยืนยันการออกหรือไม่?';
+    e.returnValue = confirmationMessage; 
+    return confirmationMessage;
+});
