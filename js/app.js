@@ -949,7 +949,8 @@ function printReport() {
         }
     });
 
-    const ROWS_PER_PAGE = 33;
+    /* 🚀 ปรับเป็น 29 ช่อง ตามที่ลูกศิษย์รีเควสมา! */
+    const ROWS_PER_PAGE = 29;
     let chunks = [];
     for(let i = 0; i < renderItems.length; i += ROWS_PER_PAGE) {
         chunks.push(renderItems.slice(i, i + ROWS_PER_PAGE));
