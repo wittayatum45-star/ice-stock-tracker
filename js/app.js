@@ -1,0 +1,876 @@
+const firebaseConfig = {
+    apiKey: "AIzaSyBVirNpmGi1r53mf7pNnV59RGzEFKo4PS4",
+    authDomain: "smart-ice-tumnaaa.firebaseapp.com",
+    projectId: "smart-ice-tumnaaa",
+    storageBucket: "smart-ice-tumnaaa.firebasestorage.app",
+    messagingSenderId: "349663033743",
+    appId: "1:349663033743:web:adf6793310195fb06e73fa"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const TRUCKS = ["รถ 1", "รถ 2", "รถ 3", "รถ 4", "รถ 5", "รถ 6", "รถ 7", "รถ 8", "รถ 9"];
+const ICE_TYPES = [ { id: 'hl', label: 'หลอด' }, { id: 'bh', label: 'หยาบ' }, { id: 'bl', label: 'ละเอียด' } ];
+let DATA = getEmptyData();
+let CURRENT_DROP_ID = null;
+let EDITING_DIST_IDX = null;
+let EDITING_DOWNTIME_ID = null;
+let SOURCE_MODAL = null;
+
+let globalAvgTime = 38;
+let globalLastEventTime = null;
+let unsubscribeFB = null; 
+window.REPORT_DATA = {};
+
+document.addEventListener('DOMContentLoaded', () => {
+    const today = new Date().toISOString().split('T')[0];
+    const savedDate = localStorage.getItem('LAST_TEST_DATE') || today;
+    document.getElementById('setup_date').value = savedDate;
+    
+    loadData(savedDate);
+    initWizard();
+    renderOrderInputs();
+    renderDrops();
+    setTimeout(() => { calcAll(); }, 50); 
+    
+    syncFromFirebase(savedDate);
+    setInterval(updatePredictor, 60000); 
+});
+
+function syncFromFirebase(dateKey) {
+    if(unsubscribeFB) unsubscribeFB(); 
+    
+    // 🚀 ทดสอบ: ดึงจาก ice_production_test
+    unsubscribeFB = db.collection("ice_production_test").doc(dateKey).onSnapshot((doc) => {
+        if(doc.exists) {
+            const remoteData = doc.data();
+            const localStr = localStorage.getItem(`ICE_TEST_DATA_${dateKey}`);
+            
+            if(JSON.stringify(remoteData) !== localStr) {
+                console.log("☁️ ได้รับข้อมูลใหม่จาก Cloud (กระดานเทส)!");
+                DATA = remoteData;
+                localStorage.setItem(`ICE_TEST_DATA_${dateKey}`, JSON.stringify(DATA));
+                refreshUI_Smart(); 
+            }
+        }
+    });
+}
+
+function refreshUI_Smart() {
+    document.getElementById('time_start').value = DATA.times.start || "22:00";
+    
+    let elInitHl = document.getElementById('init_hl'); if(document.activeElement !== elInitHl) elInitHl.value = DATA.initStock.hl || 0;
+    let elInitBh = document.getElementById('init_bh'); if(document.activeElement !== elInitBh) elInitBh.value = DATA.initStock.bh || 0;
+    let elInitBl = document.getElementById('init_bl'); if(document.activeElement !== elInitBl) elInitBl.value = DATA.initStock.bl || 0;
+    
+    if(document.getElementById('rpt_branch') && document.activeElement !== document.getElementById('rpt_branch')) {
+        document.getElementById('rpt_branch').value = DATA.reportInfo.branch || 'วารีเทพเพ็ญ (W041)';
+        document.getElementById('rpt_machine').value = DATA.reportInfo.machine || 'M1';
+        document.getElementById('rpt_ph').value = DATA.reportInfo.ph || '7.1';
+        document.getElementById('rpt_tds').value = DATA.reportInfo.tds || '172';
+        document.getElementById('rpt_staff_prod').value = DATA.reportInfo.prodStaff || 4;
+        document.getElementById('rpt_staff_eng').value = DATA.reportInfo.engStaff || 1;
+    }
+
+    TRUCKS.forEach((t, i) => {
+        let tid = `t${i+1}`;
+        let hl = getNum(DATA.orders[tid+'_hl']);
+        let bh = getNum(DATA.orders[tid+'_bh']);
+        let bl = getNum(DATA.orders[tid+'_bl']);
+
+        let elHl = document.getElementById(`inp_ord_${tid}_hl`);
+        if(elHl && document.activeElement !== elHl) elHl.value = hl || '';
+        let elBh = document.getElementById(`inp_ord_${tid}_bh`);
+        if(elBh && document.activeElement !== elBh) elBh.value = bh || '';
+        let elBl = document.getElementById(`inp_ord_${tid}_bl`);
+        if(elBl && document.activeElement !== elBl) elBl.value = bl || '';
+    });
+
+    updateMasterOrderTotals();
+    renderDrops();
+    calcAll();
+}
+
+function pushToFirebase() {
+    const dateKey = document.getElementById('setup_date').value;
+    // 🚀 ทดสอบ: ดันขึ้น ice_production_test
+    db.collection("ice_production_test").doc(dateKey).set(DATA).catch(e => console.error("FB Save Error:", e));
+}
+
+function getEmptyData() { 
+    return { times: { start: "22:00", stop: "06:00" }, initStock: { hl:0, bh:0, bl:0 }, reportInfo: { branch: 'วารีเทพเพ็ญ (W041)', machine: 'M1', ph: '7.1', tds: '172', prodStaff: 4, engStaff: 1 }, orders: {}, drops: [] }; 
+}
+
+function saveData() { 
+    const dateKey = document.getElementById('setup_date').value;
+    localStorage.setItem('LAST_TEST_DATE', dateKey); 
+    DATA.times.start = document.getElementById('time_start').value;
+    DATA.initStock = { hl: getNum(document.getElementById('init_hl').value), bh: getNum(document.getElementById('init_bh').value), bl: getNum(document.getElementById('init_bl').value) };
+    
+    if(!DATA.reportInfo) DATA.reportInfo = { branch: 'วารีเทพเพ็ญ (W041)', machine: 'M1', ph: '', tds: '', prodStaff: 0, engStaff: 0 };
+    if(document.getElementById('rpt_branch')) {
+        DATA.reportInfo.branch = document.getElementById('rpt_branch').value;
+        DATA.reportInfo.machine = document.getElementById('rpt_machine').value;
+        DATA.reportInfo.ph = document.getElementById('rpt_ph').value;
+        DATA.reportInfo.tds = document.getElementById('rpt_tds').value;
+        DATA.reportInfo.prodStaff = getNum(document.getElementById('rpt_staff_prod').value);
+        DATA.reportInfo.engStaff = getNum(document.getElementById('rpt_staff_eng').value);
+    }
+
+    localStorage.setItem(`ICE_TEST_DATA_${dateKey}`, JSON.stringify(DATA)); 
+    pushToFirebase(); 
+}
+
+function loadData(dateKey) {
+    const d = localStorage.getItem(`ICE_TEST_DATA_${dateKey}`);
+    let isNewDay = false;
+
+    if(d) { 
+        try { 
+            DATA = JSON.parse(d); 
+            if(DATA.reportInfo && DATA.reportInfo.branch === 'วาริเทพเพ็ญ (W041)') DATA.reportInfo.branch = 'วารีเทพเพ็ญ (W041)';
+            if(!DATA.drops) DATA.drops = []; 
+            if(!DATA.orders) DATA.orders = {}; 
+            if(!DATA.reportInfo) DATA.reportInfo = { branch: 'วารีเทพเพ็ญ (W041)', machine: 'M1', ph: '7.1', tds: '172', prodStaff: 4, engStaff: 1 };
+            if(!DATA.initStock) DATA.initStock = {hl:0, bh:0, bl:0};
+            
+            DATA.drops.forEach(drop => {
+               if(!drop.p_in_room) drop.p_in_room = {hl:0,bh:0,bl:0};
+               if(drop.dist) drop.dist.forEach(i => i.total = getNum(i.r1)+getNum(i.r2)+getNum(i.r3));
+               if(drop.type === 'downtime' && !drop.time_end) drop.time_end = drop.time; 
+            });
+        } catch(e) { 
+            DATA = getEmptyData(); 
+            isNewDay = true;
+        } 
+    } else { 
+        DATA = getEmptyData(); 
+        isNewDay = true;
+    }
+
+    if (isNewDay) {
+        let parts = dateKey.split('-');
+        let checkDate = new Date(parts[0], parts[1]-1, parts[2]);
+
+        for (let i = 1; i <= 7; i++) {
+            checkDate.setDate(checkDate.getDate() - 1);
+            let pastKey = checkDate.getFullYear() + '-' + String(checkDate.getMonth()+1).padStart(2,'0') + '-' + String(checkDate.getDate()).padStart(2,'0');
+            let pastDStr = localStorage.getItem(`ICE_TEST_DATA_${pastKey}`);
+            if (pastDStr) {
+                try {
+                    let pastD = JSON.parse(pastDStr);
+                    if (pastD && pastD.orders && Object.keys(pastD.orders).some(k => getNum(pastD.orders[k]) > 0)) {
+                        DATA.orders = JSON.parse(JSON.stringify(pastD.orders));
+                        DATA.initStock = { hl: 0, bh: 0, bl: 0 };
+                        break;
+                    }
+                } catch(e) {}
+            }
+        }
+    }
+
+    document.getElementById('time_start').value = DATA.times.start || "22:00";
+    document.getElementById('init_hl').value = DATA.initStock.hl || 0;
+    document.getElementById('init_bh').value = DATA.initStock.bh || 0;
+    document.getElementById('init_bl').value = DATA.initStock.bl || 0;
+    
+    if(document.getElementById('rpt_branch')) {
+        document.getElementById('rpt_branch').value = DATA.reportInfo.branch || 'วารีเทพเพ็ญ (W041)';
+        document.getElementById('rpt_machine').value = DATA.reportInfo.machine || 'M1';
+        document.getElementById('rpt_ph').value = DATA.reportInfo.ph || '7.1';
+        document.getElementById('rpt_tds').value = DATA.reportInfo.tds || '172';
+        document.getElementById('rpt_staff_prod').value = DATA.reportInfo.prodStaff || 4;
+        document.getElementById('rpt_staff_eng').value = DATA.reportInfo.engStaff || 1;
+    }
+
+    if(document.getElementById('header_start_time_simple')) {
+        document.getElementById('header_start_time_simple').innerText = (DATA.times.start || "22:00") + ' น.';
+    }
+}
+
+function changeDate() { 
+    const newDate = document.getElementById('setup_date').value; 
+    loadData(newDate); 
+    saveData(); 
+    calcAll(); 
+    renderOrderInputs(); 
+    renderDrops(); 
+    syncFromFirebase(newDate); 
+}
+
+function getNum(val) { return parseFloat(val) || 0; }
+function updateStock() { saveData(); calcAll(); }
+
+function resetTodayData() {
+    if(confirm('ระบบจะล้างข้อมูลเฉพาะของวันนี้ (โหมดทดสอบ) ยืนยันหรือไม่?')) {
+        const dateKey = document.getElementById('setup_date').value; 
+        localStorage.removeItem('ICE_TEST_DATA_' + dateKey); 
+        db.collection("ice_production_test").doc(dateKey).set(getEmptyData()).then(() => location.reload());
+    }
+}
+
+function addDrop(type) {
+    setTimeout(() => {
+        const now = new Date();
+        const timeStr = now.toTimeString().substring(0, 5);
+        if(type === 'downtime') {
+            DATA.drops.push({ id: Date.now(), type: type, time: timeStr, time_end: timeStr });
+        } else {
+            DATA.drops.push({ id: Date.now(), type: type, time: timeStr, sackWithdraw: 0, p_in_room: { hl:0, bh:0, bl:0 }, dist: [] });
+        }
+        saveData(); 
+        calcAll(); 
+        renderDrops(); 
+        
+        if(type === 'prod' || type === 'downtime') {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+            openStockManager();
+        }
+    }, 10);
+}
+
+function deleteDrop(id) { if(confirm("ระบบจะลบข้อมูลนี้ทิ้ง ยืนยันหรือไม่?")) { DATA.drops = DATA.drops.filter(d => d.id !== id); saveData(); calcAll(); renderDrops(); if(document.getElementById('stock_manager_modal').style.display === 'flex') openStockManager(); } }
+
+function openDowntimeModal(id = null) {
+    EDITING_DOWNTIME_ID = id;
+    if(id) {
+        const d = DATA.drops.find(x => x.id === id);
+        document.getElementById('dt_start').value = d.time;
+        document.getElementById('dt_end').value = d.time_end || d.time;
+    } else {
+        const now = new Date();
+        const timeStr = now.toTimeString().substring(0, 5);
+        document.getElementById('dt_start').value = timeStr;
+        document.getElementById('dt_end').value = timeStr;
+    }
+    
+    document.getElementById('btn_delete_dt').style.display = id ? 'block' : 'none';
+
+    if(document.getElementById('edit_past_modal').style.display === 'flex') {
+        document.getElementById('edit_past_modal').style.display = 'none';
+        SOURCE_MODAL = 'edit_past';
+    } else if (document.getElementById('full_history_modal').style.display === 'flex') {
+        document.getElementById('full_history_modal').style.display = 'none';
+        SOURCE_MODAL = 'full_history';
+    } else if (document.getElementById('history_modal').style.display === 'flex') {
+        document.getElementById('history_modal').style.display = 'none';
+        SOURCE_MODAL = 'history';
+    } else {
+        SOURCE_MODAL = null;
+    }
+    document.getElementById('downtime_modal').style.display = 'flex';
+}
+
+function closeDowntimeModal() {
+    document.getElementById('downtime_modal').style.display = 'none';
+    if(SOURCE_MODAL === 'edit_past') openFullHistory();
+    else if(SOURCE_MODAL === 'full_history') openFullHistory();
+    else if(SOURCE_MODAL === 'history') document.getElementById('history_modal').style.display = 'flex';
+}
+
+function saveDowntime() {
+    const tStart = document.getElementById('dt_start').value;
+    const tEnd = document.getElementById('dt_end').value;
+    if(EDITING_DOWNTIME_ID) {
+        const d = DATA.drops.find(x => x.id === EDITING_DOWNTIME_ID);
+        if(d) { d.time = tStart; d.time_end = tEnd; }
+    } else {
+        DATA.drops.push({ id: Date.now(), type: 'downtime', time: tStart, time_end: tEnd });
+    }
+    saveData();
+    calcAll();
+    closeDowntimeModal();
+    renderDrops();
+}
+
+function deleteDowntime() {
+    if(confirm('ลบรายการไฟดับนี้?')) {
+        DATA.drops = DATA.drops.filter(x => x.id !== EDITING_DOWNTIME_ID);
+        saveData();
+        calcAll();
+        closeDowntimeModal();
+        renderDrops();
+    }
+}
+
+function getAdjustedMinutes(timeStr, startStr) { 
+    if(!timeStr || !startStr) return 0; 
+    let [h, m] = timeStr.split(':').map(Number); 
+    let [sh, sm] = startStr.split(':').map(Number); 
+    let mins = h * 60 + m; 
+    let sMins = sh * 60 + sm; 
+    if (mins < sMins) mins += 1440; 
+    return mins; 
+}
+
+function getMinDiff(start, end) { 
+    const anchor = document.getElementById('time_start').value || "22:00"; 
+    const mStart = getAdjustedMinutes(start, anchor); 
+    const mEnd = getAdjustedMinutes(end, anchor); 
+    return mEnd - mStart; 
+}
+
+function addMinutesToTime(timeStr, addMins) {
+    if(!timeStr) return "00:00";
+    let [h, m] = timeStr.split(':').map(Number);
+    let date = new Date();
+    date.setHours(h, m + addMins, 0, 0);
+    return String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
+}
+
+function renderDrops() {
+    const container = document.getElementById('drops_list');
+    container.innerHTML = '';
+    
+    const startTimeStr = document.getElementById('time_start').value || "22:00";
+    const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
+    
+    const prodDrops = sortedDrops.filter(d => d.type === 'prod');
+    const latestProd = prodDrops[prodDrops.length - 1]; 
+    
+    if (!latestProd) {
+         container.innerHTML = '<div style="text-align:center; color:#94a3b8; margin-top:30px; font-weight:bold; font-size:1.1rem;">กด + เริ่มผลิตน้ำแข็งตกแรกได้เลย! 🧊</div>';
+         return;
+    }
+
+    let prevProd = prodDrops.length > 1 ? prodDrops[prodDrops.length - 2] : null;
+    let prevTime = prevProd ? prevProd.time : startTimeStr;
+    
+    let dtToSubtract = 0;
+    sortedDrops.forEach(td => {
+        if(td.type === 'downtime' && 
+           getAdjustedMinutes(td.time, startTimeStr) >= getAdjustedMinutes(prevTime, startTimeStr) && 
+           getAdjustedMinutes(td.time, startTimeStr) <= getAdjustedMinutes(latestProd.time, startTimeStr)) {
+            dtToSubtract += getMinDiff(td.time, td.time_end || td.time);
+        }
+    });
+    const grossDiff = getMinDiff(prevTime, latestProd.time);
+    const netDiff = Math.max(0, grossDiff - dtToSubtract);
+    
+    container.insertAdjacentHTML('beforeend', generateCardHtml(latestProd, netDiff));
+}
+
+function generateCardHtml(d, netDiff) {
+    let distHtml = '';
+    if(d.dist) {
+       d.dist.forEach((item, idx) => {
+           const target = getNum(DATA.orders[`${item.truck}_${item.type}`]);
+           let totalSentAllDrops = 0;
+           DATA.drops.forEach(drop => {
+               if(drop.dist) {
+                   drop.dist.forEach(i => {
+                       if(i.truck === item.truck && i.type === item.type) totalSentAllDrops += getNum(i.total);
+                   });
+               }
+           });
+           
+           let remain = target - totalSentAllDrops;
+           let statusBadge = '';
+           if(target === 0) statusBadge = `<span class="dist-status-badge" style="background:#f1f5f9; color:#64748b;">ไม่ได้สั่ง</span>`;
+           else if(remain > 0) statusBadge = `<span class="dist-status-badge" style="background:#fee2e2; color:#dc2626;">ขาด ${remain}</span>`;
+           else if(remain < 0) statusBadge = `<span class="dist-status-badge" style="background:#e0f2fe; color:#0284c7;">เกิน ${Math.abs(remain)}</span>`;
+           else statusBadge = `<span class="dist-status-badge" style="background:#dcfce7; color:#15803d;">ครบ ✅</span>`;
+
+           distHtml += `
+           <div class="dist-item">
+               <div class="dist-header">
+                   <div class="dist-title">🚛 ${getTruckName(item.truck)} - ${getTypeName(item.type)} ${statusBadge}</div>
+                   <div class="dist-actions">
+                       <button class="btn-edit-mini" onclick="editDist(${d.id}, ${idx})">✏️</button>
+                       <button class="btn-del-mini" onclick="removeDist(${d.id}, ${idx})">🗑️</button>
+                   </div>
+               </div>
+               <div class="dist-body">
+                   <div class="dist-rows-detail">แถว: (${item.r1||0} / ${item.r2||0} / ${item.r3||0})</div>
+                   <div class="dist-total-big"><span>จ่ายรอบนี้</span> +${item.total}</div>
+               </div>
+           </div>`;
+       });
+    }
+    let hlProd = getNum(d.p_in_room.hl); let bhProd = getNum(d.p_in_room.bh); let blProd = getNum(d.p_in_room.bl);
+    if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') hlProd+=getNum(i.total); if(i.type==='bh') bhProd+=getNum(i.total); if(i.type==='bl') blProd+=getNum(i.total); }); }
+    const hlBatch = Math.ceil(hlProd / 40) * 40; const crushBatch = Math.ceil((bhProd + blProd) / 40) * 40;
+    const hlRem = hlBatch - hlProd; const crushRem = crushBatch - (bhProd + blProd);
+
+    return `<div class="modern-card"><div class="card-header-flex"><div class="badge-box bg-prod"><span>น้ำแข็ง<br>ตก<br>(ผลิต)</span></div><input type="time" class="big-time-input" value="${d.time}" onblur="updateDropVal(${d.id}, 'time', null, this.value)"><span class="time-diff-badge">(+${netDiff} น.)</span><button class="btn-close-red" onclick="deleteDrop(${d.id})">×</button></div><div class="card-body" style="padding-top:0;"><div class="sack-row"><div class="sack-item"><div class="sack-label">เบิก (หลอด/บด)</div><div class="sack-val" id="disp_withdraw_${d.id}">${hlBatch} / ${crushBatch}</div></div><div class="sack-item"><div class="sack-label">ใช้ (หลอด/บด)</div><div class="sack-val" id="disp_used_${d.id}">${hlProd} / ${bhProd+blProd}</div></div><div class="sack-item"><div class="sack-label">คืน (หลอด/บด)</div><div class="sack-split"><span class="ss-hl" id="disp_rem_hl_${d.id}">หลอด:${hlRem}</span> <span class="ss-bod" id="disp_rem_bod_${d.id}">บด:${crushRem}</span></div></div></div><div class="grid-3"><div><div class="input-label">หลอด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.hl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'hl', this.value)"></div><div><div class="input-label">หยาบ (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bh)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bh', this.value)"></div><div><div class="input-label">ละเอียด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bl', this.value)"></div></div><div class="dist-container"><div style="font-size:0.85rem; color:var(--text-muted); font-weight:800; margin-bottom:10px; text-transform:uppercase;">รายการจ่ายเข้ารถ</div>${distHtml}<button class="btn-add-dist" onclick="openDistModal(${d.id})">+ เพิ่มรายการส่งเข้ารถ</button></div></div></div>`;
+}
+
+function updateCardStats(id) {
+    const d = DATA.drops.find(x => x.id === id);
+    if(!d) return;
+    let hlProd = getNum(d.p_in_room.hl); let bhProd = getNum(d.p_in_room.bh); let blProd = getNum(d.p_in_room.bl);
+    if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') hlProd+=getNum(i.total); if(i.type==='bh') bhProd+=getNum(i.total); if(i.type==='bl') blProd+=getNum(i.total); }); }
+    const hlBatch = Math.ceil(hlProd / 40) * 40; const crushBatch = Math.ceil((bhProd + blProd) / 40) * 40;
+    const hlRem = hlBatch - hlProd; const crushRem = crushBatch - (bhProd + blProd);
+    
+    const ew = document.getElementById(`disp_withdraw_${id}`); if(ew) ew.innerText = `${hlBatch} / ${crushBatch}`;
+    const eu = document.getElementById(`disp_used_${id}`); if(eu) eu.innerText = `${hlProd} / ${bhProd+blProd}`;
+    const erh = document.getElementById(`disp_rem_hl_${id}`); if(erh) erh.innerText = `หลอด:${hlRem}`;
+    const erb = document.getElementById(`disp_rem_bod_${id}`); if(erb) erb.innerText = `บด:${crushRem}`;
+}
+
+function updateDropVal(id, cat, sub, val) {
+    const d = DATA.drops.find(x => x.id === id); if(!d) return;
+    if(cat === 'time') { d.time = val; }
+    else if (cat === 'time_end') { d.time_end = val; }
+    else if(cat === 'p_in_room') { d.p_in_room[sub] = getNum(val); }
+    
+    saveData(); 
+    calcAll();
+    
+    if(cat === 'p_in_room') { updateCardStats(id); }
+    if(cat === 'time' || cat === 'time_end') { renderDrops(); } 
+}
+
+function calcAll() {
+    let sumP={hl:0,bh:0,bl:0}, curHL=getNum(document.getElementById('init_hl').value), curBH=getNum(document.getElementById('init_bh').value), curBL=getNum(document.getElementById('init_bl').value);
+    let totalSent=0, sentHL=0, sentBH=0, sentBL=0; 
+    let totalWithHL=0, totalWithBod=0, totalRemHL=0, totalRemBod=0, totalUsedAll=0, totalDuration=0;
+    let prodLogHtml = '';
+    
+    const startTimeStr = document.getElementById('time_start').value || "22:00";
+    let lastProdTime = startTimeStr;
+    let pendingDowntime = 0;
+    let truckMat = {}; let truckDetail = {};
+    
+    let ordHL = 0, ordBH = 0, ordBL = 0, totOrd = 0;
+    
+    TRUCKS.forEach((t,i) => { 
+        let tid = `t${i+1}`; 
+        truckMat[tid] = {hl:{fr:0,st:0}, bh:{fr:0,st:0}, bl:{fr:0,st:0}}; 
+        truckDetail[tid] = { hl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bh: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} }, bl: { r1:{fr:0,st:0}, r2:{fr:0,st:0}, r3:{fr:0,st:0} } }; 
+        ordHL += getNum(DATA.orders[`${tid}_hl`]);
+        ordBH += getNum(DATA.orders[`${tid}_bh`]);
+        ordBL += getNum(DATA.orders[`${tid}_bl`]);
+    });
+    totOrd = ordHL + ordBH + ordBL;
+
+    const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
+    let dropCount = 0;
+
+    if(document.getElementById('header_start_time_simple')) {
+        document.getElementById('header_start_time_simple').innerText = startTimeStr + ' น.';
+    }
+
+    let autoCloseTimeStr = startTimeStr;
+    if(sortedDrops.length > 0) {
+        let lastItem = sortedDrops[sortedDrops.length-1];
+        let lastT = lastItem.type === 'downtime' ? (lastItem.time_end || lastItem.time) : lastItem.time;
+        autoCloseTimeStr = addMinutesToTime(lastT, 10);
+    }
+    document.getElementById('time_stop').value = autoCloseTimeStr;
+
+    sortedDrops.forEach(d => {
+        if(d.type === 'downtime') {
+            let dtMins = getMinDiff(d.time, d.time_end || d.time);
+            pendingDowntime += dtMins;
+            
+            prodLogHtml += `
+            <tr style="background-color: #fef2f2;" class="print-downtime">
+                <td class="pt-time-col" style="font-weight:900; color:#cbd5e1; text-align:center;">-</td>
+                <td class="pt-time-col" style="color:#ef4444; font-weight:900;">${d.time}</td>
+                <td class="pt-time-col" style="color:#ef4444;">-</td>
+                <td colspan="7" style="background-color: #fef2f2 !important; color:#ef4444 !important; font-weight:900 !important; text-align:center; letter-spacing: 2px;">ปิดเครื่อง</td>
+            </tr>
+            <tr style="background-color: #f0fdf4;" class="print-downtime">
+                <td class="pt-time-col" style="font-weight:900; color:#cbd5e1; text-align:center;">-</td>
+                <td class="pt-time-col" style="color:#10b981; font-weight:900;">${d.time_end || d.time}</td>
+                <td class="pt-time-col" style="color:#10b981;">-</td>
+                <td colspan="7" style="background-color: #f0fdf4 !important; color:#10b981 !important; font-weight:900 !important; text-align:center; letter-spacing: 2px;">เปิดเครื่อง</td>
+            </tr>`;
+        } 
+        else if(d.type === 'prod') {
+            dropCount++; 
+            let p_hl=0, p_bh=0, p_bl=0;
+            p_hl = getNum(d.p_in_room.hl); p_bh = getNum(d.p_in_room.bh); p_bl = getNum(d.p_in_room.bl);
+            if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') p_hl+=getNum(i.total); if(i.type==='bh') p_bh+=getNum(i.total); if(i.type==='bl') p_bl+=getNum(i.total); }); }
+            const w_hl = Math.ceil(p_hl/40)*40; const w_bod = Math.ceil((p_bh+p_bl)/40)*40;
+            const r_hl = w_hl - p_hl; const r_bod = w_bod - (p_bh+p_bl);
+            totalWithHL += w_hl; totalWithBod += w_bod; totalRemHL += r_hl; totalRemBod += r_bod; totalUsedAll += (p_hl + p_bh + p_bl);
+            sumP.hl += p_hl; sumP.bh += p_bh; sumP.bl += p_bl;
+            curHL += getNum(d.p_in_room.hl); curBH += getNum(d.p_in_room.bh); curBL += getNum(d.p_in_room.bl);
+            
+            let grossDiff = getMinDiff(lastProdTime, d.time);
+            let netDiff = Math.max(0, grossDiff - pendingDowntime);
+            totalDuration += netDiff;
+            lastProdTime = d.time;
+            
+            pendingDowntime = 0; 
+            
+            prodLogHtml += `<tr>
+                <td class="pt-time-col" style="font-weight:900; text-align:center;">${dropCount}</td>
+                <td class="pt-time-col" style="font-weight:900;">${d.time}</td>
+                <td class="pt-time-col" style="line-height:1; font-weight:900; color:#0ea5e9;">${netDiff}</td>
+                <td class="pt-check" style="font-weight:900;">${w_hl>0?w_hl:'-'}</td>
+                <td class="pt-check" style="font-weight:900;">${w_bod>0?w_bod:'-'}</td>
+                <td class="pt-prod" style="font-weight:900;">${p_hl||'-'}</td>
+                <td class="pt-prod" style="font-weight:900;">${p_bh||'-'}</td>
+                <td class="pt-prod" style="font-weight:900;">${p_bl||'-'}</td>
+                <td class="pt-rem" style="font-weight:900;">${w_hl>0?r_hl:'-'}</td>
+                <td class="pt-rem" style="font-weight:900;">${w_bod>0?r_bod:'-'}</td>
+            </tr>`;
+        }
+        if(d.dist) { d.dist.forEach(i => { 
+            const total = getNum(i.total); 
+            totalSent += total; 
+            if(i.type === 'hl') sentHL += total;
+            if(i.type === 'bh') sentBH += total;
+            if(i.type === 'bl') sentBL += total;
+            const field = d.type === 'prod' ? 'fr' : 'st'; 
+            truckMat[i.truck][i.type][field] += total; 
+            if(truckDetail[i.truck] && truckDetail[i.truck][i.type]) { 
+                truckDetail[i.truck][i.type].r1[field] += getNum(i.r1); 
+                truckDetail[i.truck][i.type].r2[field] += getNum(i.r2); 
+                truckDetail[i.truck][i.type].r3[field] += getNum(i.r3); 
+            } 
+            if(d.type === 'stock') { 
+                if(i.type==='hl') curHL -= total; 
+                if(i.type==='bh') curBH -= total; 
+                if(i.type==='bl') curBL -= total; 
+            } 
+        }); }
+    });
+    
+    prodLogHtml += `<tr class="total-row print-footer">
+        <td class="total-label" colspan="2" style="border-bottom-left-radius: 12px;">รวม (ปิด ${autoCloseTimeStr} น.)</td>
+        <td style="color:#38bdf8 !important;">${totalDuration}</td>
+        <td style="color:#38bdf8 !important;">${totalWithHL}</td>
+        <td style="color:#38bdf8 !important;">${totalWithBod}</td>
+        <td style="color:#34d399 !important;">${sumP.hl}</td>
+        <td style="color:#34d399 !important;">${sumP.bh}</td>
+        <td style="color:#34d399 !important;">${sumP.bl}</td>
+        <td style="color:#fbbf24 !important;">${totalRemHL}</td>
+        <td style="color:#fbbf24 !important; border-bottom-right-radius: 12px;">${totalRemBod}</td>
+    </tr>`;
+
+    const safeSet = (id, val) => { if(document.getElementById(id)) document.getElementById(id).innerText = val; };
+    document.getElementById('prod_log_body').innerHTML = prodLogHtml;
+    safeSet('dash_hl', curHL); safeSet('dash_bh', curBH); safeSet('dash_bl', curBL);
+    safeSet('os_total', totOrd); safeSet('os_sent', totalSent); safeSet('os_remain', totOrd - totalSent);
+
+    safeSet('rpt_hl', sumP.hl); safeSet('rpt_bh', sumP.bh); safeSet('rpt_bl', sumP.bl); safeSet('rpt_total_prod', sumP.hl + sumP.bh + sumP.bl);
+    const totW = ((sumP.hl*20) + (sumP.bh*23) + (sumP.bl*24));
+    safeSet('rpt_total_weight', totW.toLocaleString()); safeSet('rpt_w_hl', (sumP.hl*20).toLocaleString()); safeSet('rpt_w_bh', (sumP.bh*23).toLocaleString()); safeSet('rpt_w_bl', (sumP.bl*24).toLocaleString());
+    safeSet('rpt_sack_withdraw', totalWithHL + totalWithBod); safeSet('rpt_sack_used', totalUsedAll); safeSet('rpt_rem_total_all', totalRemHL + totalRemBod);
+
+    const prodDropsCount = DATA.drops.filter(d => d.type==='prod').length;
+    let avgTime = 38; 
+    
+    if(prodDropsCount > 0) {
+        avgTime = Math.round(totalDuration / prodDropsCount) || 38;
+        safeSet('rpt_avg_time', avgTime);
+        let tonsDay = 0; if (totalDuration > 0) { tonsDay = (totW / totalDuration) * 1440 / 1000; }
+        safeSet('rpt_tons_day', tonsDay.toFixed(2)); 
+        safeSet('rpt_avg_yield', Math.round((sumP.hl+sumP.bh+sumP.bl) / prodDropsCount));
+    } else { 
+        safeSet('rpt_avg_time', 0); safeSet('rpt_tons_day', 0); safeSet('rpt_avg_yield', 0); 
+    }
+
+    safeSet('disp_ph', DATA.reportInfo.ph || '7.1');
+    safeSet('disp_tds', DATA.reportInfo.tds || '172');
+    safeSet('disp_prod_staff', DATA.reportInfo.prodStaff || '4');
+    safeSet('disp_eng_staff', DATA.reportInfo.engStaff || '1');
+    
+    window.REPORT_DATA = {
+        sumHL: sumP.hl, sumBH: sumP.bh, sumBL: sumP.bl,
+        totProd: sumP.hl + sumP.bh + sumP.bl,
+        totWeight: totW,
+        wHL: sumP.hl * 20, wBH: sumP.bh * 23, wBL: sumP.bl * 24,
+        avgTime: avgTime, tonsDay: (totW > 0 && totalDuration > 0) ? ((totW / totalDuration) * 1440 / 1000).toFixed(2) : 0, avgYield: Math.round((sumP.hl+sumP.bh+sumP.bl) / prodDropsCount) || 0,
+        withHL: totalWithHL, withBOD: totalWithBod,
+        usedAll: totalUsedAll,
+        remHL: totalRemHL, remBOD: totalRemBod,
+        totDuration: totalDuration,
+        drops: sortedDrops,
+        timeStop: autoCloseTimeStr
+    };
+
+    globalAvgTime = avgTime;
+    let lastEventStr = startTimeStr;
+    if(sortedDrops.length > 0) {
+        let ld = sortedDrops[sortedDrops.length-1];
+        lastEventStr = ld.type === 'downtime' ? (ld.time_end || ld.time) : ld.time;
+    }
+    globalLastEventTime = lastEventStr;
+    updatePredictor(); 
+
+    renderSummaryTable(truckMat); renderDetailTable(truckDetail);
+}
+
+function updatePredictor() {
+    if(!globalLastEventTime) return;
+    
+    let [lh, lm] = globalLastEventTime.split(':').map(Number);
+    let lastMins = lh * 60 + lm;
+    
+    let predMinsRaw = lastMins + globalAvgTime;
+    let p_h = Math.floor(predMinsRaw / 60) % 24;
+    let p_m = Math.floor(predMinsRaw % 60);
+    let predTimeStr = `${String(p_h).padStart(2, '0')}:${String(p_m).padStart(2, '0')}`;
+    
+    let predTimeEl = document.getElementById('pred_time');
+    if(predTimeEl) predTimeEl.innerText = predTimeStr;
+    
+    let now = new Date();
+    let currMins = now.getHours() * 60 + now.getMinutes();
+    
+    let diff = (p_h * 60 + p_m) - currMins;
+    if (diff < -720) diff += 1440; 
+    else if (diff > 720) diff -= 1440; 
+    
+    let badgeEl = document.getElementById('pred_countdown');
+    let fabEl = document.getElementById('live_predictor_fab');
+    if(!badgeEl || !fabEl) return;
+    
+    if(DATA.drops.length === 0) {
+        fabEl.style.display = 'none';
+    } else {
+        fabEl.style.display = 'flex';
+        if (diff > 0) {
+            badgeEl.innerText = `อีก ${diff} นาที`;
+            badgeEl.className = 'lpf-badge';
+        } else if (diff === 0) {
+            badgeEl.innerText = `กำลังตก!`;
+            badgeEl.className = 'lpf-badge overdue';
+        } else {
+            badgeEl.innerText = `เลยมา ${Math.abs(diff)} น.`;
+            badgeEl.className = 'lpf-badge overdue';
+        }
+    }
+}
+
+function renderSummaryTable(mat) { let h = `<table class="truck-matrix-table"><thead><tr><th style="text-align:left;">รถ</th><th>หลอด</th><th>หยาบ</th><th>ละ..</th></tr></thead><tbody>`; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; h += `<tr><td class="truck-name-col">${t}</td>`; ICE_TYPES.forEach(ty => { const target = getNum(DATA.orders[`${tid}_${ty.id}`]); const sent = mat[tid][ty.id].fr + mat[tid][ty.id].st; let cell = `<span class="st-none">-</span>`; if(target > 0 || sent > 0) { const rem = target - sent; if(rem > 0) cell = `<span class="st-pill st-miss">ขาด ${rem}</span>`; else if(rem < 0) cell = `<span class="st-pill st-over">เกิน ${Math.abs(rem)}</span>`; else cell = `<span class="st-pill st-ok">ครบ</span>`; } h += `<td>${cell}</td>`; }); h += `</tr>`; }); h += `</tbody></table>`; document.getElementById('truck_report_container').innerHTML = h; }
+
+function renderDetailTable(det) { let h = ''; TRUCKS.forEach((t, i) => { const tid = `t${i+1}`; if(det[tid]) { let hasData = false; let content = `<div class="truck-detail-block"><div class="truck-detail-header"><span>🚛 ${t}</span><button class="btn-history" onclick="openTruckHistory('${tid}')">🕒 ดูประวัติ</button></div>`; ICE_TYPES.forEach(ty => { if(det[tid][ty.id]) { const d = det[tid][ty.id]; const t_r1 = d.r1.fr+d.r1.st; const t_r2 = d.r2.fr+d.r2.st; const t_r3 = d.r3.fr+d.r3.st; const grand = t_r1+t_r2+t_r3; const ordered = getNum(DATA.orders[`${tid}_${ty.id}`]); if(grand > 0 || ordered > 0) { hasData = true; content += `
+    <div style="margin-bottom:20px; background:#ffffff; border:1px solid #f1f5f9; border-radius:12px; padding:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding-bottom:8px; border-bottom:1px dashed #e2e8f0;">
+            <div style="font-weight:900; color:var(--primary); font-size:1.1rem;">${ty.label}</div>
+            <div style="font-size:0.8rem; color:var(--text-muted); font-weight:800; background:#f8fafc; padding:4px 10px; border-radius:20px;">เป้า: ${ordered}</div>
+        </div>
+        <table class="detail-table">
+            <thead><tr><th style="width:15%;">แถว</th><th style="width:28%;">เก่า (สต็อก)</th><th style="width:28%;">สด (ผลิต)</th><th>รวมแถว</th></tr></thead>
+            <tbody>
+                <tr><td>1</td><td><span class="dt-stock-val">${d.r1.st||'-'}</span></td><td><span class="dt-fresh-val">${d.r1.fr||'-'}</span></td><td><span class="dt-total-val">${t_r1}</span></td></tr>
+                <tr><td>2</td><td><span class="dt-stock-val">${d.r2.st||'-'}</span></td><td><span class="dt-fresh-val">${d.r2.fr||'-'}</span></td><td><span class="dt-total-val">${t_r2}</span></td></tr>
+                <tr><td>3</td><td><span class="dt-stock-val">${d.r3.st||'-'}</span></td><td><span class="dt-fresh-val">${d.r3.fr||'-'}</span></td><td><span class="dt-total-val">${t_r3}</span></td></tr>
+                <tr class="detail-summary-row"><td colspan="3" style="text-align:right; font-weight:900; color:var(--text-dark);">รวมจ่ายจริง:</td><td style="color:var(--primary); font-weight:900; font-size:1.2rem;">${grand}</td></tr>
+            </tbody>
+        </table>
+    </div>`; } } }); content += `</div>`; if(hasData) h += content; } }); if(h==='') h='<div style="text-align:center; padding:20px; color:#aaa;">ยังไม่มีข้อมูล</div>'; document.getElementById('truck_detail_container').innerHTML = h; }
+
+function updateMasterOrderTotals() {
+    let sumAllHl = 0, sumAllBh = 0, sumAllBl = 0, grandTotal = 0;
+    TRUCKS.forEach((t, i) => {
+        let tid = `t${i+1}`;
+        let hl = getNum(DATA.orders[tid+'_hl']);
+        let bh = getNum(DATA.orders[tid+'_bh']);
+        let bl = getNum(DATA.orders[tid+'_bl']);
+        let rowTotal = hl + bh + bl;
+
+        let rowSumEl = document.getElementById('ord_sum_'+tid);
+        if(rowSumEl) rowSumEl.innerText = rowTotal;
+
+        sumAllHl += hl;
+        sumAllBh += bh;
+        sumAllBl += bl;
+        grandTotal += rowTotal;
+    });
+
+    if(document.getElementById('master_sum_hl')) document.getElementById('master_sum_hl').innerText = sumAllHl;
+    if(document.getElementById('master_sum_bh')) document.getElementById('master_sum_bh').innerText = sumAllBh;
+    if(document.getElementById('master_sum_bl')) document.getElementById('master_sum_bl').innerText = sumAllBl;
+    if(document.getElementById('master_grand_total')) document.getElementById('master_grand_total').innerText = grandTotal;
+}
+
+function updateOrder(key, val) { 
+    DATA.orders[key] = getNum(val); 
+    updateMasterOrderTotals();
+    saveData(); 
+    calcAll();
+}
+
+function openFullHistory() { 
+    const container = document.getElementById('full_history_list'); 
+    container.innerHTML = ''; 
+    const startTimeStr = document.getElementById('time_start').value;
+    const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(b.time, startTimeStr) - getAdjustedMinutes(a.time, startTimeStr)); 
+    
+    if (sortedDrops.length === 0) { 
+        container.innerHTML = '<div style="text-align:center; padding:30px; color:#94a3b8; font-weight:600;">ไม่มีประวัติการผลิต</div>'; 
+    } else { 
+        sortedDrops.forEach((d, idx) => { 
+            if(d.type === 'prod') {
+                let prodTotal = getNum(d.p_in_room.hl) + getNum(d.p_in_room.bh) + getNum(d.p_in_room.bl); 
+                if(d.dist) d.dist.forEach(i => prodTotal += getNum(i.total)); 
+                const tag = (idx === 0) ? '<span style="background:#dcfce7; color:#16a34a; font-size:0.75rem; padding:2px 8px; border-radius:12px; margin-left:8px; vertical-align:middle;">ล่าสุด</span>' : ''; 
+                
+                container.insertAdjacentHTML('beforeend', `
+                <div class="hist-item" onclick="openEditPast(${d.id})">
+                    <div class="hist-info-left">
+                        <div class="hist-time">${d.time} ${tag}</div>
+                        <div class="hist-yield">ยอดผลิตรวม: <span>${prodTotal}</span> กระสอบ</div>
+                    </div>
+                    <div class="hist-arrow">›</div>
+                </div>`); 
+            } else if (d.type === 'downtime') {
+                let dt = getMinDiff(d.time, d.time_end);
+                container.insertAdjacentHTML('beforeend', `
+                <div class="hist-item" style="background:#fef2f2;" onclick="openDowntimeModal(${d.id})">
+                    <div class="hist-info-left">
+                        <div class="hist-time" style="color:#dc2626;">${d.time} - ${d.time_end}</div>
+                        <div class="hist-yield" style="color:#ef4444;">หยุดเครื่อง/ไฟดับ <span style="color:#b91c1c;">(พัก ${dt} น.)</span></div>
+                    </div>
+                    <div class="hist-arrow" style="color:#fca5a5;">›</div>
+                </div>`);
+            }
+        }); 
+    } 
+    document.getElementById('full_history_modal').style.display = 'flex'; 
+}
+function closeFullHistory() { document.getElementById('full_history_modal').style.display = 'none'; renderDrops(); calcAll(); }
+
+function openTruckHistory(tid) { const container = document.getElementById('history_list'); container.innerHTML = ''; document.getElementById('hist_title').innerText = `🕒 ประวัติ ${getTruckName(tid)}`; 
+    const startTimeStr = document.getElementById('time_start').value;
+    const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(a.time, startTimeStr)); 
+    let hasData = false; sortedDrops.forEach(d => { if(d.dist) { d.dist.forEach((item, idx) => { if(item.truck === tid) { hasData = true; const typeName = getTypeName(item.type); const typeLabel = d.type === 'prod' ? '<span class="hist-tag ht-fresh">ผลิต</span>' : '<span class="hist-tag ht-stock">ห้อง</span>'; container.insertAdjacentHTML('beforeend', `<div class="hist-item" style="border-radius:12px; border:1px solid #e2e8f0; margin-bottom:10px;"><div class="hist-info" style="flex:1;"><div><b style="font-weight:900; font-size:1.1rem;">${d.time}</b> ${typeLabel} : <span style="font-weight:800;">${typeName}</span></div><div style="color:var(--text-muted); font-weight:600; margin-top:4px;">(${item.r1}/${item.r2}/${item.r3}) = <b style="color:var(--primary); font-size:1.1rem;">${item.total}</b></div></div><div style="display:flex; flex-direction:column; gap:5px;"><button class="btn-edit-mini" onclick="closeHistoryModal(); SOURCE_MODAL='truck_history'; editDist(${d.id}, ${idx})">✏️ แก้ไข</button><button class="btn-del-mini" onclick="removeDist(${d.id}, ${idx}); closeHistoryModal();">🗑️ ลบ</button></div></div>`); } }); } }); if(!hasData) container.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">ไม่มีประวัติสำหรับรถคันนี้</div>'; document.getElementById('history_modal').style.display = 'flex'; }
+function closeHistoryModal() { document.getElementById('history_modal').style.display = 'none'; }
+
+function openEditPast(id) { 
+    const startTimeStr = document.getElementById('time_start').value;
+    const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
+    const idx = sortedDrops.findIndex(x => x.id === id);
+    const d = sortedDrops[idx];
+    if(!d) return; 
+    
+    document.getElementById('full_history_modal').style.display = 'none'; document.getElementById('stock_manager_modal').style.display = 'none'; if(document.getElementById('stock_manager_modal').style.display === 'flex') SOURCE_MODAL = 'stock'; else if(document.getElementById('full_history_modal').style.display === 'flex') SOURCE_MODAL = 'history'; else SOURCE_MODAL = null; 
+
+    if(d.type === 'prod') { 
+        let prevProdIdx = -1;
+        for(let i=idx-1; i>=0; i--) { if(sortedDrops[i].type === 'prod') { prevProdIdx = i; break; } }
+        let prevTime = prevProdIdx >= 0 ? sortedDrops[prevProdIdx].time : startTimeStr;
+        let dtSub = 0;
+        for(let i=prevProdIdx+1; i<idx; i++) { if(sortedDrops[i].type==='downtime') dtSub += getMinDiff(sortedDrops[i].time, sortedDrops[i].time_end || sortedDrops[i].time); }
+        let netDiff = Math.max(0, getMinDiff(prevTime, d.time) - dtSub);
+        document.getElementById('edit_past_body').innerHTML = generateCardHtml(d, netDiff); 
+        document.getElementById('edit_past_modal').style.display = 'flex'; 
+    }
+}
+
+function closeEditPastModal() { document.getElementById('edit_past_modal').style.display = 'none'; if(SOURCE_MODAL === 'history') openFullHistory(); else if(SOURCE_MODAL === 'stock') openStockManager(); else renderDrops(); calcAll(); }
+
+function openStockManager() { const container = document.getElementById('stock_list_container'); container.innerHTML = ''; const stockDrops = DATA.drops.filter(d => d.type === 'stock').reverse(); if(stockDrops.length === 0) { container.innerHTML = '<div style="text-align:center; color:#aaa; margin-top:20px; font-weight:bold;">ไม่มีรายการเบิกของเก่าในวันนี้</div>'; } else { stockDrops.forEach(d => { let details = ''; if(d.dist) { d.dist.forEach((item, idx) => { details += `<div style="background:white; padding:8px; border-radius:8px; margin-top:8px; font-size:0.85rem; border:1px solid #f1f5f9; box-shadow:var(--shadow-sm);">🚛 ${getTruckName(item.truck)} (${getTypeName(item.type)}) : <b style="font-size:1rem; color:var(--text-dark);">${item.total}</b></div>`; }); } container.insertAdjacentHTML('beforeend', `<div style="background:#fffbeb; padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid #fef3c7;"><div style="display:flex; justify-content:space-between; font-weight:900; color:#d97706; font-size:1.1rem; align-items:center;"><span>📦 เบิก ${d.time}</span><button class="btn-act-del" style="width:auto; padding:6px 12px; font-size:0.8rem;" onclick="deleteDrop(${d.id})">ลบ</button></div>${details}<button class="btn-add-dist" style="background:white; border-color:#fde68a; color:#d97706;" onclick="openDistModal(${d.id})">+ เพิ่มจ่ายรถ</button></div>`); }); } document.getElementById('stock_manager_modal').style.display = 'flex'; } 
+function closeStockManager() { document.getElementById('stock_manager_modal').style.display = 'none'; renderDrops(); calcAll(); }
+function removeDist(dropId, idx) { const d = DATA.drops.find(x => x.id === dropId); if(d) { d.dist.splice(idx, 1); updateDropVal(dropId, 'dist_update', null, 0); saveData(); if(document.getElementById('stock_manager_modal').style.display === 'flex') openStockManager(); else if(document.getElementById('edit_past_modal').style.display === 'flex') openEditPast(dropId); else renderDrops(); calcAll(); } }
+
+function initWizard() { const tSel = document.getElementById('wiz_truck'); const tySel = document.getElementById('wiz_type'); tSel.innerHTML = TRUCKS.map((t,i) => `<option value="t${i+1}">${t}</option>`).join(''); tySel.innerHTML = ICE_TYPES.map(ty => `<option value="${ty.id}">${ty.label}</option>`).join(''); }
+function openDistModal(dropId) { 
+    if(document.getElementById('edit_past_modal').style.display === 'flex') { document.getElementById('edit_past_modal').style.display = 'none'; SOURCE_MODAL = 'edit_past'; } 
+    else if (document.getElementById('stock_manager_modal').style.display === 'flex') { document.getElementById('stock_manager_modal').style.display = 'none'; SOURCE_MODAL = 'stock'; } 
+    else { SOURCE_MODAL = null; } 
+    initWizard(); CURRENT_DROP_ID = dropId; EDITING_DIST_IDX = null; const d = DATA.drops.find(x => x.id === dropId); document.getElementById('wiz_r1').value = ''; document.getElementById('wiz_r2').value = ''; document.getElementById('wiz_r3').value = ''; updateWizStats(); document.getElementById('wiz_title').innerText = d.type === 'prod' ? '🚛 จ่ายของผลิตใหม่' : '📦 จ่ายของเก่า'; document.getElementById('dist_modal').style.display = 'flex'; 
+}
+function editDist(dropId, idx) { 
+    if(document.getElementById('edit_past_modal').style.display === 'flex') { document.getElementById('edit_past_modal').style.display = 'none'; SOURCE_MODAL = 'edit_past'; } 
+    else if (document.getElementById('history_modal').style.display === 'flex') { document.getElementById('history_modal').style.display = 'none'; SOURCE_MODAL = 'truck_history'; }
+    else if (document.getElementById('stock_manager_modal').style.display === 'flex') { document.getElementById('stock_manager_modal').style.display = 'none'; SOURCE_MODAL = 'stock'; } 
+    else { SOURCE_MODAL = null; } 
+    initWizard(); CURRENT_DROP_ID = dropId; EDITING_DIST_IDX = idx; const d = DATA.drops.find(x => x.id === dropId); const item = d.dist[idx]; document.getElementById('wiz_truck').value = item.truck; document.getElementById('wiz_type').value = item.type; document.getElementById('wiz_r1').value = item.r1; document.getElementById('wiz_r2').value = item.r2; document.getElementById('wiz_r3').value = item.r3; updateWizStats(); document.getElementById('wiz_title').innerText = '✏️ แก้ไขรายการ'; document.getElementById('dist_modal').style.display = 'flex'; 
+}
+function closeDistModal() { 
+    document.getElementById('dist_modal').style.display = 'none'; 
+    CURRENT_DROP_ID = null; 
+    if(SOURCE_MODAL === 'stock') openStockManager(); 
+    else if (SOURCE_MODAL === 'edit_past') { /* Will just close, user can reopen history */ }
+}
+
+function updateWizStats() { 
+    const tid = document.getElementById('wiz_truck').value; 
+    const typeId = document.getElementById('wiz_type').value; 
+    
+    let totalSent = 0; 
+    let sumR = [0, 0, 0]; 
+    
+    DATA.drops.forEach(d => { 
+        if(d.dist) { 
+            d.dist.forEach((item, idx) => { 
+                if(d.id === CURRENT_DROP_ID && idx === EDITING_DIST_IDX) return; 
+                if(item.truck === tid && item.type === typeId) { 
+                    totalSent += getNum(item.total); 
+                } 
+                if(item.truck === tid) {
+                    sumR[0] += getNum(item.r1);
+                    sumR[1] += getNum(item.r2);
+                    sumR[2] += getNum(item.r3);
+                }
+            }); 
+        } 
+    }); 
+    
+    const r1 = getNum(document.getElementById('wiz_r1').value); 
+    const r2 = getNum(document.getElementById('wiz_r2').value); 
+    const r3 = getNum(document.getElementById('wiz_r3').value); 
+    const currentTotal = r1 + r2 + r3; 
+    
+    const target = getNum(DATA.orders[`${tid}_${typeId}`]); 
+    const remain = target - (totalSent + currentTotal); 
+    
+    document.getElementById('wiz_total_sum').innerText = currentTotal; 
+    const remEl = document.getElementById('wiz_remain'); 
+    if (target === 0) { remEl.innerText = "ไม่ได้สั่ง"; remEl.className = 'wiz-remain'; remEl.style.color = "var(--text-muted)";} 
+    else if (remain > 0) { remEl.innerText = `ขาด ${remain}`; remEl.className = 'wiz-remain st-miss'; remEl.style.color = "#dc2626"; } 
+    else if (remain < 0) { remEl.innerText = `เกิน ${Math.abs(remain)}`; remEl.className = 'wiz-remain st-over'; remEl.style.color = "#0284c7"; } 
+    else { remEl.innerText = "ครบแล้ว ✅"; remEl.className = 'wiz-remain st-ok'; remEl.style.color = "#16a34a"; } 
+
+    const updateRowUI = (idx, currentInput) => {
+        const el = document.getElementById(`wiz_info_r${idx+1}`);
+        const totalInRow = sumR[idx] + currentInput;
+        const diff = 36 - totalInRow;
+        
+        if (totalInRow === 0) {
+            el.innerHTML = `<span style="color:#94a3b8;">(ว่าง ขาด 36)</span>`;
+        } else if (diff > 0) {
+            el.innerHTML = `<span style="color:#0ea5e9;">(รวม ${totalInRow} ขาด ${diff})</span>`;
+        } else if (diff < 0) {
+            el.innerHTML = `<span style="color:#ef4444;">(รวม ${totalInRow} เกิน ${Math.abs(diff)}!)</span>`;
+        } else {
+            el.innerHTML = `<span style="color:#10b981;">(ครบ 36 ใบ ✅)</span>`;
+        }
+    };
+
+    updateRowUI(0, r1);
+    updateRowUI(1, r2);
+    updateRowUI(2, r3);
+}
+
+function confirmDistSave() { 
+    if (!CURRENT_DROP_ID) return; 
+    const d = DATA.drops.find(x => x.id === CURRENT_DROP_ID); 
+    const r1 = getNum(document.getElementById('wiz_r1').value); const r2 = getNum(document.getElementById('wiz_r2').value); const r3 = getNum(document.getElementById('wiz_r3').value); const total = r1 + r2 + r3; if (total === 0) { alert('กรุณาใส่จำนวน'); return; } const newData = { truck: document.getElementById('wiz_truck').value, type: document.getElementById('wiz_type').value, r1: r1, r2: r2, r3: r3, total: total }; 
+    if(EDITING_DIST_IDX !== null) { d.dist[EDITING_DIST_IDX] = newData; } else { if(!d.dist) d.dist = []; d.dist.push(newData); } 
+    updateDropVal(CURRENT_DROP_ID, 'dist_update', null, 0); 
+    document.getElementById('dist_modal').style.display = 'none'; 
+    if (SOURCE_MODAL === 'edit_past') { openEditPast(CURRENT_DROP_ID); } else if (SOURCE_MODAL === 'stock') { openStockManager(); } else if (SOURCE_MODAL === 'truck_history') { openTruckHistory(newData.truck); } else { renderDrops(); } 
+    CURRENT_DROP_ID = null; calcAll(); 
+}
+
+function renderOrderInputs() { 
+    const c = document.getElementById('order_inputs'); 
+    let h = '<table class="order-table"><thead><tr><th style="border-top-left-radius:12px;">รถ</th><th>หลอด</th><th>หยาบ</th><th>ละเอียด</th><th class="col-total" style="border-top-right-radius:12px;">รวม</th></tr></thead><tbody>'; 
+    
+    let sumAllHl = 0; let sumAllBh = 0; let sumAllBl = 0; let grandTotal = 0;
+
+    TRUCKS.forEach((t, i) => { 
+        const tid = `t${i+1}`; 
+        const hl = DATA.orders[tid+'_hl']||''; 
+        const bh = DATA.orders[tid+'_bh']||''; 
+        const bl = DATA.orders[tid+'_bl']||''; 
+        const total = getNum(hl) + getNum(bh) + getNum(bl); 
+        
+        sumAllHl += getNum(hl); sumAllBh += getNum(bh); sumAllBl += getNum(bl); grandTotal += total;
+
+        h += `<tr>
+            <td style="font-weight:800; color:var(--text-dark);">${t}</td>
+            <td><input type="tel" id="inp_ord_${tid}_hl" value="${hl}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_hl',this.value)" style="padding:10px; font-size:1.2rem;"></td>
+            <td><input type="tel" id="inp_ord_${tid}_bh" value="${bh}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput
