@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Smart Ice">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#0ea5e9">
-    <title>Smart Ice V210 (Production - Live Sync)</title>
+    <title>Smart Ice V211 (Production - 29 Rows PDF)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
         /* --- Modern Premium Theme (Screen UI) --- */
@@ -122,8 +122,33 @@
             .dt-total-val { color: #ffffff; background: #334155; padding: 4px 12px; border-radius: 6px; font-weight: 900; display:inline-block; min-width: 45px;}
             .detail-summary-row td { background: transparent !important; border: none; padding-top: 15px; }
 
+            /* 🛠️ ปรับโฉม UI ประวัติจ่ายรถในการ์ด (The New Dist-Item) */
+            .dist-item { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 12px 15px; margin-bottom: 12px; box-shadow: var(--shadow-sm); transition: transform 0.2s;}
+            .dist-item:active { transform: scale(0.98); }
+            .dist-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px; }
+            .dist-title { font-weight: 900; color: var(--text-dark); font-size: 1.05rem; display: flex; align-items: center; flex-wrap: wrap; gap: 6px;}
+            .dist-actions { display: flex; gap: 6px; }
+            .dist-body { display: flex; justify-content: space-between; align-items: flex-end; }
+            .dist-rows-detail { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; background: #f8fafc; padding: 4px 8px; border-radius: 8px;}
+            .dist-total-big { font-size: 1.8rem; font-weight: 900; color: var(--primary); line-height: 1;}
+            .dist-total-big span { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; margin-left: 2px;}
+            .dist-status-badge { font-size: 0.75rem; padding: 4px 8px; border-radius: 12px; font-weight: 900; white-space: nowrap;}
+
+            /* 🛠️ ปรับโฉม UI สรุปยอดขาด/เกินใน Modal เพิ่มรถ */
+            .wiz-status { background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 16px; padding: 15px; margin-bottom: 20px; text-align: center; }
+            .wiz-status-text { font-size: 0.85rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; margin-bottom: 5px; }
+            .wiz-remain { font-size: 2rem; font-weight: 900; line-height: 1; }
+            .wiz-remain.st-miss { color: #ef4444; }
+            .wiz-remain.st-over { color: #0ea5e9; }
+            .wiz-remain.st-ok { color: #10b981; }
+
             .btn-history, .btn-del-mini, .btn-edit-mini { border: none; border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.15s; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
             .btn-history { background: var(--warning-grad); color: white; padding: 8px 14px; font-size: 0.9rem; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3); border-radius: 20px;}
+            .btn-edit-mini { background: #e0f2fe; color: #0284c7; width: 32px; height: 32px; font-size: 1rem;}
+            .btn-del-mini { background: #fee2e2; color: #dc2626; width: 32px; height: 32px; font-size: 1rem;}
+            .btn-add-dist { width: 100%; padding: 12px; background: #f1f5f9; border: 2px dashed #cbd5e1; border-radius: 12px; color: #475569; font-weight: 900; font-size: 1rem; cursor: pointer; transition: 0.2s;}
+            .btn-add-dist:hover { background: #e2e8f0; border-color: #94a3b8;}
+
             .btn-save-wiz, .btn-stock-manager, .btn-view-history, .btn-downtime, .btn-print, .btn-save-dist { width: 100%; padding: 16px; border: none; border-radius: 14px; font-size: 1.15rem; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.15s; margin-bottom: 12px; color:white;}
             .btn-save-wiz { background: var(--success-grad); font-size: 1.3rem; margin-top: 15px; box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3); }
             .btn-stock-manager { background: var(--warning-grad); box-shadow: 0 6px 15px rgba(245, 158, 11, 0.3); }
@@ -425,7 +450,7 @@
                     </div>
                 </div>
                 <button class="btn-save-wiz" onclick="confirmDistSave()">💾 ยืนยันการบันทึก</button>
-                <div style="text-align:center; margin-top:15px; font-weight:800; color:#475569;">รวมที่กรอกรอบนี้: <span id="wiz_total_sum" style="color:var(--primary); font-size:1.2rem;">0</span></div>
+                <div style="text-align:center; margin-top:15px; font-weight:800; color:#475569;">รวมที่กรอกรอบนี้: <span id="wiz_total_sum" style="color:var(--primary); font-size:1.4rem;">0</span></div>
                 <div style="height:100px;"></div>
             </div>
         </div>
@@ -496,7 +521,6 @@
     function syncFromFirebase(dateKey) {
         if(unsubscribeFB) unsubscribeFB(); 
         
-        // 🚀 ของจริงใช้กระดาน ice_production
         unsubscribeFB = db.collection("ice_production").doc(dateKey).onSnapshot((doc) => {
             if(doc.exists) {
                 const remoteData = doc.data();
@@ -583,11 +607,7 @@
         if(d) { 
             try { 
                 DATA = JSON.parse(d); 
-                
-                if(DATA.reportInfo && DATA.reportInfo.branch === 'วาริเทพเพ็ญ (W041)') {
-                    DATA.reportInfo.branch = 'วารีเทพเพ็ญ (W041)';
-                }
-
+                if(DATA.reportInfo && DATA.reportInfo.branch === 'วาริเทพเพ็ญ (W041)') DATA.reportInfo.branch = 'วารีเทพเพ็ญ (W041)';
                 if(!DATA.drops) DATA.drops = []; 
                 if(!DATA.orders) DATA.orders = {}; 
                 if(!DATA.reportInfo) DATA.reportInfo = { branch: 'วารีเทพเพ็ญ (W041)', machine: 'M1', ph: '7.1', tds: '172', prodStaff: 4, engStaff: 1 };
@@ -661,7 +681,7 @@
     function updateStock() { saveData(); calcAll(); }
 
     function resetTodayData() {
-        if(confirm('ระบบจะล้างข้อมูลเฉพาะของวันนี้ (ตัวจริง) ยืนยันหรือไม่?')) {
+        if(confirm('ระบบจะล้างข้อมูลเฉพาะของวันนี้ ยืนยันหรือไม่?')) {
             const dateKey = document.getElementById('setup_date').value; 
             localStorage.removeItem('ICE_DATA_' + dateKey); 
             db.collection("ice_production").doc(dateKey).set(getEmptyData()).then(() => location.reload());
@@ -814,7 +834,37 @@
         let distHtml = '';
         if(d.dist) {
            d.dist.forEach((item, idx) => {
-               distHtml += `<div class="dist-item"><div class="dist-header"><span>🚛 ${getTruckName(item.truck)} - ${getTypeName(item.type)}</span><div><button class="btn-edit-mini" onclick="editDist(${d.id}, ${idx})">✏️</button><button class="btn-del-mini" onclick="removeDist(${d.id}, ${idx})">🗑️</button></div></div><div class="dist-rows">(${item.r1}/${item.r2}/${item.r3}) = <b>${item.total}</b></div></div>`;
+               const target = getNum(DATA.orders[`${item.truck}_${item.type}`]);
+               let totalSentAllDrops = 0;
+               DATA.drops.forEach(drop => {
+                   if(drop.dist) {
+                       drop.dist.forEach(i => {
+                           if(i.truck === item.truck && i.type === item.type) totalSentAllDrops += getNum(i.total);
+                       });
+                   }
+               });
+               
+               let remain = target - totalSentAllDrops;
+               let statusBadge = '';
+               if(target === 0) statusBadge = `<span class="dist-status-badge" style="background:#f1f5f9; color:#64748b;">ไม่ได้สั่ง</span>`;
+               else if(remain > 0) statusBadge = `<span class="dist-status-badge" style="background:#fee2e2; color:#dc2626;">ขาด ${remain}</span>`;
+               else if(remain < 0) statusBadge = `<span class="dist-status-badge" style="background:#e0f2fe; color:#0284c7;">เกิน ${Math.abs(remain)}</span>`;
+               else statusBadge = `<span class="dist-status-badge" style="background:#dcfce7; color:#15803d;">ครบ ✅</span>`;
+
+               distHtml += `
+               <div class="dist-item">
+                   <div class="dist-header">
+                       <div class="dist-title">🚛 ${getTruckName(item.truck)} - ${getTypeName(item.type)} ${statusBadge}</div>
+                       <div class="dist-actions">
+                           <button class="btn-edit-mini" onclick="editDist(${d.id}, ${idx})">✏️</button>
+                           <button class="btn-del-mini" onclick="removeDist(${d.id}, ${idx})">🗑️</button>
+                       </div>
+                   </div>
+                   <div class="dist-body">
+                       <div class="dist-rows-detail">แถว: (${item.r1||0} / ${item.r2||0} / ${item.r3||0})</div>
+                       <div class="dist-total-big"><span>จ่ายรอบนี้</span> +${item.total}</div>
+                   </div>
+               </div>`;
            });
         }
         let hlProd = getNum(d.p_in_room.hl); let bhProd = getNum(d.p_in_room.bh); let blProd = getNum(d.p_in_room.bl);
@@ -822,7 +872,7 @@
         const hlBatch = Math.ceil(hlProd / 40) * 40; const crushBatch = Math.ceil((bhProd + blProd) / 40) * 40;
         const hlRem = hlBatch - hlProd; const crushRem = crushBatch - (bhProd + blProd);
 
-        return `<div class="modern-card"><div class="card-header-flex"><div class="badge-box bg-prod"><span>น้ำแข็ง<br>ตก<br>(ผลิต)</span></div><input type="time" class="big-time-input" value="${d.time}" onblur="updateDropVal(${d.id}, 'time', null, this.value)"><span class="time-diff-badge">(+${netDiff} น.)</span><button class="btn-close-red" onclick="deleteDrop(${d.id})">×</button></div><div class="card-body" style="padding-top:0;"><div class="sack-row"><div class="sack-item"><div class="sack-label">เบิก (หลอด/บด)</div><div class="sack-val" id="disp_withdraw_${d.id}">${hlBatch} / ${crushBatch}</div></div><div class="sack-item"><div class="sack-label">ใช้ (หลอด/บด)</div><div class="sack-val" id="disp_used_${d.id}">${hlProd} / ${bhProd+blProd}</div></div><div class="sack-item"><div class="sack-label">คืน (หลอด/บด)</div><div class="sack-split"><span class="ss-hl" id="disp_rem_hl_${d.id}">หลอด:${hlRem}</span> <span class="ss-bod" id="disp_rem_bod_${d.id}">บด:${crushRem}</span></div></div></div><div class="grid-3"><div><div class="input-label">หลอด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.hl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'hl', this.value)"></div><div><div class="input-label">หยาบ (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bh)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bh', this.value)"></div><div><div class="input-label">ละเอียด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bl', this.value)"></div></div><div class="dist-container"><div style="font-size:0.85rem; color:var(--text-muted); font-weight:800; margin-bottom:5px; text-transform:uppercase;">รายการจ่ายเข้ารถ</div>${distHtml}<button class="btn-add-dist" onclick="openDistModal(${d.id})">+ เพิ่มรายการส่งเข้ารถ</button></div></div></div>`;
+        return `<div class="modern-card"><div class="card-header-flex"><div class="badge-box bg-prod"><span>น้ำแข็ง<br>ตก<br>(ผลิต)</span></div><input type="time" class="big-time-input" value="${d.time}" onblur="updateDropVal(${d.id}, 'time', null, this.value)"><span class="time-diff-badge">(+${netDiff} น.)</span><button class="btn-close-red" onclick="deleteDrop(${d.id})">×</button></div><div class="card-body" style="padding-top:0;"><div class="sack-row"><div class="sack-item"><div class="sack-label">เบิก (หลอด/บด)</div><div class="sack-val" id="disp_withdraw_${d.id}">${hlBatch} / ${crushBatch}</div></div><div class="sack-item"><div class="sack-label">ใช้ (หลอด/บด)</div><div class="sack-val" id="disp_used_${d.id}">${hlProd} / ${bhProd+blProd}</div></div><div class="sack-item"><div class="sack-label">คืน (หลอด/บด)</div><div class="sack-split"><span class="ss-hl" id="disp_rem_hl_${d.id}">หลอด:${hlRem}</span> <span class="ss-bod" id="disp_rem_bod_${d.id}">บด:${crushRem}</span></div></div></div><div class="grid-3"><div><div class="input-label">หลอด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.hl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'hl', this.value)"></div><div><div class="input-label">หยาบ (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bh)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bh', this.value)"></div><div><div class="input-label">ละเอียด (เข้าห้อง)</div><input type="tel" value="${getNum(d.p_in_room.bl)}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateDropVal(${d.id}, 'p_in_room', 'bl', this.value)"></div></div><div class="dist-container"><div style="font-size:0.85rem; color:var(--text-muted); font-weight:800; margin-bottom:10px; text-transform:uppercase;">รายการจ่ายเข้ารถ</div>${distHtml}<button class="btn-add-dist" onclick="openDistModal(${d.id})">+ เพิ่มรายการส่งเข้ารถ</button></div></div></div>`;
     }
 
     function updateCardStats(id) {
@@ -1377,7 +1427,8 @@
             }
         });
 
-        const ROWS_PER_PAGE = 33;
+        /* 🚀 กำหนดให้ 1 หน้า มีได้สูงสุด 29 บรรทัด (ตามที่ลูกศิษย์รีเควส) */
+        const ROWS_PER_PAGE = 29;
         let chunks = [];
         for(let i = 0; i < renderItems.length; i += ROWS_PER_PAGE) {
             chunks.push(renderItems.slice(i, i + ROWS_PER_PAGE));
