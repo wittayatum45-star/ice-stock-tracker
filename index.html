@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Smart Ice">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#0ea5e9">
-    <title>Smart Ice V207 (Classic Firebase & Seamless Sync)</title>
+    <title>Smart Ice V208 (Perfect Cloud Sync & Live Totals)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
         /* --- Modern Premium Theme (Screen UI) --- */
@@ -164,7 +164,7 @@
             #print_area { display: none; }
         }
 
-        /* --- 🔥 V205: PDF PERFECT PRINT & 2-ROW DOWNTIME 🔥 --- */
+        /* --- 🔥 V208: PDF PERFECT PRINT & 2-ROW DOWNTIME 🔥 --- */
         @media print {
             @page { size: A4 portrait; margin: 8mm; } 
             body { background: white !important; color: black !important; font-family: 'Sarabun', sans-serif; font-size: 10pt !important; padding: 0 !important; margin: 0 !important; }
@@ -474,7 +474,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
 
 <script>
-    // 🚀 2. ปลุกเสก Firebase ทันทีที่โหลดหน้าเว็บ
     const firebaseConfig = {
         apiKey: "AIzaSyBVirNpmGi1r53mf7pNnV59RGzEFKo4PS4",
         authDomain: "smart-ice-tumnaaa.firebaseapp.com",
@@ -497,7 +496,7 @@
     
     let globalAvgTime = 38;
     let globalLastEventTime = null;
-    let unsubscribeFB = null; // ตัวแปรเก็บหูทิพย์ฟัง Cloud
+    let unsubscribeFB = null; 
     window.REPORT_DATA = {};
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -511,15 +510,12 @@
         renderDrops();
         setTimeout(() => { calcAll(); }, 50); 
         
-        // 🚀 สั่งเปิดหูทิพย์ฟัง Cloud ทันที!
         syncFromFirebase(savedDate);
-        
         setInterval(updatePredictor, 60000); 
     });
 
-    // 🚀 3. ฟังก์ชันดึงข้อมูลจาก Cloud และอัปเดตหน้าจอแบบเนียนๆ
     function syncFromFirebase(dateKey) {
-        if(unsubscribeFB) unsubscribeFB(); // ปิดหูฟังอันเก่า
+        if(unsubscribeFB) unsubscribeFB(); 
         
         unsubscribeFB = db.collection("ice_production").doc(dateKey).onSnapshot((doc) => {
             if(doc.exists) {
@@ -530,13 +526,12 @@
                     console.log("☁️ ได้รับข้อมูลใหม่จาก Cloud!");
                     DATA = remoteData;
                     localStorage.setItem(`ICE_DATA_${dateKey}`, JSON.stringify(DATA));
-                    refreshUI_Smart(); // 🚀 เรียกใช้การอัปเดตแบบฉลาด แป้นพิมพ์ไม่หาย
+                    refreshUI_Smart(); 
                 }
             }
         });
     }
 
-    // 🚀 4. อัปเดตหน้าจอเฉพาะจุดที่ไม่ได้กำลังพิมพ์อยู่ (Smart Refresh)
     function refreshUI_Smart() {
         document.getElementById('time_start').value = DATA.times.start || "22:00";
         
@@ -567,11 +562,12 @@
             if(elBl && document.activeElement !== elBl) elBl.value = bl || '';
         });
 
+        // 🚀 อัปเดตยอดรวมสีดำทันทีหลังจากดึงข้อมูล
+        updateMasterOrderTotals();
         renderDrops();
         calcAll();
     }
 
-    // 🚀 5. ฟังก์ชันส่งข้อมูลขึ้น Cloud
     function pushToFirebase() {
         const dateKey = document.getElementById('setup_date').value;
         db.collection("ice_production").doc(dateKey).set(DATA).catch(e => console.error("FB Save Error:", e));
@@ -598,7 +594,7 @@
         }
 
         localStorage.setItem(`ICE_DATA_${dateKey}`, JSON.stringify(DATA)); 
-        pushToFirebase(); // 🚀 ส่งขึ้น Cloud ທันที
+        pushToFirebase(); 
     }
     
     function loadData(dateKey) {
@@ -679,7 +675,7 @@
         calcAll(); 
         renderOrderInputs(); 
         renderDrops(); 
-        syncFromFirebase(newDate); // 🚀 เปลี่ยนไปซิงค์วันที่ใหม่
+        syncFromFirebase(newDate); 
     }
     
     function getNum(val) { return parseFloat(val) || 0; }
@@ -689,8 +685,6 @@
         if(confirm('ระบบจะล้างข้อมูลเฉพาะของวันนี้ ยืนยันหรือไม่?')) {
             const dateKey = document.getElementById('setup_date').value; 
             localStorage.removeItem('ICE_DATA_' + dateKey); 
-            
-            // ลบของใน Cloud ด้วย
             db.collection("ice_production").doc(dateKey).set(getEmptyData()).then(() => location.reload());
         }
     }
@@ -1115,18 +1109,40 @@
             </table>
         </div>`; } } }); content += `</div>`; if(hasData) h += content; } }); if(h==='') h='<div style="text-align:center; padding:20px; color:#aaa;">ยังไม่มีข้อมูล</div>'; document.getElementById('truck_detail_container').innerHTML = h; }
     
-    // 🚀 6. ผูก ID ให้กับตาราง Master Order เพื่อให้อัปเดตตรงจุดได้
+    // 🚀 8. ฟังก์ชันใหม่: อัปเดตแถวรวมสีดำ โดยไม่ต้องโหลดตารางใหม่
+    function updateMasterOrderTotals() {
+        let sumAllHl = 0, sumAllBh = 0, sumAllBl = 0, grandTotal = 0;
+        TRUCKS.forEach((t, i) => {
+            let tid = `t${i+1}`;
+            let hl = getNum(DATA.orders[tid+'_hl']);
+            let bh = getNum(DATA.orders[tid+'_bh']);
+            let bl = getNum(DATA.orders[tid+'_bl']);
+            let rowTotal = hl + bh + bl;
+
+            // อัปเดตผลรวมรายคัน (แนวนอน)
+            let rowSumEl = document.getElementById('ord_sum_'+tid);
+            if(rowSumEl) rowSumEl.innerText = rowTotal;
+
+            sumAllHl += hl;
+            sumAllBh += bh;
+            sumAllBl += bl;
+            grandTotal += rowTotal;
+        });
+
+        // อัปเดตผลรวมทุกคัน (แนวตั้ง แถวสีดำล่างสุด)
+        if(document.getElementById('master_sum_hl')) document.getElementById('master_sum_hl').innerText = sumAllHl;
+        if(document.getElementById('master_sum_bh')) document.getElementById('master_sum_bh').innerText = sumAllBh;
+        if(document.getElementById('master_sum_bl')) document.getElementById('master_sum_bl').innerText = sumAllBl;
+        if(document.getElementById('master_grand_total')) document.getElementById('master_grand_total').innerText = grandTotal;
+    }
+
     function updateOrder(key, val) { 
         DATA.orders[key] = getNum(val); 
+        
+        // 🚀 สั่งบวกเลขแถวล่างสีดำทันทีที่พิมพ์!
+        updateMasterOrderTotals();
+        
         saveData(); 
-        
-        const tid = key.split('_')[0]; 
-        const hl = getNum(DATA.orders[tid+'_hl']); 
-        const bh = getNum(DATA.orders[tid+'_bh']); 
-        const bl = getNum(DATA.orders[tid+'_bl']); 
-        const sumEl = document.getElementById('ord_sum_'+tid); 
-        if(sumEl) sumEl.innerText = hl + bh + bl;
-        
         calcAll();
     }
     
@@ -1294,7 +1310,6 @@
         CURRENT_DROP_ID = null; calcAll(); 
     }
     
-    // 🚀 7. ใส่ ID ให้ตารางเพื่อให้อัปเดตตรงจุดได้ ไม่กระพริบ
     function renderOrderInputs() { 
         const c = document.getElementById('order_inputs'); 
         let h = '<table class="order-table"><thead><tr><th style="border-top-left-radius:12px;">รถ</th><th>หลอด</th><th>หยาบ</th><th>ละเอียด</th><th class="col-total" style="border-top-right-radius:12px;">รวม</th></tr></thead><tbody>'; 
