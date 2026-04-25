@@ -186,42 +186,31 @@ function resetTodayData() {
     }
 }
 
-// 🌟🌟🌟 อัปเกรดระบบตัดกะ (ให้ใส่เวลาได้เอง) 🌟🌟🌟
-function addCut() {
+// 🌟🌟🌟 ระบบ Modal ตัดกะใหม่ ไฉไลกว่าเดิม 🌟🌟🌟
+function openCutModal() {
     const now = new Date();
-    // ดึงเวลาปัจจุบันมาเป็นค่าเริ่มต้น เผื่อช่างขี้เกียจพิมพ์
-    const defaultTimeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
-    
-    // ใช้คำสั่ง prompt เพื่อให้มีกล่องข้อความเด้งขึ้นมาให้พิมพ์เวลา
-    let inputTime = prompt("✂️ ยืนยันการตัดกะ (ขึ้นแผ่นใหม่)\n\nกรุณาระบุเวลาที่ต้องการตัดกะ (HH:MM):", defaultTimeStr);
-    
-    // ถ้าผู้ใช้กด OK (ไม่ได้กด Cancel หรือกากบาททิ้ง)
-    if (inputTime !== null) {
-        if(inputTime.trim() === "") {
-            alert("⚠️ คุณไม่ได้ระบุเวลา ยกเลิกการตัดกะครับ");
-            return;
-        }
-        
-        // เช็คว่าผู้ใช้ใส่เวลาถูกไหม (ต้องมีเครื่องหมาย : คั่นกลาง)
-        let timeParts = inputTime.split(':');
-        if(timeParts.length === 2) {
-            // จัดฟอร์แมตให้สวยงาม (เช่น พิมพ์ 8:00 ให้เป็น 08:00)
-            let h = String(parseInt(timeParts[0])).padStart(2, '0');
-            let m = String(parseInt(timeParts[1])).padStart(2, '0');
-            
-            if(h !== 'NaN' && m !== 'NaN') {
-                let finalTimeStr = h + ':' + m;
-                // บันทึกลงตาราง!
-                DATA.drops.push({ id: Date.now(), type: 'cut', time: finalTimeStr });
-                saveData();
-                calcAll();
-                openFullHistory(); // เด้งไปหน้าประวัติให้เห็นเส้นคั่นเลย
-                return;
-            }
-        }
-        // ถ้าพิมพ์อะไรมั่วๆ มา (เช่น abc) ให้เตือน
-        alert("❌ รูปแบบเวลาไม่ถูกต้อง (ต้องเป็นแบบ 08:00) ยกเลิกการบันทึก");
+    const timeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+    document.getElementById('cut_time_input').value = timeStr; // เด้งเวลาปัจจุบันให้ก่อน
+    document.getElementById('cut_modal').style.display = 'flex';
+}
+
+function closeCutModal() {
+    document.getElementById('cut_modal').style.display = 'none';
+}
+
+function confirmCut() {
+    const inputTime = document.getElementById('cut_time_input').value;
+    if(!inputTime || inputTime.trim() === "") {
+        alert("⚠️ กรุณาระบุเวลาให้ครบถ้วน");
+        return;
     }
+    
+    // บันทึกลงตาราง
+    DATA.drops.push({ id: Date.now(), type: 'cut', time: inputTime });
+    saveData();
+    calcAll();
+    closeCutModal();
+    openFullHistory(); // เด้งไปหน้าประวัติให้เห็นเส้นคั่นเลย
 }
 
 function addDrop(type) {
@@ -475,7 +464,7 @@ function calcAll() {
             prodLogHtml += `
             <tr style="background-color: #fff7ed;" class="print-cut">
                 <td colspan="10" style="color: #ea580c; font-weight: 900; text-align: center; padding: 12px; letter-spacing: 1px; border-top: 2px dashed #fb923c; border-bottom: 2px dashed #fb923c;">
-                    ✂️ ตัดกะ / ปิดยอดแผ่นนี้ (${d.time} น.)
+                    ✂️ ตัดขึ้นแผ่นใหม่ (${d.time} น.)
                 </td>
             </tr>`;
         }
@@ -569,11 +558,7 @@ function calcAll() {
     safeSet('dash_hl', curHL); safeSet('dash_bh', curBH); safeSet('dash_bl', curBL);
     safeSet('os_total', totOrd); safeSet('os_sent', totalSent); safeSet('os_remain', totOrd - totalSent);
 
-    window.REPORT_DATA = {
-        drops: sortedDrops,
-        timeStop: autoCloseTimeStr,
-        finalStock: { hl: curHL, bh: curBH, bl: curBL }
-    };
+    window.REPORT_DATA = { drops: sortedDrops, timeStop: autoCloseTimeStr };
 
     const prodDropsCount = DATA.drops.filter(d => d.type==='prod').length;
     let avgTime = 38; 
@@ -680,7 +665,7 @@ function openFullHistory() {
                 let dt = getMinDiff(d.time, d.time_end);
                 container.insertAdjacentHTML('beforeend', `<div class="hist-item" style="background:#fef2f2;" onclick="openDowntimeModal(${d.id})"><div class="hist-info-left"><div class="hist-time" style="color:#dc2626;">${d.time} - ${d.time_end}</div><div class="hist-yield" style="color:#ef4444;">หยุดเครื่อง/ไฟดับ <span style="color:#b91c1c;">(พัก ${dt} น.)</span></div></div><div class="hist-arrow" style="color:#fca5a5;">›</div></div>`);
             } else if (d.type === 'cut') {
-                container.insertAdjacentHTML('beforeend', `<div class="hist-item" style="background:#fff7ed; justify-content:center; padding:10px;"><div style="color:#ea580c; font-weight:900; font-size:1.1rem;">✂️ ตัดกะ (${d.time} น.)</div><button class="btn-del-mini" style="margin-left:15px;" onclick="deleteDrop(${d.id})">🗑️</button></div>`);
+                container.insertAdjacentHTML('beforeend', `<div class="hist-item" style="background:#fff7ed; justify-content:center; padding:10px;"><div style="color:#ea580c; font-weight:900; font-size:1.1rem;">✂️ ตัดขึ้นแผ่นใหม่ (${d.time} น.)</div><button class="btn-del-mini" style="margin-left:15px;" onclick="deleteDrop(${d.id})">🗑️</button></div>`);
             }
         }); 
     } 
@@ -781,6 +766,7 @@ function getTruckName(id) { return TRUCKS[parseInt(id.replace('t',''))-1]; }
 function getTypeName(id) { return ICE_TYPES.find(x=>x.id===id).label; }
 function switchPage(id) { document.querySelectorAll('.page').forEach(x=>x.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active')); document.getElementById('page-'+id).classList.add('active'); const map={setup:0,production:1,summary:2}; document.querySelectorAll('.nav-btn')[map[id]].classList.add('active'); if(id==='summary'){calcAll(); window.scrollTo(0,0);} }
 
+// 🌟🌟 3. ปรับระบบการปริ้นต์ PDF (ยกเลิกตัวหนังสือยกยอด แต่ดึงเวลาตกสุดท้ายมาเป็นเวลาเปิดเครื่องให้เป๊ะๆ) 🌟🌟
 function printReport() {
     saveData();
     const dateVal = document.getElementById('setup_date').value;
@@ -797,44 +783,18 @@ function printReport() {
     let batches = [];
     let currentBatch = [];
     let currentBatchStartTime = startTimeStr;
-    let currentInitStock = { hl: getNum(DATA.initStock.hl), bh: getNum(DATA.initStock.bh), bl: getNum(DATA.initStock.bl) };
-
-    let runningStock = { hl: currentInitStock.hl, bh: currentInitStock.bh, bl: currentInitStock.bl };
 
     rd.drops.forEach(d => {
         if (d.type === 'cut') {
-            batches.push({ 
-                startTime: currentBatchStartTime, 
-                items: currentBatch, 
-                startStock: { ...currentInitStock } 
-            });
-            currentInitStock = { ...runningStock };
+            batches.push({ startTime: currentBatchStartTime, items: currentBatch });
             currentBatch = [];
+            // เวลาที่ตัดกะ จะกลายเป็นเวลาตั้งต้น (เปิดเครื่อง) ของแผ่นใหม่ทันที!
             currentBatchStartTime = d.time; 
         } else {
             currentBatch.push(d);
-            if (d.type === 'prod' || d.type === 'stock') {
-                let w_hl = 0, w_bod = 0, p_hl = 0, p_bh = 0, p_bl = 0;
-                if(d.type === 'prod') {
-                    p_hl = getNum(d.p_in_room.hl); p_bh = getNum(d.p_in_room.bh); p_bl = getNum(d.p_in_room.bl);
-                }
-                if(d.dist) {
-                    d.dist.forEach(i => {
-                        let tot = getNum(i.total);
-                        if(i.type === 'hl') p_hl += tot;
-                        if(i.type === 'bh') p_bh += tot;
-                        if(i.type === 'bl') p_bl += tot;
-                    });
-                }
-                w_hl = Math.ceil(p_hl/40)*40;
-                w_bod = Math.ceil((p_bh+p_bl)/40)*40;
-                
-                runningStock.hl += (w_hl > 0 ? (w_hl - p_hl) : 0);
-                runningStock.bh += (w_bod > 0 ? (w_bod - (p_bh + p_bl)) : 0); 
-            }
         }
     });
-    batches.push({ startTime: currentBatchStartTime, items: currentBatch, startStock: { ...currentInitStock } });
+    batches.push({ startTime: currentBatchStartTime, items: currentBatch });
 
     let finalHtml = '';
     let shiftCount = 1;
@@ -843,7 +803,7 @@ function printReport() {
         if (batch.items.length === 0 && batches.length > 1 && batchIndex === batches.length - 1) return; 
         
         let renderItems = [];
-        let prevTime = batch.startTime;
+        let prevTime = batch.startTime; 
         let dtSub = 0;
 
         batch.items.forEach(d => {
@@ -890,22 +850,20 @@ function printReport() {
         let b_tonsDay = (b_totDuration > 0 && b_totWeight > 0) ? ((b_totWeight / b_totDuration) * 1440 / 1000).toFixed(2) : 0;
         let b_avgYield = b_prodCount > 0 ? Math.round(b_totProd / b_prodCount) : 0;
 
-        let finalRemHL = batch.startStock.hl + b_remHL;
-        let finalRemBOD = batch.startStock.bh + batch.startStock.bl + b_remBOD;
-
         const ROWS_PER_PAGE = 29;
         let chunks = [];
         for(let i = 0; i < renderItems.length; i += ROWS_PER_PAGE) { chunks.push(renderItems.slice(i, i + ROWS_PER_PAGE)); }
         if(chunks.length === 0) chunks.push([]); 
 
         chunks.forEach((chunk, pageIdx) => {
-            let shiftLabel = batches.length > 1 ? `(กะที่ ${shiftCount})` : '';
-            let pageDateStr = pageIdx === 0 ? `${thaiDateStr} ${shiftLabel}` : `${thaiDateStr} ${shiftLabel} (ต่อ)`;
-
+            let pageDateStr = pageIdx === 0 ? `${thaiDateStr}` : `${thaiDateStr} (ต่อ)`;
+            
+            // ดึงเวลาเปิดเครื่อง (ซึ่งก็คือเวลาที่กดตัดกะมานั่นเอง!)
             let pageStartTime = batch.startTime;
+            // ถ้าตารางมันยาวล้นทะลุไปอีกแผ่น (หน้า 2 ของกะเดียวกัน) ให้ดึงเวลาตกสุดท้ายมาเป็นเวลาเปิด
             if (pageIdx > 0 && chunks[pageIdx - 1].length > 0) {
                 let lastItem = chunks[pageIdx - 1][chunks[pageIdx - 1].length - 1];
-                pageStartTime = lastItem.time;
+                pageStartTime = lastItem.end_time_val || lastItem.time;
             }
 
             let sumCol = [
@@ -928,9 +886,10 @@ function printReport() {
                 `<span class="s-label">น้ำหนัก</span> <span class="s-val">${b_tonsDay} ตัน/กะ</span>`,
                 `<span class="s-label">จำนวนเฉลี่ย</span> <span class="s-val">${b_avgYield} ใบ/ตก</span>`,
                 
-                `<span class="s-label">สต็อกยกมา (เริ่มต้น)</span> <span class="s-val" style="color:#0ea5e9;">หลอด ${batch.startStock.hl} | บด ${batch.startStock.bh + batch.startStock.bl}</span>`,
-                `<span class="s-label">เบิกระหว่างกะ</span> <span class="s-val">${b_withHL + b_withBOD} ใบ</span>`,
-                `<span class="s-label">คงเหลือสุทธิ (ส่งต่อ)</span> <span class="s-val" style="color:#ea580c; font-weight:900;">หลอด ${finalRemHL} | บด ${finalRemBOD}</span>`,
+                // ถอยกลับไปเป็นแบบออริจินัล ไม่มียกยอดมา!
+                `<span class="s-label">เบิกกระสอบรวม</span> <span class="s-val">${b_withHL + b_withBOD} ใบ</span>`,
+                `<span class="s-label">กระสอบที่ใช้</span> <span class="s-val">${b_totProd} ใบ</span>`,
+                `<span class="s-label">กระสอบคงเหลือ</span> <span class="s-val">${b_remHL + b_remBOD} ใบ</span>`,
                 
                 `<span class="s-label">ค่า pH</span> <span class="s-val">${info.ph}</span>`,
                 `<span class="s-label">ค่า TDS</span> <span class="s-val">${info.tds}</span>`,
@@ -991,7 +950,7 @@ function printReport() {
                 }
             }
 
-            let footerTitle = pageIdx === chunks.length - 1 ? `รวมกะนี้` : "รวม (แผ่นนี้)";
+            let footerTitle = "รวม (แผ่นนี้)";
             let c_sumH = 0, c_sumB = 0, c_sumHL = 0, c_sumBH = 0, c_sumBL = 0, c_remH = 0, c_remB = 0, c_dur = 0;
             chunk.forEach(item => {
                 if(item && item.type === 'prod') {
@@ -1010,7 +969,7 @@ function printReport() {
                 </div>
                 
                 <div class="print-right">
-                    <div class="s-title" style="margin-top:0;">ข้อมูลสรุป (กะที่ ${shiftCount})</div>
+                    <div class="s-title" style="margin-top:0;">ข้อมูลสรุป</div>
                     <div class="s-line">${sumCol[0]}</div><div class="s-line">${sumCol[1]}</div><div class="s-line">${sumCol[2]}</div><div class="s-line" style="border-bottom:none;">${sumCol[3]}</div>
                     <div class="s-title">น้ำหนักเฉลี่ย</div>
                     <div class="s-line">${sumCol[4]}</div><div class="s-line">${sumCol[5]}</div><div class="s-line">${sumCol[6]}</div><div class="s-line" style="border-bottom:none;">${sumCol[7]}</div>
