@@ -41,14 +41,13 @@ document.addEventListener('DOMContentLoaded', () => {
 function syncFromFirebase(dateKey) {
     if(unsubscribeFB) unsubscribeFB(); 
     
-    // 🚀 ทดสอบ: ดึงจาก ice_production_test
     unsubscribeFB = db.collection("ice_production_test").doc(dateKey).onSnapshot((doc) => {
         if(doc.exists) {
             const remoteData = doc.data();
             const localStr = localStorage.getItem(`ICE_TEST_DATA_${dateKey}`);
             
             if(JSON.stringify(remoteData) !== localStr) {
-                console.log("☁️ ได้รับข้อมูลใหม่จาก Cloud (กระดานเทส)!");
+                console.log("☁️ ได้รับข้อมูลใหม่จาก Cloud!");
                 DATA = remoteData;
                 localStorage.setItem(`ICE_TEST_DATA_${dateKey}`, JSON.stringify(DATA));
                 refreshUI_Smart(); 
@@ -94,7 +93,6 @@ function refreshUI_Smart() {
 
 function pushToFirebase() {
     const dateKey = document.getElementById('setup_date').value;
-    // 🚀 ทดสอบ: ดันขึ้น ice_production_test
     db.collection("ice_production_test").doc(dateKey).set(DATA).catch(e => console.error("FB Save Error:", e));
 }
 
@@ -949,7 +947,7 @@ function printReport() {
         }
     });
 
-    /* 🚀 ปรับเป็น 29 ช่อง ตามที่ลูกศิษย์รีเควสมา! */
+    /* 🚀 ตั้งค่าการหั่น PDF เป็น 29 ช่อง ตามที่ลูกศิษย์สั่ง! */
     const ROWS_PER_PAGE = 29;
     let chunks = [];
     for(let i = 0; i < renderItems.length; i += ROWS_PER_PAGE) {
