@@ -8,9 +8,8 @@
     <meta name="apple-mobile-web-app-title" content="Smart Ice">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#ef4444">
-    <title>Smart Ice V209.1</title>
+    <title>Smart Ice V209.3 (Smart Shift Cut)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800;900&display=swap" rel="stylesheet">
-    
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -37,16 +36,17 @@
 
     <div id="page-setup" class="page active">
         <div class="modern-card card-body">
-            <h3>⚙️ ตั้งค่าประจำวัน (โหมดทดสอบ)</h3>
-            <div class="input-label" style="text-align:left;">วันที่เปิดบิล</div>
+            <h3>⚙️ ตั้งค่าประจำวัน</h3>
+            <div class="input-label" style="text-align:left; color:#ea580c; font-size:0.9rem;">📅 วันที่ออกรายงาน PDF (ตัดยอด)</div>
+            <div style="font-size:0.75rem; color:#94a3b8; margin-bottom:8px;">*ระบบจะปัดเป็นวันถัดไปให้อัตโนมัติหากเปิดหลัง 15:00 น.</div>
             <input type="date" id="setup_date" onchange="changeDate()">
             <div class="grid-2" style="margin-top:15px;">
-                <div><div class="input-label">🟢 เวลาเปิด</div><input type="time" id="time_start" value="22:00" onchange="saveData()"></div>
-                <div><div class="input-label">🔴 เวลาปิด (คำนวณอัตโนมัติ)</div><input type="time" id="time_stop" value="06:00" disabled style="background:#e2e8f0;"></div>
+                <div><div class="input-label">🟢 เวลาเปิดเครื่อง</div><input type="time" id="time_start" value="20:00" onchange="saveData()"></div>
+                <div><div class="input-label">🔴 เวลาปิดเครื่อง</div><input type="time" id="time_stop" value="08:00" disabled style="background:#e2e8f0;"></div>
             </div>
         </div>
         <div class="modern-card card-body">
-            <h3>📦 สต็อกยกมา (เริ่มวันให้เป็น 0 เสมอ)</h3>
+            <h3>📦 สต็อกยกมา (เริ่มเดินเครื่อง)</h3>
             <div class="grid-3">
                 <div><div class="input-label">หลอด</div><input type="tel" id="init_hl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateStock()"></div>
                 <div><div class="input-label">หยาบ</div><input type="tel" id="init_bh" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateStock()"></div>
@@ -58,12 +58,15 @@
             <div id="order_inputs" style="overflow-x:auto;"></div>
         </div>
         
-        <button class="btn-reset" onclick="resetTodayData()">🗑️ รีเซ็ตข้อมูลเฉพาะวันนี้ (โหมดทดสอบ)</button>
+        <button class="btn-reset" onclick="resetTodayData()">🗑️ รีเซ็ตข้อมูลเฉพาะบิลวันนี้</button>
         <div style="height:50px;"></div>
     </div>
 
     <div id="page-production" class="page">
-        <button class="btn-downtime" onclick="openDowntimeModal()">⚡ บันทึกไฟดับ / พักเครื่อง</button>
+        <div class="grid-2">
+            <button class="btn-downtime" onclick="openDowntimeModal()" style="margin-bottom:10px;">⚡ บันทึกไฟดับ</button>
+            <button style="background:var(--warning-grad); color:white; border:none; border-radius:14px; font-weight:900; margin-bottom:10px; font-size:1rem; cursor:pointer;" onclick="addCut()">✂️ ตัดกะ (เริ่มแผ่นใหม่)</button>
+        </div>
         <div class="grid-2">
             <button class="btn-stock-manager" style="margin-bottom:20px; font-size:1rem;" onclick="openStockManager()">📦 จ่ายของเก่า</button>
             <button class="btn-view-history" style="margin-bottom:20px; font-size:1rem;" onclick="openFullHistory()">🕒 ประวัติย้อนหลัง</button>
@@ -118,7 +121,7 @@
                             <th colspan="2" class="pt-rem" style="width:22%">กระสอบคงเหลือ</th>
                         </tr>
                         <tr>
-                            <th id="header_start_time_simple" class="pt-time sub-header" style="color:#ea580c; font-weight:900; background:#f8fafc !important; padding:2px;">22:00</th>
+                            <th id="header_start_time_simple" class="pt-time sub-header" style="color:#ea580c; font-weight:900; background:#f8fafc !important; padding:2px;">--:--</th>
                             <th class="pt-check sub-header" style="font-weight:700;">หลอด</th>
                             <th class="pt-check sub-header" style="font-weight:700;">บด</th>
                             <th class="pt-prod sub-header" style="font-weight:700; font-size:0.75rem;">หลอดใหญ่</th>
@@ -132,51 +135,7 @@
                 </table>
             </div>
 
-            <div class="custom-report">
-                <div class="cr-section">
-                    <div class="cr-header">ข้อมูลสรุป</div>
-                    <div class="cr-row"><span class="cr-label">หลอดใหญ่</span> <span class="cr-val"><span id="rpt_hl">0</span> กระสอบ</span></div>
-                    <div class="cr-row"><span class="cr-label">บดหยาบ</span> <span class="cr-val"><span id="rpt_bh">0</span> กระสอบ</span></div>
-                    <div class="cr-row"><span class="cr-label">บดละเอียด</span> <span class="cr-val"><span id="rpt_bl">0</span> กระสอบ</span></div>
-                    <div class="cr-row" style="border-bottom:none;"><span class="cr-label" style="font-weight:800;">รวม</span> <span class="cr-val" style="font-weight:800;"><span id="rpt_total_prod">0</span> กระสอบ</span></div>
-                </div>
-                
-                <div class="cr-section">
-                    <div class="cr-header">น้ำหนักเฉลี่ย</div>
-                    <div class="cr-row"><span class="cr-label">หลอดใหญ่</span> <span class="cr-val">20 กก.</span></div>
-                    <div class="cr-row"><span class="cr-label">บดหยาบ</span> <span class="cr-val">23 กก.</span></div>
-                    <div class="cr-row"><span class="cr-label">บดละเอียด</span> <span class="cr-val">24 กก.</span></div>
-                    <div class="cr-row" style="border-bottom:none;"><span class="cr-label" style="font-weight:800;">รวม</span> <span class="cr-val">22 กก.</span></div>
-                </div>
-
-                <div class="cr-section">
-                    <div class="cr-header">น้ำหนักรวม</div>
-                    <div class="cr-row"><span class="cr-label">หลอดใหญ่</span> <span class="cr-val"><span id="rpt_w_hl">0</span> กก.</span></div>
-                    <div class="cr-row"><span class="cr-label">บดหยาบ</span> <span class="cr-val"><span id="rpt_w_bh">0</span> กก.</span></div>
-                    <div class="cr-row"><span class="cr-label">บดละเอียด</span> <span class="cr-val"><span id="rpt_w_bl">0</span> กก.</span></div>
-                    <div class="cr-row" style="border-bottom:none;"><span class="cr-label" style="font-weight:800;">รวม</span> <span class="cr-val" style="font-weight:800;"><span id="rpt_total_weight">0</span> กก.</span></div>
-                </div>
-
-                <div class="cr-section">
-                    <div class="cr-header">สถิติการผลิต</div>
-                    <div class="cr-row"><span class="cr-label">เวลาเฉลี่ย</span> <span class="cr-val"><span id="rpt_avg_time">0</span> นาที/ตก</span></div>
-                    <div class="cr-row"><span class="cr-label">น้ำหนัก</span> <span class="cr-val"><span id="rpt_tons_day">0</span> ตัน/วัน</span></div>
-                    <div class="cr-row"><span class="cr-label">จำนวนเฉลี่ย</span> <span class="cr-val"><span id="rpt_avg_yield">0</span> ใบ/ตก</span></div>
-                </div>
-
-                <div class="cr-section">
-                    <div class="cr-header">สรุปกระสอบ</div>
-                    <div class="cr-row"><span class="cr-label">เบิกกระสอบรวม</span> <span class="cr-val"><span id="rpt_sack_withdraw">0</span> ใบ</span></div>
-                    <div class="cr-row"><span class="cr-label">กระสอบที่ใช้</span> <span class="cr-val"><span id="rpt_sack_used">0</span> ใบ</span></div>
-                    <div class="cr-row" style="border-bottom:none;"><span class="cr-label" style="font-weight:800;">คงเหลือจริง</span> <span class="cr-val" style="font-weight:800;"><span id="rpt_rem_total_all">0</span> ใบ</span></div>
-                </div>
-
-                <div class="cr-section">
-                    <div class="cr-header">ข้อมูลอื่นๆ</div>
-                    <div class="cr-row"><span class="cr-label">ค่า pH / TDS</span> <span class="cr-val"><span id="disp_ph">7.1</span> / <span id="disp_tds">172</span></span></div>
-                    <div class="cr-row" style="border-bottom:none;"><span class="cr-label">พนักงานผลิต / วิศวฯ</span> <span class="cr-val"><span id="disp_prod_staff">4</span> / <span id="disp_eng_staff">1</span> คน</span></div>
-                </div>
-            </div>
+            <div class="custom-report" style="display:none;"></div>
         </div>
 
         <div class="modern-card card-body">
@@ -265,11 +224,11 @@
     </div>
     
     <div id="history_modal" class="modal"><div class="modal-content"><div class="modal-header"><div class="modal-title" id="hist_title">🕒 ประวัติ</div><button class="btn-close-modal" onclick="closeHistoryModal()">×</button></div><div class="modal-body"><div id="history_list"></div><div style="height:50px;"></div></div></div></div>
+    
     <div id="edit_past_modal" class="modal" style="display:none; align-items:center; justify-content:center;"><div class="modal-content" style="background:transparent; box-shadow:none;"><div class="modal-header" style="border-radius:16px 16px 0 0;"><div class="modal-title">✏️ แก้ไขรายการ</div><button class="btn-close-modal" onclick="closeEditPastModal()">×</button></div><div class="modal-body" id="edit_past_body" style="padding:0;"></div></div></div>
 
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
     <script src="js/app.js"></script>
-
 </body>
 </html>
