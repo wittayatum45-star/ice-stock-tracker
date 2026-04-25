@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Smart Ice">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#ef4444">
-    <title>Smart Ice V209.3 (Smart Shift Cut)</title>
+    <title>Smart Ice V209.4</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -57,7 +57,6 @@
             <h3>🚚 สั่งซื้อ (Master Order)</h3>
             <div id="order_inputs" style="overflow-x:auto;"></div>
         </div>
-        
         <button class="btn-reset" onclick="resetTodayData()">🗑️ รีเซ็ตข้อมูลเฉพาะบิลวันนี้</button>
         <div style="height:50px;"></div>
     </div>
@@ -65,7 +64,7 @@
     <div id="page-production" class="page">
         <div class="grid-2">
             <button class="btn-downtime" onclick="openDowntimeModal()" style="margin-bottom:10px;">⚡ บันทึกไฟดับ</button>
-            <button style="background:var(--warning-grad); color:white; border:none; border-radius:14px; font-weight:900; margin-bottom:10px; font-size:1rem; cursor:pointer;" onclick="addCut()">✂️ ตัดกะ (เริ่มแผ่นใหม่)</button>
+            <button style="background:var(--warning-grad); color:white; border:none; border-radius:14px; font-weight:900; margin-bottom:10px; font-size:1rem; cursor:pointer;" onclick="openCutModal()">✂️ ตัดแผ่นใหม่</button>
         </div>
         <div class="grid-2">
             <button class="btn-stock-manager" style="margin-bottom:20px; font-size:1rem;" onclick="openStockManager()">📦 จ่ายของเก่า</button>
@@ -134,7 +133,6 @@
                     <tbody id="prod_log_body"></tbody>
                 </table>
             </div>
-
             <div class="custom-report" style="display:none;"></div>
         </div>
 
@@ -145,6 +143,22 @@
     </div>
 
     <div id="print_area"></div>
+
+    <div id="cut_modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#fff7ed;">
+                <div class="modal-title" style="color:#ea580c;">✂️ ยืนยันการตัดแผ่นใหม่</div>
+                <button class="btn-close-modal" style="background:white; color:#ea580c;" onclick="closeCutModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align:center; color:#64748b; margin-bottom:15px; font-size:0.9rem;">ระบุเวลาที่ต้องการให้เป็น "เวลาเปิดเครื่อง" ของแผ่นถัดไป</div>
+                <div style="text-align:center;">
+                    <input type="time" id="cut_time_input" style="font-size:2rem; font-weight:900; color:#ea580c; border-color:#fdba74; background:#ffedd5; width:150px; text-align:center; margin: 0 auto;">
+                </div>
+                <button class="btn-save-wiz" style="background:var(--warning-grad); margin-top:25px;" onclick="confirmCut()">💾 บันทึกและขึ้นแผ่นใหม่</button>
+            </div>
+        </div>
+    </div>
 
     <div id="downtime_modal" class="modal">
         <div class="modal-content">
@@ -224,11 +238,10 @@
     </div>
     
     <div id="history_modal" class="modal"><div class="modal-content"><div class="modal-header"><div class="modal-title" id="hist_title">🕒 ประวัติ</div><button class="btn-close-modal" onclick="closeHistoryModal()">×</button></div><div class="modal-body"><div id="history_list"></div><div style="height:50px;"></div></div></div></div>
-    
     <div id="edit_past_modal" class="modal" style="display:none; align-items:center; justify-content:center;"><div class="modal-content" style="background:transparent; box-shadow:none;"><div class="modal-header" style="border-radius:16px 16px 0 0;"><div class="modal-title">✏️ แก้ไขรายการ</div><button class="btn-close-modal" onclick="closeEditPastModal()">×</button></div><div class="modal-body" id="edit_past_body" style="padding:0;"></div></div></div>
 
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
-    <script src="js/app.js"></script>
+    <script src="js/app.js?v=5"></script>
 </body>
 </html>
