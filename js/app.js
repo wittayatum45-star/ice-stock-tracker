@@ -23,7 +23,6 @@ let globalLastEventTime = null;
 let unsubscribeFB = null; 
 window.REPORT_DATA = {};
 
-// 🌟 1. ระบบ Smart Date: หลังบ่าย 3 ปัดเป็นวันพรุ่งนี้ 🌟
 function getSmartDate() {
     let now = new Date();
     if (now.getHours() >= 15) {
@@ -187,15 +186,41 @@ function resetTodayData() {
     }
 }
 
-// 🌟 2. ฟังก์ชันปุ่ม "ตัดกะ" 🌟
+// 🌟🌟🌟 อัปเกรดระบบตัดกะ (ให้ใส่เวลาได้เอง) 🌟🌟🌟
 function addCut() {
-    if(confirm("ยืนยันการตัดกะ?\n\nระบบจะขีดเส้นคั่นบนกระดาน และจะแยกหน้า PDF พร้อมยกยอดคงเหลือให้กะถัดไปอัตโนมัติ!")) {
-        const now = new Date();
-        const timeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
-        DATA.drops.push({ id: Date.now(), type: 'cut', time: timeStr });
-        saveData();
-        calcAll();
-        openFullHistory(); // เปิดให้ดูว่าขีดเส้นแล้ว
+    const now = new Date();
+    // ดึงเวลาปัจจุบันมาเป็นค่าเริ่มต้น เผื่อช่างขี้เกียจพิมพ์
+    const defaultTimeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+    
+    // ใช้คำสั่ง prompt เพื่อให้มีกล่องข้อความเด้งขึ้นมาให้พิมพ์เวลา
+    let inputTime = prompt("✂️ ยืนยันการตัดกะ (ขึ้นแผ่นใหม่)\n\nกรุณาระบุเวลาที่ต้องการตัดกะ (HH:MM):", defaultTimeStr);
+    
+    // ถ้าผู้ใช้กด OK (ไม่ได้กด Cancel หรือกากบาททิ้ง)
+    if (inputTime !== null) {
+        if(inputTime.trim() === "") {
+            alert("⚠️ คุณไม่ได้ระบุเวลา ยกเลิกการตัดกะครับ");
+            return;
+        }
+        
+        // เช็คว่าผู้ใช้ใส่เวลาถูกไหม (ต้องมีเครื่องหมาย : คั่นกลาง)
+        let timeParts = inputTime.split(':');
+        if(timeParts.length === 2) {
+            // จัดฟอร์แมตให้สวยงาม (เช่น พิมพ์ 8:00 ให้เป็น 08:00)
+            let h = String(parseInt(timeParts[0])).padStart(2, '0');
+            let m = String(parseInt(timeParts[1])).padStart(2, '0');
+            
+            if(h !== 'NaN' && m !== 'NaN') {
+                let finalTimeStr = h + ':' + m;
+                // บันทึกลงตาราง!
+                DATA.drops.push({ id: Date.now(), type: 'cut', time: finalTimeStr });
+                saveData();
+                calcAll();
+                openFullHistory(); // เด้งไปหน้าประวัติให้เห็นเส้นคั่นเลย
+                return;
+            }
+        }
+        // ถ้าพิมพ์อะไรมั่วๆ มา (เช่น abc) ให้เตือน
+        alert("❌ รูปแบบเวลาไม่ถูกต้อง (ต้องเป็นแบบ 08:00) ยกเลิกการบันทึก");
     }
 }
 
@@ -318,12 +343,10 @@ function renderDrops() {
     
     let dtToSubtract = 0;
     sortedDrops.forEach(td => {
-        // หาไฟดับ และ cut เพื่อหักเวลา
         if(td.type === 'downtime' && getAdjustedMinutes(td.time, startTimeStr) >= getAdjustedMinutes(prevTime, startTimeStr) && getAdjustedMinutes(td.time, startTimeStr) <= getAdjustedMinutes(latestProd.time, startTimeStr)) {
             dtToSubtract += getMinDiff(td.time, td.time_end || td.time);
         }
         if(td.type === 'cut' && getAdjustedMinutes(td.time, startTimeStr) >= getAdjustedMinutes(prevTime, startTimeStr) && getAdjustedMinutes(td.time, startTimeStr) <= getAdjustedMinutes(latestProd.time, startTimeStr)) {
-            // ถ้าระหว่างทางมีการตัดกะ ให้เริ่มนับเวลาตั้งต้นใหม่จากตอนตัดกะ
             prevTime = td.time;
             dtToSubtract = 0; 
         }
@@ -546,11 +569,10 @@ function calcAll() {
     safeSet('dash_hl', curHL); safeSet('dash_bh', curBH); safeSet('dash_bl', curBL);
     safeSet('os_total', totOrd); safeSet('os_sent', totalSent); safeSet('os_remain', totOrd - totalSent);
 
-    // ตัวแปรส่งออก PDF
     window.REPORT_DATA = {
         drops: sortedDrops,
         timeStop: autoCloseTimeStr,
-        finalStock: { hl: curHL, bh: curBH, bl: curBL } // สำรองไว้ เผื่อใช้
+        finalStock: { hl: curHL, bh: curBH, bl: curBL }
     };
 
     const prodDropsCount = DATA.drops.filter(d => d.type==='prod').length;
@@ -685,7 +707,6 @@ function openEditPast(id) {
         let prevTime = prevProdIdx >= 0 ? sortedDrops[prevProdIdx].time : startTimeStr;
         let dtSub = 0;
         
-        // เช็คว่ามี cut ระหว่างทางไหม ถ้ามี ต้องเริ่มนับจาก cut
         for(let i=prevProdIdx+1; i<idx; i++) { 
             if(sortedDrops[i].type === 'cut') { prevTime = sortedDrops[i].time; dtSub = 0; }
             else if(sortedDrops[i].type === 'downtime') { dtSub += getMinDiff(sortedDrops[i].time, sortedDrops[i].time_end || sortedDrops[i].time); }
@@ -760,7 +781,6 @@ function getTruckName(id) { return TRUCKS[parseInt(id.replace('t',''))-1]; }
 function getTypeName(id) { return ICE_TYPES.find(x=>x.id===id).label; }
 function switchPage(id) { document.querySelectorAll('.page').forEach(x=>x.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active')); document.getElementById('page-'+id).classList.add('active'); const map={setup:0,production:1,summary:2}; document.querySelectorAll('.nav-btn')[map[id]].classList.add('active'); if(id==='summary'){calcAll(); window.scrollTo(0,0);} }
 
-// 🌟 3. เครื่องปริ้นต์อัจฉริยะ (หั่นกะ ตัดหน้าอัตโนมัติ) 🌟
 function printReport() {
     saveData();
     const dateVal = document.getElementById('setup_date').value;
@@ -774,13 +794,11 @@ function printReport() {
     const info = DATA.reportInfo;
     const startTimeStr = document.getElementById('time_start').value || "20:00";
 
-    // 3.1 แบ่งข้อมูลเป็น "กะ" ตามเส้นประ (cut)
     let batches = [];
     let currentBatch = [];
     let currentBatchStartTime = startTimeStr;
     let currentInitStock = { hl: getNum(DATA.initStock.hl), bh: getNum(DATA.initStock.bh), bl: getNum(DATA.initStock.bl) };
 
-    // ตัวแปรจำลองสต็อกไหลไปเรื่อยๆ เพื่อยกยอดไปกะถัดไป
     let runningStock = { hl: currentInitStock.hl, bh: currentInitStock.bh, bl: currentInitStock.bl };
 
     rd.drops.forEach(d => {
@@ -790,13 +808,11 @@ function printReport() {
                 items: currentBatch, 
                 startStock: { ...currentInitStock } 
             });
-            // เมื่อตัดกะ สต็อกตั้งต้นของกะถัดไป = สต็อกคงเหลือล่าสุด
             currentInitStock = { ...runningStock };
             currentBatch = [];
             currentBatchStartTime = d.time; 
         } else {
             currentBatch.push(d);
-            // จำลองการเบิก/ใช้ เพื่อหาสต็อกคงเหลือ
             if (d.type === 'prod' || d.type === 'stock') {
                 let w_hl = 0, w_bod = 0, p_hl = 0, p_bh = 0, p_bl = 0;
                 if(d.type === 'prod') {
@@ -813,20 +829,17 @@ function printReport() {
                 w_hl = Math.ceil(p_hl/40)*40;
                 w_bod = Math.ceil((p_bh+p_bl)/40)*40;
                 
-                // กระสอบคงเหลือเพิ่มขึ้นจาก (เบิก - ใช้)
                 runningStock.hl += (w_hl > 0 ? (w_hl - p_hl) : 0);
-                runningStock.bh += (w_bod > 0 ? (w_bod - (p_bh + p_bl)) : 0); // บดหยาบ/ละเอียดใช้กระสอบรวมกัน
+                runningStock.bh += (w_bod > 0 ? (w_bod - (p_bh + p_bl)) : 0); 
             }
         }
     });
-    // ดันกะสุดท้ายเข้า array
     batches.push({ startTime: currentBatchStartTime, items: currentBatch, startStock: { ...currentInitStock } });
 
     let finalHtml = '';
     let shiftCount = 1;
 
     batches.forEach((batch, batchIndex) => {
-        // ข้ามกะที่ว่างเปล่า (กรณีเผลอกดตัดกะแล้วไม่ได้ลงงานต่อ)
         if (batch.items.length === 0 && batches.length > 1 && batchIndex === batches.length - 1) return; 
         
         let renderItems = [];
@@ -856,7 +869,6 @@ function printReport() {
             }
         });
 
-        // คำนวณสรุปยอดรวมของ "กะ" นี้
         let b_sumHL=0, b_sumBH=0, b_sumBL=0, b_totDuration=0;
         let b_withHL=0, b_withBOD=0, b_remHL=0, b_remBOD=0;
         let b_prodCount=0;
@@ -878,7 +890,6 @@ function printReport() {
         let b_tonsDay = (b_totDuration > 0 && b_totWeight > 0) ? ((b_totWeight / b_totDuration) * 1440 / 1000).toFixed(2) : 0;
         let b_avgYield = b_prodCount > 0 ? Math.round(b_totProd / b_prodCount) : 0;
 
-        // สต็อกคงเหลือสุทธิของกะนี้ = ยกมา + เหลือจากการเบิก
         let finalRemHL = batch.startStock.hl + b_remHL;
         let finalRemBOD = batch.startStock.bh + batch.startStock.bl + b_remBOD;
 
@@ -891,7 +902,6 @@ function printReport() {
             let shiftLabel = batches.length > 1 ? `(กะที่ ${shiftCount})` : '';
             let pageDateStr = pageIdx === 0 ? `${thaiDateStr} ${shiftLabel}` : `${thaiDateStr} ${shiftLabel} (ต่อ)`;
 
-            // เวลาเปิดของหน้านั้น
             let pageStartTime = batch.startTime;
             if (pageIdx > 0 && chunks[pageIdx - 1].length > 0) {
                 let lastItem = chunks[pageIdx - 1][chunks[pageIdx - 1].length - 1];
@@ -982,7 +992,6 @@ function printReport() {
             }
 
             let footerTitle = pageIdx === chunks.length - 1 ? `รวมกะนี้` : "รวม (แผ่นนี้)";
-            // Footer รวมยอดเฉพาะแผ่นนี้ (เพื่อไม่ให้ User งง)
             let c_sumH = 0, c_sumB = 0, c_sumHL = 0, c_sumBH = 0, c_sumBL = 0, c_remH = 0, c_remB = 0, c_dur = 0;
             chunk.forEach(item => {
                 if(item && item.type === 'prod') {
