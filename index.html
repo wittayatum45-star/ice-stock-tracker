@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Smart Ice (Test)">
+    <meta name="apple-mobile-web-app-title" content="Smart Ice">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#ef4444">
-    <title>Smart Ice V209.1 (Professional Separation)</title>
+    <title>Smart Ice V209.1</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="css/style.css">
@@ -37,7 +37,7 @@
 
     <div id="page-setup" class="page active">
         <div class="modern-card card-body">
-            <h3>⚙️ ตั้งค่าประจำวัน</h3>
+            <h3>⚙️ ตั้งค่าประจำวัน (โหมดทดสอบ)</h3>
             <div class="input-label" style="text-align:left;">วันที่เปิดบิล</div>
             <input type="date" id="setup_date" onchange="changeDate()">
             <div class="grid-2" style="margin-top:15px;">
@@ -48,16 +48,18 @@
         <div class="modern-card card-body">
             <h3>📦 สต็อกยกมา (เริ่มวันให้เป็น 0 เสมอ)</h3>
             <div class="grid-3">
-                <div><div class="input-label">หลอด</div><input type="tel" id="init_hl" value="0" oninput="updateStock()"></div>
-                <div><div class="input-label">หยาบ</div><input type="tel" id="init_bh" value="0" oninput="updateStock()"></div>
-                <div><div class="input-label">ละเอียด</div><input type="tel" id="init_bl" value="0" oninput="updateStock()"></div>
+                <div><div class="input-label">หลอด</div><input type="tel" id="init_hl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateStock()"></div>
+                <div><div class="input-label">หยาบ</div><input type="tel" id="init_bh" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateStock()"></div>
+                <div><div class="input-label">ละเอียด</div><input type="tel" id="init_bl" value="0" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateStock()"></div>
             </div>
         </div>
         <div class="modern-card card-body">
             <h3>🚚 สั่งซื้อ (Master Order)</h3>
             <div id="order_inputs" style="overflow-x:auto;"></div>
         </div>
-        <button class="btn-reset" onclick="resetTodayData()">🗑️ รีเซ็ตข้อมูลเฉพาะวันนี้</button>
+        
+        <button class="btn-reset" onclick="resetTodayData()">🗑️ รีเซ็ตข้อมูลเฉพาะวันนี้ (โหมดทดสอบ)</button>
+        <div style="height:50px;"></div>
     </div>
 
     <div id="page-production" class="page">
@@ -67,6 +69,7 @@
             <button class="btn-view-history" style="margin-bottom:20px; font-size:1rem;" onclick="openFullHistory()">🕒 ประวัติย้อนหลัง</button>
         </div>
         <div id="drops_list"></div>
+        <div style="height: 120px;"></div>
     </div>
     
     <div class="live-predictor-fab" id="live_predictor_fab" onclick="switchPage('summary')">
@@ -81,28 +84,192 @@
     <div id="page-summary" class="page">
         <div class="modern-card card-body" style="border:2px solid var(--primary);">
             <h3 style="color:var(--primary);">📑 ข้อมูลออกรายงาน (PDF Form)</h3>
-            <div class="grid-2">
+            <div class="grid-2" style="margin-bottom:10px;">
                 <div><div class="input-label">สาขา</div><input type="text" id="rpt_branch" value="วารีเทพเพ็ญ (W041)" oninput="saveData()"></div>
                 <div><div class="input-label">เครื่องที่</div><input type="text" id="rpt_machine" value="M1" oninput="saveData()"></div>
             </div>
-            <button class="btn-print" onclick="printReport()">🖨️ สร้างไฟล์ PDF (29 ช่อง)</button>
+            <div class="grid-2" style="margin-bottom:10px;">
+                <div><div class="input-label">ค่า pH</div><input type="text" id="rpt_ph" value="7.1" oninput="saveData()"></div>
+                <div><div class="input-label">ค่า TDS</div><input type="text" id="rpt_tds" value="172" oninput="saveData()"></div>
+            </div>
+            <div class="grid-2">
+                <div><div class="input-label">พนักงานผลิต (คน)</div><input type="number" id="rpt_staff_prod" value="4" oninput="saveData()"></div>
+                <div><div class="input-label">วิศวกรรม (คน)</div><input type="number" id="rpt_staff_eng" value="1" oninput="saveData()"></div>
+            </div>
+            <button class="btn-print" onclick="printReport()">🖨️ สร้างไฟล์ PDF</button>
         </div>
-        <div class="modern-card card-body"><h3>📊 สรุปสถานะรายคัน</h3><div id="truck_report_container"></div></div>
-        <div class="modern-card card-body"><h3>📝 บันทึกการผลิต</h3><div class="table-responsive"><table class="paper-table"><tbody id="prod_log_body"></tbody></table></div></div>
-        <div class="modern-card card-body"><h3>📋 รายละเอียดการขึ้นของ</h3><div id="truck_detail_container"></div></div>
+
+        <div class="modern-card card-body">
+             <h3>📊 สรุปสถานะรายคัน (ขาด/เกิน)</h3>
+             <div id="truck_report_container" style="overflow-x:auto;"></div>
+        </div>
+
+        <div class="modern-card card-body">
+            <h3>📝 บันทึกการผลิต (ตารางลงงาน)</h3>
+            <div class="table-responsive">
+                <table class="paper-table" id="prod_paper_table">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" class="pt-time" style="width:6%;">ลำดับ</th>
+                            <th class="pt-time" style="width:14%;" id="prod_header_label_time">เวลา</th>
+                            <th rowspan="2" class="pt-time" style="width:8%;">นาที/<br>ตก</th>
+                            <th colspan="2" class="pt-check" style="width:20%">เบิกกระสอบ</th>
+                            <th colspan="3" class="pt-prod" style="width:30%">ผลการผลิต</th>
+                            <th colspan="2" class="pt-rem" style="width:22%">กระสอบคงเหลือ</th>
+                        </tr>
+                        <tr>
+                            <th id="header_start_time_simple" class="pt-time sub-header" style="color:#ea580c; font-weight:900; background:#f8fafc !important; padding:2px;">22:00</th>
+                            <th class="pt-check sub-header" style="font-weight:700;">หลอด</th>
+                            <th class="pt-check sub-header" style="font-weight:700;">บด</th>
+                            <th class="pt-prod sub-header" style="font-weight:700; font-size:0.75rem;">หลอดใหญ่</th>
+                            <th class="pt-prod sub-header" style="font-weight:700; font-size:0.75rem;">บดหยาบ</th>
+                            <th class="pt-prod sub-header" style="font-weight:700; font-size:0.75rem;">ละเอียด</th>
+                            <th class="pt-rem sub-header" style="font-weight:700;">หลอด</th>
+                            <th class="pt-rem sub-header" style="font-weight:700;">บด</th>
+                        </tr>
+                    </thead>
+                    <tbody id="prod_log_body"></tbody>
+                </table>
+            </div>
+
+            <div class="custom-report">
+                <div class="cr-section">
+                    <div class="cr-header">ข้อมูลสรุป</div>
+                    <div class="cr-row"><span class="cr-label">หลอดใหญ่</span> <span class="cr-val"><span id="rpt_hl">0</span> กระสอบ</span></div>
+                    <div class="cr-row"><span class="cr-label">บดหยาบ</span> <span class="cr-val"><span id="rpt_bh">0</span> กระสอบ</span></div>
+                    <div class="cr-row"><span class="cr-label">บดละเอียด</span> <span class="cr-val"><span id="rpt_bl">0</span> กระสอบ</span></div>
+                    <div class="cr-row" style="border-bottom:none;"><span class="cr-label" style="font-weight:800;">รวม</span> <span class="cr-val" style="font-weight:800;"><span id="rpt_total_prod">0</span> กระสอบ</span></div>
+                </div>
+                
+                <div class="cr-section">
+                    <div class="cr-header">น้ำหนักเฉลี่ย</div>
+                    <div class="cr-row"><span class="cr-label">หลอดใหญ่</span> <span class="cr-val">20 กก.</span></div>
+                    <div class="cr-row"><span class="cr-label">บดหยาบ</span> <span class="cr-val">23 กก.</span></div>
+                    <div class="cr-row"><span class="cr-label">บดละเอียด</span> <span class="cr-val">24 กก.</span></div>
+                    <div class="cr-row" style="border-bottom:none;"><span class="cr-label" style="font-weight:800;">รวม</span> <span class="cr-val">22 กก.</span></div>
+                </div>
+
+                <div class="cr-section">
+                    <div class="cr-header">น้ำหนักรวม</div>
+                    <div class="cr-row"><span class="cr-label">หลอดใหญ่</span> <span class="cr-val"><span id="rpt_w_hl">0</span> กก.</span></div>
+                    <div class="cr-row"><span class="cr-label">บดหยาบ</span> <span class="cr-val"><span id="rpt_w_bh">0</span> กก.</span></div>
+                    <div class="cr-row"><span class="cr-label">บดละเอียด</span> <span class="cr-val"><span id="rpt_w_bl">0</span> กก.</span></div>
+                    <div class="cr-row" style="border-bottom:none;"><span class="cr-label" style="font-weight:800;">รวม</span> <span class="cr-val" style="font-weight:800;"><span id="rpt_total_weight">0</span> กก.</span></div>
+                </div>
+
+                <div class="cr-section">
+                    <div class="cr-header">สถิติการผลิต</div>
+                    <div class="cr-row"><span class="cr-label">เวลาเฉลี่ย</span> <span class="cr-val"><span id="rpt_avg_time">0</span> นาที/ตก</span></div>
+                    <div class="cr-row"><span class="cr-label">น้ำหนัก</span> <span class="cr-val"><span id="rpt_tons_day">0</span> ตัน/วัน</span></div>
+                    <div class="cr-row"><span class="cr-label">จำนวนเฉลี่ย</span> <span class="cr-val"><span id="rpt_avg_yield">0</span> ใบ/ตก</span></div>
+                </div>
+
+                <div class="cr-section">
+                    <div class="cr-header">สรุปกระสอบ</div>
+                    <div class="cr-row"><span class="cr-label">เบิกกระสอบรวม</span> <span class="cr-val"><span id="rpt_sack_withdraw">0</span> ใบ</span></div>
+                    <div class="cr-row"><span class="cr-label">กระสอบที่ใช้</span> <span class="cr-val"><span id="rpt_sack_used">0</span> ใบ</span></div>
+                    <div class="cr-row" style="border-bottom:none;"><span class="cr-label" style="font-weight:800;">คงเหลือจริง</span> <span class="cr-val" style="font-weight:800;"><span id="rpt_rem_total_all">0</span> ใบ</span></div>
+                </div>
+
+                <div class="cr-section">
+                    <div class="cr-header">ข้อมูลอื่นๆ</div>
+                    <div class="cr-row"><span class="cr-label">ค่า pH / TDS</span> <span class="cr-val"><span id="disp_ph">7.1</span> / <span id="disp_tds">172</span></span></div>
+                    <div class="cr-row" style="border-bottom:none;"><span class="cr-label">พนักงานผลิต / วิศวฯ</span> <span class="cr-val"><span id="disp_prod_staff">4</span> / <span id="disp_eng_staff">1</span> คน</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modern-card card-body">
+             <h3>📋 รายละเอียดการขึ้นของ</h3>
+             <div id="truck_detail_container"></div>
+        </div>
     </div>
 
     <div id="print_area"></div>
 
-    <div id="downtime_modal" class="modal"><div class="modal-content">...</div></div>
-    <div id="dist_modal" class="modal"><div class="modal-content">...</div></div>
-    <div id="stock_manager_modal" class="modal"><div class="modal-content">...</div></div>
-    <div id="full_history_modal" class="modal"><div class="modal-content">...</div></div>
-    <div id="history_modal" class="modal"><div class="modal-content">...</div></div>
-    <div id="edit_past_modal" class="modal" style="display:none;"><div class="modal-content" id="edit_past_body"></div></div>
+    <div id="downtime_modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#fee2e2;">
+                <div class="modal-title" style="color:#b91c1c;">⚡ บันทึกไฟดับ / พักเครื่อง</div>
+                <button class="btn-close-modal" style="background:white; color:#b91c1c;" onclick="closeDowntimeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="grid-2">
+                    <div>
+                        <label style="font-weight:900; color:#b91c1c; text-align:center; display:block; margin-bottom:8px;">เวลาที่ดับ</label>
+                        <input type="time" id="dt_start" style="color:#b91c1c; font-weight:900; background:#fecaca; border-color:#fca5a5;">
+                    </div>
+                    <div>
+                        <label style="font-weight:900; color:#15803d; text-align:center; display:block; margin-bottom:8px;">เวลาที่ติด (เปิด)</label>
+                        <input type="time" id="dt_end" style="color:#15803d; font-weight:900; background:#dcfce7; border-color:#86efac;">
+                    </div>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:10px; margin-top:25px;">
+                    <button class="btn-save-wiz" style="background:var(--danger-grad); margin-top:0;" onclick="saveDowntime()">💾 บันทึกลงตาราง</button>
+                    <button id="btn_delete_dt" class="btn-reset" style="background:transparent; color:#dc2626; border:2px solid #fca5a5; margin-top:0; display:none;" onclick="deleteDowntime()">🗑️ ลบรายการนี้</button>
+                </div>
+                <div style="height:20px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="dist_modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="wiz_title">🚛 จ่ายเข้ารถ</div>
+                <button class="btn-close-modal" onclick="closeDistModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="wiz-controls">
+                    <div style="flex:1;"><label class="input-label">เลือกคันรถ</label><select id="wiz_truck" class="wiz-select" onchange="updateWizStats()"></select></div>
+                    <div style="flex:1;"><label class="input-label">ประเภท</label><select id="wiz_type" class="wiz-select" onchange="updateWizStats()"></select></div>
+                </div>
+                <div class="wiz-status" style="background:#f0f9ff; border-color:#bae6fd;">
+                    <div class="wiz-status-text" style="color:#0284c7; font-weight:800;">ยอดคงเหลือ (จากเป้า)</div>
+                    <div class="wiz-remain" id="wiz_remain" style="color:#0ea5e9;">0</div>
+                </div>
+                <div class="row-inputs">
+                    <div class="row-group">
+                        <div class="row-label">แถว 1<br><span id="wiz_info_r1" style="font-size:0.75rem; font-weight:600; white-space:nowrap;"></span></div>
+                        <input type="tel" id="wiz_r1" placeholder="0" oninput="updateWizStats()" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'">
+                    </div>
+                    <div class="row-group">
+                        <div class="row-label">แถว 2<br><span id="wiz_info_r2" style="font-size:0.75rem; font-weight:600; white-space:nowrap;"></span></div>
+                        <input type="tel" id="wiz_r2" placeholder="0" oninput="updateWizStats()" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'">
+                    </div>
+                    <div class="row-group">
+                        <div class="row-label">แถว 3<br><span id="wiz_info_r3" style="font-size:0.75rem; font-weight:600; white-space:nowrap;"></span></div>
+                        <input type="tel" id="wiz_r3" placeholder="0" oninput="updateWizStats()" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'">
+                    </div>
+                </div>
+                <button class="btn-save-wiz" onclick="confirmDistSave()">💾 ยืนยันการบันทึก</button>
+                <div style="text-align:center; margin-top:15px; font-weight:800; color:#475569;">รวมที่กรอกรอบนี้: <span id="wiz_total_sum" style="color:var(--primary); font-size:1.4rem;">0</span></div>
+                <div style="height:100px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="stock_manager_modal" class="modal"><div class="modal-content"><div class="modal-header"><div class="modal-title">📦 จ่ายของเก่า (ห้องเย็น)</div><button class="btn-close-modal" onclick="closeStockManager()">×</button></div><div class="modal-body"><button class="btn-save-dist" style="width:100%; margin-top:0; margin-bottom:20px;" onclick="addDrop('stock'); closeStockManager(); openDistModal(DATA.drops[DATA.drops.length-1].id)">+ เพิ่มรายการเบิก</button><div id="stock_list_container"></div><div style="height:50px;"></div></div></div></div>
+    
+    <div id="full_history_modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">🕒 ประวัติย้อนหลัง</div>
+                <button class="btn-close-modal" onclick="closeFullHistory()">×</button>
+            </div>
+            <div class="modal-body" style="background:#f8fafc;">
+                <div class="history-list-wrapper" id="full_history_list"></div>
+                <div style="height:50px;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="history_modal" class="modal"><div class="modal-content"><div class="modal-header"><div class="modal-title" id="hist_title">🕒 ประวัติ</div><button class="btn-close-modal" onclick="closeHistoryModal()">×</button></div><div class="modal-body"><div id="history_list"></div><div style="height:50px;"></div></div></div></div>
+    <div id="edit_past_modal" class="modal" style="display:none; align-items:center; justify-content:center;"><div class="modal-content" style="background:transparent; box-shadow:none;"><div class="modal-header" style="border-radius:16px 16px 0 0;"><div class="modal-title">✏️ แก้ไขรายการ</div><button class="btn-close-modal" onclick="closeEditPastModal()">×</button></div><div class="modal-body" id="edit_past_body" style="padding:0;"></div></div></div>
 
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
     <script src="js/app.js"></script>
+
 </body>
 </html>
