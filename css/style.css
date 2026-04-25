@@ -1,3 +1,4 @@
+/* --- Modern Premium Theme (Screen UI) --- */
 :root {
     --bg-main: #f0f4f8;
     --text-dark: #1e293b;
@@ -27,7 +28,9 @@
     * { box-sizing: border-box; }
     button, input, select { touch-action: manipulation; }
     
+    /* 🚧 แถบป้ายเตือนโหมดทดสอบ */
     .test-banner { background: #dc2626; color: white; text-align: center; font-weight: 900; padding: 6px; font-size: 0.85rem; letter-spacing: 1px; position: sticky; top: 0; z-index: 1001; }
+    
     .dashboard { position: sticky; top: 28px; z-index: 1000; background: var(--dark-grad); color: white; padding: 15px 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); display: flex; justify-content: space-around; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; margin-bottom: 10px; }
     .dash-item span { font-size: 0.8rem; color: #cbd5e1; display: block; margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
     .dash-item div { font-size: 1.6rem; font-weight: 900; color: #34d399; line-height: 1; text-shadow: 0 2px 5px rgba(0,0,0,0.2); }
@@ -177,35 +180,40 @@
 /* --- 🔥 PDF PERFECT PRINT 🔥 --- */
 @media print {
     @page { size: A4 portrait; margin: 8mm; } 
-    body { background: white !important; color: black !important; font-family: 'Sarabun', sans-serif; font-size: 11pt !important; padding: 0 !important; margin: 0 !important; }
+    body { background: white !important; color: black !important; font-family: 'Sarabun', sans-serif; font-size: 10.5pt !important; padding: 0 !important; margin: 0 !important; }
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     body > *:not(#print_area) { display: none !important; }
     #print_area { display: block !important; width: 100%; position: static; margin: 0 auto; }
     .print-page { page-break-after: always; width: 100%; position: relative; }
     .print-page:last-child { page-break-after: auto; }
-    .print-header { text-align: center; font-weight: 900; font-size: 13pt; margin-bottom: 8px; line-height: 1.5; padding-top: 8px; }
-    .print-header .date-text { font-size: 11pt; font-weight: 600; color: #333; }
+    
+    /* ขยับหัวกระดาษให้ชิดขึ้นนิดนึง เพื่อเพิ่มพื้นที่ให้ตาราง */
+    .print-header { text-align: center; font-weight: 900; font-size: 12pt; margin-bottom: 6px; line-height: 1.4; padding-top: 4px; }
+    .print-header .date-text { font-size: 10pt; font-weight: 600; color: #333; }
+    
     .print-wrapper { width: 100%; display: block; overflow: hidden; }
     .print-left { float: left; width: 73%; }
-    .print-right { float: right; width: 26.5%; border: 1px solid #475569; border-radius: 4px; padding: 12px 14px; box-sizing: border-box; background: white; }
+    .print-right { float: right; width: 26.5%; border: 1px solid #475569; border-radius: 4px; padding: 10px 12px; box-sizing: border-box; background: white; }
+    
     .print-table { width: 100%; border-collapse: collapse; border: 1.5px solid black; table-layout: fixed; }
     .print-table th, .print-table td { border: 1px solid black; text-align: center; font-weight: 600; }
-    .print-table th { padding: 6px 1px; font-size: 9pt; font-weight: 800;}
+    .print-table th { padding: 4px 1px; font-size: 8.5pt; font-weight: 800;}
     
-    /* 🚀 ปรับความสูง (height) และขนาดอักษรในตารางให้ใหญ่ขึ้น เต็มหน้ากระดาษ */
-    .print-table td { height: 26px; font-size: 10pt; padding: 2px; line-height: 1; }
+    /* 🚀 ตัวแปรสวรรค์! ปรับความสูงช่องเหลือ 22px จะได้ไม่ล้นหน้า A4 */
+    .print-table td { height: 22px; font-size: 9.5pt; padding: 1px; line-height: 1; }
     
     .print-table td.pc-check { background-color: #e0f2fe !important; color: #0284c7 !important; }
     .print-table td.pc-prod { background-color: #dcfce7 !important; color: #15803d !important; }
     .print-table td.pc-rem { background-color: #fef3c7 !important; color: #b45309 !important; }
-    .print-footer td { border-top: 1.5px solid black; font-weight: 900; background-color: #e2e8f0 !important; padding: 5px 1px; color: black !important;}
+    .print-footer td { border-top: 1.5px solid black; font-weight: 900; background-color: #e2e8f0 !important; padding: 4px 1px; color: black !important;}
     
-    .s-title { margin-top: 12px; margin-bottom: 6px; font-weight: 900; border-bottom: 1px solid #475569; padding-bottom: 3px; font-size: 10.5pt; color: #1e293b;}
+    /* ปรับย่อช่องว่างฝั่งขวาลงมานิดนึง ให้สมดุลกับตารางฝั่งซ้าย */
+    .s-title { margin-top: 10px; margin-bottom: 4px; font-weight: 900; border-bottom: 1px solid #475569; padding-bottom: 2px; font-size: 10pt; color: #1e293b;}
     .s-title:first-child { margin-top: 0; }
-    .s-line { display: flex; justify-content: space-between; margin-bottom: 4px; border-bottom: 1px dotted #cbd5e1; padding-bottom: 3px; font-size: 9.5pt;}
+    .s-line { display: flex; justify-content: space-between; margin-bottom: 3px; border-bottom: 1px dotted #cbd5e1; padding-bottom: 2px; font-size: 9pt;}
     .s-val { font-weight: 900; text-align: right; color: #0f172a;}
     .s-label { color: #475569; font-weight: 600; }
-    .sign-box { margin-top: 25px; padding-top: 5px; } 
-    .sign-line { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 30px; font-size: 9.5pt; font-weight: bold;} 
+    .sign-box { margin-top: 15px; padding-top: 5px; } 
+    .sign-line { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 20px; font-size: 9pt; font-weight: bold;} 
     .sign-dots { flex-grow: 1; border-bottom: 1px dotted #64748b; margin: 0 6px; position: relative; top: -3px; }
 }
