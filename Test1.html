@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Smart Ice">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#ef4444">
-    <title>Smart Ice V209.5 (Ultimate Flow)</title>
+    <title>Smart Ice V209.6 (Ultimate Flow)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
         /* --- Modern Premium Theme (Screen UI) --- */
@@ -233,7 +233,6 @@
             <h3>🚚 สั่งซื้อ (Master Order)</h3>
             <div id="order_inputs" style="overflow-x:auto;"></div>
         </div>
-        
         <button class="btn-reset" onclick="resetTodayData()">🗑️ รีเซ็ตข้อมูลเฉพาะบิลวันนี้</button>
         <div style="height:50px;"></div>
     </div>
@@ -241,7 +240,7 @@
     <div id="page-production" class="page">
         <div class="grid-2">
             <button class="btn-downtime" onclick="openDowntimeModal()" style="margin-bottom:10px;">⚡ บันทึกไฟดับ</button>
-            <button style="background:var(--warning-grad); color:white; border:none; border-radius:14px; font-weight:900; margin-bottom:10px; font-size:1rem; cursor:pointer;" onclick="openCutModal()">✂️ ตัดแผ่นใหม่</button>
+            <button style="background:var(--warning-grad); color:white; border:none; border-radius:14px; font-weight:900; margin-bottom:10px; font-size:1rem; cursor:pointer;" onclick="openCutModal()">✂️ ตัดกะ (เริ่มแผ่นใหม่)</button>
         </div>
         <div class="grid-2">
             <button class="btn-stock-manager" style="margin-bottom:20px; font-size:1rem;" onclick="openStockManager()">📦 จ่ายของเก่า</button>
@@ -595,7 +594,7 @@
             }
         }
 
-        // 🌟 เปิดหน้าต่างเวลาตอนจะกดตัดกะ 🌟
+        // 🌟 เปิดหน้าต่างเวลาตอนจะกดตัดกะ (แบบสวยงาม) 🌟
         function openCutModal() {
             const now = new Date();
             const timeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
@@ -719,38 +718,45 @@
             return String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
         }
 
+        // 🌟🌟 ระบบคำนวณเวลาส่วนกลาง (Single Source of Truth) เพื่อแก้บั๊ก 0 นาที! 🌟🌟
+        function processDrops(dropsArray, startTimeStr) {
+            let sorted = dropsArray.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
+            let lastTime = startTimeStr;
+            let dtAccum = 0;
+            
+            sorted.forEach(d => {
+                if (d.type === 'cut') {
+                    lastTime = d.time;
+                    dtAccum = 0;
+                } else if (d.type === 'downtime') {
+                    dtAccum += getMinDiff(d.time, d.time_end || d.time);
+                } else if (d.type === 'prod') {
+                    let gross = getMinDiff(lastTime, d.time);
+                    d._duration = Math.max(0, gross - dtAccum); // เก็บค่านาทีไว้ในตัวแปรนี้เลย!
+                    lastTime = d.time;
+                    dtAccum = 0;
+                }
+            });
+            return sorted;
+        }
+
         function renderDrops() {
             const container = document.getElementById('drops_list');
             container.innerHTML = '';
             
             const startTimeStr = document.getElementById('time_start').value || "20:00";
-            const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
+            const processedDrops = processDrops(DATA.drops, startTimeStr);
             
-            const prodDrops = sortedDrops.filter(d => d.type === 'prod');
+            const prodDrops = processedDrops.filter(d => d.type === 'prod');
             const latestProd = prodDrops[prodDrops.length - 1]; 
             
             if (!latestProd) {
                  container.innerHTML = '<div style="text-align:center; color:#94a3b8; margin-top:30px; font-weight:bold; font-size:1.1rem;">กด + เริ่มผลิตน้ำแข็งตกแรกได้เลย! 🧊</div>';
                  return;
             }
-
-            let prevProd = prodDrops.length > 1 ? prodDrops[prodDrops.length - 2] : null;
-            let prevTime = prevProd ? prevProd.time : startTimeStr;
             
-            let dtToSubtract = 0;
-            sortedDrops.forEach(td => {
-                if(td.type === 'downtime' && getAdjustedMinutes(td.time, startTimeStr) >= getAdjustedMinutes(prevTime, startTimeStr) && getAdjustedMinutes(td.time, startTimeStr) <= getAdjustedMinutes(latestProd.time, startTimeStr)) {
-                    dtToSubtract += getMinDiff(td.time, td.time_end || td.time);
-                }
-                if(td.type === 'cut' && getAdjustedMinutes(td.time, startTimeStr) >= getAdjustedMinutes(prevTime, startTimeStr) && getAdjustedMinutes(td.time, startTimeStr) <= getAdjustedMinutes(latestProd.time, startTimeStr)) {
-                    prevTime = td.time;
-                    dtToSubtract = 0; 
-                }
-            });
-            
-            const grossDiff = getMinDiff(prevTime, latestProd.time);
-            const netDiff = Math.max(0, grossDiff - dtToSubtract);
-            
+            // ดึงค่าเวลาที่คิดไว้แล้วแบบเป๊ะๆ มาใช้งาน
+            let netDiff = latestProd._duration || 0;
             container.insertAdjacentHTML('beforeend', generateCardHtml(latestProd, netDiff));
         }
 
@@ -833,10 +839,7 @@
             let prodLogHtml = '';
             
             const startTimeStr = document.getElementById('time_start').value || "20:00";
-            let lastProdTime = startTimeStr;
-            let pendingDowntime = 0;
             let truckMat = {}; let truckDetail = {};
-            
             let ordHL = 0, ordBH = 0, ordBL = 0, totOrd = 0;
             
             TRUCKS.forEach((t,i) => { 
@@ -849,7 +852,8 @@
             });
             totOrd = ordHL + ordBH + ordBL;
 
-            const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
+            // 🌟 ใช้งานตัวประมวลผลเวลาส่วนกลาง 🌟
+            const processedDrops = processDrops(DATA.drops, startTimeStr);
             let dropCount = 0;
 
             if(document.getElementById('header_start_time_simple')) {
@@ -857,17 +861,15 @@
             }
 
             let autoCloseTimeStr = startTimeStr;
-            if(sortedDrops.length > 0) {
-                let lastItem = sortedDrops[sortedDrops.length-1];
+            if(processedDrops.length > 0) {
+                let lastItem = processedDrops[processedDrops.length-1];
                 let lastT = lastItem.type === 'downtime' ? (lastItem.time_end || lastItem.time) : lastItem.time;
                 autoCloseTimeStr = addMinutesToTime(lastT, 10);
             }
             document.getElementById('time_stop').value = autoCloseTimeStr;
 
-            sortedDrops.forEach(d => {
+            processedDrops.forEach(d => {
                 if(d.type === 'cut') {
-                    pendingDowntime = 0; 
-                    lastProdTime = d.time; 
                     prodLogHtml += `
                     <tr style="background-color: #fff7ed;" class="print-cut">
                         <td colspan="10" style="color: #ea580c; font-weight: 900; text-align: center; padding: 12px; letter-spacing: 1px; border-top: 2px dashed #fb923c; border-bottom: 2px dashed #fb923c;">
@@ -876,9 +878,6 @@
                     </tr>`;
                 }
                 else if(d.type === 'downtime') {
-                    let dtMins = getMinDiff(d.time, d.time_end || d.time);
-                    pendingDowntime += dtMins;
-                    
                     prodLogHtml += `
                     <tr style="background-color: #fef2f2;" class="print-downtime">
                         <td class="pt-time-col" style="font-weight:900; color:#cbd5e1; text-align:center;">-</td>
@@ -904,12 +903,8 @@
                     sumP.hl += p_hl; sumP.bh += p_bh; sumP.bl += p_bl;
                     curHL += getNum(d.p_in_room.hl); curBH += getNum(d.p_in_room.bh); curBL += getNum(d.p_in_room.bl);
                     
-                    let grossDiff = getMinDiff(lastProdTime, d.time);
-                    let netDiff = Math.max(0, grossDiff - pendingDowntime);
+                    let netDiff = d._duration || 0;
                     totalDuration += netDiff;
-                    lastProdTime = d.time;
-                    
-                    pendingDowntime = 0; 
                     
                     prodLogHtml += `<tr>
                         <td class="pt-time-col" style="font-weight:900; text-align:center;">${dropCount}</td>
@@ -965,7 +960,7 @@
             safeSet('dash_hl', curHL); safeSet('dash_bh', curBH); safeSet('dash_bl', curBL);
             safeSet('os_total', totOrd); safeSet('os_sent', totalSent); safeSet('os_remain', totOrd - totalSent);
 
-            window.REPORT_DATA = { drops: sortedDrops, timeStop: autoCloseTimeStr };
+            window.REPORT_DATA = { drops: processedDrops, timeStop: autoCloseTimeStr };
 
             const prodDropsCount = DATA.drops.filter(d => d.type==='prod').length;
             let avgTime = 38; 
@@ -973,8 +968,8 @@
             globalAvgTime = avgTime;
             
             let lastEventStr = startTimeStr;
-            if(sortedDrops.length > 0) {
-                let ld = sortedDrops[sortedDrops.length-1];
+            if(processedDrops.length > 0) {
+                let ld = processedDrops[processedDrops.length-1];
                 lastEventStr = ld.type === 'downtime' ? (ld.time_end || ld.time) : ld.time;
             }
             globalLastEventTime = lastEventStr;
@@ -1173,7 +1168,7 @@
         function getTypeName(id) { return ICE_TYPES.find(x=>x.id===id).label; }
         function switchPage(id) { document.querySelectorAll('.page').forEach(x=>x.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active')); document.getElementById('page-'+id).classList.add('active'); const map={setup:0,production:1,summary:2}; document.querySelectorAll('.nav-btn')[map[id]].classList.add('active'); if(id==='summary'){calcAll(); window.scrollTo(0,0);} }
 
-        // 🌟🌟 ฟังก์ชันสร้าง PDF ฉบับคลาสสิกออริจินัล (แต่หั่นหน้าให้เนียนๆ) 🌟🌟
+        // 🌟🌟 PDF พิมพ์เขียวออริจินัล (ไม่มียอดสะสม เวลาเปิดเครื่องคือเวลาตกของแผ่นเก่า) 🌟🌟
         function printReport() {
             saveData();
             const dateVal = document.getElementById('setup_date').value;
@@ -1187,227 +1182,213 @@
             const info = DATA.reportInfo;
             const startTimeStr = document.getElementById('time_start').value || "20:00";
 
-            // ดึงข้อมูลทั้งหมดมาเตรียมพิมพ์
-            let renderItems = [];
-            let prevTime = startTimeStr;
-            let dtSub = 0;
+            let batches = [];
+            let currentBatch = [];
+            let currentBatchStartTime = startTimeStr;
 
             rd.drops.forEach(d => {
-                if(d.type === 'prod') {
-                    let p_hl = getNum(d.p_in_room.hl); let p_bh = getNum(d.p_in_room.bh); let p_bl = getNum(d.p_in_room.bl);
-                    if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') p_hl+=getNum(i.total); if(i.type==='bh') p_bh+=getNum(i.total); if(i.type==='bl') p_bl+=getNum(i.total); }); }
-                    const w_hl = Math.ceil(p_hl/40)*40; const w_bod = Math.ceil((p_bh+p_bl)/40)*40;
-                    
-                    let netDiff = Math.max(0, getMinDiff(prevTime, d.time) - dtSub);
-                    renderItems.push({
-                        type: 'prod', time: d.time, duration: netDiff,
-                        whl: w_hl||'', wbod: w_bod||'', phl: p_hl||'', pbh: p_bh||'', pbl: p_bl||'',
-                        rhl: w_hl>0?(w_hl-p_hl):'', rbod: w_bod>0?(w_bod-(p_bh+p_bl)):'',
-                        raw_whl: w_hl, raw_wbod: w_bod, raw_phl: p_hl, raw_pbh: p_bh, raw_pbl: p_bl,
-                        raw_rhl: w_hl>0?(w_hl-p_hl):0, raw_rbod: w_bod>0?(w_bod-(p_bh+p_bl)):0
-                    });
-                    prevTime = d.time;
-                    dtSub = 0;
-                } else if (d.type === 'downtime') {
-                    dtSub += getMinDiff(d.time, d.time_end || d.time);
-                    renderItems.push({ type: 'downtime_start', time: d.time });
-                    renderItems.push({ type: 'downtime_end', time: d.time_end || d.time });
-                    prevTime = d.time_end || d.time;
-                } else if (d.type === 'cut') {
-                    renderItems.push({ type: 'cut', time: d.time });
-                    prevTime = d.time; 
-                    dtSub = 0;
-                }
-            });
-
-            // หั่นกระดาษ 29 แถว หรือถ้าเจอ "ตัดกะ" ก็ปัดขึ้นหน้าใหม่เลย
-            const ROWS_PER_PAGE = 29;
-            let chunks = [];
-            let currentChunk = [];
-
-            renderItems.forEach(item => {
-                if (item.type === 'cut') {
-                    if (currentChunk.length > 0) {
-                        while(currentChunk.length < ROWS_PER_PAGE) currentChunk.push({type: 'empty'});
-                        chunks.push(currentChunk);
-                        currentChunk = [];
-                    }
+                if (d.type === 'cut') {
+                    batches.push({ startTime: currentBatchStartTime, items: currentBatch });
+                    currentBatch = [];
+                    currentBatchStartTime = d.time; // เอาเวลาตัดกะ เป็นเวลาเปิดของแผ่นหน้า!
                 } else {
-                    currentChunk.push(item);
-                    if (currentChunk.length === ROWS_PER_PAGE) {
-                        chunks.push(currentChunk);
-                        currentChunk = [];
-                    }
+                    currentBatch.push(d);
                 }
             });
-            if (currentChunk.length > 0) {
-                while(currentChunk.length < ROWS_PER_PAGE) currentChunk.push({type: 'empty'});
-                chunks.push(currentChunk);
-            }
-            if (chunks.length === 0) {
-                let emptyChunk = [];
-                while(emptyChunk.length < ROWS_PER_PAGE) emptyChunk.push({type: 'empty'});
-                chunks.push(emptyChunk);
-            }
+            batches.push({ startTime: currentBatchStartTime, items: currentBatch });
 
             let finalHtml = '';
-            let lastDropTime = startTimeStr;
+            let shiftCount = 1;
 
-            chunks.forEach((chunk, pageIdx) => {
-                // ✨ พระเอกอยู่ตรงนี้: ดึงเวลาล่าสุดมาใส่เป็นเวลาเปิดเครื่องของหน้านี้
-                let pageStartTime = lastDropTime;
-                let pageDateStr = pageIdx === 0 ? `${thaiDateStr}` : `${thaiDateStr} (ต่อ)`;
+            batches.forEach((batch, batchIndex) => {
+                if (batch.items.length === 0 && batches.length > 1 && batchIndex === batches.length - 1) return; 
+                
+                let renderItems = [];
+                batch.items.forEach(d => {
+                    if(d.type === 'prod') {
+                        let p_hl = getNum(d.p_in_room.hl); let p_bh = getNum(d.p_in_room.bh); let p_bl = getNum(d.p_in_room.bl);
+                        if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') p_hl+=getNum(i.total); if(i.type==='bh') p_bh+=getNum(i.total); if(i.type==='bl') p_bl+=getNum(i.total); }); }
+                        const w_hl = Math.ceil(p_hl/40)*40; const w_bod = Math.ceil((p_bh+p_bl)/40)*40;
+                        
+                        renderItems.push({
+                            type: 'prod', time: d.time, duration: d._duration, // ดึงค่าเป๊ะๆ จากสมองมาเลย!
+                            whl: w_hl||'', wbod: w_bod||'', phl: p_hl||'', pbh: p_bh||'', pbl: p_bl||'',
+                            rhl: w_hl>0?(w_hl-p_hl):'', rbod: w_bod>0?(w_bod-(p_bh+p_bl)):'',
+                            raw_whl: w_hl, raw_wbod: w_bod, raw_phl: p_hl, raw_pbh: p_bh, raw_pbl: p_bl,
+                            raw_rhl: w_hl>0?(w_hl-p_hl):0, raw_rbod: w_bod>0?(w_bod-(p_bh+p_bl)):0
+                        });
+                    } else if (d.type === 'downtime') {
+                        renderItems.push({ type: 'downtime_start', time: d.time });
+                        renderItems.push({ type: 'downtime_end', time: d.time_end || d.time });
+                    }
+                });
 
-                let c_sumHL=0, c_sumBH=0, c_sumBL=0, c_totDuration=0;
-                let c_withHL=0, c_withBOD=0, c_remHL=0, c_remBOD=0;
-                let c_prodCount=0;
-
-                chunk.forEach(item => {
+                let b_sumHL=0, b_sumBH=0, b_sumBL=0, b_totDuration=0;
+                let b_withHL=0, b_withBOD=0, b_remHL=0, b_remBOD=0;
+                let b_prodCount=0;
+                
+                renderItems.forEach(item => {
                     if(item.type === 'prod') {
-                        c_sumHL += item.raw_phl; c_sumBH += item.raw_pbh; c_sumBL += item.raw_pbl;
-                        c_totDuration += item.duration;
-                        c_withHL += item.raw_whl; c_withBOD += item.raw_wbod;
-                        c_remHL += item.raw_rhl; c_remBOD += item.raw_rbod;
-                        c_prodCount++;
-                        lastDropTime = item.time; // อัปเดตเวลาล่าสุด
-                    } else if (item.type === 'downtime_start' || item.type === 'downtime_end') {
-                        lastDropTime = item.time;
+                        b_sumHL += item.raw_phl; b_sumBH += item.raw_pbh; b_sumBL += item.raw_pbl;
+                        b_totDuration += item.duration;
+                        b_withHL += item.raw_whl; b_withBOD += item.raw_wbod;
+                        b_remHL += item.raw_rhl; b_remBOD += item.raw_rbod;
+                        b_prodCount++;
                     }
                 });
+                
+                let b_totProd = b_sumHL + b_sumBH + b_sumBL;
+                let b_wHL = b_sumHL * 20; let b_wBH = b_sumBH * 23; let b_wBL = b_sumBL * 24;
+                let b_totWeight = b_wHL + b_wBH + b_wBL;
+                let b_avgTime = b_prodCount > 0 ? Math.round(b_totDuration / b_prodCount) : 0;
+                let b_tonsDay = (b_totDuration > 0 && b_totWeight > 0) ? ((b_totWeight / b_totDuration) * 1440 / 1000).toFixed(2) : 0;
+                let b_avgYield = b_prodCount > 0 ? Math.round(b_totProd / b_prodCount) : 0;
 
-                let c_totProd = c_sumHL + c_sumBH + c_sumBL;
-                let c_wHL = c_sumHL * 20; let c_wBH = c_sumBH * 23; let c_wBL = c_sumBL * 24;
-                let c_totWeight = c_wHL + c_wBH + c_wBL;
-                let c_avgTime = c_prodCount > 0 ? Math.round(c_totDuration / c_prodCount) : 0;
-                let c_tonsDay = (c_totDuration > 0 && c_totWeight > 0) ? ((c_totWeight / c_totDuration) * 1440 / 1000).toFixed(2) : 0;
-                let c_avgYield = c_prodCount > 0 ? Math.round(c_totProd / c_prodCount) : 0;
+                const ROWS_PER_PAGE = 29;
+                let chunks = [];
+                for(let i = 0; i < renderItems.length; i += ROWS_PER_PAGE) { chunks.push(renderItems.slice(i, i + ROWS_PER_PAGE)); }
+                if(chunks.length === 0) chunks.push([]); 
 
-                // กำหนดคำท้ายตาราง
-                let footerTitle = (pageIdx === chunks.length - 1) ? `รวม (ปิด ${rd.timeStop} น.)` : `รวม (แผ่นนี้)`;
+                // ตัวแปรจำเวลาของหน้าก่อนๆ
+                let runningLastTime = batch.startTime;
 
-                // ✨ กล่องข้อมูลฝั่งขวา ถอยกลับเป็นรูปแบบ Original
-                let sumCol = [
-                    `<span class="s-label">หลอดใหญ่</span> <span class="s-val">${c_sumHL} กระสอบ</span>`,
-                    `<span class="s-label">บดหยาบ</span> <span class="s-val">${c_sumBH} กระสอบ</span>`,
-                    `<span class="s-label">บดละเอียด</span> <span class="s-val">${c_sumBL} กระสอบ</span>`,
-                    `<span class="s-label" style="font-weight:900;">รวม</span> <span class="s-val" style="font-weight:900;">${c_totProd} กระสอบ</span>`,
+                chunks.forEach((chunk, pageIdx) => {
+                    let pageDateStr = pageIdx === 0 ? `${thaiDateStr}` : `${thaiDateStr} (ต่อ)`;
                     
-                    `<span class="s-label">หลอดใหญ่</span> <span class="s-val">20 กก.</span>`,
-                    `<span class="s-label">บดหยาบ</span> <span class="s-val">23 กก.</span>`,
-                    `<span class="s-label">บดละเอียด</span> <span class="s-val">24 กก.</span>`,
-                    `<span class="s-label" style="font-weight:900;">รวม</span> <span class="s-val" style="font-weight:900;">22 กก.</span>`,
-                    
-                    `<span class="s-label">หลอดใหญ่</span> <span class="s-val">${c_wHL.toLocaleString()} กก.</span>`,
-                    `<span class="s-label">บดหยาบ</span> <span class="s-val">${c_wBH.toLocaleString()} กก.</span>`,
-                    `<span class="s-label">บดละเอียด</span> <span class="s-val">${c_wBL.toLocaleString()} กก.</span>`,
-                    `<span class="s-label" style="font-weight:900;">รวม</span> <span class="s-val" style="font-weight:900;">${c_totWeight.toLocaleString()} กก.</span>`,
-                    
-                    `<span class="s-label">เวลาเฉลี่ย</span> <span class="s-val">${c_avgTime} นาที/ตก</span>`,
-                    `<span class="s-label">น้ำหนัก</span> <span class="s-val">${c_tonsDay} ตัน</span>`,
-                    `<span class="s-label">จำนวนเฉลี่ย</span> <span class="s-val">${c_avgYield} ใบ/ตก</span>`,
-                    
-                    `<span class="s-label">เบิกกระสอบรวม</span> <span class="s-val">${c_withHL + c_withBOD} ใบ</span>`,
-                    `<span class="s-label">กระสอบที่ใช้</span> <span class="s-val">${c_totProd} ใบ</span>`,
-                    `<span class="s-label">กระสอบคงเหลือ</span> <span class="s-val">${c_remHL + c_remBOD} ใบ</span>`,
-                    
-                    `<span class="s-label">ค่า pH</span> <span class="s-val">${info.ph}</span>`,
-                    `<span class="s-label">ค่า TDS</span> <span class="s-val">${info.tds}</span>`,
-                    `<span class="s-label">พนักงานผลิต</span> <span class="s-val">${info.prodStaff} คน</span>`,
-                    `<span class="s-label">วิศวกรรม</span> <span class="s-val">${info.engStaff} คน</span>`
-                ];
+                    // 🌟 เวลาเปิดเครื่อง: ดึงจาก runningLastTime ได้เลย เนียนๆ! 🌟
+                    let pageStartTime = runningLastTime;
 
-                let pageHtml = `
-                <div class="print-page">
-                    <div class="print-header">
-                        แบบฟอร์มบันทึกการผลิตน้ำแข็ง สาขา ${info.branch} เครื่องที่ ${info.machine}<br>
-                        <span class="date-text">ประจำวันที่ ${pageDateStr}</span>
-                    </div>
-                    <div class="print-wrapper">
-                        <div class="print-left">
-                            <table class="print-table">
-                                <thead>
-                                    <tr>
-                                        <th rowspan="2" style="width:5%;">ลำดับ</th>
-                                        <th style="width:13%;">เวลา</th>
-                                        <th rowspan="2" style="width:8%;">นาที/<br>ตก</th>
-                                        <th colspan="2" style="width:16%; background-color:#e0f2fe !important; color:#0284c7 !important;">เบิกกระสอบ</th>
-                                        <th colspan="3" style="width:30%; background-color:#dcfce7 !important; color:#15803d !important;">ผลการผลิต</th>
-                                        <th colspan="2" style="width:16%; background-color:#fef3c7 !important; color:#b45309 !important;">กระสอบคงเหลือ</th>
-                                    </tr>
-                                    <tr>
-                                        <th>เปิด ${pageStartTime} น.</th>
-                                        <th style="width:8%; background-color:#e0f2fe !important; color:#0284c7 !important;">หลอด</th>
-                                        <th style="width:8%; background-color:#e0f2fe !important; color:#0284c7 !important;">บด</th>
-                                        <th style="width:10%; background-color:#dcfce7 !important; color:#15803d !important;">หลอดใหญ่</th>
-                                        <th style="width:10%; background-color:#dcfce7 !important; color:#15803d !important;">บดหยาบ</th>
-                                        <th style="width:10%; background-color:#dcfce7 !important; color:#15803d !important;">ละเอียด</th>
-                                        <th style="width:8%; background-color:#fef3c7 !important; color:#b45309 !important;">หลอด</th>
-                                        <th style="width:8%; background-color:#fef3c7 !important; color:#b45309 !important;">บด</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                `;
+                    let sumCol = [
+                        `<span class="s-label">หลอดใหญ่</span> <span class="s-val">${b_sumHL} กระสอบ</span>`,
+                        `<span class="s-label">บดหยาบ</span> <span class="s-val">${b_sumBH} กระสอบ</span>`,
+                        `<span class="s-label">บดละเอียด</span> <span class="s-val">${b_sumBL} กระสอบ</span>`,
+                        `<span class="s-label" style="font-weight:900;">รวม</span> <span class="s-val" style="font-weight:900;">${b_totProd} กระสอบ</span>`,
+                        
+                        `<span class="s-label">หลอดใหญ่</span> <span class="s-val">20 กก.</span>`,
+                        `<span class="s-label">บดหยาบ</span> <span class="s-val">23 กก.</span>`,
+                        `<span class="s-label">บดละเอียด</span> <span class="s-val">24 กก.</span>`,
+                        `<span class="s-label" style="font-weight:900;">รวม</span> <span class="s-val" style="font-weight:900;">22 กก.</span>`,
+                        
+                        `<span class="s-label">หลอดใหญ่</span> <span class="s-val">${b_wHL.toLocaleString()} กก.</span>`,
+                        `<span class="s-label">บดหยาบ</span> <span class="s-val">${b_wBH.toLocaleString()} กก.</span>`,
+                        `<span class="s-label">บดละเอียด</span> <span class="s-val">${b_wBL.toLocaleString()} กก.</span>`,
+                        `<span class="s-label" style="font-weight:900;">รวม</span> <span class="s-val" style="font-weight:900;">${b_totWeight.toLocaleString()} กก.</span>`,
+                        
+                        `<span class="s-label">เวลาเฉลี่ย</span> <span class="s-val">${b_avgTime} นาที/ตก</span>`,
+                        `<span class="s-label">น้ำหนัก</span> <span class="s-val">${b_tonsDay} ตัน</span>`,
+                        `<span class="s-label">จำนวนเฉลี่ย</span> <span class="s-val">${b_avgYield} ใบ/ตก</span>`,
+                        
+                        // ถอยกลับไปเป็นแบบออริจินัล ไม่มียกยอดมา!
+                        `<span class="s-label">เบิกกระสอบรวม</span> <span class="s-val">${b_withHL + b_withBOD} ใบ</span>`,
+                        `<span class="s-label">กระสอบที่ใช้</span> <span class="s-val">${b_totProd} ใบ</span>`,
+                        `<span class="s-label">กระสอบคงเหลือ</span> <span class="s-val">${b_remHL + b_remBOD} ใบ</span>`,
+                        
+                        `<span class="s-label">ค่า pH</span> <span class="s-val">${info.ph}</span>`,
+                        `<span class="s-label">ค่า TDS</span> <span class="s-val">${info.tds}</span>`,
+                        `<span class="s-label">พนักงานผลิต</span> <span class="s-val">${info.prodStaff} คน</span>`,
+                        `<span class="s-label">วิศวกรรม</span> <span class="s-val">${info.engStaff} คน</span>`
+                    ];
 
-                let localProdCounter = 0; 
-                for(let i=0; i<ROWS_PER_PAGE; i++) {
-                    let item = chunk[i];
-                    if(item && item.type === 'prod') {
-                        localProdCounter++;
-                        pageHtml += `<tr>
-                            <td>${localProdCounter}</td><td>${item.time}</td><td>${item.duration}</td>
-                            <td class="pc-check">${item.whl}</td><td class="pc-check">${item.wbod}</td>
-                            <td class="pc-prod">${item.phl}</td><td class="pc-prod">${item.pbh}</td><td class="pc-prod">${item.pbl}</td>
-                            <td class="pc-rem">${item.rhl}</td><td class="pc-rem">${item.rbod}</td>
-                        </tr>`;
-                    } else if (item && item.type === 'downtime_start') {
-                        pageHtml += `<tr><td></td><td style="color:black;">${item.time}</td><td></td><td colspan="7" style="font-weight:900; letter-spacing:1px; background-color:#fef2f2 !important; color:#dc2626 !important;">ปิดเครื่อง</td></tr>`;
-                    } else if (item && item.type === 'downtime_end') {
-                        pageHtml += `<tr><td></td><td style="color:black;">${item.time}</td><td></td><td colspan="7" style="font-weight:900; letter-spacing:1px; background-color:#f0fdf4 !important; color:#16a34a !important;">เปิดเครื่อง</td></tr>`;
-                    } else {
-                        pageHtml += `<tr><td></td><td></td><td></td><td class="pc-check"></td><td class="pc-check"></td><td class="pc-prod"></td><td class="pc-prod"></td><td class="pc-prod"></td><td class="pc-rem"></td><td class="pc-rem"></td></tr>`;
+                    let pageHtml = `
+                    <div class="print-page">
+                        <div class="print-header">
+                            แบบฟอร์มบันทึกการผลิตน้ำแข็ง สาขา ${info.branch} เครื่องที่ ${info.machine}<br>
+                            <span class="date-text">ประจำวันที่ ${pageDateStr}</span>
+                        </div>
+                        
+                        <div class="print-wrapper">
+                            <div class="print-left">
+                                <table class="print-table">
+                                    <thead>
+                                        <tr>
+                                            <th rowspan="2" style="width:5%;">ลำดับ</th>
+                                            <th style="width:13%;">เวลา</th>
+                                            <th rowspan="2" style="width:8%;">นาที/<br>ตก</th>
+                                            <th colspan="2" style="width:16%; background-color:#e0f2fe !important; color:#0284c7 !important;">เบิกกระสอบ</th>
+                                            <th colspan="3" style="width:30%; background-color:#dcfce7 !important; color:#15803d !important;">ผลการผลิต</th>
+                                            <th colspan="2" style="width:16%; background-color:#fef3c7 !important; color:#b45309 !important;">กระสอบคงเหลือ</th>
+                                        </tr>
+                                        <tr>
+                                            <th>เปิด ${pageStartTime} น.</th>
+                                            <th style="width:8%; background-color:#e0f2fe !important; color:#0284c7 !important;">หลอด</th>
+                                            <th style="width:8%; background-color:#e0f2fe !important; color:#0284c7 !important;">บด</th>
+                                            <th style="width:10%; background-color:#dcfce7 !important; color:#15803d !important;">หลอดใหญ่</th>
+                                            <th style="width:10%; background-color:#dcfce7 !important; color:#15803d !important;">บดหยาบ</th>
+                                            <th style="width:10%; background-color:#dcfce7 !important; color:#15803d !important;">ละเอียด</th>
+                                            <th style="width:8%; background-color:#fef3c7 !important; color:#b45309 !important;">หลอด</th>
+                                            <th style="width:8%; background-color:#fef3c7 !important; color:#b45309 !important;">บด</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                    `;
+
+                    let localProdCounter = 0; 
+                    for(let i=0; i<ROWS_PER_PAGE; i++) {
+                        let item = chunk[i];
+                        if(item && item.type === 'prod') {
+                            localProdCounter++;
+                            pageHtml += `<tr>
+                                <td>${localProdCounter}</td><td>${item.time}</td><td>${item.duration}</td>
+                                <td class="pc-check">${item.whl}</td><td class="pc-check">${item.wbod}</td>
+                                <td class="pc-prod">${item.phl}</td><td class="pc-prod">${item.pbh}</td><td class="pc-prod">${item.pbl}</td>
+                                <td class="pc-rem">${item.rhl}</td><td class="pc-rem">${item.rbod}</td>
+                            </tr>`;
+                            // อัปเดตเวลาล่าสุดไปเรื่อยๆ เผื่อไว้ใช้เป็น "เวลาเปิดเครื่อง" ให้แผ่นถัดไป!
+                            runningLastTime = item.time;
+                        } else if (item && item.type === 'downtime_start') {
+                            pageHtml += `<tr><td></td><td style="color:black;">${item.time}</td><td></td><td colspan="7" style="font-weight:900; letter-spacing:1px; background-color:#fef2f2 !important; color:#dc2626 !important;">ปิดเครื่อง</td></tr>`;
+                            runningLastTime = item.time;
+                        } else if (item && item.type === 'downtime_end') {
+                            pageHtml += `<tr><td></td><td style="color:black;">${item.time}</td><td></td><td colspan="7" style="font-weight:900; letter-spacing:1px; background-color:#f0fdf4 !important; color:#16a34a !important;">เปิดเครื่อง</td></tr>`;
+                            runningLastTime = item.time;
+                        } else {
+                            pageHtml += `<tr><td></td><td></td><td></td><td class="pc-check"></td><td class="pc-check"></td><td class="pc-prod"></td><td class="pc-prod"></td><td class="pc-prod"></td><td class="pc-rem"></td><td class="pc-rem"></td></tr>`;
+                        }
                     }
-                }
 
-                // สรุปยอดด้านล่างตาราง
-                let c_sumH = 0, c_sumB = 0, c_sumHL2 = 0, c_sumBH2 = 0, c_sumBL2 = 0, c_remH = 0, c_remB = 0, c_dur = 0;
-                chunk.forEach(item => {
-                    if(item && item.type === 'prod') {
-                        c_sumH += item.raw_whl; c_sumB += item.raw_wbod; c_sumHL2 += item.raw_phl; c_sumBH2 += item.raw_pbh; c_sumBL2 += item.raw_pbl;
-                        c_remH += item.raw_rhl; c_remB += item.raw_rbod; c_dur += item.duration;
-                    }
-                });
+                    // สรุปยอดด้านล่างตาราง เอาเวลาปิดเครื่องออกตามสั่ง
+                    let footerTitle = `รวม (แผ่นนี้)`;
+                    let c_sumH = 0, c_sumB = 0, c_sumHL2 = 0, c_sumBH2 = 0, c_sumBL2 = 0, c_remH = 0, c_remB = 0, c_dur = 0;
+                    chunk.forEach(item => {
+                        if(item && item.type === 'prod') {
+                            c_sumH += item.raw_whl; c_sumB += item.raw_wbod; c_sumHL2 += item.raw_phl; c_sumBH2 += item.raw_pbh; c_sumBL2 += item.raw_pbl;
+                            c_remH += item.raw_rhl; c_remB += item.raw_rbod; c_dur += item.duration;
+                        }
+                    });
 
-                pageHtml += `
-                                <tr class="print-footer">
-                                    <td colspan="2">${footerTitle}</td><td>${c_dur}</td><td>${c_sumH}</td><td>${c_sumB}</td>
-                                    <td>${c_sumHL2}</td><td>${c_sumBH2}</td><td>${c_sumBL2}</td><td>${c_remH}</td><td>${c_remB}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <div class="print-right">
-                        <div class="s-title" style="margin-top:0;">ข้อมูลสรุป</div>
-                        <div class="s-line">${sumCol[0]}</div><div class="s-line">${sumCol[1]}</div><div class="s-line">${sumCol[2]}</div><div class="s-line" style="border-bottom:none;">${sumCol[3]}</div>
-                        <div class="s-title">น้ำหนักเฉลี่ย</div>
-                        <div class="s-line">${sumCol[4]}</div><div class="s-line">${sumCol[5]}</div><div class="s-line">${sumCol[6]}</div><div class="s-line" style="border-bottom:none;">${sumCol[7]}</div>
-                        <div class="s-title">น้ำหนักรวม</div>
-                        <div class="s-line">${sumCol[8]}</div><div class="s-line">${sumCol[9]}</div><div class="s-line">${sumCol[10]}</div><div class="s-line" style="border-bottom:none;">${sumCol[11]}</div>
-                        <div class="s-title">สถิติการผลิต</div>
-                        <div class="s-line">${sumCol[12]}</div><div class="s-line">${sumCol[13]}</div><div class="s-line" style="border-bottom:none;">${sumCol[14]}</div>
-                        <div class="s-title">สรุปกระสอบ</div>
-                        <div class="s-line">${sumCol[15]}</div><div class="s-line">${sumCol[16]}</div><div class="s-line" style="border-bottom:none;">${sumCol[17]}</div>
-                        <div class="s-title">ข้อมูลอื่นๆ</div>
-                        <div class="s-line">${sumCol[18]}</div><div class="s-line">${sumCol[19]}</div><div class="s-line">${sumCol[20]}</div><div class="s-line" style="border-bottom:none;">${sumCol[21]}</div>
-                        <div class="sign-box">
-                            <div class="sign-line">ลงชื่อ <span class="sign-dots"></span> วิศวกรรม</div>
-                            <div class="sign-line">ลงชื่อ <span class="sign-dots"></span> ผู้จัดการสาขา</div>
+                    pageHtml += `
+                                    <tr class="print-footer">
+                                        <td colspan="2">${footerTitle}</td><td>${c_dur}</td><td>${c_sumH}</td><td>${c_sumB}</td>
+                                        <td>${c_sumHL2}</td><td>${c_sumBH2}</td><td>${c_sumBL2}</td><td>${c_remH}</td><td>${c_remB}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="print-right">
+                            <div class="s-title" style="margin-top:0;">ข้อมูลสรุป</div>
+                            <div class="s-line">${sumCol[0]}</div><div class="s-line">${sumCol[1]}</div><div class="s-line">${sumCol[2]}</div><div class="s-line" style="border-bottom:none;">${sumCol[3]}</div>
+                            <div class="s-title">น้ำหนักเฉลี่ย</div>
+                            <div class="s-line">${sumCol[4]}</div><div class="s-line">${sumCol[5]}</div><div class="s-line">${sumCol[6]}</div><div class="s-line" style="border-bottom:none;">${sumCol[7]}</div>
+                            <div class="s-title">น้ำหนักรวม</div>
+                            <div class="s-line">${sumCol[8]}</div><div class="s-line">${sumCol[9]}</div><div class="s-line">${sumCol[10]}</div><div class="s-line" style="border-bottom:none;">${sumCol[11]}</div>
+                            <div class="s-title">สถิติการผลิต</div>
+                            <div class="s-line">${sumCol[12]}</div><div class="s-line">${sumCol[13]}</div><div class="s-line" style="border-bottom:none;">${sumCol[14]}</div>
+                            <div class="s-title">สรุปกระสอบ</div>
+                            <div class="s-line">${sumCol[15]}</div><div class="s-line">${sumCol[16]}</div><div class="s-line" style="border-bottom:none;">${sumCol[17]}</div>
+                            <div class="s-title">ข้อมูลอื่นๆ</div>
+                            <div class="s-line">${sumCol[18]}</div><div class="s-line">${sumCol[19]}</div><div class="s-line">${sumCol[20]}</div><div class="s-line" style="border-bottom:none;">${sumCol[21]}</div>
+                            <div class="sign-box">
+                                <div class="sign-line">ลงชื่อ <span class="sign-dots"></span> วิศวกรรม</div>
+                                <div class="sign-line">ลงชื่อ <span class="sign-dots"></span> ผู้จัดการสาขา</div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                </div>
-                `;
-                finalHtml += pageHtml;
+                    </div>
+                    `;
+                    finalHtml += pageHtml;
+                });
+                shiftCount++;
             });
 
             document.getElementById('print_area').innerHTML = finalHtml;
