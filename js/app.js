@@ -23,9 +23,18 @@ let globalLastEventTime = null;
 let unsubscribeFB = null; 
 window.REPORT_DATA = {};
 
+// 🌟 1. ระบบ Smart Date: หลังบ่าย 3 ปัดเป็นวันพรุ่งนี้ 🌟
+function getSmartDate() {
+    let now = new Date();
+    if (now.getHours() >= 15) {
+        now.setDate(now.getDate() + 1);
+    }
+    return now.toISOString().split('T')[0];
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    const today = new Date().toISOString().split('T')[0];
-    const savedDate = localStorage.getItem('LAST_TEST_DATE') || today;
+    const smartDate = getSmartDate();
+    const savedDate = localStorage.getItem('LAST_TEST_DATE') || smartDate;
     document.getElementById('setup_date').value = savedDate;
     
     loadData(savedDate);
@@ -40,12 +49,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function syncFromFirebase(dateKey) {
     if(unsubscribeFB) unsubscribeFB(); 
-    
     unsubscribeFB = db.collection("ice_production_test").doc(dateKey).onSnapshot((doc) => {
         if(doc.exists) {
             const remoteData = doc.data();
             const localStr = localStorage.getItem(`ICE_TEST_DATA_${dateKey}`);
-            
             if(JSON.stringify(remoteData) !== localStr) {
                 console.log("☁️ ได้รับข้อมูลใหม่จาก Cloud!");
                 DATA = remoteData;
@@ -57,7 +64,7 @@ function syncFromFirebase(dateKey) {
 }
 
 function refreshUI_Smart() {
-    document.getElementById('time_start').value = DATA.times.start || "22:00";
+    document.getElementById('time_start').value = DATA.times.start || "20:00";
     
     let elInitHl = document.getElementById('init_hl'); if(document.activeElement !== elInitHl) elInitHl.value = DATA.initStock.hl || 0;
     let elInitBh = document.getElementById('init_bh'); if(document.activeElement !== elInitBh) elInitBh.value = DATA.initStock.bh || 0;
@@ -97,12 +104,13 @@ function pushToFirebase() {
 }
 
 function getEmptyData() { 
-    return { times: { start: "22:00", stop: "06:00" }, initStock: { hl:0, bh:0, bl:0 }, reportInfo: { branch: 'วารีเทพเพ็ญ (W041)', machine: 'M1', ph: '7.1', tds: '172', prodStaff: 4, engStaff: 1 }, orders: {}, drops: [] }; 
+    return { times: { start: "20:00", stop: "08:00" }, initStock: { hl:0, bh:0, bl:0 }, reportInfo: { branch: 'วารีเทพเพ็ญ (W041)', machine: 'M1', ph: '7.1', tds: '172', prodStaff: 4, engStaff: 1 }, orders: {}, drops: [] }; 
 }
 
 function saveData() { 
     const dateKey = document.getElementById('setup_date').value;
     localStorage.setItem('LAST_TEST_DATE', dateKey); 
+    
     DATA.times.start = document.getElementById('time_start').value;
     DATA.initStock = { hl: getNum(document.getElementById('init_hl').value), bh: getNum(document.getElementById('init_bh').value), bl: getNum(document.getElementById('init_bl').value) };
     
@@ -122,8 +130,6 @@ function saveData() {
 
 function loadData(dateKey) {
     const d = localStorage.getItem(`ICE_TEST_DATA_${dateKey}`);
-    let isNewDay = false;
-
     if(d) { 
         try { 
             DATA = JSON.parse(d); 
@@ -134,41 +140,18 @@ function loadData(dateKey) {
             if(!DATA.initStock) DATA.initStock = {hl:0, bh:0, bl:0};
             
             DATA.drops.forEach(drop => {
-               if(!drop.p_in_room) drop.p_in_room = {hl:0,bh:0,bl:0};
-               if(drop.dist) drop.dist.forEach(i => i.total = getNum(i.r1)+getNum(i.r2)+getNum(i.r3));
+               if(drop.type === 'prod' || drop.type === 'stock') {
+                   if(!drop.p_in_room) drop.p_in_room = {hl:0,bh:0,bl:0};
+                   if(drop.dist) drop.dist.forEach(i => i.total = getNum(i.r1)+getNum(i.r2)+getNum(i.r3));
+               }
                if(drop.type === 'downtime' && !drop.time_end) drop.time_end = drop.time; 
             });
-        } catch(e) { 
-            DATA = getEmptyData(); 
-            isNewDay = true;
-        } 
+        } catch(e) { DATA = getEmptyData(); } 
     } else { 
         DATA = getEmptyData(); 
-        isNewDay = true;
     }
 
-    if (isNewDay) {
-        let parts = dateKey.split('-');
-        let checkDate = new Date(parts[0], parts[1]-1, parts[2]);
-
-        for (let i = 1; i <= 7; i++) {
-            checkDate.setDate(checkDate.getDate() - 1);
-            let pastKey = checkDate.getFullYear() + '-' + String(checkDate.getMonth()+1).padStart(2,'0') + '-' + String(checkDate.getDate()).padStart(2,'0');
-            let pastDStr = localStorage.getItem(`ICE_TEST_DATA_${pastKey}`);
-            if (pastDStr) {
-                try {
-                    let pastD = JSON.parse(pastDStr);
-                    if (pastD && pastD.orders && Object.keys(pastD.orders).some(k => getNum(pastD.orders[k]) > 0)) {
-                        DATA.orders = JSON.parse(JSON.stringify(pastD.orders));
-                        DATA.initStock = { hl: 0, bh: 0, bl: 0 };
-                        break;
-                    }
-                } catch(e) {}
-            }
-        }
-    }
-
-    document.getElementById('time_start').value = DATA.times.start || "22:00";
+    document.getElementById('time_start').value = DATA.times.start || "20:00";
     document.getElementById('init_hl').value = DATA.initStock.hl || 0;
     document.getElementById('init_bh').value = DATA.initStock.bh || 0;
     document.getElementById('init_bl').value = DATA.initStock.bl || 0;
@@ -180,10 +163,6 @@ function loadData(dateKey) {
         document.getElementById('rpt_tds').value = DATA.reportInfo.tds || '172';
         document.getElementById('rpt_staff_prod').value = DATA.reportInfo.prodStaff || 4;
         document.getElementById('rpt_staff_eng').value = DATA.reportInfo.engStaff || 1;
-    }
-
-    if(document.getElementById('header_start_time_simple')) {
-        document.getElementById('header_start_time_simple').innerText = (DATA.times.start || "22:00") + ' น.';
     }
 }
 
@@ -201,17 +180,29 @@ function getNum(val) { return parseFloat(val) || 0; }
 function updateStock() { saveData(); calcAll(); }
 
 function resetTodayData() {
-    if(confirm('ระบบจะล้างข้อมูลเฉพาะของวันนี้ (โหมดทดสอบ) ยืนยันหรือไม่?')) {
+    if(confirm('ระบบจะล้างข้อมูลเฉพาะบิลวันนี้ ยืนยันหรือไม่?')) {
         const dateKey = document.getElementById('setup_date').value; 
         localStorage.removeItem('ICE_TEST_DATA_' + dateKey); 
         db.collection("ice_production_test").doc(dateKey).set(getEmptyData()).then(() => location.reload());
     }
 }
 
+// 🌟 2. ฟังก์ชันปุ่ม "ตัดกะ" 🌟
+function addCut() {
+    if(confirm("ยืนยันการตัดกะ?\n\nระบบจะขีดเส้นคั่นบนกระดาน และจะแยกหน้า PDF พร้อมยกยอดคงเหลือให้กะถัดไปอัตโนมัติ!")) {
+        const now = new Date();
+        const timeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+        DATA.drops.push({ id: Date.now(), type: 'cut', time: timeStr });
+        saveData();
+        calcAll();
+        openFullHistory(); // เปิดให้ดูว่าขีดเส้นแล้ว
+    }
+}
+
 function addDrop(type) {
     setTimeout(() => {
         const now = new Date();
-        const timeStr = now.toTimeString().substring(0, 5);
+        const timeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
         if(type === 'downtime') {
             DATA.drops.push({ id: Date.now(), type: type, time: timeStr, time_end: timeStr });
         } else {
@@ -229,7 +220,7 @@ function addDrop(type) {
     }, 10);
 }
 
-function deleteDrop(id) { if(confirm("ระบบจะลบข้อมูลนี้ทิ้ง ยืนยันหรือไม่?")) { DATA.drops = DATA.drops.filter(d => d.id !== id); saveData(); calcAll(); renderDrops(); if(document.getElementById('stock_manager_modal').style.display === 'flex') openStockManager(); } }
+function deleteDrop(id) { if(confirm("ระบบจะลบข้อมูลนี้ทิ้ง ยืนยันหรือไม่?")) { DATA.drops = DATA.drops.filter(d => d.id !== id); saveData(); calcAll(); renderDrops(); if(document.getElementById('stock_manager_modal').style.display === 'flex') openStockManager(); if(document.getElementById('full_history_modal').style.display === 'flex') openFullHistory(); } }
 
 function openDowntimeModal(id = null) {
     EDITING_DOWNTIME_ID = id;
@@ -239,32 +230,24 @@ function openDowntimeModal(id = null) {
         document.getElementById('dt_end').value = d.time_end || d.time;
     } else {
         const now = new Date();
-        const timeStr = now.toTimeString().substring(0, 5);
+        const timeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
         document.getElementById('dt_start').value = timeStr;
         document.getElementById('dt_end').value = timeStr;
     }
     
     document.getElementById('btn_delete_dt').style.display = id ? 'block' : 'none';
 
-    if(document.getElementById('edit_past_modal').style.display === 'flex') {
-        document.getElementById('edit_past_modal').style.display = 'none';
-        SOURCE_MODAL = 'edit_past';
-    } else if (document.getElementById('full_history_modal').style.display === 'flex') {
-        document.getElementById('full_history_modal').style.display = 'none';
-        SOURCE_MODAL = 'full_history';
-    } else if (document.getElementById('history_modal').style.display === 'flex') {
-        document.getElementById('history_modal').style.display = 'none';
-        SOURCE_MODAL = 'history';
-    } else {
-        SOURCE_MODAL = null;
-    }
+    if(document.getElementById('edit_past_modal').style.display === 'flex') { document.getElementById('edit_past_modal').style.display = 'none'; SOURCE_MODAL = 'edit_past'; } 
+    else if (document.getElementById('full_history_modal').style.display === 'flex') { document.getElementById('full_history_modal').style.display = 'none'; SOURCE_MODAL = 'full_history'; } 
+    else if (document.getElementById('history_modal').style.display === 'flex') { document.getElementById('history_modal').style.display = 'none'; SOURCE_MODAL = 'history'; } 
+    else { SOURCE_MODAL = null; }
+    
     document.getElementById('downtime_modal').style.display = 'flex';
 }
 
 function closeDowntimeModal() {
     document.getElementById('downtime_modal').style.display = 'none';
-    if(SOURCE_MODAL === 'edit_past') openFullHistory();
-    else if(SOURCE_MODAL === 'full_history') openFullHistory();
+    if(SOURCE_MODAL === 'edit_past' || SOURCE_MODAL === 'full_history') openFullHistory();
     else if(SOURCE_MODAL === 'history') document.getElementById('history_modal').style.display = 'flex';
 }
 
@@ -286,10 +269,7 @@ function saveDowntime() {
 function deleteDowntime() {
     if(confirm('ลบรายการไฟดับนี้?')) {
         DATA.drops = DATA.drops.filter(x => x.id !== EDITING_DOWNTIME_ID);
-        saveData();
-        calcAll();
-        closeDowntimeModal();
-        renderDrops();
+        saveData(); calcAll(); closeDowntimeModal(); renderDrops();
     }
 }
 
@@ -304,7 +284,7 @@ function getAdjustedMinutes(timeStr, startStr) {
 }
 
 function getMinDiff(start, end) { 
-    const anchor = document.getElementById('time_start').value || "22:00"; 
+    const anchor = document.getElementById('time_start').value || "20:00"; 
     const mStart = getAdjustedMinutes(start, anchor); 
     const mEnd = getAdjustedMinutes(end, anchor); 
     return mEnd - mStart; 
@@ -322,7 +302,7 @@ function renderDrops() {
     const container = document.getElementById('drops_list');
     container.innerHTML = '';
     
-    const startTimeStr = document.getElementById('time_start').value || "22:00";
+    const startTimeStr = document.getElementById('time_start').value || "20:00";
     const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
     
     const prodDrops = sortedDrops.filter(d => d.type === 'prod');
@@ -338,12 +318,17 @@ function renderDrops() {
     
     let dtToSubtract = 0;
     sortedDrops.forEach(td => {
-        if(td.type === 'downtime' && 
-           getAdjustedMinutes(td.time, startTimeStr) >= getAdjustedMinutes(prevTime, startTimeStr) && 
-           getAdjustedMinutes(td.time, startTimeStr) <= getAdjustedMinutes(latestProd.time, startTimeStr)) {
+        // หาไฟดับ และ cut เพื่อหักเวลา
+        if(td.type === 'downtime' && getAdjustedMinutes(td.time, startTimeStr) >= getAdjustedMinutes(prevTime, startTimeStr) && getAdjustedMinutes(td.time, startTimeStr) <= getAdjustedMinutes(latestProd.time, startTimeStr)) {
             dtToSubtract += getMinDiff(td.time, td.time_end || td.time);
         }
+        if(td.type === 'cut' && getAdjustedMinutes(td.time, startTimeStr) >= getAdjustedMinutes(prevTime, startTimeStr) && getAdjustedMinutes(td.time, startTimeStr) <= getAdjustedMinutes(latestProd.time, startTimeStr)) {
+            // ถ้าระหว่างทางมีการตัดกะ ให้เริ่มนับเวลาตั้งต้นใหม่จากตอนตัดกะ
+            prevTime = td.time;
+            dtToSubtract = 0; 
+        }
     });
+    
     const grossDiff = getMinDiff(prevTime, latestProd.time);
     const netDiff = Math.max(0, grossDiff - dtToSubtract);
     
@@ -428,7 +413,7 @@ function calcAll() {
     let totalWithHL=0, totalWithBod=0, totalRemHL=0, totalRemBod=0, totalUsedAll=0, totalDuration=0;
     let prodLogHtml = '';
     
-    const startTimeStr = document.getElementById('time_start').value || "22:00";
+    const startTimeStr = document.getElementById('time_start').value || "20:00";
     let lastProdTime = startTimeStr;
     let pendingDowntime = 0;
     let truckMat = {}; let truckDetail = {};
@@ -461,7 +446,17 @@ function calcAll() {
     document.getElementById('time_stop').value = autoCloseTimeStr;
 
     sortedDrops.forEach(d => {
-        if(d.type === 'downtime') {
+        if(d.type === 'cut') {
+            pendingDowntime = 0; // ล้างเวลาที่ดองไว้
+            lastProdTime = d.time; // เริ่มนับรอบถัดไปจากเวลานี้
+            prodLogHtml += `
+            <tr style="background-color: #fff7ed;" class="print-cut">
+                <td colspan="10" style="color: #ea580c; font-weight: 900; text-align: center; padding: 12px; letter-spacing: 1px; border-top: 2px dashed #fb923c; border-bottom: 2px dashed #fb923c;">
+                    ✂️ ตัดกะ / ปิดยอดแผ่นนี้ (${d.time} น.)
+                </td>
+            </tr>`;
+        }
+        else if(d.type === 'downtime') {
             let dtMins = getMinDiff(d.time, d.time_end || d.time);
             pendingDowntime += dtMins;
             
@@ -510,29 +505,32 @@ function calcAll() {
                 <td class="pt-rem" style="font-weight:900;">${w_bod>0?r_bod:'-'}</td>
             </tr>`;
         }
-        if(d.dist) { d.dist.forEach(i => { 
-            const total = getNum(i.total); 
-            totalSent += total; 
-            if(i.type === 'hl') sentHL += total;
-            if(i.type === 'bh') sentBH += total;
-            if(i.type === 'bl') sentBL += total;
-            const field = d.type === 'prod' ? 'fr' : 'st'; 
-            truckMat[i.truck][i.type][field] += total; 
-            if(truckDetail[i.truck] && truckDetail[i.truck][i.type]) { 
-                truckDetail[i.truck][i.type].r1[field] += getNum(i.r1); 
-                truckDetail[i.truck][i.type].r2[field] += getNum(i.r2); 
-                truckDetail[i.truck][i.type].r3[field] += getNum(i.r3); 
-            } 
-            if(d.type === 'stock') { 
-                if(i.type==='hl') curHL -= total; 
-                if(i.type==='bh') curBH -= total; 
-                if(i.type==='bl') curBL -= total; 
-            } 
-        }); }
+        
+        if(d.type === 'prod' || d.type === 'stock') {
+            if(d.dist) { d.dist.forEach(i => { 
+                const total = getNum(i.total); 
+                totalSent += total; 
+                if(i.type === 'hl') sentHL += total;
+                if(i.type === 'bh') sentBH += total;
+                if(i.type === 'bl') sentBL += total;
+                const field = d.type === 'prod' ? 'fr' : 'st'; 
+                truckMat[i.truck][i.type][field] += total; 
+                if(truckDetail[i.truck] && truckDetail[i.truck][i.type]) { 
+                    truckDetail[i.truck][i.type].r1[field] += getNum(i.r1); 
+                    truckDetail[i.truck][i.type].r2[field] += getNum(i.r2); 
+                    truckDetail[i.truck][i.type].r3[field] += getNum(i.r3); 
+                } 
+                if(d.type === 'stock') { 
+                    if(i.type==='hl') curHL -= total; 
+                    if(i.type==='bh') curBH -= total; 
+                    if(i.type==='bl') curBL -= total; 
+                } 
+            }); }
+        }
     });
     
     prodLogHtml += `<tr class="total-row print-footer">
-        <td class="total-label" colspan="2" style="border-bottom-left-radius: 12px;">รวม (ปิด ${autoCloseTimeStr} น.)</td>
+        <td class="total-label" colspan="2" style="border-bottom-left-radius: 12px;">รวม (อัปเดต ${autoCloseTimeStr} น.)</td>
         <td style="color:#38bdf8 !important;">${totalDuration}</td>
         <td style="color:#38bdf8 !important;">${totalWithHL}</td>
         <td style="color:#38bdf8 !important;">${totalWithBod}</td>
@@ -548,44 +546,18 @@ function calcAll() {
     safeSet('dash_hl', curHL); safeSet('dash_bh', curBH); safeSet('dash_bl', curBL);
     safeSet('os_total', totOrd); safeSet('os_sent', totalSent); safeSet('os_remain', totOrd - totalSent);
 
-    safeSet('rpt_hl', sumP.hl); safeSet('rpt_bh', sumP.bh); safeSet('rpt_bl', sumP.bl); safeSet('rpt_total_prod', sumP.hl + sumP.bh + sumP.bl);
-    const totW = ((sumP.hl*20) + (sumP.bh*23) + (sumP.bl*24));
-    safeSet('rpt_total_weight', totW.toLocaleString()); safeSet('rpt_w_hl', (sumP.hl*20).toLocaleString()); safeSet('rpt_w_bh', (sumP.bh*23).toLocaleString()); safeSet('rpt_w_bl', (sumP.bl*24).toLocaleString());
-    safeSet('rpt_sack_withdraw', totalWithHL + totalWithBod); safeSet('rpt_sack_used', totalUsedAll); safeSet('rpt_rem_total_all', totalRemHL + totalRemBod);
+    // ตัวแปรส่งออก PDF
+    window.REPORT_DATA = {
+        drops: sortedDrops,
+        timeStop: autoCloseTimeStr,
+        finalStock: { hl: curHL, bh: curBH, bl: curBL } // สำรองไว้ เผื่อใช้
+    };
 
     const prodDropsCount = DATA.drops.filter(d => d.type==='prod').length;
     let avgTime = 38; 
-    
-    if(prodDropsCount > 0) {
-        avgTime = Math.round(totalDuration / prodDropsCount) || 38;
-        safeSet('rpt_avg_time', avgTime);
-        let tonsDay = 0; if (totalDuration > 0) { tonsDay = (totW / totalDuration) * 1440 / 1000; }
-        safeSet('rpt_tons_day', tonsDay.toFixed(2)); 
-        safeSet('rpt_avg_yield', Math.round((sumP.hl+sumP.bh+sumP.bl) / prodDropsCount));
-    } else { 
-        safeSet('rpt_avg_time', 0); safeSet('rpt_tons_day', 0); safeSet('rpt_avg_yield', 0); 
-    }
-
-    safeSet('disp_ph', DATA.reportInfo.ph || '7.1');
-    safeSet('disp_tds', DATA.reportInfo.tds || '172');
-    safeSet('disp_prod_staff', DATA.reportInfo.prodStaff || '4');
-    safeSet('disp_eng_staff', DATA.reportInfo.engStaff || '1');
-    
-    window.REPORT_DATA = {
-        sumHL: sumP.hl, sumBH: sumP.bh, sumBL: sumP.bl,
-        totProd: sumP.hl + sumP.bh + sumP.bl,
-        totWeight: totW,
-        wHL: sumP.hl * 20, wBH: sumP.bh * 23, wBL: sumP.bl * 24,
-        avgTime: avgTime, tonsDay: (totW > 0 && totalDuration > 0) ? ((totW / totalDuration) * 1440 / 1000).toFixed(2) : 0, avgYield: Math.round((sumP.hl+sumP.bh+sumP.bl) / prodDropsCount) || 0,
-        withHL: totalWithHL, withBOD: totalWithBod,
-        usedAll: totalUsedAll,
-        remHL: totalRemHL, remBOD: totalRemBod,
-        totDuration: totalDuration,
-        drops: sortedDrops,
-        timeStop: autoCloseTimeStr
-    };
-
+    if(prodDropsCount > 0) { avgTime = Math.round(totalDuration / prodDropsCount) || 38; }
     globalAvgTime = avgTime;
+    
     let lastEventStr = startTimeStr;
     if(sortedDrops.length > 0) {
         let ld = sortedDrops[sortedDrops.length-1];
@@ -599,21 +571,17 @@ function calcAll() {
 
 function updatePredictor() {
     if(!globalLastEventTime) return;
-    
     let [lh, lm] = globalLastEventTime.split(':').map(Number);
     let lastMins = lh * 60 + lm;
-    
     let predMinsRaw = lastMins + globalAvgTime;
     let p_h = Math.floor(predMinsRaw / 60) % 24;
     let p_m = Math.floor(predMinsRaw % 60);
     let predTimeStr = `${String(p_h).padStart(2, '0')}:${String(p_m).padStart(2, '0')}`;
-    
     let predTimeEl = document.getElementById('pred_time');
     if(predTimeEl) predTimeEl.innerText = predTimeStr;
     
     let now = new Date();
     let currMins = now.getHours() * 60 + now.getMinutes();
-    
     let diff = (p_h * 60 + p_m) - currMins;
     if (diff < -720) diff += 1440; 
     else if (diff > 720) diff -= 1440; 
@@ -626,16 +594,9 @@ function updatePredictor() {
         fabEl.style.display = 'none';
     } else {
         fabEl.style.display = 'flex';
-        if (diff > 0) {
-            badgeEl.innerText = `อีก ${diff} นาที`;
-            badgeEl.className = 'lpf-badge';
-        } else if (diff === 0) {
-            badgeEl.innerText = `กำลังตก!`;
-            badgeEl.className = 'lpf-badge overdue';
-        } else {
-            badgeEl.innerText = `เลยมา ${Math.abs(diff)} น.`;
-            badgeEl.className = 'lpf-badge overdue';
-        }
+        if (diff > 0) { badgeEl.innerText = `อีก ${diff} นาที`; badgeEl.className = 'lpf-badge'; } 
+        else if (diff === 0) { badgeEl.innerText = `กำลังตก!`; badgeEl.className = 'lpf-badge overdue'; } 
+        else { badgeEl.innerText = `เลยมา ${Math.abs(diff)} น.`; badgeEl.className = 'lpf-badge overdue'; }
     }
 }
 
@@ -666,28 +627,17 @@ function updateMasterOrderTotals() {
         let bh = getNum(DATA.orders[tid+'_bh']);
         let bl = getNum(DATA.orders[tid+'_bl']);
         let rowTotal = hl + bh + bl;
-
         let rowSumEl = document.getElementById('ord_sum_'+tid);
         if(rowSumEl) rowSumEl.innerText = rowTotal;
-
-        sumAllHl += hl;
-        sumAllBh += bh;
-        sumAllBl += bl;
-        grandTotal += rowTotal;
+        sumAllHl += hl; sumAllBh += bh; sumAllBl += bl; grandTotal += rowTotal;
     });
-
     if(document.getElementById('master_sum_hl')) document.getElementById('master_sum_hl').innerText = sumAllHl;
     if(document.getElementById('master_sum_bh')) document.getElementById('master_sum_bh').innerText = sumAllBh;
     if(document.getElementById('master_sum_bl')) document.getElementById('master_sum_bl').innerText = sumAllBl;
     if(document.getElementById('master_grand_total')) document.getElementById('master_grand_total').innerText = grandTotal;
 }
 
-function updateOrder(key, val) { 
-    DATA.orders[key] = getNum(val); 
-    updateMasterOrderTotals();
-    saveData(); 
-    calcAll();
-}
+function updateOrder(key, val) { DATA.orders[key] = getNum(val); updateMasterOrderTotals(); saveData(); calcAll(); }
 
 function openFullHistory() { 
     const container = document.getElementById('full_history_list'); 
@@ -703,25 +653,12 @@ function openFullHistory() {
                 let prodTotal = getNum(d.p_in_room.hl) + getNum(d.p_in_room.bh) + getNum(d.p_in_room.bl); 
                 if(d.dist) d.dist.forEach(i => prodTotal += getNum(i.total)); 
                 const tag = (idx === 0) ? '<span style="background:#dcfce7; color:#16a34a; font-size:0.75rem; padding:2px 8px; border-radius:12px; margin-left:8px; vertical-align:middle;">ล่าสุด</span>' : ''; 
-                
-                container.insertAdjacentHTML('beforeend', `
-                <div class="hist-item" onclick="openEditPast(${d.id})">
-                    <div class="hist-info-left">
-                        <div class="hist-time">${d.time} ${tag}</div>
-                        <div class="hist-yield">ยอดผลิตรวม: <span>${prodTotal}</span> กระสอบ</div>
-                    </div>
-                    <div class="hist-arrow">›</div>
-                </div>`); 
+                container.insertAdjacentHTML('beforeend', `<div class="hist-item" onclick="openEditPast(${d.id})"><div class="hist-info-left"><div class="hist-time">${d.time} ${tag}</div><div class="hist-yield">ยอดผลิตรวม: <span>${prodTotal}</span> กระสอบ</div></div><div class="hist-arrow">›</div></div>`); 
             } else if (d.type === 'downtime') {
                 let dt = getMinDiff(d.time, d.time_end);
-                container.insertAdjacentHTML('beforeend', `
-                <div class="hist-item" style="background:#fef2f2;" onclick="openDowntimeModal(${d.id})">
-                    <div class="hist-info-left">
-                        <div class="hist-time" style="color:#dc2626;">${d.time} - ${d.time_end}</div>
-                        <div class="hist-yield" style="color:#ef4444;">หยุดเครื่อง/ไฟดับ <span style="color:#b91c1c;">(พัก ${dt} น.)</span></div>
-                    </div>
-                    <div class="hist-arrow" style="color:#fca5a5;">›</div>
-                </div>`);
+                container.insertAdjacentHTML('beforeend', `<div class="hist-item" style="background:#fef2f2;" onclick="openDowntimeModal(${d.id})"><div class="hist-info-left"><div class="hist-time" style="color:#dc2626;">${d.time} - ${d.time_end}</div><div class="hist-yield" style="color:#ef4444;">หยุดเครื่อง/ไฟดับ <span style="color:#b91c1c;">(พัก ${dt} น.)</span></div></div><div class="hist-arrow" style="color:#fca5a5;">›</div></div>`);
+            } else if (d.type === 'cut') {
+                container.insertAdjacentHTML('beforeend', `<div class="hist-item" style="background:#fff7ed; justify-content:center; padding:10px;"><div style="color:#ea580c; font-weight:900; font-size:1.1rem;">✂️ ตัดกะ (${d.time} น.)</div><button class="btn-del-mini" style="margin-left:15px;" onclick="deleteDrop(${d.id})">🗑️</button></div>`);
             }
         }); 
     } 
@@ -729,10 +666,7 @@ function openFullHistory() {
 }
 function closeFullHistory() { document.getElementById('full_history_modal').style.display = 'none'; renderDrops(); calcAll(); }
 
-function openTruckHistory(tid) { const container = document.getElementById('history_list'); container.innerHTML = ''; document.getElementById('hist_title').innerText = `🕒 ประวัติ ${getTruckName(tid)}`; 
-    const startTimeStr = document.getElementById('time_start').value;
-    const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(a.time, startTimeStr)); 
-    let hasData = false; sortedDrops.forEach(d => { if(d.dist) { d.dist.forEach((item, idx) => { if(item.truck === tid) { hasData = true; const typeName = getTypeName(item.type); const typeLabel = d.type === 'prod' ? '<span class="hist-tag ht-fresh">ผลิต</span>' : '<span class="hist-tag ht-stock">ห้อง</span>'; container.insertAdjacentHTML('beforeend', `<div class="hist-item" style="border-radius:12px; border:1px solid #e2e8f0; margin-bottom:10px;"><div class="hist-info" style="flex:1;"><div><b style="font-weight:900; font-size:1.1rem;">${d.time}</b> ${typeLabel} : <span style="font-weight:800;">${typeName}</span></div><div style="color:var(--text-muted); font-weight:600; margin-top:4px;">(${item.r1}/${item.r2}/${item.r3}) = <b style="color:var(--primary); font-size:1.1rem;">${item.total}</b></div></div><div style="display:flex; flex-direction:column; gap:5px;"><button class="btn-edit-mini" onclick="closeHistoryModal(); SOURCE_MODAL='truck_history'; editDist(${d.id}, ${idx})">✏️ แก้ไข</button><button class="btn-del-mini" onclick="removeDist(${d.id}, ${idx}); closeHistoryModal();">🗑️ ลบ</button></div></div>`); } }); } }); if(!hasData) container.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">ไม่มีประวัติสำหรับรถคันนี้</div>'; document.getElementById('history_modal').style.display = 'flex'; }
+function openTruckHistory(tid) { const container = document.getElementById('history_list'); container.innerHTML = ''; document.getElementById('hist_title').innerText = `🕒 ประวัติ ${getTruckName(tid)}`; const startTimeStr = document.getElementById('time_start').value; const sortedDrops = DATA.drops.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(a.time, startTimeStr)); let hasData = false; sortedDrops.forEach(d => { if(d.dist) { d.dist.forEach((item, idx) => { if(item.truck === tid) { hasData = true; const typeName = getTypeName(item.type); const typeLabel = d.type === 'prod' ? '<span class="hist-tag ht-fresh">ผลิต</span>' : '<span class="hist-tag ht-stock">ห้อง</span>'; container.insertAdjacentHTML('beforeend', `<div class="hist-item" style="border-radius:12px; border:1px solid #e2e8f0; margin-bottom:10px;"><div class="hist-info" style="flex:1;"><div><b style="font-weight:900; font-size:1.1rem;">${d.time}</b> ${typeLabel} : <span style="font-weight:800;">${typeName}</span></div><div style="color:var(--text-muted); font-weight:600; margin-top:4px;">(${item.r1}/${item.r2}/${item.r3}) = <b style="color:var(--primary); font-size:1.1rem;">${item.total}</b></div></div><div style="display:flex; flex-direction:column; gap:5px;"><button class="btn-edit-mini" onclick="closeHistoryModal(); SOURCE_MODAL='truck_history'; editDist(${d.id}, ${idx})">✏️ แก้ไข</button><button class="btn-del-mini" onclick="removeDist(${d.id}, ${idx}); closeHistoryModal();">🗑️ ลบ</button></div></div>`); } }); } }); if(!hasData) container.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">ไม่มีประวัติสำหรับรถคันนี้</div>'; document.getElementById('history_modal').style.display = 'flex'; }
 function closeHistoryModal() { document.getElementById('history_modal').style.display = 'none'; }
 
 function openEditPast(id) { 
@@ -747,9 +681,16 @@ function openEditPast(id) {
     if(d.type === 'prod') { 
         let prevProdIdx = -1;
         for(let i=idx-1; i>=0; i--) { if(sortedDrops[i].type === 'prod') { prevProdIdx = i; break; } }
+        
         let prevTime = prevProdIdx >= 0 ? sortedDrops[prevProdIdx].time : startTimeStr;
         let dtSub = 0;
-        for(let i=prevProdIdx+1; i<idx; i++) { if(sortedDrops[i].type==='downtime') dtSub += getMinDiff(sortedDrops[i].time, sortedDrops[i].time_end || sortedDrops[i].time); }
+        
+        // เช็คว่ามี cut ระหว่างทางไหม ถ้ามี ต้องเริ่มนับจาก cut
+        for(let i=prevProdIdx+1; i<idx; i++) { 
+            if(sortedDrops[i].type === 'cut') { prevTime = sortedDrops[i].time; dtSub = 0; }
+            else if(sortedDrops[i].type === 'downtime') { dtSub += getMinDiff(sortedDrops[i].time, sortedDrops[i].time_end || sortedDrops[i].time); }
+        }
+        
         let netDiff = Math.max(0, getMinDiff(prevTime, d.time) - dtSub);
         document.getElementById('edit_past_body').innerHTML = generateCardHtml(d, netDiff); 
         document.getElementById('edit_past_modal').style.display = 'flex'; 
@@ -776,70 +717,19 @@ function editDist(dropId, idx) {
     else { SOURCE_MODAL = null; } 
     initWizard(); CURRENT_DROP_ID = dropId; EDITING_DIST_IDX = idx; const d = DATA.drops.find(x => x.id === dropId); const item = d.dist[idx]; document.getElementById('wiz_truck').value = item.truck; document.getElementById('wiz_type').value = item.type; document.getElementById('wiz_r1').value = item.r1; document.getElementById('wiz_r2').value = item.r2; document.getElementById('wiz_r3').value = item.r3; updateWizStats(); document.getElementById('wiz_title').innerText = '✏️ แก้ไขรายการ'; document.getElementById('dist_modal').style.display = 'flex'; 
 }
-function closeDistModal() { 
-    document.getElementById('dist_modal').style.display = 'none'; 
-    CURRENT_DROP_ID = null; 
-    if(SOURCE_MODAL === 'stock') openStockManager(); 
-    else if (SOURCE_MODAL === 'edit_past') { /* Will just close, user can reopen history */ }
-}
+function closeDistModal() { document.getElementById('dist_modal').style.display = 'none'; CURRENT_DROP_ID = null; if(SOURCE_MODAL === 'stock') openStockManager(); }
 
 function updateWizStats() { 
-    const tid = document.getElementById('wiz_truck').value; 
-    const typeId = document.getElementById('wiz_type').value; 
-    
-    let totalSent = 0; 
-    let sumR = [0, 0, 0]; 
-    
-    DATA.drops.forEach(d => { 
-        if(d.dist) { 
-            d.dist.forEach((item, idx) => { 
-                if(d.id === CURRENT_DROP_ID && idx === EDITING_DIST_IDX) return; 
-                if(item.truck === tid && item.type === typeId) { 
-                    totalSent += getNum(item.total); 
-                } 
-                if(item.truck === tid) {
-                    sumR[0] += getNum(item.r1);
-                    sumR[1] += getNum(item.r2);
-                    sumR[2] += getNum(item.r3);
-                }
-            }); 
-        } 
-    }); 
-    
-    const r1 = getNum(document.getElementById('wiz_r1').value); 
-    const r2 = getNum(document.getElementById('wiz_r2').value); 
-    const r3 = getNum(document.getElementById('wiz_r3').value); 
-    const currentTotal = r1 + r2 + r3; 
-    
-    const target = getNum(DATA.orders[`${tid}_${typeId}`]); 
-    const remain = target - (totalSent + currentTotal); 
-    
+    const tid = document.getElementById('wiz_truck').value; const typeId = document.getElementById('wiz_type').value; 
+    let totalSent = 0; let sumR = [0, 0, 0]; 
+    DATA.drops.forEach(d => { if(d.dist) { d.dist.forEach((item, idx) => { if(d.id === CURRENT_DROP_ID && idx === EDITING_DIST_IDX) return; if(item.truck === tid && item.type === typeId) { totalSent += getNum(item.total); } if(item.truck === tid) { sumR[0] += getNum(item.r1); sumR[1] += getNum(item.r2); sumR[2] += getNum(item.r3); } }); } }); 
+    const r1 = getNum(document.getElementById('wiz_r1').value); const r2 = getNum(document.getElementById('wiz_r2').value); const r3 = getNum(document.getElementById('wiz_r3').value); const currentTotal = r1 + r2 + r3; 
+    const target = getNum(DATA.orders[`${tid}_${typeId}`]); const remain = target - (totalSent + currentTotal); 
     document.getElementById('wiz_total_sum').innerText = currentTotal; 
     const remEl = document.getElementById('wiz_remain'); 
-    if (target === 0) { remEl.innerText = "ไม่ได้สั่ง"; remEl.className = 'wiz-remain'; remEl.style.color = "var(--text-muted)";} 
-    else if (remain > 0) { remEl.innerText = `ขาด ${remain}`; remEl.className = 'wiz-remain st-miss'; remEl.style.color = "#dc2626"; } 
-    else if (remain < 0) { remEl.innerText = `เกิน ${Math.abs(remain)}`; remEl.className = 'wiz-remain st-over'; remEl.style.color = "#0284c7"; } 
-    else { remEl.innerText = "ครบแล้ว ✅"; remEl.className = 'wiz-remain st-ok'; remEl.style.color = "#16a34a"; } 
-
-    const updateRowUI = (idx, currentInput) => {
-        const el = document.getElementById(`wiz_info_r${idx+1}`);
-        const totalInRow = sumR[idx] + currentInput;
-        const diff = 36 - totalInRow;
-        
-        if (totalInRow === 0) {
-            el.innerHTML = `<span style="color:#94a3b8;">(ว่าง ขาด 36)</span>`;
-        } else if (diff > 0) {
-            el.innerHTML = `<span style="color:#0ea5e9;">(รวม ${totalInRow} ขาด ${diff})</span>`;
-        } else if (diff < 0) {
-            el.innerHTML = `<span style="color:#ef4444;">(รวม ${totalInRow} เกิน ${Math.abs(diff)}!)</span>`;
-        } else {
-            el.innerHTML = `<span style="color:#10b981;">(ครบ 36 ใบ ✅)</span>`;
-        }
-    };
-
-    updateRowUI(0, r1);
-    updateRowUI(1, r2);
-    updateRowUI(2, r3);
+    if (target === 0) { remEl.innerText = "ไม่ได้สั่ง"; remEl.className = 'wiz-remain'; remEl.style.color = "var(--text-muted)";} else if (remain > 0) { remEl.innerText = `ขาด ${remain}`; remEl.className = 'wiz-remain st-miss'; remEl.style.color = "#dc2626"; } else if (remain < 0) { remEl.innerText = `เกิน ${Math.abs(remain)}`; remEl.className = 'wiz-remain st-over'; remEl.style.color = "#0284c7"; } else { remEl.innerText = "ครบแล้ว ✅"; remEl.className = 'wiz-remain st-ok'; remEl.style.color = "#16a34a"; } 
+    const updateRowUI = (idx, currentInput) => { const el = document.getElementById(`wiz_info_r${idx+1}`); const totalInRow = sumR[idx] + currentInput; const diff = 36 - totalInRow; if (totalInRow === 0) { el.innerHTML = `<span style="color:#94a3b8;">(ว่าง ขาด 36)</span>`; } else if (diff > 0) { el.innerHTML = `<span style="color:#0ea5e9;">(รวม ${totalInRow} ขาด ${diff})</span>`; } else if (diff < 0) { el.innerHTML = `<span style="color:#ef4444;">(รวม ${totalInRow} เกิน ${Math.abs(diff)}!)</span>`; } else { el.innerHTML = `<span style="color:#10b981;">(ครบ 36 ใบ ✅)</span>`; } };
+    updateRowUI(0, r1); updateRowUI(1, r2); updateRowUI(2, r3);
 }
 
 function confirmDistSave() { 
@@ -856,46 +746,23 @@ function confirmDistSave() {
 function renderOrderInputs() { 
     const c = document.getElementById('order_inputs'); 
     let h = '<table class="order-table"><thead><tr><th style="border-top-left-radius:12px;">รถ</th><th>หลอด</th><th>หยาบ</th><th>ละเอียด</th><th class="col-total" style="border-top-right-radius:12px;">รวม</th></tr></thead><tbody>'; 
-    
     let sumAllHl = 0; let sumAllBh = 0; let sumAllBl = 0; let grandTotal = 0;
-
     TRUCKS.forEach((t, i) => { 
-        const tid = `t${i+1}`; 
-        const hl = DATA.orders[tid+'_hl']||''; 
-        const bh = DATA.orders[tid+'_bh']||''; 
-        const bl = DATA.orders[tid+'_bl']||''; 
-        const total = getNum(hl) + getNum(bh) + getNum(bl); 
-        
+        const tid = `t${i+1}`; const hl = DATA.orders[tid+'_hl']||''; const bh = DATA.orders[tid+'_bh']||''; const bl = DATA.orders[tid+'_bl']||''; const total = getNum(hl) + getNum(bh) + getNum(bl); 
         sumAllHl += getNum(hl); sumAllBh += getNum(bh); sumAllBl += getNum(bl); grandTotal += total;
-
-        h += `<tr>
-            <td style="font-weight:800; color:var(--text-dark);">${t}</td>
-            <td><input type="tel" id="inp_ord_${tid}_hl" value="${hl}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_hl',this.value)" style="padding:10px; font-size:1.2rem;"></td>
-            <td><input type="tel" id="inp_ord_${tid}_bh" value="${bh}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_bh',this.value)" style="padding:10px; font-size:1.2rem;"></td>
-            <td><input type="tel" id="inp_ord_${tid}_bl" value="${bl}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_bl',this.value)" style="padding:10px; font-size:1.2rem;"></td>
-            <td class="order-sum-col" id="ord_sum_${tid}" style="font-size:1.2rem;">${total}</td>
-        </tr>`; 
+        h += `<tr><td style="font-weight:800; color:var(--text-dark);">${t}</td><td><input type="tel" id="inp_ord_${tid}_hl" value="${hl}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_hl',this.value)" style="padding:10px; font-size:1.2rem;"></td><td><input type="tel" id="inp_ord_${tid}_bh" value="${bh}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_bh',this.value)" style="padding:10px; font-size:1.2rem;"></td><td><input type="tel" id="inp_ord_${tid}_bl" value="${bl}" onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'" oninput="updateOrder('${tid}_bl',this.value)" style="padding:10px; font-size:1.2rem;"></td><td class="order-sum-col" id="ord_sum_${tid}" style="font-size:1.2rem;">${total}</td></tr>`; 
     }); 
-
-    h += `<tr class="total-row">
-            <td class="total-label" style="border-bottom-left-radius:12px;">รวม</td>
-            <td id="master_sum_hl" style="font-size:1.1rem;">${sumAllHl}</td>
-            <td id="master_sum_bh" style="font-size:1.1rem;">${sumAllBh}</td>
-            <td id="master_sum_bl" style="font-size:1.1rem;">${sumAllBl}</td>
-            <td id="master_grand_total" style="color:#34d399; font-size:1.2rem; border-bottom-right-radius:12px;">${grandTotal}</td>
-          </tr>`;
-
-    h += '</tbody></table>'; 
-    c.innerHTML = h; 
+    h += `<tr class="total-row"><td class="total-label" style="border-bottom-left-radius:12px;">รวม</td><td id="master_sum_hl" style="font-size:1.1rem;">${sumAllHl}</td><td id="master_sum_bh" style="font-size:1.1rem;">${sumAllBh}</td><td id="master_sum_bl" style="font-size:1.1rem;">${sumAllBl}</td><td id="master_grand_total" style="color:#34d399; font-size:1.2rem; border-bottom-right-radius:12px;">${grandTotal}</td></tr>`;
+    h += '</tbody></table>'; c.innerHTML = h; 
 }
 
 function getTruckName(id) { return TRUCKS[parseInt(id.replace('t',''))-1]; }
 function getTypeName(id) { return ICE_TYPES.find(x=>x.id===id).label; }
 function switchPage(id) { document.querySelectorAll('.page').forEach(x=>x.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active')); document.getElementById('page-'+id).classList.add('active'); const map={setup:0,production:1,summary:2}; document.querySelectorAll('.nav-btn')[map[id]].classList.add('active'); if(id==='summary'){calcAll(); window.scrollTo(0,0);} }
 
+// 🌟 3. เครื่องปริ้นต์อัจฉริยะ (หั่นกะ ตัดหน้าอัตโนมัติ) 🌟
 function printReport() {
     saveData();
-    
     const dateVal = document.getElementById('setup_date').value;
     let thaiDateStr = '';
     if(dateVal) {
@@ -903,261 +770,262 @@ function printReport() {
         const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
         thaiDateStr = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear() + 543}`;
     }
-    
     const rd = window.REPORT_DATA;
     const info = DATA.reportInfo;
-    const startTimeStr = document.getElementById('time_start').value || "22:00";
-    
-    let renderItems = [];
-    rd.drops.forEach(d => {
-        if(d.type === 'prod') {
-            let p_hl = getNum(d.p_in_room.hl); let p_bh = getNum(d.p_in_room.bh); let p_bl = getNum(d.p_in_room.bl);
-            if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') p_hl+=getNum(i.total); if(i.type==='bh') p_bh+=getNum(i.total); if(i.type==='bl') p_bl+=getNum(i.total); }); }
-            const w_hl = Math.ceil(p_hl/40)*40; const w_bod = Math.ceil((p_bh+p_bl)/40)*40;
-            
-            let prevTime = startTimeStr;
-            let idx = rd.drops.findIndex(x => x.id === d.id);
-            for(let i=idx-1; i>=0; i--) { if(rd.drops[i].type==='prod'){ prevTime = rd.drops[i].time; break; } }
-            let dtSub = 0;
-            for(let i=0; i<idx; i++) { 
-                if(rd.drops[i].type==='downtime' && getAdjustedMinutes(rd.drops[i].time, startTimeStr) >= getAdjustedMinutes(prevTime, startTimeStr)) {
-                    dtSub += getMinDiff(rd.drops[i].time, rd.drops[i].time_end);
-                }
-            }
-            let netDiff = Math.max(0, getMinDiff(prevTime, d.time) - dtSub);
+    const startTimeStr = document.getElementById('time_start').value || "20:00";
 
-            renderItems.push({
-                type: 'prod', time: d.time, duration: netDiff,
-                whl: w_hl||'', wbod: w_bod||'', phl: p_hl||'', pbh: p_bh||'', pbl: p_bl||'',
-                rhl: w_hl>0?(w_hl-p_hl):'', rbod: w_bod>0?(w_bod-(p_bh+p_bl)):'',
-                raw_whl: w_hl, raw_wbod: w_bod, raw_phl: p_hl, raw_pbh: p_bh, raw_pbl: p_bl,
-                raw_rhl: w_hl>0?(w_hl-p_hl):0, raw_rbod: w_bod>0?(w_bod-(p_bh+p_bl)):0
+    // 3.1 แบ่งข้อมูลเป็น "กะ" ตามเส้นประ (cut)
+    let batches = [];
+    let currentBatch = [];
+    let currentBatchStartTime = startTimeStr;
+    let currentInitStock = { hl: getNum(DATA.initStock.hl), bh: getNum(DATA.initStock.bh), bl: getNum(DATA.initStock.bl) };
+
+    // ตัวแปรจำลองสต็อกไหลไปเรื่อยๆ เพื่อยกยอดไปกะถัดไป
+    let runningStock = { hl: currentInitStock.hl, bh: currentInitStock.bh, bl: currentInitStock.bl };
+
+    rd.drops.forEach(d => {
+        if (d.type === 'cut') {
+            batches.push({ 
+                startTime: currentBatchStartTime, 
+                items: currentBatch, 
+                startStock: { ...currentInitStock } 
             });
-        } else if (d.type === 'downtime') {
-            renderItems.push({ 
-                type: 'downtime_start', 
-                time: d.time,
-                end_time_val: d.time
-            });
-            renderItems.push({ 
-                type: 'downtime_end', 
-                time: d.time_end || d.time,
-                end_time_val: d.time_end || d.time
-            });
+            // เมื่อตัดกะ สต็อกตั้งต้นของกะถัดไป = สต็อกคงเหลือล่าสุด
+            currentInitStock = { ...runningStock };
+            currentBatch = [];
+            currentBatchStartTime = d.time; 
+        } else {
+            currentBatch.push(d);
+            // จำลองการเบิก/ใช้ เพื่อหาสต็อกคงเหลือ
+            if (d.type === 'prod' || d.type === 'stock') {
+                let w_hl = 0, w_bod = 0, p_hl = 0, p_bh = 0, p_bl = 0;
+                if(d.type === 'prod') {
+                    p_hl = getNum(d.p_in_room.hl); p_bh = getNum(d.p_in_room.bh); p_bl = getNum(d.p_in_room.bl);
+                }
+                if(d.dist) {
+                    d.dist.forEach(i => {
+                        let tot = getNum(i.total);
+                        if(i.type === 'hl') p_hl += tot;
+                        if(i.type === 'bh') p_bh += tot;
+                        if(i.type === 'bl') p_bl += tot;
+                    });
+                }
+                w_hl = Math.ceil(p_hl/40)*40;
+                w_bod = Math.ceil((p_bh+p_bl)/40)*40;
+                
+                // กระสอบคงเหลือเพิ่มขึ้นจาก (เบิก - ใช้)
+                runningStock.hl += (w_hl > 0 ? (w_hl - p_hl) : 0);
+                runningStock.bh += (w_bod > 0 ? (w_bod - (p_bh + p_bl)) : 0); // บดหยาบ/ละเอียดใช้กระสอบรวมกัน
+            }
         }
     });
-
-    /* 🚀 ตั้งค่าการหั่น PDF เป็น 29 ช่อง ตามที่ลูกศิษย์สั่ง! */
-    const ROWS_PER_PAGE = 29;
-    let chunks = [];
-    for(let i = 0; i < renderItems.length; i += ROWS_PER_PAGE) {
-        chunks.push(renderItems.slice(i, i + ROWS_PER_PAGE));
-    }
-    if(chunks.length === 0) chunks.push([]); 
+    // ดันกะสุดท้ายเข้า array
+    batches.push({ startTime: currentBatchStartTime, items: currentBatch, startStock: { ...currentInitStock } });
 
     let finalHtml = '';
+    let shiftCount = 1;
 
-    chunks.forEach((chunk, pageIdx) => {
-        let c_sumHL=0, c_sumBH=0, c_sumBL=0, c_totDuration=0;
-        let c_withHL=0, c_withBOD=0, c_remHL=0, c_remBOD=0;
-        let c_prodCount=0;
+    batches.forEach((batch, batchIndex) => {
+        // ข้ามกะที่ว่างเปล่า (กรณีเผลอกดตัดกะแล้วไม่ได้ลงงานต่อ)
+        if (batch.items.length === 0 && batches.length > 1 && batchIndex === batches.length - 1) return; 
         
-        chunk.forEach(item => {
+        let renderItems = [];
+        let prevTime = batch.startTime;
+        let dtSub = 0;
+
+        batch.items.forEach(d => {
+            if(d.type === 'prod') {
+                let p_hl = getNum(d.p_in_room.hl); let p_bh = getNum(d.p_in_room.bh); let p_bl = getNum(d.p_in_room.bl);
+                if(d.dist) { d.dist.forEach(i => { if(i.type==='hl') p_hl+=getNum(i.total); if(i.type==='bh') p_bh+=getNum(i.total); if(i.type==='bl') p_bl+=getNum(i.total); }); }
+                const w_hl = Math.ceil(p_hl/40)*40; const w_bod = Math.ceil((p_bh+p_bl)/40)*40;
+                
+                let netDiff = Math.max(0, getMinDiff(prevTime, d.time) - dtSub);
+                renderItems.push({
+                    type: 'prod', time: d.time, duration: netDiff,
+                    whl: w_hl||'', wbod: w_bod||'', phl: p_hl||'', pbh: p_bh||'', pbl: p_bl||'',
+                    rhl: w_hl>0?(w_hl-p_hl):'', rbod: w_bod>0?(w_bod-(p_bh+p_bl)):'',
+                    raw_whl: w_hl, raw_wbod: w_bod, raw_phl: p_hl, raw_pbh: p_bh, raw_pbl: p_bl,
+                    raw_rhl: w_hl>0?(w_hl-p_hl):0, raw_rbod: w_bod>0?(w_bod-(p_bh+p_bl)):0
+                });
+                prevTime = d.time;
+                dtSub = 0;
+            } else if (d.type === 'downtime') {
+                dtSub += getMinDiff(d.time, d.time_end || d.time);
+                renderItems.push({ type: 'downtime_start', time: d.time });
+                renderItems.push({ type: 'downtime_end', time: d.time_end || d.time });
+            }
+        });
+
+        // คำนวณสรุปยอดรวมของ "กะ" นี้
+        let b_sumHL=0, b_sumBH=0, b_sumBL=0, b_totDuration=0;
+        let b_withHL=0, b_withBOD=0, b_remHL=0, b_remBOD=0;
+        let b_prodCount=0;
+        
+        renderItems.forEach(item => {
             if(item.type === 'prod') {
-                c_sumHL += item.raw_phl;
-                c_sumBH += item.raw_pbh;
-                c_sumBL += item.raw_pbl;
-                c_totDuration += item.duration;
-                c_withHL += item.raw_whl;
-                c_withBOD += item.raw_wbod;
-                c_remHL += item.raw_rhl;
-                c_remBOD += item.raw_rbod;
-                c_prodCount++;
+                b_sumHL += item.raw_phl; b_sumBH += item.raw_pbh; b_sumBL += item.raw_pbl;
+                b_totDuration += item.duration;
+                b_withHL += item.raw_whl; b_withBOD += item.raw_wbod;
+                b_remHL += item.raw_rhl; b_remBOD += item.raw_rbod;
+                b_prodCount++;
             }
         });
         
-        let c_totProd = c_sumHL + c_sumBH + c_sumBL;
-        let c_wHL = c_sumHL * 20;
-        let c_wBH = c_sumBH * 23;
-        let c_wBL = c_sumBL * 24;
-        let c_totWeight = c_wHL + c_wBH + c_wBL;
-        let c_avgTime = c_prodCount > 0 ? Math.round(c_totDuration / c_prodCount) : 0;
-        let c_tonsDay = (c_totDuration > 0 && c_totWeight > 0) ? ((c_totWeight / c_totDuration) * 1440 / 1000).toFixed(2) : 0;
-        let c_avgYield = c_prodCount > 0 ? Math.round(c_totProd / c_prodCount) : 0;
+        let b_totProd = b_sumHL + b_sumBH + b_sumBL;
+        let b_wHL = b_sumHL * 20; let b_wBH = b_sumBH * 23; let b_wBL = b_sumBL * 24;
+        let b_totWeight = b_wHL + b_wBH + b_wBL;
+        let b_avgTime = b_prodCount > 0 ? Math.round(b_totDuration / b_prodCount) : 0;
+        let b_tonsDay = (b_totDuration > 0 && b_totWeight > 0) ? ((b_totWeight / b_totDuration) * 1440 / 1000).toFixed(2) : 0;
+        let b_avgYield = b_prodCount > 0 ? Math.round(b_totProd / b_prodCount) : 0;
 
-        let pageDateStr = pageIdx === 0 ? thaiDateStr : thaiDateStr + " (ต่อ)";
+        // สต็อกคงเหลือสุทธิของกะนี้ = ยกมา + เหลือจากการเบิก
+        let finalRemHL = batch.startStock.hl + b_remHL;
+        let finalRemBOD = batch.startStock.bh + batch.startStock.bl + b_remBOD;
 
-        let pageStartTime = startTimeStr;
-        if (pageIdx > 0) {
-            let prevChunk = chunks[pageIdx - 1];
-            if(prevChunk && prevChunk.length > 0) {
-                let lastItem = prevChunk[prevChunk.length - 1];
-                pageStartTime = lastItem.end_time_val || lastItem.time;
+        const ROWS_PER_PAGE = 29;
+        let chunks = [];
+        for(let i = 0; i < renderItems.length; i += ROWS_PER_PAGE) { chunks.push(renderItems.slice(i, i + ROWS_PER_PAGE)); }
+        if(chunks.length === 0) chunks.push([]); 
+
+        chunks.forEach((chunk, pageIdx) => {
+            let shiftLabel = batches.length > 1 ? `(กะที่ ${shiftCount})` : '';
+            let pageDateStr = pageIdx === 0 ? `${thaiDateStr} ${shiftLabel}` : `${thaiDateStr} ${shiftLabel} (ต่อ)`;
+
+            // เวลาเปิดของหน้านั้น
+            let pageStartTime = batch.startTime;
+            if (pageIdx > 0 && chunks[pageIdx - 1].length > 0) {
+                let lastItem = chunks[pageIdx - 1][chunks[pageIdx - 1].length - 1];
+                pageStartTime = lastItem.time;
             }
-        }
 
-        let footerTitle = pageIdx === chunks.length - 1 ? `รวม (ปิด ${rd.timeStop} น.)` : "รวม";
+            let sumCol = [
+                `<span class="s-label">หลอดใหญ่</span> <span class="s-val">${b_sumHL} กระสอบ</span>`,
+                `<span class="s-label">บดหยาบ</span> <span class="s-val">${b_sumBH} กระสอบ</span>`,
+                `<span class="s-label">บดละเอียด</span> <span class="s-val">${b_sumBL} กระสอบ</span>`,
+                `<span class="s-label" style="font-weight:900;">รวม</span> <span class="s-val" style="font-weight:900;">${b_totProd} กระสอบ</span>`,
+                
+                `<span class="s-label">หลอดใหญ่</span> <span class="s-val">20 กก.</span>`,
+                `<span class="s-label">บดหยาบ</span> <span class="s-val">23 กก.</span>`,
+                `<span class="s-label">บดละเอียด</span> <span class="s-val">24 กก.</span>`,
+                `<span class="s-label" style="font-weight:900;">รวม</span> <span class="s-val" style="font-weight:900;">22 กก.</span>`,
+                
+                `<span class="s-label">หลอดใหญ่</span> <span class="s-val">${b_wHL.toLocaleString()} กก.</span>`,
+                `<span class="s-label">บดหยาบ</span> <span class="s-val">${b_wBH.toLocaleString()} กก.</span>`,
+                `<span class="s-label">บดละเอียด</span> <span class="s-val">${b_wBL.toLocaleString()} กก.</span>`,
+                `<span class="s-label" style="font-weight:900;">รวม</span> <span class="s-val" style="font-weight:900;">${b_totWeight.toLocaleString()} กก.</span>`,
+                
+                `<span class="s-label">เวลาเฉลี่ย</span> <span class="s-val">${b_avgTime} นาที/ตก</span>`,
+                `<span class="s-label">น้ำหนัก</span> <span class="s-val">${b_tonsDay} ตัน/กะ</span>`,
+                `<span class="s-label">จำนวนเฉลี่ย</span> <span class="s-val">${b_avgYield} ใบ/ตก</span>`,
+                
+                `<span class="s-label">สต็อกยกมา (เริ่มต้น)</span> <span class="s-val" style="color:#0ea5e9;">หลอด ${batch.startStock.hl} | บด ${batch.startStock.bh + batch.startStock.bl}</span>`,
+                `<span class="s-label">เบิกระหว่างกะ</span> <span class="s-val">${b_withHL + b_withBOD} ใบ</span>`,
+                `<span class="s-label">คงเหลือสุทธิ (ส่งต่อ)</span> <span class="s-val" style="color:#ea580c; font-weight:900;">หลอด ${finalRemHL} | บด ${finalRemBOD}</span>`,
+                
+                `<span class="s-label">ค่า pH</span> <span class="s-val">${info.ph}</span>`,
+                `<span class="s-label">ค่า TDS</span> <span class="s-val">${info.tds}</span>`,
+                `<span class="s-label">พนักงานผลิต</span> <span class="s-val">${info.prodStaff} คน</span>`,
+                `<span class="s-label">วิศวกรรม</span> <span class="s-val">${info.engStaff} คน</span>`
+            ];
 
-        let sumCol = [
-            `<span class="s-label">หลอดใหญ่</span> <span class="s-val">${c_sumHL} กระสอบ</span>`,
-            `<span class="s-label">บดหยาบ</span> <span class="s-val">${c_sumBH} กระสอบ</span>`,
-            `<span class="s-label">บดละเอียด</span> <span class="s-val">${c_sumBL} กระสอบ</span>`,
-            `<span class="s-label" style="font-weight:900;">รวม</span> <span class="s-val" style="font-weight:900;">${c_totProd} กระสอบ</span>`,
-            
-            `<span class="s-label">หลอดใหญ่</span> <span class="s-val">20 กก.</span>`,
-            `<span class="s-label">บดหยาบ</span> <span class="s-val">23 กก.</span>`,
-            `<span class="s-label">บดละเอียด</span> <span class="s-val">24 กก.</span>`,
-            `<span class="s-label" style="font-weight:900;">รวม</span> <span class="s-val" style="font-weight:900;">22 กก.</span>`,
-            
-            `<span class="s-label">หลอดใหญ่</span> <span class="s-val">${c_wHL.toLocaleString()} กก.</span>`,
-            `<span class="s-label">บดหยาบ</span> <span class="s-val">${c_wBH.toLocaleString()} กก.</span>`,
-            `<span class="s-label">บดละเอียด</span> <span class="s-val">${c_wBL.toLocaleString()} กก.</span>`,
-            `<span class="s-label" style="font-weight:900;">รวม</span> <span class="s-val" style="font-weight:900;">${c_totWeight.toLocaleString()} กก.</span>`,
-            
-            `<span class="s-label">เวลาเฉลี่ย</span> <span class="s-val">${c_avgTime} นาที/ตก</span>`,
-            `<span class="s-label">น้ำหนัก</span> <span class="s-val">${c_tonsDay} ตัน/วัน</span>`,
-            `<span class="s-label">จำนวนเฉลี่ย</span> <span class="s-val">${c_avgYield} กระสอบ/ตก</span>`,
-            
-            `<span class="s-label">เบิกกระสอบรวม</span> <span class="s-val">${c_withHL + c_withBOD} ใบ</span>`,
-            `<span class="s-label">กระสอบที่ใช้</span> <span class="s-val">${c_totProd} ใบ</span>`,
-            `<span class="s-label">กระสอบคงเหลือ</span> <span class="s-val">${c_remHL + c_remBOD} ใบ</span>`,
-            
-            `<span class="s-label">ค่า pH</span> <span class="s-val">${info.ph}</span>`,
-            `<span class="s-label">ค่า TDS</span> <span class="s-val">${info.tds}</span>`,
-            `<span class="s-label">พนักงานผลิต</span> <span class="s-val">${info.prodStaff} คน</span>`,
-            `<span class="s-label">วิศวกรรม</span> <span class="s-val">${info.engStaff} คน</span>`
-        ];
+            let pageHtml = `
+            <div class="print-page">
+                <div class="print-header">
+                    แบบฟอร์มบันทึกการผลิตน้ำแข็ง สาขา ${info.branch} เครื่องที่ ${info.machine}<br>
+                    <span class="date-text">ประจำวันที่ ${pageDateStr}</span>
+                </div>
+                
+                <div class="print-wrapper">
+                    <div class="print-left">
+                        <table class="print-table">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" style="width:5%;">ลำดับ</th>
+                                    <th style="width:13%;">เวลา</th>
+                                    <th rowspan="2" style="width:8%;">นาที/<br>ตก</th>
+                                    <th colspan="2" style="width:16%; background-color:#e0f2fe !important; color:#0284c7 !important;">เบิกกระสอบ</th>
+                                    <th colspan="3" style="width:30%; background-color:#dcfce7 !important; color:#15803d !important;">ผลการผลิต</th>
+                                    <th colspan="2" style="width:16%; background-color:#fef3c7 !important; color:#b45309 !important;">กระสอบคงเหลือ</th>
+                                </tr>
+                                <tr>
+                                    <th>เปิด ${pageStartTime} น.</th>
+                                    <th style="width:8%; background-color:#e0f2fe !important; color:#0284c7 !important;">หลอด</th>
+                                    <th style="width:8%; background-color:#e0f2fe !important; color:#0284c7 !important;">บด</th>
+                                    <th style="width:10%; background-color:#dcfce7 !important; color:#15803d !important;">หลอดใหญ่</th>
+                                    <th style="width:10%; background-color:#dcfce7 !important; color:#15803d !important;">บดหยาบ</th>
+                                    <th style="width:10%; background-color:#dcfce7 !important; color:#15803d !important;">ละเอียด</th>
+                                    <th style="width:8%; background-color:#fef3c7 !important; color:#b45309 !important;">หลอด</th>
+                                    <th style="width:8%; background-color:#fef3c7 !important; color:#b45309 !important;">บด</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
 
-        let pageHtml = `
-        <div class="print-page">
-            <div class="print-header">
-                แบบฟอร์มบันทึกการผลิตน้ำแข็ง สาขา ${info.branch} เครื่องที่ ${info.machine}<br>
-                <span class="date-text">ประจำวันที่ ${pageDateStr}</span>
-            </div>
-            
-            <div class="print-wrapper">
-                <div class="print-left">
-                    <table class="print-table">
-                        <thead>
-                            <tr>
-                                <th rowspan="2" style="width:5%;">ลำดับ</th>
-                                <th style="width:13%;">เวลา</th>
-                                <th rowspan="2" style="width:8%;">นาที/<br>ตก</th>
-                                <th colspan="2" style="width:16%; background-color:#e0f2fe !important; color:#0284c7 !important;">เบิกกระสอบ</th>
-                                <th colspan="3" style="width:30%; background-color:#dcfce7 !important; color:#15803d !important;">ผลการผลิต</th>
-                                <th colspan="2" style="width:16%; background-color:#fef3c7 !important; color:#b45309 !important;">กระสอบคงเหลือ</th>
-                            </tr>
-                            <tr>
-                                <th>เปิด ${pageStartTime} น.</th>
-                                <th style="width:8%; background-color:#e0f2fe !important; color:#0284c7 !important;">หลอด</th>
-                                <th style="width:8%; background-color:#e0f2fe !important; color:#0284c7 !important;">บด</th>
-                                <th style="width:10%; background-color:#dcfce7 !important; color:#15803d !important;">หลอดใหญ่</th>
-                                <th style="width:10%; background-color:#dcfce7 !important; color:#15803d !important;">บดหยาบ</th>
-                                <th style="width:10%; background-color:#dcfce7 !important; color:#15803d !important;">ละเอียด</th>
-                                <th style="width:8%; background-color:#fef3c7 !important; color:#b45309 !important;">หลอด</th>
-                                <th style="width:8%; background-color:#fef3c7 !important; color:#b45309 !important;">บด</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-        `;
-
-        let localProdCounter = 0; 
-
-        for(let i=0; i<ROWS_PER_PAGE; i++) {
-            let item = chunk[i];
-            if(item && item.type === 'prod') {
-                localProdCounter++;
-                pageHtml += `<tr>
-                    <td>${localProdCounter}</td><td>${item.time}</td><td>${item.duration}</td>
-                    <td class="pc-check">${item.whl}</td><td class="pc-check">${item.wbod}</td>
-                    <td class="pc-prod">${item.phl}</td><td class="pc-prod">${item.pbh}</td><td class="pc-prod">${item.pbl}</td>
-                    <td class="pc-rem">${item.rhl}</td><td class="pc-rem">${item.rbod}</td>
-                </tr>`;
-            } else if (item && item.type === 'downtime_start') {
-                pageHtml += `<tr>
-                    <td></td><td style="color:black;">${item.time}</td><td></td>
-                    <td colspan="7" style="font-weight:900; letter-spacing:1px; background-color:#fef2f2 !important; color:#dc2626 !important;">ปิดเครื่อง</td>
-                </tr>`;
-            } else if (item && item.type === 'downtime_end') {
-                pageHtml += `<tr>
-                    <td></td><td style="color:black;">${item.time}</td><td></td>
-                    <td colspan="7" style="font-weight:900; letter-spacing:1px; background-color:#f0fdf4 !important; color:#16a34a !important;">เปิดเครื่อง</td>
-                </tr>`;
-            } else {
-                pageHtml += `<tr>
-                    <td></td><td></td><td></td>
-                    <td class="pc-check"></td><td class="pc-check"></td>
-                    <td class="pc-prod"></td><td class="pc-prod"></td><td class="pc-prod"></td>
-                    <td class="pc-rem"></td><td class="pc-rem"></td>
-                </tr>`;
+            let localProdCounter = 0; 
+            for(let i=0; i<ROWS_PER_PAGE; i++) {
+                let item = chunk[i];
+                if(item && item.type === 'prod') {
+                    localProdCounter++;
+                    pageHtml += `<tr>
+                        <td>${localProdCounter}</td><td>${item.time}</td><td>${item.duration}</td>
+                        <td class="pc-check">${item.whl}</td><td class="pc-check">${item.wbod}</td>
+                        <td class="pc-prod">${item.phl}</td><td class="pc-prod">${item.pbh}</td><td class="pc-prod">${item.pbl}</td>
+                        <td class="pc-rem">${item.rhl}</td><td class="pc-rem">${item.rbod}</td>
+                    </tr>`;
+                } else if (item && item.type === 'downtime_start') {
+                    pageHtml += `<tr><td></td><td style="color:black;">${item.time}</td><td></td><td colspan="7" style="font-weight:900; letter-spacing:1px; background-color:#fef2f2 !important; color:#dc2626 !important;">ปิดเครื่อง</td></tr>`;
+                } else if (item && item.type === 'downtime_end') {
+                    pageHtml += `<tr><td></td><td style="color:black;">${item.time}</td><td></td><td colspan="7" style="font-weight:900; letter-spacing:1px; background-color:#f0fdf4 !important; color:#16a34a !important;">เปิดเครื่อง</td></tr>`;
+                } else {
+                    pageHtml += `<tr><td></td><td></td><td></td><td class="pc-check"></td><td class="pc-check"></td><td class="pc-prod"></td><td class="pc-prod"></td><td class="pc-prod"></td><td class="pc-rem"></td><td class="pc-rem"></td></tr>`;
+                }
             }
-        }
 
-        pageHtml += `
-                        <tr class="print-footer">
-                            <td colspan="2">${footerTitle}</td>
-                            <td>${c_totDuration}</td>
-                            <td>${c_withHL}</td><td>${c_withBOD}</td>
-                            <td>${c_sumHL}</td><td>${c_sumBH}</td><td>${c_sumBL}</td>
-                            <td>${c_remHL}</td><td>${c_remBOD}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="print-right">
-                <div class="s-title" style="margin-top:0;">ข้อมูลสรุป</div>
-                <div class="s-line">${sumCol[0]}</div>
-                <div class="s-line">${sumCol[1]}</div>
-                <div class="s-line">${sumCol[2]}</div>
-                <div class="s-line" style="border-bottom:none;">${sumCol[3]}</div>
-                
-                <div class="s-title">น้ำหนักเฉลี่ย</div>
-                <div class="s-line">${sumCol[4]}</div>
-                <div class="s-line">${sumCol[5]}</div>
-                <div class="s-line">${sumCol[6]}</div>
-                <div class="s-line" style="border-bottom:none;">${sumCol[7]}</div>
+            let footerTitle = pageIdx === chunks.length - 1 ? `รวมกะนี้` : "รวม (แผ่นนี้)";
+            // Footer รวมยอดเฉพาะแผ่นนี้ (เพื่อไม่ให้ User งง)
+            let c_sumH = 0, c_sumB = 0, c_sumHL = 0, c_sumBH = 0, c_sumBL = 0, c_remH = 0, c_remB = 0, c_dur = 0;
+            chunk.forEach(item => {
+                if(item && item.type === 'prod') {
+                    c_sumH += item.raw_whl; c_sumB += item.raw_wbod; c_sumHL += item.raw_phl; c_sumBH += item.raw_pbh; c_sumBL += item.raw_pbl;
+                    c_remH += item.raw_rhl; c_remB += item.raw_rbod; c_dur += item.duration;
+                }
+            });
 
-                <div class="s-title">น้ำหนักรวม</div>
-                <div class="s-line">${sumCol[8]}</div>
-                <div class="s-line">${sumCol[9]}</div>
-                <div class="s-line">${sumCol[10]}</div>
-                <div class="s-line" style="border-bottom:none;">${sumCol[11]}</div>
+            pageHtml += `
+                            <tr class="print-footer">
+                                <td colspan="2">${footerTitle}</td><td>${c_dur}</td><td>${c_sumH}</td><td>${c_sumB}</td>
+                                <td>${c_sumHL}</td><td>${c_sumBH}</td><td>${c_sumBL}</td><td>${c_remH}</td><td>${c_remB}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
                 
-                <div class="s-title">สถิติการผลิต</div>
-                <div class="s-line">${sumCol[12]}</div>
-                <div class="s-line">${sumCol[13]}</div>
-                <div class="s-line" style="border-bottom:none;">${sumCol[14]}</div>
-                
-                <div class="s-title">สรุปกระสอบ</div>
-                <div class="s-line">${sumCol[15]}</div>
-                <div class="s-line">${sumCol[16]}</div>
-                <div class="s-line" style="border-bottom:none;">${sumCol[17]}</div>
-                
-                <div class="s-title">ข้อมูลอื่นๆ</div>
-                <div class="s-line">${sumCol[18]}</div>
-                <div class="s-line">${sumCol[19]}</div>
-                <div class="s-line">${sumCol[20]}</div>
-                <div class="s-line" style="border-bottom:none;">${sumCol[21]}</div>
-                
-                <div class="sign-box">
-                    <div class="sign-line">ลงชื่อ <span class="sign-dots"></span> วิศวกรรม</div>
-                    <div class="sign-line">ลงชื่อ <span class="sign-dots"></span> ผู้จัดการสาขา</div>
+                <div class="print-right">
+                    <div class="s-title" style="margin-top:0;">ข้อมูลสรุป (กะที่ ${shiftCount})</div>
+                    <div class="s-line">${sumCol[0]}</div><div class="s-line">${sumCol[1]}</div><div class="s-line">${sumCol[2]}</div><div class="s-line" style="border-bottom:none;">${sumCol[3]}</div>
+                    <div class="s-title">น้ำหนักเฉลี่ย</div>
+                    <div class="s-line">${sumCol[4]}</div><div class="s-line">${sumCol[5]}</div><div class="s-line">${sumCol[6]}</div><div class="s-line" style="border-bottom:none;">${sumCol[7]}</div>
+                    <div class="s-title">น้ำหนักรวม</div>
+                    <div class="s-line">${sumCol[8]}</div><div class="s-line">${sumCol[9]}</div><div class="s-line">${sumCol[10]}</div><div class="s-line" style="border-bottom:none;">${sumCol[11]}</div>
+                    <div class="s-title">สถิติการผลิต</div>
+                    <div class="s-line">${sumCol[12]}</div><div class="s-line">${sumCol[13]}</div><div class="s-line" style="border-bottom:none;">${sumCol[14]}</div>
+                    <div class="s-title">สรุปกระสอบ</div>
+                    <div class="s-line">${sumCol[15]}</div><div class="s-line">${sumCol[16]}</div><div class="s-line" style="border-bottom:none;">${sumCol[17]}</div>
+                    <div class="s-title">ข้อมูลอื่นๆ</div>
+                    <div class="s-line">${sumCol[18]}</div><div class="s-line">${sumCol[19]}</div><div class="s-line">${sumCol[20]}</div><div class="s-line" style="border-bottom:none;">${sumCol[21]}</div>
+                    <div class="sign-box">
+                        <div class="sign-line">ลงชื่อ <span class="sign-dots"></span> วิศวกรรม</div>
+                        <div class="sign-line">ลงชื่อ <span class="sign-dots"></span> ผู้จัดการสาขา</div>
+                    </div>
                 </div>
             </div>
-        </div>
-        </div>
-        `;
-        
-        finalHtml += pageHtml;
+            </div>
+            `;
+            finalHtml += pageHtml;
+        });
+        shiftCount++;
     });
 
     document.getElementById('print_area').innerHTML = finalHtml;
     setTimeout(() => { window.print(); }, 300);
 }
-
-window.addEventListener('beforeunload', function (e) {
-    const confirmationMessage = 'คุณกำลังจะออกจากหน้านี้ ข้อมูลถูกบันทึกในเครื่องแล้ว แต่อยากยืนยันการออกหรือไม่?';
-    e.returnValue = confirmationMessage; 
-    return confirmationMessage;
-});
