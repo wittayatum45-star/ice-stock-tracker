@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Smart Ice">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#ef4444">
-    <title>Smart Ice V209.6 (Ultimate Flow)</title>
+    <title>Smart Ice V209.7 (Auto PDF Close Time)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
         /* --- Modern Premium Theme (Screen UI) --- */
@@ -240,7 +240,7 @@
     <div id="page-production" class="page">
         <div class="grid-2">
             <button class="btn-downtime" onclick="openDowntimeModal()" style="margin-bottom:10px;">⚡ บันทึกไฟดับ</button>
-            <button style="background:var(--warning-grad); color:white; border:none; border-radius:14px; font-weight:900; margin-bottom:10px; font-size:1rem; cursor:pointer;" onclick="openCutModal()">✂️ ตัดกะ (เริ่มแผ่นใหม่)</button>
+            <button style="background:var(--warning-grad); color:white; border:none; border-radius:14px; font-weight:900; margin-bottom:10px; font-size:1rem; cursor:pointer;" onclick="openCutModal()">✂️ ตัดแผ่นใหม่</button>
         </div>
         <div class="grid-2">
             <button class="btn-stock-manager" style="margin-bottom:20px; font-size:1rem;" onclick="openStockManager()">📦 จ่ายของเก่า</button>
@@ -264,7 +264,7 @@
             <h3 style="color:var(--primary);">📑 ข้อมูลออกรายงาน (PDF Form)</h3>
             <div class="grid-2" style="margin-bottom:10px;">
                 <div><div class="input-label">สาขา</div><input type="text" id="rpt_branch" value="วารีเทพเพ็ญ (W041)" oninput="saveData()"></div>
-                <div><div class="input-label">เครื่องที่</div><input type="text" id="rpt_machine" value="M1" oninput="saveData()"></div>
+                <div><div class="input-label">เครื่อง</div><input type="text" id="rpt_machine" value="M1" oninput="saveData()"></div>
             </div>
             <div class="grid-2" style="margin-bottom:10px;">
                 <div><div class="input-label">ค่า pH</div><input type="text" id="rpt_ph" value="7.1" oninput="saveData()"></div>
@@ -594,7 +594,6 @@
             }
         }
 
-        // 🌟 เปิดหน้าต่างเวลาตอนจะกดตัดกะ (แบบสวยงาม) 🌟
         function openCutModal() {
             const now = new Date();
             const timeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
@@ -718,7 +717,6 @@
             return String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
         }
 
-        // 🌟🌟 ระบบคำนวณเวลาส่วนกลาง (Single Source of Truth) เพื่อแก้บั๊ก 0 นาที! 🌟🌟
         function processDrops(dropsArray, startTimeStr) {
             let sorted = dropsArray.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
             let lastTime = startTimeStr;
@@ -732,7 +730,7 @@
                     dtAccum += getMinDiff(d.time, d.time_end || d.time);
                 } else if (d.type === 'prod') {
                     let gross = getMinDiff(lastTime, d.time);
-                    d._duration = Math.max(0, gross - dtAccum); // เก็บค่านาทีไว้ในตัวแปรนี้เลย!
+                    d._duration = Math.max(0, gross - dtAccum); 
                     lastTime = d.time;
                     dtAccum = 0;
                 }
@@ -755,7 +753,6 @@
                  return;
             }
             
-            // ดึงค่าเวลาที่คิดไว้แล้วแบบเป๊ะๆ มาใช้งาน
             let netDiff = latestProd._duration || 0;
             container.insertAdjacentHTML('beforeend', generateCardHtml(latestProd, netDiff));
         }
@@ -852,7 +849,6 @@
             });
             totOrd = ordHL + ordBH + ordBL;
 
-            // 🌟 ใช้งานตัวประมวลผลเวลาส่วนกลาง 🌟
             const processedDrops = processDrops(DATA.drops, startTimeStr);
             let dropCount = 0;
 
@@ -1168,7 +1164,7 @@
         function getTypeName(id) { return ICE_TYPES.find(x=>x.id===id).label; }
         function switchPage(id) { document.querySelectorAll('.page').forEach(x=>x.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active')); document.getElementById('page-'+id).classList.add('active'); const map={setup:0,production:1,summary:2}; document.querySelectorAll('.nav-btn')[map[id]].classList.add('active'); if(id==='summary'){calcAll(); window.scrollTo(0,0);} }
 
-        // 🌟🌟 PDF พิมพ์เขียวออริจินัล (ไม่มียอดสะสม เวลาเปิดเครื่องคือเวลาตกของแผ่นเก่า) 🌟🌟
+        // 🌟🌟 ฟังก์ชันสร้าง PDF ที่ฉลาดสุดๆ 🌟🌟
         function printReport() {
             saveData();
             const dateVal = document.getElementById('setup_date').value;
@@ -1190,7 +1186,7 @@
                 if (d.type === 'cut') {
                     batches.push({ startTime: currentBatchStartTime, items: currentBatch });
                     currentBatch = [];
-                    currentBatchStartTime = d.time; // เอาเวลาตัดกะ เป็นเวลาเปิดของแผ่นหน้า!
+                    currentBatchStartTime = d.time; 
                 } else {
                     currentBatch.push(d);
                 }
@@ -1198,12 +1194,14 @@
             batches.push({ startTime: currentBatchStartTime, items: currentBatch });
 
             let finalHtml = '';
-            let shiftCount = 1;
 
             batches.forEach((batch, batchIndex) => {
                 if (batch.items.length === 0 && batches.length > 1 && batchIndex === batches.length - 1) return; 
                 
                 let renderItems = [];
+                let prevTime = batch.startTime; 
+                let dtSub = 0;
+
                 batch.items.forEach(d => {
                     if(d.type === 'prod') {
                         let p_hl = getNum(d.p_in_room.hl); let p_bh = getNum(d.p_in_room.bh); let p_bl = getNum(d.p_in_room.bl);
@@ -1211,7 +1209,7 @@
                         const w_hl = Math.ceil(p_hl/40)*40; const w_bod = Math.ceil((p_bh+p_bl)/40)*40;
                         
                         renderItems.push({
-                            type: 'prod', time: d.time, duration: d._duration, // ดึงค่าเป๊ะๆ จากสมองมาเลย!
+                            type: 'prod', time: d.time, duration: d._duration,
                             whl: w_hl||'', wbod: w_bod||'', phl: p_hl||'', pbh: p_bh||'', pbl: p_bl||'',
                             rhl: w_hl>0?(w_hl-p_hl):'', rbod: w_bod>0?(w_bod-(p_bh+p_bl)):'',
                             raw_whl: w_hl, raw_wbod: w_bod, raw_phl: p_hl, raw_pbh: p_bh, raw_pbl: p_bl,
@@ -1249,13 +1247,12 @@
                 for(let i = 0; i < renderItems.length; i += ROWS_PER_PAGE) { chunks.push(renderItems.slice(i, i + ROWS_PER_PAGE)); }
                 if(chunks.length === 0) chunks.push([]); 
 
-                // ตัวแปรจำเวลาของหน้าก่อนๆ
                 let runningLastTime = batch.startTime;
 
                 chunks.forEach((chunk, pageIdx) => {
                     let pageDateStr = pageIdx === 0 ? `${thaiDateStr}` : `${thaiDateStr} (ต่อ)`;
                     
-                    // 🌟 เวลาเปิดเครื่อง: ดึงจาก runningLastTime ได้เลย เนียนๆ! 🌟
+                    // 🌟 เวลาเปิดเครื่อง: ดึงจากตกล่าสุดมาเป็นค่าเริ่มต้นของหน้านี้
                     let pageStartTime = runningLastTime;
 
                     let sumCol = [
@@ -1278,7 +1275,6 @@
                         `<span class="s-label">น้ำหนัก</span> <span class="s-val">${b_tonsDay} ตัน</span>`,
                         `<span class="s-label">จำนวนเฉลี่ย</span> <span class="s-val">${b_avgYield} ใบ/ตก</span>`,
                         
-                        // ถอยกลับไปเป็นแบบออริจินัล ไม่มียกยอดมา!
                         `<span class="s-label">เบิกกระสอบรวม</span> <span class="s-val">${b_withHL + b_withBOD} ใบ</span>`,
                         `<span class="s-label">กระสอบที่ใช้</span> <span class="s-val">${b_totProd} ใบ</span>`,
                         `<span class="s-label">กระสอบคงเหลือ</span> <span class="s-val">${b_remHL + b_remBOD} ใบ</span>`,
@@ -1292,7 +1288,7 @@
                     let pageHtml = `
                     <div class="print-page">
                         <div class="print-header">
-                            แบบฟอร์มบันทึกการผลิตน้ำแข็ง สาขา ${info.branch} เครื่องที่ ${info.machine}<br>
+                            แบบฟอร์มบันทึกการผลิตน้ำแข็ง สาขา ${info.branch} เครื่อง ${info.machine}<br>
                             <span class="date-text">ประจำวันที่ ${pageDateStr}</span>
                         </div>
                         
@@ -1333,7 +1329,7 @@
                                 <td class="pc-prod">${item.phl}</td><td class="pc-prod">${item.pbh}</td><td class="pc-prod">${item.pbl}</td>
                                 <td class="pc-rem">${item.rhl}</td><td class="pc-rem">${item.rbod}</td>
                             </tr>`;
-                            // อัปเดตเวลาล่าสุดไปเรื่อยๆ เผื่อไว้ใช้เป็น "เวลาเปิดเครื่อง" ให้แผ่นถัดไป!
+                            // อัปเดตเวลาสุดท้ายไว้เรื่อยๆ
                             runningLastTime = item.time;
                         } else if (item && item.type === 'downtime_start') {
                             pageHtml += `<tr><td></td><td style="color:black;">${item.time}</td><td></td><td colspan="7" style="font-weight:900; letter-spacing:1px; background-color:#fef2f2 !important; color:#dc2626 !important;">ปิดเครื่อง</td></tr>`;
@@ -1346,8 +1342,14 @@
                         }
                     }
 
-                    // สรุปยอดด้านล่างตาราง เอาเวลาปิดเครื่องออกตามสั่ง
-                    let footerTitle = `รวม (แผ่นนี้)`;
+                    // 🌟 ตรรกะคำนวณเวลาปิดเครื่องท้ายแผ่น 🌟
+                    let footerTitle = "รวม";
+                    if (pageIdx === chunks.length - 1) {
+                        // ถ้าเป็นแผ่นสุดท้าย (หรือมีแผ่นเดียว) ให้เอาตกล่าสุดบวก 10 นาที
+                        let closeTimeStr = addMinutesToTime(runningLastTime, 10);
+                        footerTitle = `รวม (ปิด ${closeTimeStr} น.)`;
+                    }
+
                     let c_sumH = 0, c_sumB = 0, c_sumHL2 = 0, c_sumBH2 = 0, c_sumBL2 = 0, c_remH = 0, c_remB = 0, c_dur = 0;
                     chunk.forEach(item => {
                         if(item && item.type === 'prod') {
@@ -1388,7 +1390,6 @@
                     `;
                     finalHtml += pageHtml;
                 });
-                shiftCount++;
             });
 
             document.getElementById('print_area').innerHTML = finalHtml;
