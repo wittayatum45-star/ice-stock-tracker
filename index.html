@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Smart Ice">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#ef4444">
-    <title>Smart Ice V209.7 (Auto PDF Close Time)</title>
+    <title>Smart Ice V209.8 (Cloud Sync Fix)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
         /* --- Modern Premium Theme (Screen UI) --- */
@@ -430,14 +430,20 @@
         let globalAvgTime = 38;
         let globalLastEventTime = null;
         let unsubscribeFB = null; 
+        let isCloudSynced = false; // 🛡️ ยันต์กันผีเครื่องใหม่เซฟทับ!
         window.REPORT_DATA = {};
+
+        // 🌟 แก้บั๊กวันที่ UTC ให้เป็นเวลาประเทศไทย 🌟
+        function getLocalISODate(d) {
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        }
 
         function getSmartDate() {
             let now = new Date();
             if (now.getHours() >= 15) {
                 now.setDate(now.getDate() + 1);
             }
-            return now.toISOString().split('T')[0];
+            return getLocalISODate(now);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -445,28 +451,41 @@
             const savedDate = localStorage.getItem('LAST_TEST_DATE') || smartDate;
             document.getElementById('setup_date').value = savedDate;
             
+            // โหลด UI มาแสดงก่อนชั่วคราว
             loadData(savedDate);
             initWizard();
             renderOrderInputs();
             renderDrops();
-            setTimeout(() => { calcAll(); }, 50); 
+            calcAll(); 
             
+            // สั่งดึงข้อมูลจาก Cloud ทันที!
             syncFromFirebase(savedDate);
             setInterval(updatePredictor, 60000); 
         });
 
         function syncFromFirebase(dateKey) {
+            isCloudSynced = false; // รีเซ็ตสถานะ ป้องกันการเซฟจนกว่าจะโหลดเสร็จ
             if(unsubscribeFB) unsubscribeFB(); 
+            
             unsubscribeFB = db.collection("ice_production_test").doc(dateKey).onSnapshot((doc) => {
                 if(doc.exists) {
                     const remoteData = doc.data();
                     const localStr = localStorage.getItem(`ICE_TEST_DATA_${dateKey}`);
+                    // อัปเดตก็ต่อเมื่อข้อมูลไม่ตรงกัน
                     if(JSON.stringify(remoteData) !== localStr) {
                         DATA = remoteData;
                         localStorage.setItem(`ICE_TEST_DATA_${dateKey}`, JSON.stringify(DATA));
                         refreshUI_Smart(); 
                     }
+                } else {
+                    // ถ้ายังไม่มีข้อมูลบน Cloud เลย (เปิดวันใหม่)
+                    if(!isCloudSynced) {
+                        // ดันของในเครื่อง (ที่ว่างๆ) ขึ้นไปเป็นจุดเริ่มต้น
+                        isCloudSynced = true; 
+                        pushToFirebase();
+                    }
                 }
+                isCloudSynced = true; // 🟢 ปลดล็อค! อนุญาตให้แอปเซฟข้อมูลได้แล้ว
             });
         }
 
@@ -515,6 +534,8 @@
         }
 
         function saveData() { 
+            if (!isCloudSynced) return; // 🛑 ป้องกันการเซฟทับถ้าข้อมูล Cloud ยังโหลดไม่เสร็จ!
+            
             const dateKey = document.getElementById('setup_date').value;
             localStorage.setItem('LAST_TEST_DATE', dateKey); 
             
@@ -573,10 +594,11 @@
             }
         }
 
+        // 🌟 แก้บั๊กห้ามเซฟทับตอนเปลี่ยนวันที่ 🌟
         function changeDate() { 
             const newDate = document.getElementById('setup_date').value; 
+            // ❌ เอา saveData() ออก! จะได้ไม่เซฟข้อมูลว่างๆ ไปทับวันที่เก่าเวลาเปิดดู
             loadData(newDate); 
-            saveData(); 
             calcAll(); 
             renderOrderInputs(); 
             renderDrops(); 
@@ -717,6 +739,7 @@
             return String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
         }
 
+        // 🌟 รวมศูนย์สมอง (Single Source of Truth) แก้บั๊กเวลา 0 นาที 🌟
         function processDrops(dropsArray, startTimeStr) {
             let sorted = dropsArray.slice().sort((a, b) => getAdjustedMinutes(a.time, startTimeStr) - getAdjustedMinutes(b.time, startTimeStr));
             let lastTime = startTimeStr;
@@ -730,7 +753,7 @@
                     dtAccum += getMinDiff(d.time, d.time_end || d.time);
                 } else if (d.type === 'prod') {
                     let gross = getMinDiff(lastTime, d.time);
-                    d._duration = Math.max(0, gross - dtAccum); 
+                    d._duration = Math.max(0, gross - dtAccum); // เก็บค่านาทีไว้ตรงนี้เลย จะได้ตรงกันทั้งในแอปและ PDF
                     lastTime = d.time;
                     dtAccum = 0;
                 }
@@ -1164,7 +1187,7 @@
         function getTypeName(id) { return ICE_TYPES.find(x=>x.id===id).label; }
         function switchPage(id) { document.querySelectorAll('.page').forEach(x=>x.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active')); document.getElementById('page-'+id).classList.add('active'); const map={setup:0,production:1,summary:2}; document.querySelectorAll('.nav-btn')[map[id]].classList.add('active'); if(id==='summary'){calcAll(); window.scrollTo(0,0);} }
 
-        // 🌟🌟 ฟังก์ชันสร้าง PDF ที่ฉลาดสุดๆ 🌟🌟
+        // 🌟🌟 PDF พิมพ์เขียวออริจินัล (ดึงค่านาทีตรงๆ จากสมอง หมดปัญหาเลข 0 นาที!) 🌟🌟
         function printReport() {
             saveData();
             const dateVal = document.getElementById('setup_date').value;
@@ -1194,14 +1217,12 @@
             batches.push({ startTime: currentBatchStartTime, items: currentBatch });
 
             let finalHtml = '';
+            let shiftCount = 1;
 
             batches.forEach((batch, batchIndex) => {
                 if (batch.items.length === 0 && batches.length > 1 && batchIndex === batches.length - 1) return; 
                 
                 let renderItems = [];
-                let prevTime = batch.startTime; 
-                let dtSub = 0;
-
                 batch.items.forEach(d => {
                     if(d.type === 'prod') {
                         let p_hl = getNum(d.p_in_room.hl); let p_bh = getNum(d.p_in_room.bh); let p_bl = getNum(d.p_in_room.bl);
@@ -1209,7 +1230,7 @@
                         const w_hl = Math.ceil(p_hl/40)*40; const w_bod = Math.ceil((p_bh+p_bl)/40)*40;
                         
                         renderItems.push({
-                            type: 'prod', time: d.time, duration: d._duration,
+                            type: 'prod', time: d.time, duration: d._duration, // 🌟 ดึงค่าเวลาเป๊ะๆ มาใช้งานเลย
                             whl: w_hl||'', wbod: w_bod||'', phl: p_hl||'', pbh: p_bh||'', pbl: p_bl||'',
                             rhl: w_hl>0?(w_hl-p_hl):'', rbod: w_bod>0?(w_bod-(p_bh+p_bl)):'',
                             raw_whl: w_hl, raw_wbod: w_bod, raw_phl: p_hl, raw_pbh: p_bh, raw_pbl: p_bl,
@@ -1252,7 +1273,6 @@
                 chunks.forEach((chunk, pageIdx) => {
                     let pageDateStr = pageIdx === 0 ? `${thaiDateStr}` : `${thaiDateStr} (ต่อ)`;
                     
-                    // 🌟 เวลาเปิดเครื่อง: ดึงจากตกล่าสุดมาเป็นค่าเริ่มต้นของหน้านี้
                     let pageStartTime = runningLastTime;
 
                     let sumCol = [
@@ -1329,7 +1349,6 @@
                                 <td class="pc-prod">${item.phl}</td><td class="pc-prod">${item.pbh}</td><td class="pc-prod">${item.pbl}</td>
                                 <td class="pc-rem">${item.rhl}</td><td class="pc-rem">${item.rbod}</td>
                             </tr>`;
-                            // อัปเดตเวลาสุดท้ายไว้เรื่อยๆ
                             runningLastTime = item.time;
                         } else if (item && item.type === 'downtime_start') {
                             pageHtml += `<tr><td></td><td style="color:black;">${item.time}</td><td></td><td colspan="7" style="font-weight:900; letter-spacing:1px; background-color:#fef2f2 !important; color:#dc2626 !important;">ปิดเครื่อง</td></tr>`;
@@ -1345,7 +1364,6 @@
                     // 🌟 ตรรกะคำนวณเวลาปิดเครื่องท้ายแผ่น 🌟
                     let footerTitle = "รวม";
                     if (pageIdx === chunks.length - 1) {
-                        // ถ้าเป็นแผ่นสุดท้าย (หรือมีแผ่นเดียว) ให้เอาตกล่าสุดบวก 10 นาที
                         let closeTimeStr = addMinutesToTime(runningLastTime, 10);
                         footerTitle = `รวม (ปิด ${closeTimeStr} น.)`;
                     }
@@ -1390,6 +1408,7 @@
                     `;
                     finalHtml += pageHtml;
                 });
+                shiftCount++;
             });
 
             document.getElementById('print_area').innerHTML = finalHtml;
