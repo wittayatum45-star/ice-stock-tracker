@@ -866,7 +866,6 @@
             const processedDrops = processDrops(DATA.drops, startTimeStr);
             let dropCount = 0;
             
-            // 🌟 ตัวแปรสำหรับคำนวณค่าเฉลี่ย (กรองค่าเพี้ยน) 🌟
             let validDropsCount = 0;
             let validDurationSum = 0;
 
@@ -874,9 +873,11 @@
                 document.getElementById('header_start_time_simple').innerText = startTimeStr + ' น.';
             }
 
+            // 🌟 แก้ไขบั๊กเวลาปิดเครื่อง UI 🌟
             let autoCloseTimeStr = startTimeStr;
-            if(processedDrops.length > 0) {
-                let lastItem = processedDrops[processedDrops.length-1];
+            let validCloseEvents = processedDrops.filter(x => x.type === 'prod' || x.type === 'downtime' || x.type === 'cut');
+            if(validCloseEvents.length > 0) {
+                let lastItem = validCloseEvents[validCloseEvents.length-1];
                 let lastT = lastItem.type === 'downtime' ? (lastItem.time_end || lastItem.time) : lastItem.time;
                 autoCloseTimeStr = addMinutesToTime(lastT, 10);
             }
@@ -918,9 +919,8 @@
                     curHL += getNum(d.p_in_room.hl); curBH += getNum(d.p_in_room.bh); curBL += getNum(d.p_in_room.bl);
                     
                     let netDiff = d._duration || 0;
-                    totalDuration += netDiff; // สำหรับโชว์ผลรวมเวลา
+                    totalDuration += netDiff;
                     
-                    // 🛡️ กรองเวลาเพี้ยน! (เอาเฉพาะที่ตกเกิน 10 นาที แต่ไม่เกิน 120 นาที)
                     if(netDiff >= 10 && netDiff <= 120) {
                         validDurationSum += netDiff;
                         validDropsCount++;
@@ -982,17 +982,18 @@
 
             window.REPORT_DATA = { drops: processedDrops, timeStop: autoCloseTimeStr };
 
-            // 🌟 คำนวณค่าเฉลี่ยใหม่ (ใช้ผลรวมที่กรองของเพี้ยนออกแล้ว) 🌟
             if(validDropsCount > 0) { 
                 globalAvgTime = Math.round(validDurationSum / validDropsCount); 
             } else {
                 globalAvgTime = 38;
             }
-            if(globalAvgTime < 15 || globalAvgTime > 120) globalAvgTime = 38; // เผื่อกันเหนียวอีกชั้น
+            if(globalAvgTime < 15 || globalAvgTime > 120) globalAvgTime = 38; 
             
+            // 🌟 แก้ไขบั๊ก Predictor ไปยึดเวลาตัดของเก่า 🌟
             let lastEventStr = startTimeStr;
-            if(processedDrops.length > 0) {
-                let ld = processedDrops[processedDrops.length-1];
+            let validProdEvents = processedDrops.filter(x => x.type === 'prod' || x.type === 'downtime');
+            if(validProdEvents.length > 0) {
+                let ld = validProdEvents[validProdEvents.length-1];
                 lastEventStr = ld.type === 'downtime' ? (ld.time_end || ld.time) : ld.time;
             }
             globalLastEventTime = lastEventStr;
@@ -1226,6 +1227,9 @@
                 if (batch.items.length === 0 && batches.length > 1 && batchIndex === batches.length - 1) return; 
                 
                 let renderItems = [];
+                let prevTime = batch.startTime; 
+                let dtSub = 0;
+
                 batch.items.forEach(d => {
                     if(d.type === 'prod') {
                         let p_hl = getNum(d.p_in_room.hl); let p_bh = getNum(d.p_in_room.bh); let p_bl = getNum(d.p_in_room.bl);
@@ -1263,7 +1267,6 @@
                 let b_wHL = b_sumHL * 20; let b_wBH = b_sumBH * 23; let b_wBL = b_sumBL * 24;
                 let b_totWeight = b_wHL + b_wBH + b_wBL;
                 
-                // ใช้ค่าเฉลี่ยที่กรองแล้ว (กันเพี้ยน)
                 let b_avgTime = globalAvgTime; 
                 let b_tonsDay = (b_totDuration > 0 && b_totWeight > 0) ? ((b_totWeight / b_totDuration) * 1440 / 1000).toFixed(2) : 0;
                 let b_avgYield = b_prodCount > 0 ? Math.round(b_totProd / b_prodCount) : 0;
@@ -1365,11 +1368,15 @@
                         }
                     }
 
-                    // 🌟 ตรรกะคำนวณเวลาปิดเครื่องท้ายแผ่น (อัจฉริยะ) 🌟
+                    // 🌟 ตรรกะคำนวณเวลาปิดเครื่องท้ายแผ่น (อัจฉริยะแบบไร้ที่ติ) 🌟
                     let footerTitle = "รวม";
                     if (pageIdx === chunks.length - 1) {
+                        // ถ้าเป็นแผ่นสุดท้าย ให้บวกเวลา 10 นาทีเสมอ
                         let closeTimeStr = addMinutesToTime(runningLastTime, 10);
                         footerTitle = `รวม (ปิด ${closeTimeStr} น.)`;
+                    } else {
+                        // ถ้ายังไม่จบกะ แต่ขึ้นแผ่น 2 ให้โชว์คำว่า "รวม" เฉยๆ ไม่ต้องมีเวลา
+                        footerTitle = `รวม`;
                     }
 
                     let c_sumH = 0, c_sumB = 0, c_sumHL2 = 0, c_sumBH2 = 0, c_sumBL2 = 0, c_remH = 0, c_remB = 0, c_dur = 0;
