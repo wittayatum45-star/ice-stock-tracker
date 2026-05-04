@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Smart Ice">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#ef4444">
-    <title>Smart Ice V209.12 (Backup System)</title>
+    <title>Smart Ice V209.12 (Stock Edit Buttons)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
         /* --- Modern Premium Theme (Screen UI) --- */
@@ -410,7 +410,20 @@
         </div>
     </div>
 
-    <div id="stock_manager_modal" class="modal"><div class="modal-content"><div class="modal-header"><div class="modal-title">📦 จ่ายของเก่า (ห้องเย็น)</div><button class="btn-close-modal" onclick="closeStockManager()">×</button></div><div class="modal-body"><button class="btn-save-dist" style="width:100%; margin-top:0; margin-bottom:20px;" onclick="addDrop('stock'); closeStockManager(); openDistModal(DATA.drops[DATA.drops.length-1].id)">+ เพิ่มรายการเบิก</button><div id="stock_list_container"></div><div style="height:50px;"></div></div></div></div>
+    <div id="stock_manager_modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">📦 จ่ายของเก่า (ห้องเย็น)</div>
+                <button class="btn-close-modal" onclick="closeStockManager()">×</button>
+            </div>
+            <div class="modal-body">
+                <button class="btn-save-dist" style="width:100%; margin-top:0; margin-bottom:20px;" onclick="addDrop('stock'); closeStockManager(); openDistModal(DATA.drops[DATA.drops.length-1].id)">+ เพิ่มรายการเบิก</button>
+                <div id="stock_list_container"></div>
+                <div style="height:50px;"></div>
+            </div>
+        </div>
+    </div>
+    
     <div id="full_history_modal" class="modal"><div class="modal-content"><div class="modal-header"><div class="modal-title">🕒 ประวัติย้อนหลัง</div><button class="btn-close-modal" onclick="closeFullHistory()">×</button></div><div class="modal-body" style="background:#f8fafc;"><div class="history-list-wrapper" id="full_history_list"></div><div style="height:50px;"></div></div></div></div>
     <div id="history_modal" class="modal"><div class="modal-content"><div class="modal-header"><div class="modal-title" id="hist_title">🕒 ประวัติ</div><button class="btn-close-modal" onclick="closeHistoryModal()">×</button></div><div class="modal-body"><div id="history_list"></div><div style="height:50px;"></div></div></div></div>
     <div id="edit_past_modal" class="modal" style="display:none; align-items:center; justify-content:center;"><div class="modal-content" style="background:transparent; box-shadow:none;"><div class="modal-header" style="border-radius:16px 16px 0 0;"><div class="modal-title">✏️ แก้ไขรายการ</div><button class="btn-close-modal" onclick="closeEditPastModal()">×</button></div><div class="modal-body" id="edit_past_body" style="padding:0;"></div></div></div>
@@ -633,18 +646,6 @@
             syncFromFirebase(newDate); 
         }
 
-        function getNum(val) { return parseFloat(val) || 0; }
-        function updateStock() { saveData(); calcAll(); }
-
-        function resetTodayData() {
-            if(confirm('ระบบจะล้างข้อมูลเฉพาะบิลวันนี้ ยืนยันหรือไม่?')) {
-                const dateKey = document.getElementById('setup_date').value; 
-                localStorage.removeItem('ICE_TEST_DATA_' + dateKey); 
-                db.collection("ice_production_test").doc(dateKey).set(getEmptyData()).then(() => location.reload());
-            }
-        }
-
-        // 🌟 1. ฟังก์ชันสำรองข้อมูล (Export JSON) 🌟
         function exportData() {
             const dateKey = document.getElementById('setup_date').value;
             const dataStr = JSON.stringify(DATA, null, 2);
@@ -659,7 +660,6 @@
             URL.revokeObjectURL(url);
         }
 
-        // 🌟 2. ฟังก์ชันกู้คืนข้อมูล (Import JSON) 🌟
         function importData(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -678,9 +678,20 @@
                 } catch (error) {
                     alert("❌ ไฟล์ไม่ถูกต้อง หรือข้อมูลเสียหาย");
                 }
-                event.target.value = ''; // รีเซ็ต input เผื่อกดเลือกไฟล์เดิมซ้ำ
+                event.target.value = ''; 
             };
             reader.readAsText(file);
+        }
+
+        function getNum(val) { return parseFloat(val) || 0; }
+        function updateStock() { saveData(); calcAll(); }
+
+        function resetTodayData() {
+            if(confirm('ระบบจะล้างข้อมูลเฉพาะบิลวันนี้ ยืนยันหรือไม่?')) {
+                const dateKey = document.getElementById('setup_date').value; 
+                localStorage.removeItem('ICE_TEST_DATA_' + dateKey); 
+                db.collection("ice_production_test").doc(dateKey).set(getEmptyData()).then(() => location.reload());
+            }
         }
 
         function openCutModal() {
@@ -1204,7 +1215,28 @@
 
         function closeEditPastModal() { document.getElementById('edit_past_modal').style.display = 'none'; if(SOURCE_MODAL === 'history') openFullHistory(); else if(SOURCE_MODAL === 'stock') openStockManager(); else renderDrops(); calcAll(); }
 
-        function openStockManager() { const container = document.getElementById('stock_list_container'); container.innerHTML = ''; const stockDrops = DATA.drops.filter(d => d.type === 'stock').reverse(); if(stockDrops.length === 0) { container.innerHTML = '<div style="text-align:center; color:#aaa; margin-top:20px; font-weight:bold;">ไม่มีรายการเบิกของเก่าในวันนี้</div>'; } else { stockDrops.forEach(d => { let details = ''; if(d.dist) { d.dist.forEach((item, idx) => { details += `<div style="background:white; padding:8px; border-radius:8px; margin-top:8px; font-size:0.85rem; border:1px solid #f1f5f9; box-shadow:var(--shadow-sm);">🚛 ${getTruckName(item.truck)} (${getTypeName(item.type)}) : <b style="font-size:1rem; color:var(--text-dark);">${item.total}</b></div>`; }); } container.insertAdjacentHTML('beforeend', `<div style="background:#fffbeb; padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid #fef3c7;"><div style="display:flex; justify-content:space-between; font-weight:900; color:#d97706; font-size:1.1rem; align-items:center;"><span>📦 เบิก ${d.time}</span><button class="btn-act-del" style="width:auto; padding:6px 12px; font-size:0.8rem;" onclick="deleteDrop(${d.id})">ลบ</button></div>${details}<button class="btn-add-dist" style="background:white; border-color:#fde68a; color:#d97706;" onclick="openDistModal(${d.id})">+ เพิ่มจ่ายรถ</button></div>`); }); } document.getElementById('stock_manager_modal').style.display = 'flex'; } 
+        // 🌟 1. ฟังก์ชันเปิดหน้าต่างจ่ายของเก่า (เพิ่มปุ่ม ✏️ แก้ไข และ 🗑️ ลบรายคันแล้ว!) 🌟
+        function openStockManager() { 
+            const container = document.getElementById('stock_list_container'); 
+            container.innerHTML = ''; 
+            const stockDrops = DATA.drops.filter(d => d.type === 'stock').reverse(); 
+            if(stockDrops.length === 0) { 
+                container.innerHTML = '<div style="text-align:center; color:#aaa; margin-top:20px; font-weight:bold;">ไม่มีรายการเบิกของเก่าในวันนี้</div>'; 
+            } else { 
+                stockDrops.forEach(d => { 
+                    let details = ''; 
+                    if(d.dist) { 
+                        d.dist.forEach((item, idx) => { 
+                            // 🌟 ตรงนี้คือโค้ดปุ่มแก้ไขและลบรายคันในสต็อกของเก่า 🌟
+                            details += `<div style="background:white; padding:10px 12px; border-radius:8px; margin-top:8px; font-size:0.9rem; border:1px solid #e2e8f0; box-shadow:var(--shadow-sm); display:flex; justify-content:space-between; align-items:center;"><div>🚛 ${getTruckName(item.truck)} <span style="color:var(--text-muted); font-size:0.8rem;">(${getTypeName(item.type)})</span> : <b style="font-size:1.1rem; color:var(--primary);">${item.total}</b></div><div style="display:flex; gap:6px;"><button class="btn-edit-mini" style="width:30px; height:30px; font-size:0.9rem;" onclick="editDist(${d.id}, ${idx})">✏️</button><button class="btn-del-mini" style="width:30px; height:30px; font-size:0.9rem;" onclick="removeDist(${d.id}, ${idx})">🗑️</button></div></div>`; 
+                        }); 
+                    } 
+                    container.insertAdjacentHTML('beforeend', `<div style="background:#fffbeb; padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid #fde68a; box-shadow:var(--shadow-sm);"><div style="display:flex; justify-content:space-between; font-weight:900; color:#d97706; font-size:1.1rem; align-items:center;"><span>📦 เบิก ${d.time} น.</span><button class="btn-del-mini" style="width:auto; padding:4px 12px; font-size:0.8rem; border-radius:8px;" onclick="deleteDrop(${d.id})">ลบทั้งบิล</button></div>${details}<button class="btn-add-dist" style="background:white; border-color:#fcd34d; color:#d97706; margin-top:12px; font-size:0.95rem; padding:10px;" onclick="openDistModal(${d.id})">+ เพิ่มจ่ายรถ</button></div>`); 
+                }); 
+            } 
+            document.getElementById('stock_manager_modal').style.display = 'flex'; 
+        } 
+
         function closeStockManager() { document.getElementById('stock_manager_modal').style.display = 'none'; renderDrops(); calcAll(); }
         function removeDist(dropId, idx) { const d = DATA.drops.find(x => x.id === dropId); if(d) { d.dist.splice(idx, 1); updateDropVal(dropId, 'dist_update', null, 0); saveData(); if(document.getElementById('stock_manager_modal').style.display === 'flex') openStockManager(); else if(document.getElementById('edit_past_modal').style.display === 'flex') openEditPast(dropId); else renderDrops(); calcAll(); } }
 
