@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Smart Ice">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#ef4444">
-    <title>Smart Ice V209.10 (34 Rows/Page)</title>
+    <title>Smart Ice V209.11 (Order Carryover)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
         /* --- Modern Premium Theme (Screen UI) --- */
@@ -553,6 +553,8 @@
 
         function loadData(dateKey) {
             const d = localStorage.getItem(`ICE_TEST_DATA_${dateKey}`);
+            let isNewDay = false;
+
             if(d) { 
                 try { 
                     DATA = JSON.parse(d); 
@@ -569,9 +571,33 @@
                        }
                        if(drop.type === 'downtime' && !drop.time_end) drop.time_end = drop.time; 
                     });
-                } catch(e) { DATA = getEmptyData(); } 
+                } catch(e) { DATA = getEmptyData(); isNewDay = true; } 
             } else { 
                 DATA = getEmptyData(); 
+                isNewDay = true;
+            }
+
+            // 🌟🌟 ย้อนเวลาหาออเดอร์ของเมื่อวาน 🌟🌟
+            if (isNewDay) {
+                let parts = dateKey.split('-');
+                if (parts.length === 3) {
+                    let checkDate = new Date(parts[0], parts[1]-1, parts[2]);
+                    // ย้อนหลังค้นหาออเดอร์ล่าสุด สูงสุด 15 วัน
+                    for (let i = 1; i <= 15; i++) {
+                        checkDate.setDate(checkDate.getDate() - 1);
+                        let pastKey = checkDate.getFullYear() + '-' + String(checkDate.getMonth()+1).padStart(2,'0') + '-' + String(checkDate.getDate()).padStart(2,'0');
+                        let pastDStr = localStorage.getItem(`ICE_TEST_DATA_${pastKey}`);
+                        if (pastDStr) {
+                            try {
+                                let pastD = JSON.parse(pastDStr);
+                                if (pastD && pastD.orders && Object.keys(pastD.orders).length > 0) {
+                                    DATA.orders = JSON.parse(JSON.stringify(pastD.orders));
+                                    break; // เจอแล้ว หยุดหาทันที!
+                                }
+                            } catch(e) {}
+                        }
+                    }
+                }
             }
 
             document.getElementById('time_start').value = DATA.times.start || "20:00";
@@ -1270,7 +1296,6 @@
                 let b_tonsDay = (b_totDuration > 0 && b_totWeight > 0) ? ((b_totWeight / b_totDuration) * 1440 / 1000).toFixed(2) : 0;
                 let b_avgYield = b_prodCount > 0 ? Math.round(b_totProd / b_prodCount) : 0;
 
-                // 🌟 ปรับเป็น 34 บรรทัดต่อ 1 แผ่น
                 const ROWS_PER_PAGE = 34;
                 let chunks = [];
                 for(let i = 0; i < renderItems.length; i += ROWS_PER_PAGE) { chunks.push(renderItems.slice(i, i + ROWS_PER_PAGE)); }
