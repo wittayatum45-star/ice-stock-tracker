@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Smart Ice">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#ef4444">
-    <title>Smart Ice V209.11 (Order Carryover)</title>
+    <title>Smart Ice V209.12 (Backup System)</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
         /* --- Modern Premium Theme (Screen UI) --- */
@@ -222,6 +222,17 @@
                 <div><div class="input-label">🔴 เวลาปิดเครื่อง</div><input type="time" id="time_stop" value="08:00" disabled style="background:#e2e8f0;"></div>
             </div>
         </div>
+        
+        <div class="modern-card card-body">
+            <h3>💾 สำรอง/กู้คืนข้อมูล (Backup)</h3>
+            <div class="grid-2">
+                <button style="background:var(--primary-grad); color:white; border:none; border-radius:12px; padding:12px; font-weight:900; font-size:1rem; cursor:pointer;" onclick="exportData()">⬇️ เซฟลงเครื่อง</button>
+                <button style="background:var(--warning-grad); color:white; border:none; border-radius:12px; padding:12px; font-weight:900; font-size:1rem; cursor:pointer;" onclick="document.getElementById('import_file').click()">⬆️ กู้คืนจากไฟล์</button>
+                <input type="file" id="import_file" style="display:none;" accept=".json" onchange="importData(event)">
+            </div>
+            <div style="font-size:0.75rem; color:#64748b; margin-top:8px; text-align:center;">* เซฟไฟล์เก็บไว้ในมือถือเผื่อฉุกเฉิน (ไฟล์มีขนาดเล็กมาก)</div>
+        </div>
+
         <div class="modern-card card-body">
             <h3>📦 สต็อกยกมา (เริ่มเดินเครื่อง)</h3>
             <div class="grid-3">
@@ -577,12 +588,10 @@
                 isNewDay = true;
             }
 
-            // 🌟🌟 ย้อนเวลาหาออเดอร์ของเมื่อวาน 🌟🌟
             if (isNewDay) {
                 let parts = dateKey.split('-');
                 if (parts.length === 3) {
                     let checkDate = new Date(parts[0], parts[1]-1, parts[2]);
-                    // ย้อนหลังค้นหาออเดอร์ล่าสุด สูงสุด 15 วัน
                     for (let i = 1; i <= 15; i++) {
                         checkDate.setDate(checkDate.getDate() - 1);
                         let pastKey = checkDate.getFullYear() + '-' + String(checkDate.getMonth()+1).padStart(2,'0') + '-' + String(checkDate.getDate()).padStart(2,'0');
@@ -592,7 +601,7 @@
                                 let pastD = JSON.parse(pastDStr);
                                 if (pastD && pastD.orders && Object.keys(pastD.orders).length > 0) {
                                     DATA.orders = JSON.parse(JSON.stringify(pastD.orders));
-                                    break; // เจอแล้ว หยุดหาทันที!
+                                    break; 
                                 }
                             } catch(e) {}
                         }
@@ -633,6 +642,45 @@
                 localStorage.removeItem('ICE_TEST_DATA_' + dateKey); 
                 db.collection("ice_production_test").doc(dateKey).set(getEmptyData()).then(() => location.reload());
             }
+        }
+
+        // 🌟 1. ฟังก์ชันสำรองข้อมูล (Export JSON) 🌟
+        function exportData() {
+            const dateKey = document.getElementById('setup_date').value;
+            const dataStr = JSON.stringify(DATA, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `SmartIce_Backup_${dateKey}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // 🌟 2. ฟังก์ชันกู้คืนข้อมูล (Import JSON) 🌟
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (confirm("⚠️ คำเตือน: ข้อมูลที่กู้คืนจะ ทับ ข้อมูลปัจจุบันทั้งหมดบนหน้าจอ ยืนยันหรือไม่?")) {
+                        DATA = importedData;
+                        const dateKey = document.getElementById('setup_date').value;
+                        localStorage.setItem(`ICE_TEST_DATA_${dateKey}`, JSON.stringify(DATA));
+                        pushToFirebase();
+                        refreshUI_Smart();
+                        alert("✅ กู้คืนข้อมูลสำเร็จ!");
+                    }
+                } catch (error) {
+                    alert("❌ ไฟล์ไม่ถูกต้อง หรือข้อมูลเสียหาย");
+                }
+                event.target.value = ''; // รีเซ็ต input เผื่อกดเลือกไฟล์เดิมซ้ำ
+            };
+            reader.readAsText(file);
         }
 
         function openCutModal() {
