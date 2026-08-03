@@ -9,84 +9,98 @@
     <!-- นำเข้า Tesseract.js สำหรับทำ OCR สแกนข้อความจากภาพ -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
-        /* เพิ่มฟอนต์และสไตล์พื้นฐาน */
-        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Sarabun', sans-serif; background-color: #f3f4f6; }
-        .flip-card-inner { transition: transform 0.6s; transform-style: preserve-3d; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body class="text-gray-800 min-h-screen p-4 md:p-8 flex flex-col items-center">
 
-    <div class="max-w-3xl w-full bg-white rounded-2xl shadow-xl overflow-hidden p-6 md:p-8">
+    <div class="max-w-3xl w-full bg-white rounded-3xl shadow-xl overflow-hidden p-6 md:p-10 border border-gray-100">
         
-        <h1 class="text-3xl font-bold text-center text-indigo-600 mb-2">🧠 ผู้ช่วยท่องจำ (Memo App)</h1>
-        <p class="text-center text-gray-500 mb-8">อัปโหลดรูปภาพเพื่อดึงข้อความ หรือพิมพ์ด้วยตัวเอง แล้วเริ่มท่องจำเลย!</p>
+        <h1 class="text-3xl md:text-4xl font-bold text-center text-indigo-600 mb-2">🧠 ผู้ช่วยท่องจำ (Memo App)</h1>
+        <p class="text-center text-gray-500 mb-8">จัดเรียงคำศัพท์ให้อ่านง่าย สบายตา จำได้ไวขึ้น!</p>
 
-        <!-- ส่วนที่ 1: การนำเข้าข้อมูล -->
+        <!-- ================= ส่วนที่ 1: การนำเข้าข้อมูล ================= -->
         <div id="setupSection" class="space-y-6">
             
             <!-- อัปโหลดภาพ -->
-            <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:bg-gray-50 transition">
+            <div class="border-2 border-dashed border-indigo-200 bg-indigo-50/50 rounded-2xl p-6 text-center hover:bg-indigo-50 transition duration-300">
                 <label for="imageUpload" class="cursor-pointer block">
-                    <span class="text-indigo-500 font-semibold text-lg">📁 อัปโหลดรูปภาพคำศัพท์ (เช่น 31087.jpg)</span>
+                    <span class="text-indigo-600 font-semibold text-lg flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                        อัปโหลดรูปภาพคำศัพท์
+                    </span>
                     <input type="file" id="imageUpload" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
                 </label>
-                <div id="imagePreviewContainer" class="hidden mt-4">
-                    <img id="imagePreview" class="max-h-48 mx-auto rounded shadow" alt="Preview">
-                    <button onclick="scanText()" id="scanBtn" class="mt-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-full transition w-full md:w-auto">
-                        🔍 สแกนข้อความจากรูปนี้
+                <div id="imagePreviewContainer" class="hidden mt-6">
+                    <img id="imagePreview" class="max-h-56 mx-auto rounded-lg shadow-sm border border-gray-200" alt="Preview">
+                    <button onclick="scanText()" id="scanBtn" class="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-full transition w-full md:w-auto shadow-md">
+                        🔍 สแกนดึงข้อความจากรูปนี้
                     </button>
-                    <p id="scanStatus" class="text-sm text-indigo-600 mt-2 font-medium hidden">กำลังดาวน์โหลดข้อมูลภาษาและสแกน... กรุณารอสักครู่ (อาจใช้เวลา 1-2 นาทีในครั้งแรก)</p>
+                    <p id="scanStatus" class="text-sm text-indigo-600 mt-3 font-medium hidden bg-indigo-100 py-2 px-4 rounded-full inline-block">กำลังดาวน์โหลดข้อมูลภาษาและสแกน... รอสักครู่นะครับ</p>
                 </div>
             </div>
 
             <!-- กล่องข้อความ -->
             <div>
-                <label class="block text-gray-700 font-bold mb-2">📝 ข้อความที่ต้องการท่องจำ:</label>
-                <textarea id="textContent" rows="6" class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="พิมพ์ข้อความที่นี่ หรือรอผลจากการสแกนรูปภาพ..."></textarea>
+                <label class="block text-gray-700 font-bold mb-2 text-lg">📝 ตรวจสอบและแก้ไขข้อความ:</label>
+                <p class="text-sm text-gray-500 mb-2">ระบบจะดึงทีละ 1 บรรทัด (แยกเป็น: คำศัพท์ คำอ่าน คำแปล)</p>
+                <textarea id="textContent" rows="8" class="w-full border-2 border-gray-200 rounded-xl p-4 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-lg leading-relaxed" placeholder="1 บรรทัด = 1 คำศัพท์ (เช่น: 난로 นันโร เครื่องทำความอบอุ่น)"></textarea>
             </div>
 
-            <!-- การตั้งค่า -->
-            <div class="flex flex-col md:flex-row md:items-center gap-4 bg-gray-50 p-4 rounded-lg border">
-                <div class="flex-1">
-                    <label class="block text-gray-700 font-bold mb-1">🔢 จำนวนคำที่ต้องการแสดงต่อครั้ง:</label>
-                    <input type="number" id="chunkSize" min="1" value="3" class="w-24 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                </div>
-                <div class="flex-1">
-                    <label class="block text-gray-700 font-bold mb-1">🔀 รูปแบบการแยกคำ:</label>
-                    <select id="splitMode" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <option value="word">แยกตามเว้นวรรค (คำ/บรรทัด)</option>
-                        <option value="line">แยกตามบรรทัดยาวๆ</option>
-                    </select>
-                </div>
-            </div>
-
-            <button onclick="startMemorizing()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-xl shadow-lg transform transition hover:scale-[1.02] text-xl">
-                🚀 เริ่มท่องจำ
+            <button onclick="startMemorizing()" class="w-full bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 text-white font-bold py-4 px-4 rounded-2xl shadow-lg transform transition hover:-translate-y-1 text-xl flex justify-center items-center gap-2">
+                🚀 เริ่มท่องจำเลย!
             </button>
         </div>
 
-        <!-- ส่วนที่ 2: โหมดท่องจำ -->
-        <div id="memorizeSection" class="hidden flex flex-col items-center justify-center min-h-[400px]">
+        <!-- ================= ส่วนที่ 2: โหมดท่องจำ ================= -->
+        <div id="memorizeSection" class="hidden flex flex-col items-center justify-center min-h-[450px]">
             
+            <!-- แถบด้านบน -->
             <div class="w-full flex justify-between items-center mb-6">
-                <button onclick="backToSetup()" class="text-gray-500 hover:text-gray-800 font-medium">← กลับไปแก้ไข</button>
-                <span id="progressText" class="font-bold text-gray-600 bg-gray-200 py-1 px-3 rounded-full">1 / 10</span>
-                <button onclick="shuffleChunks()" class="text-indigo-500 hover:text-indigo-700 font-medium" title="สลับลำดับแบบสุ่ม">🔀 สลับลำดับ</button>
+                <button onclick="backToSetup()" class="text-gray-400 hover:text-gray-700 font-medium flex items-center gap-1 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" /></svg>
+                    กลับ
+                </button>
+                <div class="bg-gray-100 text-gray-600 font-bold py-1.5 px-4 rounded-full text-sm border border-gray-200">
+                    <span id="progressText">1 / 10</span>
+                </div>
+                <button onclick="shuffleChunks()" class="text-indigo-500 hover:text-indigo-700 font-medium flex items-center gap-1 transition" title="สลับลำดับแบบสุ่ม">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" /></svg>
+                    สลับคำ
+                </button>
             </div>
 
-            <!-- การ์ดแสดงผล -->
-            <div class="w-full bg-indigo-50 border-2 border-indigo-100 rounded-2xl p-10 min-h-[200px] flex items-center justify-center shadow-inner mb-8 text-center transition-opacity" id="cardDisplay">
-                <p id="displayText" class="text-3xl md:text-5xl font-medium text-gray-800 leading-tight whitespace-pre-wrap word-break"></p>
+            <!-- การ์ดแสดงผลคำศัพท์ -->
+            <div id="cardContainer" class="w-full bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 rounded-3xl p-8 md:p-12 min-h-[300px] flex flex-col items-center justify-center shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)] mb-8 text-center">
+                
+                <!-- คำศัพท์ (ซ้ายสุดในตาราง) -->
+                <h2 id="displayWord" class="text-5xl md:text-7xl font-bold text-gray-800 mb-4 tracking-wide"></h2>
+                
+                <!-- คำอ่าน (ตรงกลางในตาราง) -->
+                <p id="displayPron" class="text-2xl md:text-3xl text-indigo-400 font-medium mb-8"></p>
+                
+                <!-- คำแปล (ขวาสุดในตาราง) -->
+                <div class="bg-indigo-600 rounded-2xl py-3 px-8 shadow-md">
+                    <span id="displayTrans" class="text-2xl md:text-4xl font-semibold text-white"></span>
+                </div>
+                
             </div>
 
             <!-- ปุ่มควบคุม -->
             <div class="flex gap-4 w-full">
-                <button onclick="prevChunk()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-4 px-4 rounded-xl transition text-lg">
-                    ⏪ ก่อนหน้า
+                <button onclick="prevChunk()" class="flex-1 bg-white border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-600 font-bold py-4 px-4 rounded-2xl transition text-lg flex justify-center items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" /></svg>
+                    ก่อนหน้า
                 </button>
-                <button onclick="nextChunk()" class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-4 px-4 rounded-xl transition text-lg shadow-md">
-                    ถัดไป ⏩
+                <button onclick="nextChunk()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-4 rounded-2xl transition shadow-lg hover:shadow-xl text-lg flex justify-center items-center gap-2">
+                    ถัดไป
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
                 </button>
             </div>
 
@@ -95,12 +109,9 @@
     </div>
 
     <script>
-        // ตัวแปรสำหรับเก็บข้อมูลสถานะ
-        let wordsArray = [];
         let chunks = [];
         let currentChunkIndex = 0;
 
-        // จัดการเมื่อเลือกไฟล์รูปภาพ
         function handleImageUpload(event) {
             const file = event.target.files[0];
             if (file) {
@@ -113,7 +124,6 @@
             }
         }
 
-        // ฟังก์ชันสแกนข้อความด้วย Tesseract
         async function scanText() {
             const imgElement = document.getElementById('imagePreview');
             const statusEl = document.getElementById('scanStatus');
@@ -126,30 +136,29 @@
             statusEl.classList.remove('hidden');
             
             try {
-                // ระบุภาษาที่ต้องการสแกน (เกาหลี + ไทย + อังกฤษ) 
-                // เหมาะกับภาพเช่น 31087.jpg ที่มีศัพท์เกาหลีและคำแปลไทย
                 const result = await Tesseract.recognize(
                     imgElement.src,
                     'kor+tha+eng', 
                     { logger: m => console.log(m) }
                 );
                 
-                // นำข้อความที่ได้ใส่ลงใน Textarea
+                // นำข้อความใส่กล่อง
                 document.getElementById('textContent').value = result.data.text;
-                statusEl.innerText = "✅ สแกนสำเร็จแล้ว!";
+                statusEl.innerText = "✅ สแกนสำเร็จแล้ว! ลองตรวจสอบและลบเว้นบรรทัดที่ไม่จำเป็นออก";
                 statusEl.classList.replace('text-indigo-600', 'text-green-600');
+                statusEl.classList.replace('bg-indigo-100', 'bg-green-100');
             } catch (error) {
                 console.error(error);
                 statusEl.innerText = "❌ เกิดข้อผิดพลาดในการสแกน";
                 statusEl.classList.replace('text-indigo-600', 'text-red-600');
+                statusEl.classList.replace('bg-indigo-100', 'bg-red-100');
             } finally {
                 btn.disabled = false;
                 btn.classList.remove('opacity-50', 'cursor-not-allowed');
-                setTimeout(() => statusEl.classList.add('hidden'), 3000);
+                setTimeout(() => statusEl.classList.add('hidden'), 4000);
             }
         }
 
-        // เริ่มต้นโหมดท่องจำ
         function startMemorizing() {
             const rawText = document.getElementById('textContent').value.trim();
             if (!rawText) {
@@ -157,51 +166,97 @@
                 return;
             }
 
-            const chunkSize = parseInt(document.getElementById('chunkSize').value) || 1;
-            const mode = document.getElementById('splitMode').value;
+            // แยกข้อความออกเป็น "บรรทัด" ตัดบรรทัดที่ว่างเปล่าทิ้ง
+            chunks = rawText.split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0);
 
-            // การแยกคำ
-            if (mode === 'word') {
-                // แยกตามช่องว่าง หรือ การขึ้นบรรทัดใหม่
-                wordsArray = rawText.split(/\s+/).filter(word => word.length > 0);
-            } else {
-                // แยกตามบรรทัด
-                wordsArray = rawText.split('\n').filter(line => line.trim().length > 0);
-            }
-
-            if (wordsArray.length === 0) return;
-
-            // จัดกลุ่มคำตาม Chunk Size
-            chunks = [];
-            for (let i = 0; i < wordsArray.length; i += chunkSize) {
-                chunks.push(wordsArray.slice(i, i + chunkSize).join(mode === 'word' ? ' ' : '\n'));
-            }
+            if (chunks.length === 0) return;
 
             currentChunkIndex = 0;
             
-            // สลับหน้าจอ
             document.getElementById('setupSection').classList.add('hidden');
             document.getElementById('memorizeSection').classList.remove('hidden');
             
             updateDisplay();
         }
 
-        // กลับไปหน้าตั้งค่า
         function backToSetup() {
             document.getElementById('memorizeSection').classList.add('hidden');
             document.getElementById('setupSection').classList.remove('hidden');
         }
 
-        // อัปเดตหน้าจอท่องจำ
         function updateDisplay() {
             if (chunks.length === 0) return;
             
-            const card = document.getElementById('cardDisplay');
-            // ทำอนิเมชั่นจางหายเล็กน้อย
-            card.style.opacity = 0;
+            const cardContainer = document.getElementById('cardContainer');
             
-            setTimeout(() => {
-                document.getElementById('displayText').innerText = chunks[currentChunkIndex];
+            // รีเซ็ตแอนิเมชัน
+            cardContainer.classList.remove('fade-in');
+            void cardContainer.offsetWidth; // Trigger reflow
+            cardContainer.classList.add('fade-in');
+
+            const currentLine = chunks[currentChunkIndex];
+            
+            // แยกคำใน 1 บรรทัดด้วยช่องว่าง (ไม่ว่าจะห่างแค่ไหนก็จะนับเป็นตัวแบ่ง)
+            // เช่น "전화      ชอนฮวา       โทรศัพท์" จะกลายเป็น ["전화", "ชอนฮวา", "โทรศัพท์"]
+            const parts = currentLine.split(/\s+/);
+            
+            let wordText = "";
+            let pronText = "";
+            let transText = "";
+
+            if (parts.length >= 3) {
+                wordText = parts[0]; // คำแรกสุด
+                pronText = parts[1]; // คำที่สอง
+                transText = parts.slice(2).join(" "); // ที่เหลือจับรวมกันเป็นคำแปล
+            } else if (parts.length === 2) {
+                wordText = parts[0];
+                transText = parts[1];
+            } else {
+                wordText = currentLine; // ถ้ามีคำเดียวโดดๆ
+            }
+
+            // แสดงผลลงใน Layout ใหม่
+            document.getElementById('displayWord').innerText = wordText;
+            document.getElementById('displayPron').innerText = pronText;
+            document.getElementById('displayTrans').innerText = transText;
+            
+            // อัปเดตตัวเลขหน้า
+            document.getElementById('progressText').innerText = `${currentChunkIndex + 1} / ${chunks.length}`;
+        }
+
+        function nextChunk() {
+            if (currentChunkIndex < chunks.length - 1) {
+                currentChunkIndex++;
+                updateDisplay();
+            } else {
+                if(confirm("🎉 คุณท่องจบครบทุกคำแล้ว! ต้องการเริ่มวนใหม่ตั้งแต่ต้นหรือไม่?")) {
+                    currentChunkIndex = 0;
+                    updateDisplay();
+                }
+            }
+        }
+
+        function prevChunk() {
+            if (currentChunkIndex > 0) {
+                currentChunkIndex--;
+                updateDisplay();
+            }
+        }
+
+        function shuffleChunks() {
+            for (let i = chunks.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [chunks[i], chunks[j]] = [chunks[j], chunks[i]];
+            }
+            currentChunkIndex = 0;
+            updateDisplay();
+        }
+    </script>
+</body>
+</html>
+currentChunkIndex];
                 document.getElementById('progressText').innerText = `${currentChunkIndex + 1} / ${chunks.length}`;
                 card.style.opacity = 1;
             }, 150);
