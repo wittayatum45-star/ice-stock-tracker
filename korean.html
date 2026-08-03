@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memorization Assistant - ผู้ช่วยท่องจำ</title>
+    <!-- นำเข้า Tailwind CSS สำหรับความสวยงาม -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- นำเข้า Tesseract.js สำหรับทำ OCR สแกนข้อความจากภาพ -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <style>
+        /* เพิ่มฟอนต์และสไตล์พื้นฐาน */
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap');
+        body { font-family: 'Sarabun', sans-serif; background-color: #f3f4f6; }
+        .flip-card-inner { transition: transform 0.6s; transform-style: preserve-3d; }
+    </style>
+</head>
+<body class="text-gray-800 min-h-screen p-4 md:p-8 flex flex-col items-center">
+
+    <div class="max-w-3xl w-full bg-white rounded-2xl shadow-xl overflow-hidden p-6 md:p-8">
+        
+        <h1 class="text-3xl font-bold text-center text-indigo-600 mb-2">🧠 ผู้ช่วยท่องจำ (Memo App)</h1>
+        <p class="text-center text-gray-500 mb-8">อัปโหลดรูปภาพเพื่อดึงข้อความ หรือพิมพ์ด้วยตัวเอง แล้วเริ่มท่องจำเลย!</p>
+
+        <!-- ส่วนที่ 1: การนำเข้าข้อมูล -->
+        <div id="setupSection" class="space-y-6">
+            
+            <!-- อัปโหลดภาพ -->
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:bg-gray-50 transition">
+                <label for="imageUpload" class="cursor-pointer block">
+                    <span class="text-indigo-500 font-semibold text-lg">📁 อัปโหลดรูปภาพคำศัพท์ (เช่น 31087.jpg)</span>
+                    <input type="file" id="imageUpload" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+                </label>
+                <div id="imagePreviewContainer" class="hidden mt-4">
+                    <img id="imagePreview" class="max-h-48 mx-auto rounded shadow" alt="Preview">
+                    <button onclick="scanText()" id="scanBtn" class="mt-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-full transition w-full md:w-auto">
+                        🔍 สแกนข้อความจากรูปนี้
+                    </button>
+                    <p id="scanStatus" class="text-sm text-indigo-600 mt-2 font-medium hidden">กำลังดาวน์โหลดข้อมูลภาษาและสแกน... กรุณารอสักครู่ (อาจใช้เวลา 1-2 นาทีในครั้งแรก)</p>
+                </div>
+            </div>
+
+            <!-- กล่องข้อความ -->
+            <div>
+                <label class="block text-gray-700 font-bold mb-2">📝 ข้อความที่ต้องการท่องจำ:</label>
+                <textarea id="textContent" rows="6" class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="พิมพ์ข้อความที่นี่ หรือรอผลจากการสแกนรูปภาพ..."></textarea>
+            </div>
+
+            <!-- การตั้งค่า -->
+            <div class="flex flex-col md:flex-row md:items-center gap-4 bg-gray-50 p-4 rounded-lg border">
+                <div class="flex-1">
+                    <label class="block text-gray-700 font-bold mb-1">🔢 จำนวนคำที่ต้องการแสดงต่อครั้ง:</label>
+                    <input type="number" id="chunkSize" min="1" value="3" class="w-24 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="flex-1">
+                    <label class="block text-gray-700 font-bold mb-1">🔀 รูปแบบการแยกคำ:</label>
+                    <select id="splitMode" class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="word">แยกตามเว้นวรรค (คำ/บรรทัด)</option>
+                        <option value="line">แยกตามบรรทัดยาวๆ</option>
+                    </select>
+                </div>
+            </div>
+
+            <button onclick="startMemorizing()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-xl shadow-lg transform transition hover:scale-[1.02] text-xl">
+                🚀 เริ่มท่องจำ
+            </button>
+        </div>
+
+        <!-- ส่วนที่ 2: โหมดท่องจำ -->
+        <div id="memorizeSection" class="hidden flex flex-col items-center justify-center min-h-[400px]">
+            
+            <div class="w-full flex justify-between items-center mb-6">
+                <button onclick="backToSetup()" class="text-gray-500 hover:text-gray-800 font-medium">← กลับไปแก้ไข</button>
+                <span id="progressText" class="font-bold text-gray-600 bg-gray-200 py-1 px-3 rounded-full">1 / 10</span>
+                <button onclick="shuffleChunks()" class="text-indigo-500 hover:text-indigo-700 font-medium" title="สลับลำดับแบบสุ่ม">🔀 สลับลำดับ</button>
+            </div>
+
+            <!-- การ์ดแสดงผล -->
+            <div class="w-full bg-indigo-50 border-2 border-indigo-100 rounded-2xl p-10 min-h-[200px] flex items-center justify-center shadow-inner mb-8 text-center transition-opacity" id="cardDisplay">
+                <p id="displayText" class="text-3xl md:text-5xl font-medium text-gray-800 leading-tight whitespace-pre-wrap word-break"></p>
+            </div>
+
+            <!-- ปุ่มควบคุม -->
+            <div class="flex gap-4 w-full">
+                <button onclick="prevChunk()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-4 px-4 rounded-xl transition text-lg">
+                    ⏪ ก่อนหน้า
+                </button>
+                <button onclick="nextChunk()" class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-4 px-4 rounded-xl transition text-lg shadow-md">
+                    ถัดไป ⏩
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // ตัวแปรสำหรับเก็บข้อมูลสถานะ
+        let wordsArray = [];
+        let chunks = [];
+        let currentChunkIndex = 0;
+
+        // จัดการเมื่อเลือกไฟล์รูปภาพ
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').src = e.target.result;
+                    document.getElementById('imagePreviewContainer').classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // ฟังก์ชันสแกนข้อความด้วย Tesseract
+        async function scanText() {
+            const imgElement = document.getElementById('imagePreview');
+            const statusEl = document.getElementById('scanStatus');
+            const btn = document.getElementById('scanBtn');
+            
+            if (!imgElement.src) return;
+
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            statusEl.classList.remove('hidden');
+            
+            try {
+                // ระบุภาษาที่ต้องการสแกน (เกาหลี + ไทย + อังกฤษ) 
+                // เหมาะกับภาพเช่น 31087.jpg ที่มีศัพท์เกาหลีและคำแปลไทย
+                const result = await Tesseract.recognize(
+                    imgElement.src,
+                    'kor+tha+eng', 
+                    { logger: m => console.log(m) }
+                );
+                
+                // นำข้อความที่ได้ใส่ลงใน Textarea
+                document.getElementById('textContent').value = result.data.text;
+                statusEl.innerText = "✅ สแกนสำเร็จแล้ว!";
+                statusEl.classList.replace('text-indigo-600', 'text-green-600');
+            } catch (error) {
+                console.error(error);
+                statusEl.innerText = "❌ เกิดข้อผิดพลาดในการสแกน";
+                statusEl.classList.replace('text-indigo-600', 'text-red-600');
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                setTimeout(() => statusEl.classList.add('hidden'), 3000);
+            }
+        }
+
+        // เริ่มต้นโหมดท่องจำ
+        function startMemorizing() {
+            const rawText = document.getElementById('textContent').value.trim();
+            if (!rawText) {
+                alert("กรุณาใส่ข้อความ หรือสแกนรูปภาพก่อนครับ");
+                return;
+            }
+
+            const chunkSize = parseInt(document.getElementById('chunkSize').value) || 1;
+            const mode = document.getElementById('splitMode').value;
+
+            // การแยกคำ
+            if (mode === 'word') {
+                // แยกตามช่องว่าง หรือ การขึ้นบรรทัดใหม่
+                wordsArray = rawText.split(/\s+/).filter(word => word.length > 0);
+            } else {
+                // แยกตามบรรทัด
+                wordsArray = rawText.split('\n').filter(line => line.trim().length > 0);
+            }
+
+            if (wordsArray.length === 0) return;
+
+            // จัดกลุ่มคำตาม Chunk Size
+            chunks = [];
+            for (let i = 0; i < wordsArray.length; i += chunkSize) {
+                chunks.push(wordsArray.slice(i, i + chunkSize).join(mode === 'word' ? ' ' : '\n'));
+            }
+
+            currentChunkIndex = 0;
+            
+            // สลับหน้าจอ
+            document.getElementById('setupSection').classList.add('hidden');
+            document.getElementById('memorizeSection').classList.remove('hidden');
+            
+            updateDisplay();
+        }
+
+        // กลับไปหน้าตั้งค่า
+        function backToSetup() {
+            document.getElementById('memorizeSection').classList.add('hidden');
+            document.getElementById('setupSection').classList.remove('hidden');
+        }
+
+        // อัปเดตหน้าจอท่องจำ
+        function updateDisplay() {
+            if (chunks.length === 0) return;
+            
+            const card = document.getElementById('cardDisplay');
+            // ทำอนิเมชั่นจางหายเล็กน้อย
+            card.style.opacity = 0;
+            
+            setTimeout(() => {
+                document.getElementById('displayText').innerText = chunks[currentChunkIndex];
+                document.getElementById('progressText').innerText = `${currentChunkIndex + 1} / ${chunks.length}`;
+                card.style.opacity = 1;
+            }, 150);
+        }
+
+        function nextChunk() {
+            if (currentChunkIndex < chunks.length - 1) {
+                currentChunkIndex++;
+                updateDisplay();
+            } else {
+                // ถ้าครบแล้ว ให้วนกลับไปคำแรก หรือแสดงข้อความยินดีด้วย
+                if(confirm("🎉 คุณท่องจบแล้ว! ต้องการเริ่มวนใหม่ตั้งแต่ต้นหรือไม่?")) {
+                    currentChunkIndex = 0;
+                    updateDisplay();
+                }
+            }
+        }
+
+        function prevChunk() {
+            if (currentChunkIndex > 0) {
+                currentChunkIndex--;
+                updateDisplay();
+            }
+        }
+
+        // ฟังก์ชันสลับคำ (Shuffle Algorithm)
+        function shuffleChunks() {
+            for (let i = chunks.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [chunks[i], chunks[j]] = [chunks[j], chunks[i]];
+            }
+            currentChunkIndex = 0; // เริ่มใหม่หลังจากสลับ
+            updateDisplay();
+        }
+    </script>
+</body>
+</html>
