@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ultimate Cyberpunk Catalog Builder - 16:9 Full HD (Real-time Edition)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
+
+<!-- Firebase SDK (Realtime Database) -->
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700;900&family=Prompt:wght@400;700;900&family=Mitr:wght@400;600&family=Sarabun:wght@400;700&family=Pridi:wght@400;600&family=Itim&family=K2D:wght@400;700;800&family=Chakra+Petch:wght@400;700&family=Bai+Jamjuree:wght@400;700&family=Sriracha&family=Chonburi&family=Mali:wght@400;700&family=Orbitron:wght@400;700;900&family=Audiowide&family=Bungee&family=Press+Start+2P&family=Anton&family=Pacifico&family=Righteous&family=Black+Ops+One&display=swap" rel="stylesheet">
+<style>
+body{font-family:'Kanit',sans-serif;background-color:#050510;color:#fff;background-image:linear-gradient(rgba(0,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,255,.03) 1px,transparent 1px);background-size:30px 30px;overflow-x:hidden}
+input[type="number"]::-webkit-inner-spin-button,input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input[type="number"]{-moz-appearance:textfield}
+.tab-btn{position:relative;overflow:hidden;transition:all .3s}
+.tab-btn.active{background:rgba(0,255,255,.1);border-color:#0ff;box-shadow:0 0 15px rgba(0,255,255,.4),inset 0 0 10px rgba(0,255,255,.2);color:#0ff}
+.scroll-wrapper{width:100%;overflow-x:auto;padding-bottom:20px;display:flex;justify-content:flex-start}
+.scroll-wrapper::-webkit-scrollbar{height:12px}
+.scroll-wrapper::-webkit-scrollbar-track{background:#050914;border-radius:6px}
+.scroll-wrapper::-webkit-scrollbar-thumb{background:#0ff;border-radius:6px}
+.view-holder{position:relative;flex-shrink:0;margin:0 auto}
+
+.capturing .hide-on-capture,.view-only-mode .hide-on-capture{display:none!important}
+.capturing .drag-wrapper,.view-only-mode .drag-wrapper{border-color:transparent!important;pointer-events:none}
+.capturing input,.capturing textarea,.view-only-mode input,.view-only-mode textarea{border:none!important;background:transparent!important;resize:none!important;pointer-events:none}
+.capturing input::placeholder,.capturing textarea::placeholder,.view-only-mode input::placeholder,.view-only-mode textarea::placeholder{color:transparent!important}
+.view-only-mode .item-card.is-grouped{cursor:default}
+
+#gameCaptureArea,#carCaptureArea{width:1920px;min-width:1920px;height:1080px;min-height:1080px;flex-shrink:0;background-color:#0b101e;position:relative;border-radius:12px;margin:0;transform-origin:top left}
+.capturing #gameCaptureArea,.capturing #carCaptureArea{overflow:hidden!important}
+#gameCaptureArea{border:2px solid rgba(0,255,255,.2);box-shadow:0 0 40px rgba(0,0,0,.8) inset,0 0 20px rgba(0,255,255,.1)}
+#carCaptureArea{border:2px solid rgba(255,0,127,.2);box-shadow:0 0 40px rgba(0,0,0,.8) inset,0 0 20px rgba(255,0,127,.1)}
+
+.dynamic-grid{display:flex;flex-wrap:wrap;justify-content:center;align-content:flex-start;align-items:flex-start;gap:25px;width:100%;height:calc(1080px - 150px);padding:40px 50px 50px;box-sizing:border-box}
+.item-card-wrapper{position:relative;flex-grow:0;flex-shrink:0}
+.item-card-wrapper:hover,.item-card-wrapper:focus-within{z-index:50}
+.game-card-wrapper{width:calc(300px*var(--grid-scale,1));height:calc(320px*var(--grid-scale,1))}
+.car-card-wrapper{width:calc(400px*var(--grid-scale,1));height:calc(450px*var(--grid-scale,1))}
+.item-card{background:transparent;border-radius:12px;position:absolute;top:0;left:0;overflow:visible;transform:scale(var(--grid-scale,1));transform-origin:top left}
+.game-card{width:300px;height:320px}
+.car-card{width:400px;height:450px}
+.item-card.is-grouped{cursor:grab}
+.item-card-wrapper.is-locked .item-card.is-grouped{cursor:default}
+.item-card-wrapper.is-locked .pan-wrapper{cursor:not-allowed}
+
+.image-container{width:100%;position:relative;overflow:visible;transition:border-radius .15s}
+.game-card .image-container{height:210px;position:relative;z-index:1}
+.car-card .image-container{height:100%;position:absolute;inset:0;z-index:1}
+.image-container.cropped-mode{overflow:hidden!important}
+.item-card.selected-card .image-container{outline:3px dashed #0ff;outline-offset:3px}
+.pan-wrapper{position:absolute;width:100%;height:100%;display:flex;align-items:center;justify-content:center;transform:translate(var(--pan-x,0px),var(--pan-y,0px));cursor:grab}
+.pan-wrapper:active{cursor:grabbing}
+.game-img{max-width:100%;max-height:100%;object-fit:contain;pointer-events:none;mix-blend-mode:screen;filter:drop-shadow(0 0 15px rgba(0,255,255,.6)) brightness(1.2);transform:scale(var(--img-scale,1.8))}
+.car-img{width:100%;height:100%;object-fit:contain;pointer-events:none;transform:scale(var(--img-scale,1))}
+
+.ribbon-layer{position:absolute;inset:0;pointer-events:none;z-index:9000}
+.ribbon-wrapper{position:absolute;top:0;left:0;width:150px;height:150px;overflow:hidden;pointer-events:none;filter:drop-shadow(0 4px 6px rgba(0,0,0,.5))}
+.ribbon{position:absolute;top:25px;left:-45px;width:190px;background:linear-gradient(90deg,#d30000,#ff1a1a,#d30000);color:#fff;font-size:1.5rem;font-weight:900;text-align:center;padding:5px 0;transform:rotate(-45deg);box-shadow:0 5px 15px rgba(255,0,0,.7);letter-spacing:2px;border-top:2px solid rgba(255,255,255,.8);border-bottom:2px solid rgba(255,255,255,.8);text-shadow:2px 2px 4px rgba(0,0,0,.8)}
+
+.drag-wrapper{position:absolute;z-index:50;width:100%;display:flex;justify-content:center;pointer-events:none}
+.drag-wrapper .txt-target{cursor:text}
+.drag-wrapper.selected-text .txt-target{cursor:move}
+.drag-wrapper.is-locked .txt-target{cursor:text}
+.drag-chip{position:absolute;top:-15px;left:50%;transform:translateX(-50%);width:24px;height:24px;border-radius:5px;background:rgba(0,255,255,.9);color:#000;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;cursor:move;opacity:0;transition:opacity .15s;z-index:80;pointer-events:auto}
+.drag-wrapper .txt-target:hover~.drag-chip,.drag-wrapper .txt-target:focus~.drag-chip,.drag-chip:hover,.drag-wrapper.selected-text .drag-chip{opacity:1}
+.drag-wrapper.is-locked .drag-chip{cursor:not-allowed;background:rgba(239,68,68,.85)}
+.drag-wrapper.selected-text .txt-target{outline:1px dashed rgba(0,255,255,.8);outline-offset:4px;border-radius:4px}
+.multi-selected{outline:3px solid #f59e0b!important;outline-offset:3px;border-radius:6px}
+.selection-marquee{position:absolute;display:none;z-index:95;pointer-events:none;border:1px solid #00ffff;background:rgba(0,255,255,.08);box-shadow:0 0 18px rgba(0,255,255,.18)}
+.smart-guide{position:absolute;display:none;z-index:96;pointer-events:none;background:#00ffff;box-shadow:0 0 8px rgba(0,255,255,.9)}
+.smart-guide-x{top:0;bottom:0;width:1px}
+.smart-guide-y{left:0;right:0;height:1px}
+#gameCaptureArea.is-selecting,#carCaptureArea.is-selecting{cursor:crosshair}
+.capturing .selection-marquee,.capturing .smart-guide,.view-only-mode .selection-marquee,.view-only-mode .smart-guide{display:none!important}
+
+.txt-target{outline:none;border:none;background:transparent;width:90%;user-select:text;paint-order:stroke fill;pointer-events:auto}
+.txt-detail,.global-textarea{background:transparent;border:1px dashed transparent;border-radius:8px;text-align:center;resize:none;padding:6px 4px;overflow:hidden!important;transition:border .3s,background .3s;word-break:break-word}
+.txt-detail:focus,.global-textarea:focus{background:rgba(0,0,0,.25)}
+.global-textarea{min-height:50px;resize:both}
+
+#topToolbar{position:sticky;top:8px}
+.tt-select,.tt-align{height:30px;background:#fff;color:#000;border-radius:5px;font-size:13px;outline:none;padding:0 4px}
+.tt-select.tt-font{width:150px}
+.tt-num{width:52px;height:30px;background:#fff;color:#000;border-radius:5px;text-align:center;font-size:13px;outline:none}
+.tt-num.narrow{width:44px}
+.tt-btn{min-width:30px;height:30px;padding:0 8px;border-radius:5px;background:#374151;color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:700}
+.tt-btn.on{background:#0ff;color:#000}
+.tt-btn.danger{background:#7f1d1d}
+.tt-btn.danger.on{background:#ef4444;color:#fff}
+.tt-group{display:flex;align-items:center;gap:4px;background:#1f2937;padding:4px 8px;border-radius:6px;font-size:11px;color:#9ca3af;border:1px solid #374151}
+.tt-color{width:30px;height:30px;cursor:pointer;border:none;padding:0;background:transparent;border-radius:5px}
+.tt-check{display:flex;align-items:center;gap:5px;background:#1f2937;padding:4px 10px;border-radius:6px;font-size:12px;border:1px solid #374151;cursor:pointer}
+
+#previewModalContainer::-webkit-scrollbar{width:10px;height:10px}
+#previewModalContainer::-webkit-scrollbar-track{background:rgba(0,0,0,.5)}
+#previewModalContainer::-webkit-scrollbar-thumb{background:#0ff;border-radius:5px}
+</style>
+</head>
+<body class="min-h-screen p-4 md:p-8 flex flex-col items-center">
+
+<!-- Modal พรีวิว -->
+<div id="previewModal" class="fixed inset-0 bg-black/95 z-[100] hidden flex-col items-center justify-center p-4 backdrop-blur-md">
+  <div class="flex justify-between items-center w-full max-w-[1400px] mb-4">
+    <h3 class="text-3xl font-bold text-cyan-400">👀 พรีวิวภาพ (Preview)</h3>
+    <button onclick="closePreview()" class="text-white bg-red-600 hover:bg-red-500 rounded-lg px-6 py-2 font-bold text-lg transition">✕ ปิดพรีวิว</button>
+  </div>
+  <div id="previewModalContainer" class="relative w-full max-w-[1400px] max-h-[75vh] overflow-auto border-2 border-cyan-600/50 rounded-xl bg-[#050510]">
+    <img id="previewImageElement" src="" alt="Preview" class="w-full h-auto object-contain mx-auto">
+  </div>
+  <div class="mt-6 flex gap-4" id="previewButtons">
+    <button onclick="downloadFromPreview()" class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white px-10 py-3 rounded-lg font-bold transition text-xl">⬇️ ดาวน์โหลด 1080p</button>
+  </div>
+</div>
+
+<!-- Menu -->
+<div class="w-full max-w-6xl mb-4 flex flex-wrap gap-4 bg-gray-900/50 p-3 rounded-xl border border-gray-700/50 justify-between items-center">
+  <div class="flex gap-4 flex-1 min-w-[300px]">
+    <button onclick="switchTab('game')" id="tabGame" class="tab-btn active flex-1 py-3 text-lg font-bold rounded-lg border-2 border-transparent text-gray-400 hover:text-white uppercase tracking-widest">🎮 Game Shop (16:9)</button>
+    <button onclick="switchTab('car')" id="tabCar" class="tab-btn flex-1 py-3 text-lg font-bold rounded-lg border-2 border-transparent text-gray-400 hover:text-white uppercase tracking-widest">🚗 Car Rental (16:9)</button>
+  </div>
+  <div class="flex gap-3 px-2 items-center">
+    <!-- Cloud Status Indicator -->
+    <div id="cloudStatus" class="text-xs font-bold px-3 py-1 rounded-full bg-green-500/20 text-green-400 border border-green-500/50">☁️ Online (Real-time)</div>
+    
+    <button onclick="saveProject()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-3 rounded-lg font-bold transition">💾 เซฟลงเครื่อง (Backup)</button>
+    <label class="cursor-pointer bg-amber-600 hover:bg-amber-500 text-white px-5 py-3 rounded-lg font-bold transition">
+      📂 โหลดไฟล์ JSON
+      <input type="file" id="jsonLoadInput" accept=".json,application/json" class="hidden" onchange="loadProject(event)">
+    </label>
+  </div>
+</div>
+
+<!-- ================= แถบเครื่องมือบนสุดแบบ Word ================= -->
+<div id="topToolbar" class="hide-on-capture w-full max-w-6xl mb-4 bg-gray-900/95 backdrop-blur border border-cyan-500/40 rounded-xl p-3 shadow-lg z-[90]">
+  <div id="toolbarHint" class="text-center text-gray-500 text-sm py-1.5">🖱️ คลิกข้อความ/รูปเพื่อแก้ไข • Ctrl+คลิก หรือ ลากคลุมพื้นที่เพื่อเลือกหลายรูป • ตอนลากจะมีเส้นไกด์ช่วยจัดแนว</div>
+
+  <div id="textToolbar" class="hidden flex-wrap items-center gap-2 justify-center">
+    <span class="tt-group">✍️ ข้อความ</span>
+    <select id="ttFont" class="tt-select tt-font" oninput="applyTextToolbar()" title="ฟอนต์"></select>
+    <input type="number" id="ttSize" class="tt-num narrow" min="6" max="500" oninput="applyTextToolbar()" title="ขนาด (px)">
+    <button id="ttBold" class="tt-btn" onclick="toggleTt('ttBold')" title="ตัวหนา"><b>B</b></button>
+    <button id="ttItalic" class="tt-btn" onclick="toggleTt('ttItalic')" title="ตัวเอียง"><i>I</i></button>
+    <select id="ttAlign" class="tt-select tt-align" oninput="applyTextToolbar()" title="จัดตำแหน่ง">
+      <option value="left">◀ ซ้าย</option><option value="center">■ กลาง</option><option value="right">▶ ขวา</option>
+    </select>
+    <div class="tt-group">สี<input type="color" id="ttColor" class="tt-color" oninput="applyTextToolbar()"></div>
+    <div class="tt-group">ขอบ<input type="color" id="ttStrokeColor" class="tt-color" oninput="applyTextToolbar()"><input type="number" id="ttStrokeSize" class="tt-num narrow" min="0" max="40" step="0.5" oninput="applyTextToolbar()"></div>
+    <div class="tt-group">เรืองแสง<input type="color" id="ttGlowColor" class="tt-color" oninput="applyTextToolbar()"><input type="number" id="ttGlowSize" class="tt-num narrow" min="0" max="100" oninput="applyTextToolbar()"></div>
+    <div class="tt-group">↔ ระยะห่าง<input type="number" id="ttSpacing" class="tt-num narrow" min="-10" max="100" step="0.5" oninput="applyTextToolbar()"></div>
+    <div class="tt-group">↕ บรรทัด<input type="number" id="ttLine" class="tt-num narrow" min="0.5" max="4" step="0.1" oninput="applyTextToolbar()"></div>
+    <button id="ttLock" class="tt-btn danger" onclick="toggleTextLock()" title="ล็อคตำแหน่ง">📌 ล็อค</button>
+    <button class="tt-btn" style="background:#3b82f6" onclick="duplicateSelectedText()" title="ทำซ้ำ">📋 ทำซ้ำ</button>
+    <button class="tt-btn" style="background:#dc2626" onclick="deleteSelectedText()" title="ลบข้อความ">🗑️ ลบ</button>
+  </div>
+
+  <div id="imageToolbar" class="hidden flex-wrap items-center gap-2 justify-center">
+    <span class="tt-group">🖼️ รูปภาพ</span>
+    <div class="tt-group">🔍 ซูม<input type="number" id="itZoom" class="tt-num narrow" min="0.2" max="6" step="0.05" oninput="applyImageToolbar()"></div>
+    <select id="itShape" class="tt-select" oninput="applyImageToolbar()" title="รูปทรงตัดภาพ (ไดคัท)">
+      <option value="none">ไม่ตัดขอบ</option>
+      <option value="rounded">มุมโค้งมน</option>
+      <option value="circle">วงกลม</option>
+      <option value="ellipse">วงรี</option>
+      <option value="diagonal">ตัดทแยงมุม</option>
+      <option value="hexagon">หกเหลี่ยม</option>
+    </select>
+    <div class="tt-group">⬜ รัศมีมุม<input type="number" id="itRadius" class="tt-num narrow" min="0" max="200" oninput="applyImageToolbar()"></div>
+    <div class="tt-group">🖌️ กรอบ<input type="color" id="itBorderColor" class="tt-color" oninput="applyImageToolbar()"><input type="number" id="itBorderWidth" class="tt-num narrow" min="0" max="30" oninput="applyImageToolbar()"></div>
+    <label class="tt-check"><input type="checkbox" id="itShadow" oninput="applyImageToolbar()">🌑 เงา</label>
+    <div class="tt-group">☀️ สว่าง<input type="number" id="itBrightness" class="tt-num narrow" min="0" max="300" oninput="applyImageToolbar()"></div>
+    <div class="tt-group">◐ คอนทราสต์<input type="number" id="itContrast" class="tt-num narrow" min="0" max="300" oninput="applyImageToolbar()"></div>
+    <div class="tt-group">🎨 อิ่มสี<input type="number" id="itSaturate" class="tt-num narrow" min="0" max="300" oninput="applyImageToolbar()"></div>
+    <div class="tt-group">⚫ ขาวดำ<input type="number" id="itGrayscale" class="tt-num narrow" min="0" max="100" oninput="applyImageToolbar()"></div>
+    <div class="tt-group">💧 เบลอ<input type="number" id="itBlur" class="tt-num narrow" min="0" max="30" oninput="applyImageToolbar()"></div>
+    <div class="tt-group">🌈 สีเพี้ยน<input type="number" id="itHue" class="tt-num narrow" min="0" max="360" oninput="applyImageToolbar()"></div>
+    <button class="tt-btn" style="background:#475569" onclick="resetImageEffects()" title="รีเซ็ตเอฟเฟกต์ภาพ">↺ รีเซ็ตเอฟเฟกต์</button>
+    <label class="tt-check"><input type="checkbox" id="itRibbon" oninput="applyImageToolbar()">🏷️ ป้ายติด</label>
+    <label class="tt-check"><input type="checkbox" id="itCropMode" oninput="applyImageToolbar()">✂️ ซ่อนขอบล้น</label>
+    <label class="tt-check"><input type="checkbox" id="itGroup" oninput="applyImageToolbar()">🔒 ล็อคกลุ่ม</label>
+    <label class="tt-check"><input type="checkbox" id="itLock" oninput="applyImageToolbar()">📌 ล็อคตำแหน่ง</label>
+    <button class="tt-btn" style="background:#0f766e" onclick="selectAllCards()" title="เลือกการ์ดทั้งหมด">☑️ เลือกทั้งหมด</button>
+    <button class="tt-btn" style="background:#64748b" onclick="clearCardSelection()" title="ยกเลิกการเลือกหลายรูป">✕ ล้างเลือก</button>
+    <span class="tt-group">➕ เพิ่มข้อความ</span>
+    <button class="tt-btn" style="background:#0891b2" onclick="addCardField('name')">ชื่อ</button>
+    <button class="tt-btn" style="background:#0891b2" onclick="addCardField('detail')">รายละเอียด</button>
+    <button class="tt-btn" style="background:#0891b2" onclick="addCardField('price')">ราคา</button>
+    <button class="tt-btn" style="background:#3b82f6" onclick="duplicateSelectedCard()" title="ทำซ้ำการ์ด">📋 ทำซ้ำการ์ด</button>
+    <button class="tt-btn" style="background:#dc2626" onclick="deleteSelectedCard()" title="ลบการ์ด">🗑️ ลบการ์ด</button>
+  </div>
+</div>
+
+<!-- GAME MODE -->
+<section id="gameMode" class="w-full flex flex-col items-center">
+  <div class="hide-on-capture w-full max-w-6xl bg-gray-900 border border-cyan-500/30 p-6 rounded-xl mb-6 flex flex-wrap gap-4 items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-cyan-400">GAME CATALOG (1080p)</h1>
+      <p class="text-sm text-gray-400 mt-1">อัปโหลดรูป • คลิกข้อความ/รูปเพื่อแก้ไขที่แถบด้านบน • Ctrl + ลูกกลิ้งเมาส์ = ซูมพื้นที่ทำงาน</p>
+    </div>
+    <div class="flex flex-col gap-2">
+      <div class="flex items-center gap-3 bg-gray-800 px-4 py-2 rounded-lg border border-cyan-500/20">
+        <label class="text-sm text-cyan-300 font-semibold">🔍 ซูมรูปทั้งหมด:</label>
+        <input type="range" id="gameScaleSlider" min="0.2" max="6" step="0.01" value="1.8" class="accent-cyan-400 cursor-pointer w-24" oninput="updateScale('game', this.value); syncToCloud();">
+        <input type="number" id="gameScaleValue" step="0.01" value="1.80" class="w-16 bg-gray-700 text-cyan-400 font-bold text-center rounded border border-cyan-500/50 outline-none h-7" onchange="updateScale('game', this.value); syncToCloud();" oninput="updateScale('game', this.value);">
+        <span class="text-gray-500 mx-1">|</span>
+        <label class="text-sm text-pink-300 font-semibold">🗂️ ย่อเลย์เอาต์:</label>
+        <input type="range" id="gameGridScaleSlider" min="0.3" max="1.5" step="0.01" value="1.00" class="accent-pink-400 cursor-pointer w-24" oninput="updateGridScale('game', this.value); syncToCloud();">
+        <input type="number" id="gameGridScaleValue" step="0.01" value="1.00" class="w-16 bg-gray-700 text-pink-400 font-bold text-center rounded border border-pink-500/50 outline-none h-7" onchange="updateGridScale('game', this.value); syncToCloud();" oninput="updateGridScale('game', this.value);">
+      </div>
+    </div>
+    <div class="flex gap-3">
+      <button onclick="toggleOverviewMode()" class="btn-overview bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition">👁️ ซ่อนเครื่องมือ</button>
+      <button onclick="toggleAllCardsLock()" class="bg-amber-700 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition">🔒 ล็อค/ปลดทั้งหมด</button>
+      <button onclick="addGlobalText('gameCaptureArea')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-semibold text-sm">➕ ข้อความอิสระ</button>
+      <label class="cursor-pointer bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-semibold text-sm">📂 เพิ่มรูปไอเทม
+        <input type="file" id="gameImageUpload" class="hidden" accept="image/*" multiple>
+      </label>
+      <button onclick="previewImage('gameCaptureArea','game_banner')" class="bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg font-semibold text-sm">👀 พรีวิว</button>
+    </div>
+  </div>
+  <div class="scroll-wrapper">
+    <div class="view-holder" id="gameHolder">
+      <div id="gameCaptureArea">
+        <div class="selection-marquee" id="gameSelectionMarquee"></div>
+        <div class="smart-guide smart-guide-x" id="gameGuideX"></div>
+        <div class="smart-guide smart-guide-y" id="gameGuideY"></div>
+        <div id="gameGrid" class="dynamic-grid" style="--grid-scale:1;"></div>
+        <div class="ribbon-layer" id="gameRibbonLayer"></div>
+        <div id="gameEmptyState" class="w-full text-center text-gray-500 hide-on-capture text-2xl font-bold absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">ยังไม่มีไอเทม กรุณากด "เพิ่มรูปไอเทม"</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CAR MODE -->
+<section id="carMode" class="w-full flex flex-col items-center hidden">
+  <div class="hide-on-capture w-full max-w-6xl bg-gray-900 border border-pink-500/30 p-6 rounded-xl mb-6 flex flex-wrap gap-4 items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-pink-400">VEHICLE RENTAL (1080p)</h1>
+      <p class="text-sm text-gray-400 mt-1">อัปโหลดรูป • คลิกข้อความ/รูปเพื่อแก้ไขที่แถบด้านบน • Ctrl + ลูกกลิ้งเมาส์ = ซูมพื้นที่ทำงาน</p>
+    </div>
+    <div class="flex flex-col gap-2">
+      <div class="flex items-center gap-3 bg-gray-800 px-4 py-2 rounded-lg border border-pink-500/20">
+        <label class="text-sm text-pink-300 font-semibold">🔍 ซูมรูปทั้งหมด:</label>
+        <input type="range" id="carScaleSlider" min="0.2" max="6" step="0.01" value="1.0" class="accent-pink-400 cursor-pointer w-24" oninput="updateScale('car', this.value); syncToCloud();">
+        <input type="number" id="carScaleValue" step="0.01" value="1.00" class="w-16 bg-gray-700 text-pink-400 font-bold text-center rounded border border-pink-500/50 outline-none h-7" onchange="updateScale('car', this.value); syncToCloud();" oninput="updateScale('car', this.value);">
+        <span class="text-gray-500 mx-1">|</span>
+        <label class="text-sm text-cyan-300 font-semibold">🗂️ ย่อเลย์เอาต์:</label>
+        <input type="range" id="carGridScaleSlider" min="0.3" max="1.5" step="0.01" value="1.00" class="accent-cyan-400 cursor-pointer w-24" oninput="updateGridScale('car', this.value); syncToCloud();">
+        <input type="number" id="carGridScaleValue" step="0.01" value="1.00" class="w-16 bg-gray-700 text-cyan-400 font-bold text-center rounded border border-cyan-500/50 outline-none h-7" onchange="updateGridScale('car', this.value); syncToCloud();" oninput="updateGridScale('car', this.value);">
+      </div>
+    </div>
+    <div class="flex gap-3">
+      <button onclick="toggleOverviewMode()" class="btn-overview bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition">👁️ ซ่อนเครื่องมือ</button>
+      <button onclick="toggleAllCardsLock()" class="bg-amber-700 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition">🔒 ล็อค/ปลดทั้งหมด</button>
+      <button onclick="addGlobalText('carCaptureArea')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-semibold text-sm">➕ ข้อความอิสระ</button>
+      <label class="cursor-pointer bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-lg font-semibold text-sm">📂 เพิ่มรูปรถ
+        <input type="file" id="carImageUpload" class="hidden" accept="image/*" multiple>
+      </label>
+      <button onclick="previewImage('carCaptureArea','car_rental')" class="bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg font-semibold text-sm">👀 พรีวิว</button>
+    </div>
+  </div>
+  <div class="scroll-wrapper">
+    <div class="view-holder" id="carHolder">
+      <div id="carCaptureArea">
+        <div class="selection-marquee" id="carSelectionMarquee"></div>
+        <div class="smart-guide smart-guide-x" id="carGuideX"></div>
+        <div class="smart-guide smart-guide-y" id="carGuideY"></div>
+        <div id="carGrid" class="dynamic-grid" style="--grid-scale:1;"></div>
+        <div class="ribbon-layer" id="carRibbonLayer"></div>
+        <div id="carEmptyState" class="w-full text-center text-gray-500 hide-on-capture text-2xl font-bold absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">ยังไม่มีรูปรถ กรุณากด "เพิ่มรูปรถ"</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="toast" class="fixed bottom-5 right-5 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg font-bold transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none z-[110] text-xl">✅ อัปเดตสำเร็จ!</div>
+
+<script>
+/* ================= REAL-TIME CLOUD SYNC (FIREBASE RTDB) ================= */
+// ใส่ Config ของลูกศิษย์ที่นี่!
+const firebaseConfig = {
+    apiKey: "AIzaSyBVirNpmGi1r53mf7pNnV59RGzEFKo4PS4",
+    authDomain: "smart-ice-tumnaaa.firebaseapp.com",
+    databaseURL: "https://smart-ice-tumnaaa-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "smart-ice-tumnaaa",
+    storageBucket: "smart-ice-tumnaaa.firebasestorage.app",
+    messagingSenderId: "349663033743",
+    appId: "1:349663033743:web:adf6793310195fb06e73fa"
+};
+
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const rtdb = firebase.database();
+const catalogRoomRef = rtdb.ref('cyberpunk_rooms/main_room');
+
+let isIncomingSync = false; 
+
+function syncToCloud() {
+    if (isIncomingSync) return; 
+    
+    try {
+        const projectState = {
+            version: 4, 
+            activeTab: activeMode(),
+            scales: { 
+                game: document.getElementById('gameScaleSlider').value, 
+                car: document.getElementById('carScaleSlider').value, 
+                gameGrid: document.getElementById('gameGridScaleSlider').value, 
+                carGrid: document.getElementById('carGridScaleSlider').value 
+            },
+            gameCards: getCardsState('gameGrid'), 
+            carCards: getCardsState('carGrid'),
+            globalTexts: Array.from(document.querySelectorAll('.global-text-wrapper')).map(function (w) { 
+                const s = extractWrapperState(w); 
+                s.parent = w.parentElement.id; 
+                return s; 
+            }),
+            lastUpdate: Date.now()
+        };
+        
+        catalogRoomRef.set(projectState);
+    } catch (err) {
+        console.error("Cloud Sync Error: ", err);
+    }
+}
+
+// ฟังข้อมูลจาก Cloud
+catalogRoomRef.on('value', (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+        isIncomingSync = true;
+        try {
+            // สำรองสิ่งที่กำลังเลือกอยู่
+            const currActive = document.activeElement;
+            const hadFocus = currActive && (currActive.tagName === 'INPUT' || currActive.tagName === 'TEXTAREA');
+            
+            applyProject(data); 
+            
+            // การซิงค์แบบง่ายอาจทำให้หลุดโฟกัสตอนคนอื่นแก้ อาจารย์ไม่ได้เขียนระบบ Merge ลึกขนาดนั้น 
+            // แต่สำหรับใช้งานทั่วไป 3-4 คน แค่นี้ก็ลื่นไหลแล้ว
+            const cloudIcon = document.getElementById('cloudStatus');
+            cloudIcon.classList.remove('text-green-400');
+            cloudIcon.classList.add('text-blue-400', 'bg-blue-500/20');
+            setTimeout(() => {
+                cloudIcon.classList.add('text-green-400', 'bg-green-500/20');
+                cloudIcon.classList.remove('text-blue-400', 'bg-blue-500/20');
+            }, 1000);
+            
+        } catch (err) {
+            console.error("Apply Cloud Data Error:", err);
+        }
+        setTimeout(() => { isIncomingSync = false; }, 300); 
+    }
+});
+
+/* ================= ค่าคงที่ ================= */
+const FONTS = ['Kanit','Prompt','Mitr','Sarabun','Pridi','Itim','K2D','Chakra Petch','Bai Jamjuree','Sriracha','Chonburi','Mali','Orbitron','Audiowide','Bungee','Press Start 2P','Anton','Pacifico','Righteous','Black Ops One'];
+const LATIN_ONLY = ['Orbitron','Audiowide','Bungee','Press Start 2P','Anton','Pacifico','Righteous','Black Ops One'];
+const POS = { game:{name:'210px',detail:'245px',price:'275px'}, car:{name:'300px',detail:'350px',price:'385px'} };
+const SIZE = { game:{name:26,detail:16,price:36}, car:{name:40,detail:24,price:56} };
+const MIN_H = { game:'40px', car:'65px' };
+
+let currentPreviewDataUrl = '', currentDownloadName = '', lastCapture = null, toastTimer = null;
+const viewState = { game:{auto:true, zoom:1}, car:{auto:true, zoom:1} };
+let isOverviewMode = false;
+let selectedText = null;   // .drag-wrapper element
+let selectedCard = null;   // primary .item-card-wrapper element
+let selectedCards = new Set();
+let suppressToolbar = false;
+let marquee = null;
+let snapGuides = { x:null, y:null };
+
+/* ================= ทั่วไป ================= */
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.innerText = msg;
+  t.className = 'fixed bottom-5 right-5 text-white px-6 py-3 rounded-lg shadow-lg font-bold transform transition-all duration-300 pointer-events-none z-[110] text-xl ' + (isError ? 'bg-red-500' : 'bg-green-500');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { t.classList.add('translate-y-20', 'opacity-0'); }, 3000);
+}
+function toggleOverviewMode() {
+  isOverviewMode = !isOverviewMode;
+  document.getElementById('gameCaptureArea').classList.toggle('view-only-mode', isOverviewMode);
+  document.getElementById('carCaptureArea').classList.toggle('view-only-mode', isOverviewMode);
+  document.querySelectorAll('.btn-overview').forEach(function (btn) {
+    if (isOverviewMode) { btn.innerHTML = '✏️ เปิดเครื่องมือ'; btn.className = 'btn-overview bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg font-semibold text-sm transition'; }
+    else { btn.innerHTML = '👁️ ซ่อนเครื่องมือ'; btn.className = 'btn-overview bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition'; }
+  });
+  if (isOverviewMode) deselectAll();
+}
+function toggleAllCardsLock() {
+  const mode = activeMode();
+  const wrappers = document.getElementById(mode + 'Grid').querySelectorAll('.item-card-wrapper');
+  if (!wrappers.length) return showToast('⚠️ ไม่มีรูปให้ล็อค', true);
+  let anyUnlocked = false;
+  wrappers.forEach(function (w) { if (!w.classList.contains('is-locked')) anyUnlocked = true; });
+  wrappers.forEach(function (w) { w.classList.toggle('is-locked', anyUnlocked); });
+  if (selectedCard) populateImageToolbar(selectedCard);
+  showToast(anyUnlocked ? '🔒 ล็อครูปทั้งหมดแล้ว!' : '🔓 ปลดล็อครูปทั้งหมดแล้ว!');
+  syncToCloud(); // <-- Sync hook
+}
+function getScale(el) { const w = el.offsetWidth; return w ? el.getBoundingClientRect().width / w : 1; }
+function activeMode() { return document.getElementById('tabGame').classList.contains('active') ? 'game' : 'car'; }
+function refreshEmpty() { ['game', 'car'].forEach(function (m) { document.getElementById(m + 'EmptyState').style.display = document.getElementById(m + 'Grid').children.length ? 'none' : 'block'; }); }
+function autoGrow(t) { if (!t || !t.scrollHeight) return; t.style.height = 'auto'; t.style.height = (t.scrollHeight + 2) + 'px'; }
+function refreshAutoGrow() { document.querySelectorAll('textarea.txt-target').forEach(autoGrow); }
+
+function saveBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name; a.style.display = 'none';
+  document.body.appendChild(a); a.click();
+  setTimeout(function () { a.remove(); URL.revokeObjectURL(url); }, 5000);
+}
+async function saveDataUrl(dataUrl, name) { const blob = await (await fetch(dataUrl)).blob(); saveBlob(blob, name); }
+
+/* ================= แท็บ + มุมมอง ================= */
+function switchTab(tab) {
+  document.getElementById('gameMode').classList.toggle('hidden', tab !== 'game');
+  document.getElementById('carMode').classList.toggle('hidden', tab !== 'car');
+  document.getElementById('tabGame').classList.toggle('active', tab === 'game');
+  document.getElementById('tabCar').classList.toggle('active', tab === 'car');
+  if (viewState[tab].auto) fitView(tab);
+  deselectAll();
+  refreshAutoGrow();
+  syncToCloud(); // <-- Sync hook
+}
+function setViewZoom(mode, z, manual) {
+  z = Math.max(0.2, Math.min(5, z));
+  if (manual) viewState[mode].auto = false;
+  viewState[mode].zoom = z;
+  const area = document.getElementById(mode + 'CaptureArea'), holder = document.getElementById(mode + 'Holder');
+  if (!area || !holder) return;
+  area.style.transform = 'scale(' + z + ')';
+  holder.style.width = (1920 * z) + 'px';
+  holder.style.height = (1080 * z) + 'px';
+}
+function fitView(mode) {
+  const avail = document.getElementById(mode + 'Holder').parentElement.clientWidth - 8;
+  if (avail <= 50) return;
+  viewState[mode].auto = true;
+  setViewZoom(mode, Math.min(1, avail / 1920), false);
+}
+window.addEventListener('resize', function () { ['game', 'car'].forEach(function (m) { if (viewState[m].auto) fitView(m); }); });
+document.addEventListener('wheel', function (e) {
+  if (e.ctrlKey) { e.preventDefault(); const mode = activeMode(); setViewZoom(mode, (viewState[mode].zoom || 1) + (e.deltaY > 0 ? -0.05 : 0.05), true); }
+}, { passive: false });
+
+/* ================= สเกลรูป / เลย์เอาต์ ================= */
+function updateScale(mode, val, apply) {
+  const num = parseFloat(val); if (isNaN(num)) return;
+  const l = document.getElementById(mode + 'ScaleValue'); if (l && document.activeElement !== l) l.value = num.toFixed(2);
+  const s = document.getElementById(mode + 'ScaleSlider'); if (s && document.activeElement !== s) s.value = val;
+  if (apply === false) return;
+  document.querySelectorAll('#' + mode + 'Grid img').forEach(function (img) { img.style.setProperty('--img-scale', val); });
+  if (selectedCard && selectedCard.closest('#' + mode + 'Grid')) populateImageToolbar(selectedCard);
+}
+function updateGridScale(mode, val) {
+  const num = parseFloat(val); if (isNaN(num)) return;
+  const l = document.getElementById(mode + 'GridScaleValue'); if (l && document.activeElement !== l) l.value = num.toFixed(2);
+  const s = document.getElementById(mode + 'GridScaleSlider'); if (s && document.activeElement !== s) s.value = val;
+  const grid = document.getElementById(mode + 'Grid'); if (grid) grid.style.setProperty('--grid-scale', val);
+  syncRibbons(mode);
+}
+
+/* ================= ราคา K ================= */
+function formatToK(input) {
+  const val = input.value.trim().replace(/,/g, '');
+  if (!isNaN(val) && val !== '' && !val.toLowerCase().includes('k')) {
+    const num = parseFloat(val);
+    if (num >= 1000) { const k = num / 1000; input.value = (k % 1 !== 0 ? k.toFixed(1) : k) + 'K'; input.dataset.original = num; input.setAttribute('value', input.value); }
+  }
+}
+function revertKToNumber(input) {
+  if (input.dataset.original) { input.value = input.dataset.original; input.setAttribute('value', input.value); }
+  else { const v = input.value.trim().toUpperCase(); if (v.endsWith('K')) { const n = parseFloat(v.replace('K', '')); if (!isNaN(n)) { input.value = n * 1000; input.setAttribute('value', input.value); } } }
+}
+function syncText(el) { if (el.tagName === 'TEXTAREA') { el.textContent = el.value; autoGrow(el); } else el.setAttribute('value', el.value); }
+
+/* ================= สไตล์ข้อความ ================= */
+function hex(c) { return c && /^#/.test(c) ? c : '#ffffff'; }
+function writeTextStyle(t, s) {
+  t.dataset.font = s.font; t.dataset.color = s.color; t.dataset.strokeColor = s.strokeColor; t.dataset.strokeSize = s.strokeSize;
+  t.dataset.glowColor = s.glowColor; t.dataset.glowSize = s.glowSize;
+  const st = t.style;
+  st.fontFamily = "'" + s.font + "','Kanit',sans-serif";
+  st.fontSize = s.size + 'px';
+  st.fontWeight = s.bold ? 'bold' : 'normal';
+  st.fontStyle = s.italic ? 'italic' : 'normal';
+  st.textAlign = s.align;
+  st.letterSpacing = s.spacing + 'px';
+  st.lineHeight = s.lineHeight;
+  st.color = s.color;
+  st.webkitTextStroke = s.strokeSize > 0 ? s.strokeSize + 'px ' + s.strokeColor : '0px transparent';
+  st.paintOrder = 'stroke fill';
+  st.textShadow = s.glowSize > 0 ? '0 0 ' + s.glowSize + 'px ' + s.glowColor : 'none';
+  if (t.tagName === 'TEXTAREA') autoGrow(t);
+}
+function readTextStyle(t) {
+  const cs = t.style;
+  return {
+    font: t.dataset.font || 'Kanit', size: parseFloat(cs.fontSize) || 24,
+    bold: cs.fontWeight === 'bold' || cs.fontWeight === '900', italic: cs.fontStyle === 'italic',
+    align: cs.textAlign || 'center', color: hex(t.dataset.color),
+    spacing: parseFloat(cs.letterSpacing) || 0, lineHeight: parseFloat(cs.lineHeight) || 1.2,
+    strokeColor: t.dataset.strokeColor || '#000000', strokeSize: parseFloat(t.dataset.strokeSize) || 0,
+    glowColor: hex(t.dataset.glowColor), glowSize: parseFloat(t.dataset.glowSize) || 0
+  };
+}
+function defaultTextStyle(over) { return Object.assign({ font: 'Kanit', size: 24, bold: true, italic: false, align: 'center', color: '#ffffff', spacing: 0, lineHeight: 1.2, strokeColor: '#000000', strokeSize: 0, glowColor: '#ffffff', glowSize: 12 }, over || {}); }
+
+function populateFontSelect(sel) {
+  sel.innerHTML = FONTS.map(function (f) { return '<option value="' + f + '" style="font-family:\'' + f + '\'">' + f + (LATIN_ONLY.indexOf(f) >= 0 ? ' (EN)' : '') + '</option>'; }).join('');
+}
+populateFontSelect(document.getElementById('ttFont'));
+
+/* ================= เลือก / ยกเลิกเลือก ================= */
+function showToolbar(kind) {
+  document.getElementById('toolbarHint').classList.toggle('hidden', !!kind);
+  const tt = document.getElementById('textToolbar'), it = document.getElementById('imageToolbar');
+  tt.classList.toggle('hidden', kind !== 'text'); tt.classList.toggle('flex', kind === 'text');
+  it.classList.toggle('hidden', kind !== 'image'); it.classList.toggle('flex', kind === 'image');
+}
+function clearCardSelection() {
+  selectedCards.forEach(function(w) {
+    const c = w && w.querySelector('.item-card');
+    if (c) c.classList.remove('selected-card','multi-selected');
+  });
+  selectedCards.clear();
+  selectedCard = null;
+  hideSnapGuides();
+  if (!selectedText) showToolbar(null);
+}
+
+function deselectAll() {
+  if (selectedText) selectedText.classList.remove('selected-text');
+  selectedText = null;
+  clearCardSelection();
+  showToolbar(null);
+}
+
+function selectText(wrapper) {
+  if (!wrapper || isOverviewMode) return;
+  clearCardSelection();
+  if (selectedText) selectedText.classList.remove('selected-text');
+  selectedText = wrapper;
+  wrapper.classList.add('selected-text');
+  populateTextToolbar(wrapper);
+  showToolbar('text');
+}
+
+function setCardSelection(cards, primary) {
+  clearCardSelection();
+  cards.forEach(function(w) {
+    if (!w) return;
+    selectedCards.add(w);
+    const c = w.querySelector('.item-card');
+    if (c) c.classList.add('multi-selected');
+  });
+  selectedCard = primary || cards[0] || null;
+  if (selectedCard) {
+    const c = selectedCard.querySelector('.item-card');
+    if (c) {
+      c.classList.add('selected-card');
+      c.classList.remove('multi-selected');
+      if (selectedCards.size > 1) c.classList.add('multi-selected');
+    }
+    populateImageToolbar(selectedCard);
+    showToolbar('image');
+  } else {
+    showToolbar(null);
+  }
+}
+
+function selectCard(cardWrapper, additive) {
+  if (!cardWrapper || isOverviewMode) return;
+  if (selectedText) { selectedText.classList.remove('selected-text'); selectedText = null; }
+
+  if (additive) {
+    if (selectedCards.has(cardWrapper)) {
+      selectedCards.delete(cardWrapper);
+      const c = cardWrapper.querySelector('.item-card');
+      if (c) c.classList.remove('selected-card','multi-selected');
+      selectedCard = Array.from(selectedCards)[0] || null;
+    } else {
+      selectedCards.add(cardWrapper);
+      selectedCard = cardWrapper;
+    }
+  } else if (selectedCards.has(cardWrapper) && selectedCards.size > 1) {
+    selectedCard = cardWrapper;
+  } else {
+    setCardSelection([cardWrapper], cardWrapper);
+    return;
+  }
+
+  selectedCards.forEach(function(w) {
+    const c = w.querySelector('.item-card');
+    if (c) c.classList.toggle('multi-selected', selectedCards.size > 1);
+    if (c) c.classList.toggle('selected-card', w === selectedCard);
+  });
+
+  if (selectedCard) {
+    populateImageToolbar(selectedCard);
+    showToolbar('image');
+  } else {
+    showToolbar(null);
+  }
+}
+
+function selectAllCards() {
+  const mode = activeMode();
+  const cards = Array.from(document.getElementById(mode + 'Grid').querySelectorAll('.item-card-wrapper'));
+  if (!cards.length) return showToast('⚠️ ไม่มีรูปให้เลือก', true);
+  setCardSelection(cards, cards[0]);
+  showToast('☑️ เลือกรูปทั้งหมด ' + cards.length + ' รูป');
+}
+
+function getCardRectInArea(wrapper, area) {
+  const r = wrapper.getBoundingClientRect();
+  const ar = area.getBoundingClientRect();
+  const scale = getScale(area) || 1;
+  return {
+    left:(r.left-ar.left)/scale, top:(r.top-ar.top)/scale,
+    width:r.width/scale, height:r.height/scale,
+    right:(r.right-ar.left)/scale, bottom:(r.bottom-ar.top)/scale,
+    centerX:((r.left+r.right)/2-ar.left)/scale,
+    centerY:((r.top+r.bottom)/2-ar.top)/scale
+  };
+}
+
+/* ================= ป้าย ================= */
+function syncRibbons(mode) {
+  const area = document.getElementById(mode + 'CaptureArea');
+  const layer = document.getElementById(mode + 'RibbonLayer');
+  if (!area || !layer) return;
+  layer.innerHTML = '';
+  const baseW = mode === 'game' ? 300 : 400;
+  const label = mode === 'game' ? 'ขายแล้ว' : 'ติดเช่า';
+  area.querySelectorAll('.item-card.marked-ribbon').forEach(function (card) {
+    const wrapper = card.closest('.item-card-wrapper');
+    if (!wrapper) return;
+    const r = getCardRectInArea(wrapper, area);
+    const s = r.width / baseW;
+    const rb = document.createElement('div');
+    rb.className = 'ribbon-wrapper';
+    rb.style.left = r.left + 'px';
+    rb.style.top = r.top + 'px';
+    rb.style.transform = 'scale(' + s + ')';
+    rb.style.transformOrigin = 'top left';
+    rb.innerHTML = '<div class="ribbon">' + label + '</div>';
+    layer.appendChild(rb);
+  });
+}
+function syncAllRibbons() { syncRibbons('game'); syncRibbons('car'); }
+
+function hideSnapGuides() {
+  document.querySelectorAll('.smart-guide').forEach(function(g){ g.style.display='none'; });
+  snapGuides.x = null; snapGuides.y = null;
+}
+
+function showSnapGuide(area, axis, value) {
+  const prefix = area.id === 'gameCaptureArea' ? 'game' : 'car';
+  const el = document.getElementById(prefix + (axis === 'x' ? 'GuideX' : 'GuideY'));
+  if (!el) return;
+  el.style.display='block';
+  if (axis === 'x') el.style.left=value+'px';
+  else el.style.top=value+'px';
+}
+
+function cardsIntersectMarquee(area, m) {
+  const ar = area.getBoundingClientRect(), scale = getScale(area) || 1;
+  const x1=Math.min(m.x1,m.x2), x2=Math.max(m.x1,m.x2);
+  const y1=Math.min(m.y1,m.y2), y2=Math.max(m.y1,m.y2);
+  return Array.from(area.querySelectorAll('.item-card-wrapper')).filter(function(w){
+    const r=w.getBoundingClientRect();
+    const x=(r.left-ar.left)/scale, y=(r.top-ar.top)/scale;
+    const rw=r.width/scale, rh=r.height/scale;
+    return x<x2 && x+rw>x1 && y<y2 && y+rh>y1;
+  });
+}
+
+function updateMarquee(e) {
+  if (!marquee) return;
+  const ar=marquee.area.getBoundingClientRect(), scale=getScale(marquee.area)||1;
+  marquee.x2=(e.clientX-ar.left)/scale;
+  marquee.y2=(e.clientY-ar.top)/scale;
+  const left=Math.min(marquee.x1,marquee.x2), top=Math.min(marquee.y1,marquee.y2);
+  marquee.el.style.left=left+'px'; marquee.el.style.top=top+'px';
+  marquee.el.style.width=Math.abs(marquee.x2-marquee.x1)+'px';
+  marquee.el.style.height=Math.abs(marquee.y2-marquee.y1)+'px';
+  const hit=cardsIntersectMarquee(marquee.area,marquee);
+  setCardSelection(hit,hit[0]||null);
+}
+
+function finishMarquee() {
+  if (!marquee) return;
+  const m=marquee; marquee=null;
+  m.area.classList.remove('is-selecting');
+  m.el.style.display='none';
+  const hit=cardsIntersectMarquee(m.area,m);
+  if (hit.length) setCardSelection(hit,hit[0]);
+  else if (!m.additive) deselectAll();
+}
+
+function snapGroupDelta(area,items,rawDx,rawDy) {
+  if (!items.length) return {dx:rawDx,dy:rawDy,guideX:null,guideY:null};
+  const start=items.map(function(it){return it.startRect;});
+  const group={
+    left:Math.min.apply(null,start.map(function(r){return r.left;})),
+    top:Math.min.apply(null,start.map(function(r){return r.top;})),
+    right:Math.max.apply(null,start.map(function(r){return r.right;})),
+    bottom:Math.max.apply(null,start.map(function(r){return r.bottom;}))
+  };
+  group.centerX=(group.left+group.right)/2;
+  group.centerY=(group.top+group.bottom)/2;
+
+  const moving=new Set(items.map(function(it){return it.el;}));
+  const targetsX=[0,960,1920], targetsY=[0,540,1080];
+  Array.from(area.querySelectorAll('.item-card-wrapper')).forEach(function(w){
+    if (moving.has(w)) return;
+    const r=getCardRectInArea(w,area);
+    targetsX.push(r.left,r.centerX,r.right);
+    targetsY.push(r.top,r.centerY,r.bottom);
+  });
+
+  function best(a,b,c,raw,targets){
+    const p=[a+raw,c+raw,b+raw];
+    let best=null;
+    targets.forEach(function(t){
+      p.forEach(function(v){
+        const d=t-v;
+        if (Math.abs(d)<=10 && (!best || Math.abs(d)<Math.abs(best.delta))) best={delta:d,target:t};
+      });
+    });
+    return best;
+  }
+
+  const sx=best(group.left,group.right,group.centerX,rawDx,targetsX);
+  const sy=best(group.top,group.bottom,group.centerY,rawDy,targetsY);
+  return {
+    dx:rawDx+(sx?sx.delta:0),
+    dy:rawDy+(sy?sy.delta:0),
+    guideX:sx?sx.target:null,
+    guideY:sy?sy.target:null
+  };
+}
+
+function populateTextToolbar(wrapper) {
+  const t = wrapper.querySelector('.txt-target'); if (!t) return;
+  const s = readTextStyle(t);
+  suppressToolbar = true;
+  document.getElementById('ttFont').value = s.font;
+  document.getElementById('ttSize').value = s.size;
+  setTt('ttBold', s.bold); setTt('ttItalic', s.italic);
+  document.getElementById('ttAlign').value = s.align;
+  document.getElementById('ttColor').value = s.color;
+  document.getElementById('ttStrokeColor').value = s.strokeColor;
+  document.getElementById('ttStrokeSize').value = s.strokeSize;
+  document.getElementById('ttGlowColor').value = s.glowColor;
+  document.getElementById('ttGlowSize').value = s.glowSize;
+  document.getElementById('ttSpacing').value = s.spacing;
+  document.getElementById('ttLine').value = s.lineHeight;
+  const locked = wrapper.classList.contains('is-locked');
+  document.getElementById('ttLock').classList.toggle('on', locked);
+  suppressToolbar = false;
+}
+function setTt(id, on) { const b = document.getElementById(id); b.classList.toggle('on', !!on); b.dataset.on = on ? '1' : '0'; }
+function toggleTt(id) { setTt(id, document.getElementById(id).dataset.on !== '1'); applyTextToolbar(); }
+function toggleTextLock() {
+  if (!selectedText) return;
+  const on = !selectedText.classList.contains('is-locked');
+  selectedText.classList.toggle('is-locked', on);
+  document.getElementById('ttLock').classList.toggle('on', on);
+  syncToCloud(); // <-- Sync hook
+}
+function applyTextToolbar() {
+  if (suppressToolbar || !selectedText) return;
+  const t = selectedText.querySelector('.txt-target'); if (!t) return;
+  writeTextStyle(t, {
+    font: document.getElementById('ttFont').value,
+    size: parseFloat(document.getElementById('ttSize').value) || 24,
+    bold: document.getElementById('ttBold').dataset.on === '1',
+    italic: document.getElementById('ttItalic').dataset.on === '1',
+    align: document.getElementById('ttAlign').value,
+    color: document.getElementById('ttColor').value,
+    strokeColor: document.getElementById('ttStrokeColor').value,
+    strokeSize: parseFloat(document.getElementById('ttStrokeSize').value) || 0,
+    glowColor: document.getElementById('ttGlowColor').value,
+    glowSize: parseFloat(document.getElementById('ttGlowSize').value) || 0,
+    spacing: parseFloat(document.getElementById('ttSpacing').value) || 0,
+    lineHeight: parseFloat(document.getElementById('ttLine').value) || 1.2
+  });
+  syncToCloud(); // <-- Sync hook
+}
+function duplicateSelectedText() {
+  if (!selectedText) return;
+  const area = selectedText.closest('#gameCaptureArea, #carCaptureArea'); if (!area) return;
+  const t = selectedText.querySelector('.txt-target');
+  const state = readTextStyle(t);
+  state.text = t.value || '';
+  const wr = selectedText.getBoundingClientRect(), ar = area.getBoundingClientRect(), sc = getScale(area);
+  state.left = ((wr.left - ar.left) / sc + 25) + 'px';
+  state.top = ((wr.top - ar.top) / sc + 25) + 'px';
+  const w = addGlobalText(area.id, state);
+  showToast('✅ ทำซ้ำข้อความสำเร็จ!');
+  selectText(w);
+}
+function deleteSelectedText() { 
+  if (!selectedText) return; 
+  selectedText.remove(); 
+  deselectAll(); 
+  refreshEmpty(); 
+  syncToCloud(); // <-- Sync hook
+}
+
+/* ================= สร้างช่องข้อความ ================= */
+function makeFieldWrapper(kind, isTextarea, placeholder, styleOver, posLeft, posTop) {
+  const w = document.createElement('div');
+  w.className = 'drag-wrapper ' + kind + '-wrapper';
+  w.style.left = posLeft || '0px'; w.style.top = posTop || '0px';
+  const focusAttr = kind === 'price' ? 'onfocus="revertKToNumber(this);selectText(this.closest(\'.drag-wrapper\'))" onblur="formatToK(this)"' : 'onfocus="selectText(this.closest(\'.drag-wrapper\'))"';
+  w.innerHTML = '<div class="drag-chip hide-on-capture" title="ลากเพื่อย้าย">✥</div>' +
+    (isTextarea
+      ? '<textarea rows="1" placeholder="' + placeholder + '" class="txt-target ' + kind + '" oninput="syncText(this)" ' + focusAttr + '></textarea>'
+      : '<input type="text" placeholder="' + placeholder + '" class="txt-target ' + kind + '" oninput="syncText(this)" ' + focusAttr + '>');
+  const t = w.querySelector('.txt-target');
+  writeTextStyle(t, defaultTextStyle(styleOver));
+  return w;
+}
+function addGlobalText(areaId, init) {
+  init = init || {};
+  const w = makeFieldWrapper('global-text', true, 'พิมพ์ข้อความที่นี่...', { size: 48, glowSize: 12 }, init.left, init.top);
+  const t = w.querySelector('.txt-target');
+  t.classList.add('global-textarea');
+  t.style.width = init.boxW || '420px';
+  if (init.boxH) t.style.height = init.boxH;
+  document.getElementById(areaId).appendChild(w);
+  applyInitToWrapper(w, init);
+  if (init.isLocked) w.classList.add('is-locked');
+  syncToCloud(); // <-- Sync hook
+  return w;
+}
+function applyInitToWrapper(w, init) {
+  const t = w.querySelector('.txt-target');
+  if (init.text !== undefined) { let txt = init.text; if (/^#[0-9A-Fa-f]{6}$/.test(String(txt).trim())) txt = ''; t.value = txt; if (t.tagName === 'TEXTAREA') t.textContent = txt; else t.setAttribute('value', txt); if (init.original) t.dataset.original = init.original; }
+  writeTextStyle(t, defaultTextStyle({
+    font: init.font, size: init.size !== undefined ? parseFloat(init.size) : undefined, bold: init.bold, italic: init.italic, align: init.align,
+    color: init.color, spacing: init.spacing !== undefined ? parseFloat(init.spacing) : undefined, lineHeight: init.lineHeight !== undefined ? parseFloat(init.lineHeight) : undefined,
+    strokeColor: init.strokeColor, strokeSize: init.strokeSize !== undefined ? parseFloat(init.strokeSize) : undefined,
+    glowColor: init.glowColor, glowSize: init.glowSize !== undefined ? parseFloat(init.glowSize) : undefined
+  }));
+}
+function extractWrapperState(w) {
+  if (!w) return null;
+  const t = w.querySelector('.txt-target'); if (!t) return null;
+  const s = readTextStyle(t);
+  s.text = t.value || t.textContent || ''; s.original = t.dataset.original || '';
+  s.isLocked = w.classList.contains('is-locked');
+  s.top = w.style.top; s.left = w.style.left;
+  s.boxW = t.classList.contains('global-textarea') ? t.style.width : '';
+  s.boxH = t.classList.contains('global-textarea') ? t.style.height : '';
+  return s;
+}
+
+/* ================= ลาก: ข้อความ / การ์ด / pan รูป ================= */
+let drag = null;
+
+// Hook 1: พิมพ์เสร็จ อัปเดต Cloud
+document.addEventListener('focusout', function(e) {
+  if(e.target.classList.contains('txt-target') || e.target.tagName === 'SELECT') {
+      syncToCloud();
+  }
+});
+
+// Hook 2: ปล่อยเมาส์จากการลาก อัปเดต Cloud
+document.addEventListener('mouseup', function() {
+  if (drag || marquee || panDrag) {
+      setTimeout(syncToCloud, 100); 
+  }
+});
+
+document.addEventListener('mousedown', function(e) {
+  const tag=e.target.tagName;
+  const chip = e.target.closest('.drag-chip');
+  const textTarget = e.target.closest('.drag-wrapper .txt-target');
+  const isDraggableText = chip || textTarget;
+
+  if (!isDraggableText && ['INPUT','TEXTAREA','BUTTON','SELECT','OPTION','LABEL'].indexOf(tag)>=0) return;
+  if (!isDraggableText && e.target.closest('.hide-on-capture')) return;
+  if (isOverviewMode) return;
+
+  if (chip) {
+    const w=chip.closest('.drag-wrapper');
+    selectText(w);
+    if (w.classList.contains('is-locked')) return;
+    e.preventDefault();
+    drag={type:'text',el:w,sx:e.clientX,sy:e.clientY,ox:parseFloat(w.style.left)||0,oy:parseFloat(w.style.top)||0,scale:getScale(w.parentElement),moved:false};
+    return;
+  }
+
+  if (textTarget) {
+    const w = textTarget.closest('.drag-wrapper');
+    selectText(w);
+    if (w.classList.contains('is-locked')) return;
+    drag={type:'text',el:w,sx:e.clientX,sy:e.clientY,ox:parseFloat(w.style.left)||0,oy:parseFloat(w.style.top)||0,scale:getScale(w.parentElement),moved:false,textTarget:textTarget};
+    return;
+  }
+
+  const card=e.target.closest('.item-card');
+  if (card) {
+    const cw=card.closest('.item-card-wrapper');
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      selectCard(cw,true);
+      return;
+    }
+
+    selectCard(cw,false);
+    if (!card.classList.contains('is-grouped') || cw.classList.contains('is-locked')) return;
+
+    const area=cw.closest('#gameCaptureArea,#carCaptureArea');
+    const chosen=Array.from(selectedCards).filter(function(w){
+      const c=w.querySelector('.item-card');
+      return c && c.classList.contains('is-grouped') && !w.classList.contains('is-locked');
+    });
+    if (!chosen.length) return;
+
+    e.preventDefault();
+    drag={
+      type:'card',area:area,sx:e.clientX,sy:e.clientY,scale:getScale(area),
+      items:chosen.map(function(w){
+        return {el:w,ox:parseFloat(w.dataset.cardX)||0,oy:parseFloat(w.dataset.cardY)||0,startRect:getCardRectInArea(w,area)};
+      })
+    };
+    hideSnapGuides();
+    return;
+  }
+
+  const area=e.target.closest('#gameCaptureArea,#carCaptureArea');
+  if (area && (e.target===area || e.target.classList.contains('dynamic-grid'))) {
+    const ar=area.getBoundingClientRect(), scale=getScale(area)||1;
+    const x=(e.clientX-ar.left)/scale, y=(e.clientY-ar.top)/scale;
+    const el=document.getElementById(area.id==='gameCaptureArea'?'gameSelectionMarquee':'carSelectionMarquee');
+    if (!e.ctrlKey && !e.metaKey) clearCardSelection();
+    marquee={area:area,el:el,x1:x,y1:y,x2:x,y2:y,additive:e.ctrlKey||e.metaKey};
+    el.style.display='block'; el.style.left=x+'px'; el.style.top=y+'px'; el.style.width='0px'; el.style.height='0px';
+    area.classList.add('is-selecting');
+    e.preventDefault();
+  }
+});
+
+document.addEventListener('mousemove',function(e){
+  if (marquee) { updateMarquee(e); return; }
+  if (!drag) return;
+
+  if (drag.type==='text') {
+    const dx=(e.clientX-drag.sx)/drag.scale, dy=(e.clientY-drag.sy)/drag.scale;
+    if (!drag.moved && Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy) < 5) return;
+    drag.moved=true;
+    e.preventDefault();
+    drag.el.style.left=(drag.ox+dx)+'px';
+    drag.el.style.top=(drag.oy+dy)+'px';
+    return;
+  }
+
+  const rawDx=(e.clientX-drag.sx)/drag.scale, rawDy=(e.clientY-drag.sy)/drag.scale;
+  const s=snapGroupDelta(drag.area,drag.items,rawDx,rawDy);
+
+  drag.items.forEach(function(it){
+    const nx=it.ox+s.dx, ny=it.oy+s.dy;
+    it.el.dataset.cardX=nx; it.el.dataset.cardY=ny;
+    it.el.style.transform='translate('+nx+'px,'+ny+'px)';
+  });
+
+  const prefix = drag.area.id === 'gameCaptureArea' ? 'game' : 'car';
+  syncRibbons(prefix);
+
+  document.querySelectorAll('.smart-guide').forEach(function(g){g.style.display='none';});
+  if (s.guideX!==null) showSnapGuide(drag.area,'x',s.guideX);
+  if (s.guideY!==null) showSnapGuide(drag.area,'y',s.guideY);
+  snapGuides.x=s.guideX; snapGuides.y=s.guideY;
+});
+
+document.addEventListener('mouseup',function(){
+  if (marquee) finishMarquee();
+  if (drag) { hideSnapGuides(); drag=null; syncAllRibbons(); }
+});
+
+let panDrag = null;
+document.addEventListener('mousedown', function (e) {
+  const pan = e.target.closest('.pan-wrapper');
+  if (!pan) return;
+  const cw = pan.closest('.item-card-wrapper');
+  if (cw && cw.classList.contains('is-locked')) return;
+  const card = pan.closest('.item-card');
+  if (card && card.classList.contains('is-grouped') && !e.altKey) return; 
+  e.preventDefault();
+  panDrag = { el: pan, sx: e.clientX, sy: e.clientY, ox: parseFloat(pan.dataset.panX) || 0, oy: parseFloat(pan.dataset.panY) || 0, scale: getScale(pan.parentElement) };
+});
+document.addEventListener('mousemove', function (e) {
+  if (!panDrag) return;
+  const nx = panDrag.ox + (e.clientX - panDrag.sx) / panDrag.scale, ny = panDrag.oy + (e.clientY - panDrag.sy) / panDrag.scale;
+  panDrag.el.dataset.panX = nx; panDrag.el.dataset.panY = ny;
+  panDrag.el.style.setProperty('--pan-x', nx + 'px'); panDrag.el.style.setProperty('--pan-y', ny + 'px');
+});
+document.addEventListener('mouseup', function () { panDrag = null; });
+
+/* ================= การ์ด (รูปภาพ) ================= */
+function createCardHTML(mode, src, scale) {
+  const imgClass = mode === 'game' ? 'game-img' : 'car-img';
+  const sc = Number(scale) || 1;
+  return '<div class="image-container"><div class="pan-wrapper" data-pan-x="0" data-pan-y="0"><img src="' + src + '" class="' + imgClass + '" draggable="false" style="--img-scale:' + sc + ';"></div></div>';
+}
+function shapeClipPath(shape) {
+  switch (shape) {
+    case 'circle': return 'circle(50% at 50% 50%)';
+    case 'ellipse': return 'ellipse(50% 50% at 50% 50%)';
+    case 'diagonal': return 'polygon(0 0,100% 0,100% 85%,0 100%)';
+    case 'hexagon': return 'polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0% 50%)';
+    default: return 'none';
+  }
+}
+function applyImageStyles(card) {
+  const d = card.dataset, cont = card.querySelector('.image-container'), img = card.querySelector('img');
+  if (!cont || !img) return;
+  cont.style.clipPath = shapeClipPath(d.shape || 'none');
+  cont.style.borderRadius = (d.radius || 0) + 'px';
+  cont.style.border = (parseFloat(d.borderWidth) > 0) ? (d.borderWidth + 'px solid ' + (d.borderColor || '#00ffff')) : 'none';
+  cont.style.boxShadow = d.shadow === '1' ? '0 12px 34px rgba(0,0,0,.65)' : 'none';
+  img.style.filter = 'brightness(' + (d.brightness || 100) + '%) contrast(' + (d.contrast || 100) + '%) saturate(' + (d.saturate || 100) + '%) grayscale(' + (d.grayscale || 0) + '%) blur(' + (d.blur || 0) + 'px) hue-rotate(' + (d.hue || 0) + 'deg)';
+}
+function defaultImgDataset(card) {
+  const d = card.dataset;
+  d.shape = d.shape || 'none'; d.radius = d.radius || '0'; d.borderWidth = d.borderWidth || '0'; d.borderColor = d.borderColor || '#00ffff'; d.shadow = d.shadow || '0';
+  d.brightness = d.brightness || '100'; d.contrast = d.contrast || '100'; d.saturate = d.saturate || '100'; d.grayscale = d.grayscale || '0'; d.blur = d.blur || '0'; d.hue = d.hue || '0';
+}
+
+function populateImageToolbar(cardWrapper) {
+  const card = cardWrapper.querySelector('.item-card'); if (!card) return;
+  defaultImgDataset(card);
+  const d = card.dataset, img = card.querySelector('img');
+  suppressToolbar = true;
+  document.getElementById('itZoom').value = parseFloat(img.style.getPropertyValue('--img-scale')) || 1;
+  document.getElementById('itShape').value = d.shape;
+  document.getElementById('itRadius').value = d.radius;
+  document.getElementById('itBorderColor').value = d.borderColor;
+  document.getElementById('itBorderWidth').value = d.borderWidth;
+  document.getElementById('itShadow').checked = d.shadow === '1';
+  document.getElementById('itBrightness').value = d.brightness;
+  document.getElementById('itContrast').value = d.contrast;
+  document.getElementById('itSaturate').value = d.saturate;
+  document.getElementById('itGrayscale').value = d.grayscale;
+  document.getElementById('itBlur').value = d.blur;
+  document.getElementById('itHue').value = d.hue;
+  document.getElementById('itRibbon').checked = card.classList.contains('marked-ribbon');
+  document.getElementById('itCropMode').checked = card.querySelector('.image-container').classList.contains('cropped-mode');
+  document.getElementById('itGroup').checked = card.classList.contains('is-grouped');
+  document.getElementById('itLock').checked = cardWrapper.classList.contains('is-locked');
+  suppressToolbar = false;
+}
+function applyImageToolbar() {
+  if (suppressToolbar || !selectedCard) return;
+  const card = selectedCard.querySelector('.item-card'); if (!card) return;
+  const img = card.querySelector('img');
+  img.style.setProperty('--img-scale', document.getElementById('itZoom').value || 1);
+  const d = card.dataset;
+  d.shape = document.getElementById('itShape').value;
+  d.radius = document.getElementById('itRadius').value || '0';
+  d.borderColor = document.getElementById('itBorderColor').value;
+  d.borderWidth = document.getElementById('itBorderWidth').value || '0';
+  d.shadow = document.getElementById('itShadow').checked ? '1' : '0';
+  d.brightness = document.getElementById('itBrightness').value || '100';
+  d.contrast = document.getElementById('itContrast').value || '100';
+  d.saturate = document.getElementById('itSaturate').value || '100';
+  d.grayscale = document.getElementById('itGrayscale').value || '0';
+  d.blur = document.getElementById('itBlur').value || '0';
+  d.hue = document.getElementById('itHue').value || '0';
+  applyImageStyles(card);
+  card.classList.toggle('marked-ribbon', document.getElementById('itRibbon').checked);
+  card.querySelector('.image-container').classList.toggle('cropped-mode', document.getElementById('itCropMode').checked);
+  card.classList.toggle('is-grouped', document.getElementById('itGroup').checked);
+  selectedCard.classList.toggle('is-locked', document.getElementById('itLock').checked);
+  syncAllRibbons();
+  syncToCloud(); // <-- Sync hook
+}
+function resetImageEffects() {
+  if (!selectedCard) return;
+  const card = selectedCard.querySelector('.item-card');
+  ['shape', 'radius', 'borderWidth', 'borderColor', 'shadow', 'brightness', 'contrast', 'saturate', 'grayscale', 'blur', 'hue'].forEach(function (k) { delete card.dataset[k]; });
+  defaultImgDataset(card);
+  applyImageStyles(card);
+  populateImageToolbar(selectedCard);
+  showToast('↺ รีเซ็ตเอฟเฟกต์ภาพแล้ว');
+  syncToCloud(); // <-- Sync hook
+}
+function addCardField(kind) {
+  if (!selectedCard) return;
+  const card = selectedCard.querySelector('.item-card');
+  const existing = card.querySelector('.' + kind + '-wrapper');
+  if (existing) { selectText(existing); return; }
+  const mode = card.classList.contains('game-card') ? 'game' : 'car';
+  const placeholders = { name: 'ชื่อสินค้า/รุ่นรถ', detail: 'รายละเอียด...', price: '฿ ราคา' };
+  const accent = mode === 'game' ? '#00ffff' : '#ff007f';
+  const isTextarea = kind === 'detail';
+  const w = makeFieldWrapper(kind, isTextarea, placeholders[kind], {
+    size: SIZE[mode][kind], color: kind === 'detail' ? '#e2e8f0' : accent, glowColor: kind === 'detail' ? '#e2e8f0' : accent, glowSize: kind === 'detail' ? 0 : 14, bold: kind !== 'detail'
+  }, '0px', POS[mode][kind]);
+  if (kind === 'detail') { const t = w.querySelector('.txt-target'); t.style.minHeight = MIN_H[mode]; }
+  card.appendChild(w);
+  autoGrow(w.querySelector('textarea'));
+  selectText(w);
+  syncToCloud(); // <-- Sync hook
+}
+function duplicateSelectedCard() {
+  if (!selectedCards.size && !selectedCard) return;
+  const cards=selectedCards.size?Array.from(selectedCards):[selectedCard];
+  let created=0, last=null;
+  cards.forEach(function(source){
+    if(!source||!source.isConnected)return;
+    const mode=source.querySelector('.item-card').classList.contains('game-card')?'game':'car';
+    const data=extractCardState(source);
+    data.cardX=(parseFloat(data.cardX)||0)+30;
+    data.cardY=(parseFloat(data.cardY)||0)+30;
+    const scale=document.getElementById(mode+'ScaleSlider').value;
+    appendCardData(mode,data,scale);
+    last=document.getElementById(mode+'Grid').lastElementChild;
+    created++;
+  });
+  refreshEmpty();
+  if(last) selectCard(last);
+  showToast('✅ ทำซ้ำ '+created+' รูปสำเร็จ!');
+  syncToCloud(); // <-- Sync hook
+}
+function deleteSelectedCard() {
+  if (!selectedCards.size && !selectedCard) return;
+  const count=selectedCards.size || 1;
+  if (selectedCards.size) Array.from(selectedCards).forEach(function(w){if(w&&w.isConnected)w.remove();});
+  else if (selectedCard) selectedCard.remove();
+  deselectAll(); refreshEmpty();
+  syncAllRibbons();
+  showToast('🗑️ ลบ '+count+' รูปแล้ว');
+  syncToCloud(); // <-- Sync hook
+}
+
+function extractCardState(cardWrapper) {
+  const card = cardWrapper.querySelector('.item-card'), img = card.querySelector('img'), pan = card.querySelector('.pan-wrapper');
+  defaultImgDataset(card);
+  const d = card.dataset;
+  return {
+    imgSrc: img.src, imgScale: img.style.getPropertyValue('--img-scale') || '',
+    panX: pan.dataset.panX || '0', panY: pan.dataset.panY || '0',
+    cardX: cardWrapper.dataset.cardX || '0', cardY: cardWrapper.dataset.cardY || '0',
+    isRibbon: card.classList.contains('marked-ribbon'),
+    isCropped: card.querySelector('.image-container').classList.contains('cropped-mode'),
+    isGrouped: card.classList.contains('is-grouped'),
+    isLocked: cardWrapper.classList.contains('is-locked'),
+    shape: d.shape, radius: d.radius, borderWidth: d.borderWidth, borderColor: d.borderColor, shadow: d.shadow,
+    brightness: d.brightness, contrast: d.contrast, saturate: d.saturate, grayscale: d.grayscale, blur: d.blur, hue: d.hue,
+    name: extractWrapperState(card.querySelector('.name-wrapper')),
+    detail: extractWrapperState(card.querySelector('.detail-wrapper')),
+    price: extractWrapperState(card.querySelector('.price-wrapper'))
+  };
+}
+function getCardsState(gridId) { return Array.from(document.getElementById(gridId).querySelectorAll('.item-card-wrapper')).map(extractCardState); }
+
+function appendCardData(mode, data, scale) {
+  const grid = document.getElementById(mode + 'Grid');
+  const wrapper = document.createElement('div');
+  wrapper.className = 'item-card-wrapper ' + mode + '-card-wrapper group';
+  wrapper.dataset.cardX = data.cardX || 0; wrapper.dataset.cardY = data.cardY || 0;
+  wrapper.style.transform = 'translate(' + (data.cardX || 0) + 'px,' + (data.cardY || 0) + 'px)';
+  if (data.isLocked) wrapper.classList.add('is-locked');
+  const grouped = data.isGrouped !== false;
+  const card = document.createElement('div');
+  card.className = 'item-card ' + mode + '-card' + (grouped ? ' is-grouped' : '') + (data.isRibbon ? ' marked-ribbon' : '');
+  card.innerHTML = createCardHTML(mode, data.imgSrc, data.imgScale || scale);
+  if (data.isCropped) card.querySelector('.image-container').classList.add('cropped-mode');
+  const pan = card.querySelector('.pan-wrapper');
+  pan.dataset.panX = data.panX || 0; pan.dataset.panY = data.panY || 0;
+  pan.style.setProperty('--pan-x', (data.panX || 0) + 'px'); pan.style.setProperty('--pan-y', (data.panY || 0) + 'px');
+  ['shape', 'radius', 'borderWidth', 'borderColor', 'shadow', 'brightness', 'contrast', 'saturate', 'grayscale', 'blur', 'hue'].forEach(function (k) { if (data[k] !== undefined && data[k] !== null && data[k] !== '') card.dataset[k] = data[k]; });
+  defaultImgDataset(card);
+  applyImageStyles(card);
+
+  [['name', false], ['detail', true], ['price', false]].forEach(function (p) {
+    const kind = p[0], isTextarea = p[1];
+    if (!data[kind] || !data[kind].text) return;
+    const placeholders = { name: 'ชื่อสินค้า/รุ่นรถ', detail: 'รายละเอียด...', price: '฿ ราคา' };
+    const w = makeFieldWrapper(kind, isTextarea, placeholders[kind], {}, data[kind].left || '0px', data[kind].top || POS[mode][kind]);
+    if (kind === 'detail') w.querySelector('.txt-target').style.minHeight = MIN_H[mode];
+    card.appendChild(w);
+    applyInitToWrapper(w, data[kind]);
+    if (data[kind].isLocked) w.classList.add('is-locked');
+    autoGrow(w.querySelector('textarea'));
+  });
+
+  wrapper.appendChild(card);
+  grid.appendChild(wrapper);
+  syncRibbons(mode);
+}
+
+function handleUpload(e, mode) {
+  const files = Array.from(e.target.files || []);
+  if (!files.length) return;
+  const scale = document.getElementById(mode + 'ScaleSlider').value;
+  files.forEach(function (file) {
+    const reader = new FileReader();
+    reader.onload = function (ev) { 
+        appendCardData(mode, { imgSrc: ev.target.result, name: null, detail: null, price: null }, scale); 
+        refreshEmpty(); 
+        syncToCloud(); // <-- Sync hook
+    };
+    reader.readAsDataURL(file);
+  });
+  e.target.value = '';
+}
+
+/* ================= บันทึก / โหลดโปรเจกต์ (Local Backup JSON) ================= */
+function saveProject() {
+  try {
+    const project = {
+      version: 4, activeTab: activeMode(),
+      scales: { game: document.getElementById('gameScaleSlider').value, car: document.getElementById('carScaleSlider').value, gameGrid: document.getElementById('gameGridScaleSlider').value, carGrid: document.getElementById('carGridScaleSlider').value },
+      gameCards: getCardsState('gameGrid'), carCards: getCardsState('carGrid'),
+      globalTexts: Array.from(document.querySelectorAll('.global-text-wrapper')).map(function (w) { const s = extractWrapperState(w); s.parent = w.parentElement.id; return s; })
+    };
+    saveBlob(new Blob([JSON.stringify(project)], { type: 'application/json' }), 'cyberpunk_project_' + Date.now() + '.json');
+    showToast('✅ บันทึก Backup ลงเครื่องสำเร็จ!');
+  } catch (err) { console.error(err); showToast('❌ บันทึกไม่สำเร็จ: ' + err.message, true); }
+}
+function applyProject(data) {
+  if (!data || typeof data !== 'object') throw new Error('ไฟล์ไม่มีข้อมูล');
+  deselectAll();
+  const sc = data.scales || {}, gS = sc.game || 1.8, cS = sc.car || 1.0;
+  updateScale('game', gS, false); updateScale('car', cS, false);
+  updateGridScale('game', sc.gameGrid || 1); updateGridScale('car', sc.carGrid || 1);
+  document.getElementById('gameGrid').innerHTML = '';
+  document.getElementById('carGrid').innerHTML = '';
+  document.querySelectorAll('.global-text-wrapper').forEach(function (n) { n.remove(); });
+  (data.gameCards || []).forEach(function (c) { try { appendCardData('game', c, gS); } catch (err) { console.warn('ข้ามการ์ดที่เสีย', err); } });
+  (data.carCards || []).forEach(function (c) { try { appendCardData('car', c, cS); } catch (err) { console.warn('ข้ามการ์ดที่เสีย', err); } });
+  (data.globalTexts || []).forEach(function (gt) {
+    try { let area = gt.parent || 'gameCaptureArea'; if (area === 'gameScaleWrapper') area = 'gameCaptureArea'; if (area === 'carScaleWrapper') area = 'carCaptureArea'; if (!document.getElementById(area)) area = 'gameCaptureArea'; addGlobalText(area, gt); }
+    catch (err) { console.warn('ข้ามข้อความที่เสีย', err); }
+  });
+  refreshEmpty();
+  syncAllRibbons();
+  switchTab(data.activeTab === 'car' ? 'car' : 'game');
+}
+function loadProject(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function () {
+    try { 
+        applyProject(JSON.parse(reader.result)); 
+        showToast('✅ โหลดข้อมูลขึ้นจอสำเร็จ!'); 
+        syncToCloud(); // <-- โหลดเสร็จก็โยนขึ้น Cloud ให้เพื่อนเห็นด้วย
+    }
+    catch (err) { console.error(err); showToast('❌ โหลดไม่สำเร็จ: ' + err.message, true); }
+  };
+  reader.onerror = function () { showToast('❌ อ่านไฟล์ไม่ได้', true); };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+/* ================= พรีวิว / ส่งออก ================= */
+async function capture(targetId, ratio) {
+  const area = document.getElementById(targetId), prev = area.style.transform;
+  deselectAll();
+  syncAllRibbons();
+  area.classList.add('capturing');
+  area.style.transform = 'none';
+  if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+  try {
+    await document.fonts.ready;
+    const fams = new Set();
+    area.querySelectorAll('.txt-target').forEach(function (t) { fams.add(getComputedStyle(t).fontFamily.split(',')[0].trim()); });
+    await Promise.all(Array.from(fams).map(function (f) { return document.fonts.load('900 32px ' + f, 'กขคAa').catch(function () {}); }));
+    await new Promise(function (r) { setTimeout(r, 250); });
+    return await htmlToImage.toPng(area, { backgroundColor: '#050510', pixelRatio: ratio, width: 1920, height: 1080, style: { transform: 'none', margin: '0' } });
+  } finally { area.classList.remove('capturing'); area.style.transform = prev; }
+}
+async function previewImage(targetId, prefix) {
+  showToast('⏳ กำลังสร้างภาพพรีวิว...');
+  try {
+    currentPreviewDataUrl = await capture(targetId, 1);
+    lastCapture = { targetId: targetId, prefix: prefix };
+    currentDownloadName = prefix + '_1080p_' + Date.now() + '.png';
+    document.getElementById('previewImageElement').src = currentPreviewDataUrl;
+    document.getElementById('previewModal').classList.remove('hidden');
+    document.getElementById('previewModal').classList.add('flex');
+  } catch (err) { console.error(err); showToast('❌ เกิดข้อผิดพลาดในการสร้างพรีวิว', true); }
+}
+function closePreview() { document.getElementById('previewModal').classList.add('hidden'); document.getElementById('previewModal').classList.remove('flex'); document.getElementById('previewImageElement').src = ''; }
+async function downloadFromPreview() {
+  if (!currentPreviewDataUrl) return;
+  try { await saveDataUrl(currentPreviewDataUrl, currentDownloadName); showToast('✅ ดาวน์โหลดรูปภาพสำเร็จ!'); closePreview(); }
+  catch (err) { console.error(err); showToast('❌ ดาวน์โหลดไม่สำเร็จ', true); }
+}
+async function download4K() {
+  if (!lastCapture) return;
+  showToast('⏳ กำลังสร้างไฟล์ 4K (3840×2160)...');
+  try { await saveDataUrl(await capture(lastCapture.targetId, 2), lastCapture.prefix + '_4K_' + Date.now() + '.png'); showToast('✅ ดาวน์โหลด 4K สำเร็จ!'); }
+  catch (err) { console.error(err); showToast('❌ สร้าง 4K ไม่สำเร็จ', true); }
+}
+
+/* ================= เริ่มต้น ================= */
+document.addEventListener('keydown',function(e){
+  const tag=(e.target&&e.target.tagName)||'', editing=['INPUT','TEXTAREA','SELECT'].indexOf(tag)>=0;
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='a'&&!editing){e.preventDefault();selectAllCards();}
+  else if(e.key==='Escape'){if(marquee)finishMarquee();else deselectAll();}
+  else if((e.key==='Delete'||e.key==='Backspace')&&!editing&&selectedCards.size){
+      e.preventDefault();
+      deleteSelectedCard();
+  }
+});
+
+document.getElementById('gameImageUpload').addEventListener('change', function (e) { handleUpload(e, 'game'); });
+document.getElementById('carImageUpload').addEventListener('change', function (e) { handleUpload(e, 'car'); });
+document.getElementById('previewButtons').insertAdjacentHTML('beforeend', '<button onclick="download4K()" class="bg-gradient-to-r from-fuchsia-500 to-purple-500 hover:from-fuchsia-400 hover:to-purple-400 text-white px-10 py-3 rounded-lg font-bold transition text-xl">⬇️ ดาวน์โหลด 4K</button>');
+fitView('game');
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(refreshAutoGrow);
+</script>
+</body>
+</html>
