@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Ultimate Cyberpunk Catalog Builder - 16:9 Full HD (Real-time Edition)</title>
+<title>Ultimate Cyberpunk Catalog Builder - 16:9 Full HD (Real-time Edition V2)</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
 
@@ -124,7 +124,7 @@ input[type="number"]{-moz-appearance:textfield}
   </div>
   <div class="flex gap-3 px-2 items-center">
     <!-- Cloud Status Indicator -->
-    <div id="cloudStatus" class="text-xs font-bold px-3 py-1 rounded-full bg-green-500/20 text-green-400 border border-green-500/50">☁️ Online (Real-time)</div>
+    <div id="cloudStatus" class="text-xs font-bold px-3 py-1 rounded-full bg-green-500/20 text-green-400 border border-green-500/50 transition-colors duration-300">☁️ Online (Real-time)</div>
     
     <button onclick="saveProject()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-3 rounded-lg font-bold transition">💾 เซฟลงเครื่อง (Backup)</button>
     <label class="cursor-pointer bg-amber-600 hover:bg-amber-500 text-white px-5 py-3 rounded-lg font-bold transition">
@@ -329,28 +329,33 @@ function syncToCloud() {
     }
 }
 
-// ฟังข้อมูลจาก Cloud
+// ฟังข้อมูลจาก Cloud พร้อมเกราะป้องกัน (Guard Clause)
 catalogRoomRef.on('value', (snapshot) => {
     const data = snapshot.val();
     if (data) {
+        // 🛡️ เช็คว่ากำลังพิมพ์หรือลากของอยู่หรือเปล่า
+        const activeEl = document.activeElement;
+        const isEditingText = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
+        
+        // ถ้ากำลังแก้ข้อความ หรือกำลังลากของอยู่ ให้ "เมิน" การอัปเดตชั่วคราว
+        if (isEditingText || drag || panDrag || marquee) {
+            console.log("🛡️ อาจารย์บล็อกการอัปเดตชั่วคราว เพราะลูกศิษย์กำลังทำงานอยู่");
+            return; 
+        }
+
         isIncomingSync = true;
         try {
-            // สำรองสิ่งที่กำลังเลือกอยู่
-            const currActive = document.activeElement;
-            const hadFocus = currActive && (currActive.tagName === 'INPUT' || currActive.tagName === 'TEXTAREA');
-            
             applyProject(data); 
             
-            // การซิงค์แบบง่ายอาจทำให้หลุดโฟกัสตอนคนอื่นแก้ อาจารย์ไม่ได้เขียนระบบ Merge ลึกขนาดนั้น 
-            // แต่สำหรับใช้งานทั่วไป 3-4 คน แค่นี้ก็ลื่นไหลแล้ว
             const cloudIcon = document.getElementById('cloudStatus');
-            cloudIcon.classList.remove('text-green-400');
-            cloudIcon.classList.add('text-blue-400', 'bg-blue-500/20');
-            setTimeout(() => {
-                cloudIcon.classList.add('text-green-400', 'bg-green-500/20');
-                cloudIcon.classList.remove('text-blue-400', 'bg-blue-500/20');
-            }, 1000);
-            
+            if(cloudIcon) {
+                cloudIcon.classList.remove('text-green-400');
+                cloudIcon.classList.add('text-blue-400', 'bg-blue-500/20');
+                setTimeout(() => {
+                    cloudIcon.classList.add('text-green-400', 'bg-green-500/20');
+                    cloudIcon.classList.remove('text-blue-400', 'bg-blue-500/20');
+                }, 1000);
+            }
         } catch (err) {
             console.error("Apply Cloud Data Error:", err);
         }
@@ -368,8 +373,8 @@ const MIN_H = { game:'40px', car:'65px' };
 let currentPreviewDataUrl = '', currentDownloadName = '', lastCapture = null, toastTimer = null;
 const viewState = { game:{auto:true, zoom:1}, car:{auto:true, zoom:1} };
 let isOverviewMode = false;
-let selectedText = null;   // .drag-wrapper element
-let selectedCard = null;   // primary .item-card-wrapper element
+let selectedText = null;   
+let selectedCard = null;   
 let selectedCards = new Set();
 let suppressToolbar = false;
 let marquee = null;
@@ -402,7 +407,7 @@ function toggleAllCardsLock() {
   wrappers.forEach(function (w) { w.classList.toggle('is-locked', anyUnlocked); });
   if (selectedCard) populateImageToolbar(selectedCard);
   showToast(anyUnlocked ? '🔒 ล็อครูปทั้งหมดแล้ว!' : '🔓 ปลดล็อครูปทั้งหมดแล้ว!');
-  syncToCloud(); // <-- Sync hook
+  syncToCloud();
 }
 function getScale(el) { const w = el.offsetWidth; return w ? el.getBoundingClientRect().width / w : 1; }
 function activeMode() { return document.getElementById('tabGame').classList.contains('active') ? 'game' : 'car'; }
@@ -428,7 +433,7 @@ function switchTab(tab) {
   if (viewState[tab].auto) fitView(tab);
   deselectAll();
   refreshAutoGrow();
-  syncToCloud(); // <-- Sync hook
+  syncToCloud(); 
 }
 function setViewZoom(mode, z, manual) {
   z = Math.max(0.2, Math.min(5, z));
@@ -776,7 +781,7 @@ function toggleTextLock() {
   const on = !selectedText.classList.contains('is-locked');
   selectedText.classList.toggle('is-locked', on);
   document.getElementById('ttLock').classList.toggle('on', on);
-  syncToCloud(); // <-- Sync hook
+  syncToCloud(); 
 }
 function applyTextToolbar() {
   if (suppressToolbar || !selectedText) return;
@@ -795,7 +800,7 @@ function applyTextToolbar() {
     spacing: parseFloat(document.getElementById('ttSpacing').value) || 0,
     lineHeight: parseFloat(document.getElementById('ttLine').value) || 1.2
   });
-  syncToCloud(); // <-- Sync hook
+  syncToCloud(); 
 }
 function duplicateSelectedText() {
   if (!selectedText) return;
@@ -815,7 +820,7 @@ function deleteSelectedText() {
   selectedText.remove(); 
   deselectAll(); 
   refreshEmpty(); 
-  syncToCloud(); // <-- Sync hook
+  syncToCloud(); 
 }
 
 /* ================= สร้างช่องข้อความ ================= */
@@ -842,7 +847,7 @@ function addGlobalText(areaId, init) {
   document.getElementById(areaId).appendChild(w);
   applyInitToWrapper(w, init);
   if (init.isLocked) w.classList.add('is-locked');
-  syncToCloud(); // <-- Sync hook
+  syncToCloud(); 
   return w;
 }
 function applyInitToWrapper(w, init) {
@@ -874,13 +879,6 @@ let drag = null;
 document.addEventListener('focusout', function(e) {
   if(e.target.classList.contains('txt-target') || e.target.tagName === 'SELECT') {
       syncToCloud();
-  }
-});
-
-// Hook 2: ปล่อยเมาส์จากการลาก อัปเดต Cloud
-document.addEventListener('mouseup', function() {
-  if (drag || marquee || panDrag) {
-      setTimeout(syncToCloud, 100); 
   }
 });
 
@@ -986,9 +984,28 @@ document.addEventListener('mousemove',function(e){
   snapGuides.x=s.guideX; snapGuides.y=s.guideY;
 });
 
+// Hook 2: ปล่อยเมาส์จากการลาก อัปเดต Cloud (แบบประหยัด)
 document.addEventListener('mouseup',function(){
-  if (marquee) finishMarquee();
-  if (drag) { hideSnapGuides(); drag=null; syncAllRibbons(); }
+  let didChange = false;
+
+  if (marquee) { 
+      finishMarquee(); 
+      didChange = true;
+  }
+  if (drag) { 
+      hideSnapGuides(); 
+      drag = null; 
+      syncAllRibbons(); 
+      didChange = true; 
+  }
+  if (panDrag) {
+      panDrag = null;
+      didChange = true;
+  }
+
+  if (didChange) {
+      syncToCloud();
+  }
 });
 
 let panDrag = null;
@@ -1008,7 +1025,6 @@ document.addEventListener('mousemove', function (e) {
   panDrag.el.dataset.panX = nx; panDrag.el.dataset.panY = ny;
   panDrag.el.style.setProperty('--pan-x', nx + 'px'); panDrag.el.style.setProperty('--pan-y', ny + 'px');
 });
-document.addEventListener('mouseup', function () { panDrag = null; });
 
 /* ================= การ์ด (รูปภาพ) ================= */
 function createCardHTML(mode, src, scale) {
@@ -1086,7 +1102,7 @@ function applyImageToolbar() {
   card.classList.toggle('is-grouped', document.getElementById('itGroup').checked);
   selectedCard.classList.toggle('is-locked', document.getElementById('itLock').checked);
   syncAllRibbons();
-  syncToCloud(); // <-- Sync hook
+  syncToCloud(); 
 }
 function resetImageEffects() {
   if (!selectedCard) return;
@@ -1096,7 +1112,7 @@ function resetImageEffects() {
   applyImageStyles(card);
   populateImageToolbar(selectedCard);
   showToast('↺ รีเซ็ตเอฟเฟกต์ภาพแล้ว');
-  syncToCloud(); // <-- Sync hook
+  syncToCloud(); 
 }
 function addCardField(kind) {
   if (!selectedCard) return;
@@ -1114,7 +1130,7 @@ function addCardField(kind) {
   card.appendChild(w);
   autoGrow(w.querySelector('textarea'));
   selectText(w);
-  syncToCloud(); // <-- Sync hook
+  syncToCloud(); 
 }
 function duplicateSelectedCard() {
   if (!selectedCards.size && !selectedCard) return;
@@ -1134,7 +1150,7 @@ function duplicateSelectedCard() {
   refreshEmpty();
   if(last) selectCard(last);
   showToast('✅ ทำซ้ำ '+created+' รูปสำเร็จ!');
-  syncToCloud(); // <-- Sync hook
+  syncToCloud(); 
 }
 function deleteSelectedCard() {
   if (!selectedCards.size && !selectedCard) return;
@@ -1144,7 +1160,7 @@ function deleteSelectedCard() {
   deselectAll(); refreshEmpty();
   syncAllRibbons();
   showToast('🗑️ ลบ '+count+' รูปแล้ว');
-  syncToCloud(); // <-- Sync hook
+  syncToCloud(); 
 }
 
 function extractCardState(cardWrapper) {
@@ -1213,7 +1229,7 @@ function handleUpload(e, mode) {
     reader.onload = function (ev) { 
         appendCardData(mode, { imgSrc: ev.target.result, name: null, detail: null, price: null }, scale); 
         refreshEmpty(); 
-        syncToCloud(); // <-- Sync hook
+        syncToCloud(); 
     };
     reader.readAsDataURL(file);
   });
@@ -1260,7 +1276,7 @@ function loadProject(event) {
     try { 
         applyProject(JSON.parse(reader.result)); 
         showToast('✅ โหลดข้อมูลขึ้นจอสำเร็จ!'); 
-        syncToCloud(); // <-- โหลดเสร็จก็โยนขึ้น Cloud ให้เพื่อนเห็นด้วย
+        syncToCloud(); 
     }
     catch (err) { console.error(err); showToast('❌ โหลดไม่สำเร็จ: ' + err.message, true); }
   };
