@@ -281,7 +281,7 @@ input[type="number"]{-moz-appearance:textfield}
 
 <script>
 /* ================= REAL-TIME CLOUD SYNC (FIREBASE RTDB) ================= */
-// ใส่ Config ของลูกศิษย์ที่นี่!
+// ใส่ Firebase Config ของลูกศิษย์เรียบร้อย!
 const firebaseConfig = {
     apiKey: "AIzaSyBVirNpmGi1r53mf7pNnV59RGzEFKo4PS4",
     authDomain: "smart-ice-tumnaaa.firebaseapp.com",
@@ -337,7 +337,7 @@ catalogRoomRef.on('value', (snapshot) => {
         const activeEl = document.activeElement;
         const isEditingText = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
         
-        // ถ้ากำลังแก้ข้อความ หรือกำลังลากของอยู่ ให้ "เมิน" การอัปเดตชั่วคราว
+        // ถ้ากำลังแก้ข้อความ หรือกำลังลากของอยู่ ให้ "เมิน" การอัปเดตชั่วคราว เพื่อกันหน้าจอเด้ง
         if (isEditingText || drag || panDrag || marquee) {
             console.log("🛡️ อาจารย์บล็อกการอัปเดตชั่วคราว เพราะลูกศิษย์กำลังทำงานอยู่");
             return; 
