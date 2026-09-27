@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Ultimate Cyberpunk Catalog Builder - 16:9 Full HD (Real-time Edition V2)</title>
+<title>Ultimate Cyberpunk Catalog Builder - 16:9 Full HD (Real-time Edition V3)</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
 
@@ -281,7 +281,7 @@ input[type="number"]{-moz-appearance:textfield}
 
 <script>
 /* ================= REAL-TIME CLOUD SYNC (FIREBASE RTDB) ================= */
-// ใส่ Firebase Config ของลูกศิษย์เรียบร้อย!
+// ใส่ Firebase Config ของลูกศิษย์เรียบร้อยแล้ว
 const firebaseConfig = {
     apiKey: "AIzaSyBVirNpmGi1r53mf7pNnV59RGzEFKo4PS4",
     authDomain: "smart-ice-tumnaaa.firebaseapp.com",
@@ -329,7 +329,7 @@ function syncToCloud() {
     }
 }
 
-// ฟังข้อมูลจาก Cloud พร้อมเกราะป้องกัน (Guard Clause)
+// ฟังข้อมูลจาก Cloud พร้อมเกราะป้องกัน + เรดาร์ดักจับ Error
 catalogRoomRef.on('value', (snapshot) => {
     const data = snapshot.val();
     if (data) {
@@ -337,7 +337,6 @@ catalogRoomRef.on('value', (snapshot) => {
         const activeEl = document.activeElement;
         const isEditingText = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
         
-        // ถ้ากำลังแก้ข้อความ หรือกำลังลากของอยู่ ให้ "เมิน" การอัปเดตชั่วคราว เพื่อกันหน้าจอเด้ง
         if (isEditingText || drag || panDrag || marquee) {
             console.log("🛡️ อาจารย์บล็อกการอัปเดตชั่วคราว เพราะลูกศิษย์กำลังทำงานอยู่");
             return; 
@@ -349,7 +348,10 @@ catalogRoomRef.on('value', (snapshot) => {
             
             const cloudIcon = document.getElementById('cloudStatus');
             if(cloudIcon) {
-                cloudIcon.classList.remove('text-green-400');
+                // ล้างสีแดงออกกรณีที่เคยเชื่อมไม่ได้
+                cloudIcon.classList.remove('text-red-400', 'bg-red-500/20');
+                cloudIcon.innerHTML = "☁️ Online (Real-time)";
+                
                 cloudIcon.classList.add('text-blue-400', 'bg-blue-500/20');
                 setTimeout(() => {
                     cloudIcon.classList.add('text-green-400', 'bg-green-500/20');
@@ -361,6 +363,15 @@ catalogRoomRef.on('value', (snapshot) => {
         }
         setTimeout(() => { isIncomingSync = false; }, 300); 
     }
+}, (errorObject) => {
+    // 🚨 ถ้าระบบพัง หรือเข้า Firebase ไม่ได้ มันจะฟ้องตรงนี้แหละ!
+    console.error("❌ Firebase Error: " + errorObject.name);
+    const cloudIcon = document.getElementById('cloudStatus');
+    if(cloudIcon) {
+        cloudIcon.innerHTML = "❌ Offline (ติด Rules/เน็ตหลุด)";
+        cloudIcon.className = "text-xs font-bold px-3 py-1 rounded-full bg-red-500/20 text-red-400 border border-red-500/50";
+    }
+    showToast("⚠️ Firebase ปฏิเสธการเข้าถึง! ไปเช็ค Security Rules ด่วน!", true);
 });
 
 /* ================= ค่าคงที่ ================= */
