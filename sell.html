@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Ultimate Cyberpunk Catalog Builder - 16:9 Full HD (Real-time V5 Storage Edition)</title>
+<title>Ultimate Cyberpunk Catalog - 16:9 Full HD (Firestore V6 Absolute Sync)</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
 
-<!-- Firebase SDK (Realtime Database & Storage) -->
+<!-- 🔥 กลับมาใช้ Firestore เหมือนแอป Smart Ice ที่ทำงานได้ชัวร์ๆ -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-storage-compat.js"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700;900&family=Prompt:wght@400;700;900&family=Mitr:wght@400;600&family=Sarabun:wght@400;700&family=Pridi:wght@400;600&family=Itim&family=K2D:wght@400;700;800&family=Chakra+Petch:wght@400;700&family=Bai+Jamjuree:wght@400;700&family=Sriracha&family=Chonburi&family=Mali:wght@400;700&family=Orbitron:wght@400;700;900&family=Audiowide&family=Bungee&family=Press+Start+2P&family=Anton&family=Pacifico&family=Righteous&family=Black+Ops+One&display=swap" rel="stylesheet">
@@ -116,7 +116,7 @@ input[type="number"]{-moz-appearance:textfield}
     <img id="previewImageElement" src="" alt="Preview" class="w-full h-auto object-contain mx-auto">
   </div>
   <div class="mt-6 flex gap-4" id="previewButtons">
-    <button onclick="downloadFromPreview()" class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white px-10 py-3 rounded-lg font-bold transition text-xl">⬇️ ดาวน์โหลด 1080p</button>
+    <button onclick="downloadFromPreview()" class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white px-10 py-3 rounded-lg font-bold transition text-xl">⬇️️ ดาวน์โหลด 1080p</button>
   </div>
 </div>
 
@@ -146,7 +146,7 @@ input[type="number"]{-moz-appearance:textfield}
 
 <!-- ================= แถบเครื่องมือบนสุดแบบ Word ================= -->
 <div id="topToolbar" class="hide-on-capture w-full max-w-6xl mb-4 bg-gray-900/95 backdrop-blur border border-cyan-500/40 rounded-xl p-3 shadow-lg z-[90]">
-  <div id="toolbarHint" class="text-center text-gray-500 text-sm py-1.5">🖱️ คลิกข้อความ/รูปเพื่อแก้ไข • Ctrl+คลิก หรือ ลากคลุมพื้นที่เพื่อเลือกหลายรูป • ตอนลากจะมีเส้นไกด์ช่วยจัดแนว</div>
+  <div id="toolbarHint" class="text-center text-gray-500 text-sm py-1.5">🖱️️ คลิกข้อความ/รูปเพื่อแก้ไข • Ctrl+คลิก หรือ ลากคลุมพื้นที่เพื่อเลือกหลายรูป • ตอนลากจะมีเส้นไกด์ช่วยจัดแนว</div>
 
   <div id="textToolbar" class="hidden flex-wrap items-center gap-2 justify-center">
     <span class="tt-group">✍️ ข้อความ</span>
@@ -179,7 +179,7 @@ input[type="number"]{-moz-appearance:textfield}
       <option value="hexagon">หกเหลี่ยม</option>
     </select>
     <div class="tt-group">⬜ รัศมีมุม<input type="number" id="itRadius" class="tt-num narrow" min="0" max="200" oninput="applyImageToolbar()"></div>
-    <div class="tt-group">🖌️️ กรอบ<input type="color" id="itBorderColor" class="tt-color" oninput="applyImageToolbar()"><input type="number" id="itBorderWidth" class="tt-num narrow" min="0" max="30" oninput="applyImageToolbar()"></div>
+    <div class="tt-group">🖌 กรอบ<input type="color" id="itBorderColor" class="tt-color" oninput="applyImageToolbar()"><input type="number" id="itBorderWidth" class="tt-num narrow" min="0" max="30" oninput="applyImageToolbar()"></div>
     <label class="tt-check"><input type="checkbox" id="itShadow" oninput="applyImageToolbar()">🌑 เงา</label>
     <div class="tt-group">☀️ สว่าง<input type="number" id="itBrightness" class="tt-num narrow" min="0" max="300" oninput="applyImageToolbar()"></div>
     <div class="tt-group">◐ คอนทราสต์<input type="number" id="itContrast" class="tt-num narrow" min="0" max="300" oninput="applyImageToolbar()"></div>
@@ -216,7 +216,7 @@ input[type="number"]{-moz-appearance:textfield}
         <input type="range" id="gameScaleSlider" min="0.2" max="6" step="0.01" value="1.8" class="accent-cyan-400 cursor-pointer w-24" oninput="updateScale('game', this.value); syncToCloud();">
         <input type="number" id="gameScaleValue" step="0.01" value="1.80" class="w-16 bg-gray-700 text-cyan-400 font-bold text-center rounded border border-cyan-500/50 outline-none h-7" onchange="updateScale('game', this.value); syncToCloud();" oninput="updateScale('game', this.value);">
         <span class="text-gray-500 mx-1">|</span>
-        <label class="text-sm text-pink-300 font-semibold">🗂️️ ย่อเลย์เอาต์:</label>
+        <label class="text-sm text-pink-300 font-semibold">🗂 ย่อเลย์เอาต์:</label>
         <input type="range" id="gameGridScaleSlider" min="0.3" max="1.5" step="0.01" value="1.00" class="accent-pink-400 cursor-pointer w-24" oninput="updateGridScale('game', this.value); syncToCloud();">
         <input type="number" id="gameGridScaleValue" step="0.01" value="1.00" class="w-16 bg-gray-700 text-pink-400 font-bold text-center rounded border border-pink-500/50 outline-none h-7" onchange="updateGridScale('game', this.value); syncToCloud();" oninput="updateGridScale('game', this.value);">
       </div>
@@ -290,11 +290,11 @@ input[type="number"]{-moz-appearance:textfield}
 <div id="toast" class="fixed bottom-5 right-5 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg font-bold transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none z-[110] text-xl">✅ อัปเดตสำเร็จ!</div>
 
 <script>
-/* ================= REAL-TIME CLOUD SYNC (FIREBASE RTDB & STORAGE) ================= */
+/* ================= REAL-TIME CLOUD SYNC (🔥 FIRESTORE V6) ================= */
+// ใส่ Firebase Config ของลูกศิษย์เรียบร้อย
 const firebaseConfig = {
     apiKey: "AIzaSyBVirNpmGi1r53mf7pNnV59RGzEFKo4PS4",
     authDomain: "smart-ice-tumnaaa.firebaseapp.com",
-    databaseURL: "https://smart-ice-tumnaaa-default-rtdb.asia-southeast1.firebasedatabase.app",
     projectId: "smart-ice-tumnaaa",
     storageBucket: "smart-ice-tumnaaa.firebasestorage.app",
     messagingSenderId: "349663033743",
@@ -304,21 +304,21 @@ const firebaseConfig = {
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
-const rtdb = firebase.database();
-const storage = firebase.storage(); // 🔥 เปิดโกดัง Storage ของอาจารย์ G
+// 🔥 เปลี่ยนมาใช้ Firestore เหมือนแอป Smart Ice
+const db = firebase.firestore();
+const storage = firebase.storage(); 
 let currentRoom = "1"; 
-let catalogRoomRef = rtdb.ref('cyberpunk_rooms/room_' + currentRoom);
+let unsubscribeFB = null;
 let isIncomingSync = false; 
 
+// 🛠️ ฟังก์ชันเปลี่ยนห้อง 
 function changeFirebaseRoom() {
     const newRoom = document.getElementById('roomInputUI').value.trim();
     if(!newRoom) {
         showToast("⚠️ กรุณาใส่ชื่อห้อง!", true);
         return;
     }
-    catalogRoomRef.off();
     currentRoom = newRoom;
-    catalogRoomRef = rtdb.ref('cyberpunk_rooms/room_' + currentRoom);
     document.getElementById('gameGrid').innerHTML = '';
     document.getElementById('carGrid').innerHTML = '';
     refreshEmpty();
@@ -330,7 +330,7 @@ function syncToCloud() {
     if (isIncomingSync) return; 
     try {
         const projectState = {
-            version: 5, 
+            version: 6, 
             activeTab: activeMode(),
             scales: { 
                 game: document.getElementById('gameScaleSlider').value, 
@@ -347,25 +347,33 @@ function syncToCloud() {
             }),
             lastUpdate: Date.now()
         };
-        catalogRoomRef.set(projectState).catch(err => {
-            console.error("Firebase Set Error:", err);
-            showToast("❌ ส่งข้อมูลไม่ผ่าน เช็คอินเทอร์เน็ตด่วน", true);
+        
+        // โยนขึ้น Firestore แบบดุดัน
+        db.collection("cyberpunk_rooms").doc("room_" + currentRoom).set(projectState)
+        .catch(err => {
+            console.error("Firestore Set Error:", err);
+            showToast("❌ ส่งข้อมูลไม่ผ่าน (รูปอาจจะใหญ่เกิน 1MB)", true);
         });
     } catch (err) {
         console.error("Cloud Sync Error: ", err);
     }
 }
 
+// 🛠️ ฟังข้อมูลจาก Firestore 
 function startListeningToRoom() {
-    catalogRoomRef.on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
+    if (unsubscribeFB) unsubscribeFB(); // ปิดการฟังห้องเก่า
+    
+    unsubscribeFB = db.collection("cyberpunk_rooms").doc("room_" + currentRoom).onSnapshot((doc) => {
+        if (doc.exists) {
+            const data = doc.data();
             const activeEl = document.activeElement;
             const isEditingText = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
+            
             if (isEditingText || drag || panDrag || marquee) {
                 console.log("🛡️ อาจารย์บล็อกการอัปเดตชั่วคราว เพราะลูกศิษย์กำลังทำงานอยู่");
                 return; 
             }
+
             isIncomingSync = true;
             try {
                 applyProject(data); 
@@ -390,14 +398,14 @@ function startListeningToRoom() {
             const cloudIcon = document.getElementById('cloudStatus');
             if(cloudIcon) cloudIcon.innerHTML = `☁️ Online (ห้องว่าง)`;
         }
-    }, (errorObject) => {
-        console.error("❌ Firebase Error: " + errorObject.name);
+    }, (error) => {
+        console.error("❌ Firestore Error: ", error);
         const cloudIcon = document.getElementById('cloudStatus');
         if(cloudIcon) {
             cloudIcon.innerHTML = "❌ Offline (ติด Rules/เน็ตหลุด)";
             cloudIcon.className = "text-xs font-bold px-3 py-1 rounded-full bg-red-500/20 text-red-400 border border-red-500/50";
         }
-        showToast("⚠ Firebase ปฏิเสธการเข้าถึง! ไปเช็ค Security Rules ด่วน!", true);
+        showToast("⚠ Firestore ปฏิเสธการเข้าถึง! ไปเช็ค Rules ด่วน!", true);
     });
 }
 startListeningToRoom();
@@ -423,7 +431,7 @@ let snapGuides = { x:null, y:null };
 function showToast(msg, isError) {
   const t = document.getElementById('toast');
   t.innerText = msg;
-  t.className = 'fixed bottom-5 right-5 text-white px-6 py-3 rounded-lg shadow-lg font-bold transform transition-all duration-300 pointer-events-none z-[110] text-xl ' + (isError ? 'bg-red-500' : 'bg-green-500');
+  t.className = 'fixed bottom-5 right-5 text-white px-6 py-3 rounded-lg shadow-lg font-bold transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none z-[110] text-xl ' + (isError ? 'bg-red-500' : 'bg-green-500');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(function () { t.classList.add('translate-y-20', 'opacity-0'); }, 3000);
 }
@@ -914,7 +922,6 @@ function extractWrapperState(w) {
 /* ================= ลาก: ข้อความ / การ์ด / pan รูป ================= */
 let drag = null;
 
-// Hook 1: พิมพ์เสร็จ อัปเดต Cloud
 document.addEventListener('focusout', function(e) {
   if(e.target.classList.contains('txt-target') || e.target.tagName === 'SELECT') {
       syncToCloud();
@@ -1259,37 +1266,58 @@ function appendCardData(mode, data, scale) {
   syncRibbons(mode);
 }
 
-// 🛠️ อาจารย์ G ปรับแต่งระบบอัปโหลดให้โยนไฟล์ขึ้น Storage
+// 🛠️ เครื่องบีบอัดขั้นสุดยอด (สำหรับเป็นตัวเลือกสำรอง หาก Storage พัง)
+function compressImage(file, callback) {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = function(event) {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 600; // บีบให้กว้างสุดแค่ 600px
+            let width = img.width;
+            let height = img.height;
+            if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
+            canvas.width = width; canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6); // บีบคุณภาพเหลือ 60%
+            callback(compressedDataUrl);
+        }
+    }
+}
+
+// 🛠️ โค้ดอัปโหลดแบบฉลาด (ลองใช้ Storage ก่อน ถ้าพังให้สลับไปใช้ Base64 บีบอัด)
 function handleUpload(e, mode) {
   const files = Array.from(e.target.files || []);
   if (!files.length) return;
   const scale = document.getElementById(mode + 'ScaleSlider').value;
   
-  showToast("⏳ กำลังอัปโหลดรูปภาพขึ้นคลาวด์...");
+  showToast("⏳ กำลังพยายามอัปโหลด...");
   
   files.forEach(function (file) {
-      // ตั้งชื่อไฟล์ไม่ให้ซ้ำกัน
       const storageRef = storage.ref('catalog_images/' + Date.now() + '_' + file.name);
       const uploadTask = storageRef.put(file);
 
-      uploadTask.on('state_changed',
-          (snapshot) => {
-              // ถ้าอยากทำหลอดโหลด progress บรรทัดนี้ทำได้เลยนะลูกศิษย์!
-          },
+      uploadTask.on('state_changed', null, 
           (error) => {
-              console.error("Storage Upload Error:", error);
-              showToast("❌ อัปโหลดรูปไม่สำเร็จ เช็ค Storage Rules หรือยัง?", true);
+              console.warn("Storage พัง! กำลังสลับไปใช้ระบบบีบอัด Base64 แทน...", error);
+              // Fallback: ถ้า Storage พัง ให้บีบอัดรูปลง Firestore ไปเลยตรงๆ
+              compressImage(file, (base64) => {
+                  appendCardData(mode, { imgSrc: base64, name: null, detail: null, price: null }, scale);
+                  refreshEmpty();
+                  syncToCloud();
+                  showToast("✅ อัปโหลดสำเร็จ (ผ่านระบบบีบอัดสำรอง)");
+              });
           },
           () => {
-              // เมื่ออัปโหลดเสร็จ ให้ขอ URL จาก Storage กลับมา
+              // ถ้า Storage ใช้ได้ ก็เอาลิงก์ URL สั้นๆ ไปใส่ Firestore
               uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
-                  console.log('✅ ไฟล์อัปโหลดสำเร็จแล้วที่ URL:', downloadURL);
-                  
-                  // สร้างการ์ดบนจอด้วยลิงก์ URL แทนการใช้ Base64 หนาๆ
                   appendCardData(mode, { imgSrc: downloadURL, name: null, detail: null, price: null }, scale); 
                   refreshEmpty(); 
-                  syncToCloud(); // จังหวะนี้จะเอา URL ฝังลง RTDB ให้เองโดยอัตโนมัติ!
-                  showToast("✅ อัปโหลดและซิงค์สำเร็จ!");
+                  syncToCloud(); 
+                  showToast("✅ อัปโหลดและซิงค์สำเร็จ (ผ่าน Storage)");
               });
           }
       );
@@ -1301,12 +1329,12 @@ function handleUpload(e, mode) {
 function saveProject() {
   try {
     const project = {
-      version: 5, activeTab: activeMode(),
+      version: 6, activeTab: activeMode(),
       scales: { game: document.getElementById('gameScaleSlider').value, car: document.getElementById('carScaleSlider').value, gameGrid: document.getElementById('gameGridScaleSlider').value, carGrid: document.getElementById('carGridScaleSlider').value },
       gameCards: getCardsState('gameGrid'), carCards: getCardsState('carGrid'),
       globalTexts: Array.from(document.querySelectorAll('.global-text-wrapper')).map(function (w) { const s = extractWrapperState(w); s.parent = w.parentElement.id; return s; })
     };
-    saveBlob(new Blob([JSON.stringify(project)], { type: 'application/json' }), 'cyberpunk_project_V5_' + Date.now() + '.json');
+    saveBlob(new Blob([JSON.stringify(project)], { type: 'application/json' }), 'cyberpunk_project_V6_' + Date.now() + '.json');
     showToast('✅ บันทึก Backup ลงเครื่องสำเร็จ!');
   } catch (err) { console.error(err); showToast('❌ บันทึกไม่สำเร็จ: ' + err.message, true); }
 }
