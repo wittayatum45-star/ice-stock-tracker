@@ -3,14 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Ultimate Cyberpunk Catalog - 16:9 Full HD (Firestore V6 Absolute Sync)</title>
+<title>Ultimate Cyberpunk Catalog - 16:9 Full HD (Firestore V7 + vConsole)</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
 
-<!-- 🔥 กลับมาใช้ Firestore เหมือนแอป Smart Ice ที่ทำงานได้ชัวร์ๆ -->
+<!-- 🔥 Firebase SDK (Firestore & Storage) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-storage-compat.js"></script>
+
+<!-- 👁️ vConsole: เนตรวงแหวนสำหรับดู Error บนมือถือ -->
+<script src="https://unpkg.com/vconsole@latest/dist/vconsole.min.js"></script>
+<script>var vConsole = new window.VConsole();</script>
 
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700;900&family=Prompt:wght@400;700;900&family=Mitr:wght@400;600&family=Sarabun:wght@400;700&family=Pridi:wght@400;600&family=Itim&family=K2D:wght@400;700;800&family=Chakra+Petch:wght@400;700&family=Bai+Jamjuree:wght@400;700&family=Sriracha&family=Chonburi&family=Mali:wght@400;700&family=Orbitron:wght@400;700;900&family=Audiowide&family=Bungee&family=Press+Start+2P&family=Anton&family=Pacifico&family=Righteous&family=Black+Ops+One&display=swap" rel="stylesheet">
 <style>
@@ -116,7 +120,7 @@ input[type="number"]{-moz-appearance:textfield}
     <img id="previewImageElement" src="" alt="Preview" class="w-full h-auto object-contain mx-auto">
   </div>
   <div class="mt-6 flex gap-4" id="previewButtons">
-    <button onclick="downloadFromPreview()" class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white px-10 py-3 rounded-lg font-bold transition text-xl">⬇️️ ดาวน์โหลด 1080p</button>
+    <button onclick="downloadFromPreview()" class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white px-10 py-3 rounded-lg font-bold transition text-xl">⬇️ ดาวน์โหลด 1080p</button>
   </div>
 </div>
 
@@ -146,10 +150,10 @@ input[type="number"]{-moz-appearance:textfield}
 
 <!-- ================= แถบเครื่องมือบนสุดแบบ Word ================= -->
 <div id="topToolbar" class="hide-on-capture w-full max-w-6xl mb-4 bg-gray-900/95 backdrop-blur border border-cyan-500/40 rounded-xl p-3 shadow-lg z-[90]">
-  <div id="toolbarHint" class="text-center text-gray-500 text-sm py-1.5">🖱️️ คลิกข้อความ/รูปเพื่อแก้ไข • Ctrl+คลิก หรือ ลากคลุมพื้นที่เพื่อเลือกหลายรูป • ตอนลากจะมีเส้นไกด์ช่วยจัดแนว</div>
+  <div id="toolbarHint" class="text-center text-gray-500 text-sm py-1.5">🖱️ คลิกข้อความ/รูปเพื่อแก้ไข • Ctrl+คลิก หรือ ลากคลุมพื้นที่เพื่อเลือกหลายรูป • ตอนลากจะมีเส้นไกด์ช่วยจัดแนว</div>
 
   <div id="textToolbar" class="hidden flex-wrap items-center gap-2 justify-center">
-    <span class="tt-group">✍️ ข้อความ</span>
+    <span class="tt-group">✍️️ ข้อความ</span>
     <select id="ttFont" class="tt-select tt-font" oninput="applyTextToolbar()" title="ฟอนต์"></select>
     <input type="number" id="ttSize" class="tt-num narrow" min="6" max="500" oninput="applyTextToolbar()" title="ขนาด (px)">
     <button id="ttBold" class="tt-btn" onclick="toggleTt('ttBold')" title="ตัวหนา"><b>B</b></button>
@@ -179,7 +183,7 @@ input[type="number"]{-moz-appearance:textfield}
       <option value="hexagon">หกเหลี่ยม</option>
     </select>
     <div class="tt-group">⬜ รัศมีมุม<input type="number" id="itRadius" class="tt-num narrow" min="0" max="200" oninput="applyImageToolbar()"></div>
-    <div class="tt-group">🖌 กรอบ<input type="color" id="itBorderColor" class="tt-color" oninput="applyImageToolbar()"><input type="number" id="itBorderWidth" class="tt-num narrow" min="0" max="30" oninput="applyImageToolbar()"></div>
+    <div class="tt-group">🖌️ กรอบ<input type="color" id="itBorderColor" class="tt-color" oninput="applyImageToolbar()"><input type="number" id="itBorderWidth" class="tt-num narrow" min="0" max="30" oninput="applyImageToolbar()"></div>
     <label class="tt-check"><input type="checkbox" id="itShadow" oninput="applyImageToolbar()">🌑 เงา</label>
     <div class="tt-group">☀️ สว่าง<input type="number" id="itBrightness" class="tt-num narrow" min="0" max="300" oninput="applyImageToolbar()"></div>
     <div class="tt-group">◐ คอนทราสต์<input type="number" id="itContrast" class="tt-num narrow" min="0" max="300" oninput="applyImageToolbar()"></div>
@@ -192,7 +196,7 @@ input[type="number"]{-moz-appearance:textfield}
     <label class="tt-check"><input type="checkbox" id="itCropMode" oninput="applyImageToolbar()">✂️ ซ่อนขอบล้น</label>
     <label class="tt-check"><input type="checkbox" id="itGroup" oninput="applyImageToolbar()">🔒 ล็อคกลุ่ม</label>
     <label class="tt-check"><input type="checkbox" id="itLock" oninput="applyImageToolbar()">📌 ล็อคตำแหน่ง</label>
-    <button class="tt-btn" style="background:#0f766e" onclick="selectAllCards()" title="เลือกการ์ดทั้งหมด">☑️ เลือกทั้งหมด</button>
+    <button class="tt-btn" style="background:#0f766e" onclick="selectAllCards()" title="เลือกการ์ดทั้งหมด">☑️️ เลือกทั้งหมด</button>
     <button class="tt-btn" style="background:#64748b" onclick="clearCardSelection()" title="ยกเลิกการเลือกหลายรูป">✕ ล้างเลือก</button>
     <span class="tt-group">➕ เพิ่มข้อความ</span>
     <button class="tt-btn" style="background:#0891b2" onclick="addCardField('name')">ชื่อ</button>
@@ -216,7 +220,7 @@ input[type="number"]{-moz-appearance:textfield}
         <input type="range" id="gameScaleSlider" min="0.2" max="6" step="0.01" value="1.8" class="accent-cyan-400 cursor-pointer w-24" oninput="updateScale('game', this.value); syncToCloud();">
         <input type="number" id="gameScaleValue" step="0.01" value="1.80" class="w-16 bg-gray-700 text-cyan-400 font-bold text-center rounded border border-cyan-500/50 outline-none h-7" onchange="updateScale('game', this.value); syncToCloud();" oninput="updateScale('game', this.value);">
         <span class="text-gray-500 mx-1">|</span>
-        <label class="text-sm text-pink-300 font-semibold">🗂 ย่อเลย์เอาต์:</label>
+        <label class="text-sm text-pink-300 font-semibold">🗂️ ย่อเลย์เอาต์:</label>
         <input type="range" id="gameGridScaleSlider" min="0.3" max="1.5" step="0.01" value="1.00" class="accent-pink-400 cursor-pointer w-24" oninput="updateGridScale('game', this.value); syncToCloud();">
         <input type="number" id="gameGridScaleValue" step="0.01" value="1.00" class="w-16 bg-gray-700 text-pink-400 font-bold text-center rounded border border-pink-500/50 outline-none h-7" onchange="updateGridScale('game', this.value); syncToCloud();" oninput="updateGridScale('game', this.value);">
       </div>
@@ -258,7 +262,7 @@ input[type="number"]{-moz-appearance:textfield}
         <input type="range" id="carScaleSlider" min="0.2" max="6" step="0.01" value="1.0" class="accent-pink-400 cursor-pointer w-24" oninput="updateScale('car', this.value); syncToCloud();">
         <input type="number" id="carScaleValue" step="0.01" value="1.00" class="w-16 bg-gray-700 text-pink-400 font-bold text-center rounded border border-pink-500/50 outline-none h-7" onchange="updateScale('car', this.value); syncToCloud();" oninput="updateScale('car', this.value);">
         <span class="text-gray-500 mx-1">|</span>
-        <label class="text-sm text-cyan-300 font-semibold">🗂️ ย่อเลย์เอาต์:</label>
+        <label class="text-sm text-cyan-300 font-semibold">🗂️️ ย่อเลย์เอาต์:</label>
         <input type="range" id="carGridScaleSlider" min="0.3" max="1.5" step="0.01" value="1.00" class="accent-cyan-400 cursor-pointer w-24" oninput="updateGridScale('car', this.value); syncToCloud();">
         <input type="number" id="carGridScaleValue" step="0.01" value="1.00" class="w-16 bg-gray-700 text-cyan-400 font-bold text-center rounded border border-cyan-500/50 outline-none h-7" onchange="updateGridScale('car', this.value); syncToCloud();" oninput="updateGridScale('car', this.value);">
       </div>
@@ -290,7 +294,7 @@ input[type="number"]{-moz-appearance:textfield}
 <div id="toast" class="fixed bottom-5 right-5 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg font-bold transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none z-[110] text-xl">✅ อัปเดตสำเร็จ!</div>
 
 <script>
-/* ================= REAL-TIME CLOUD SYNC (🔥 FIRESTORE V6) ================= */
+/* ================= REAL-TIME CLOUD SYNC (🔥 FIRESTORE V7) ================= */
 // ใส่ Firebase Config ของลูกศิษย์เรียบร้อย
 const firebaseConfig = {
     apiKey: "AIzaSyBVirNpmGi1r53mf7pNnV59RGzEFKo4PS4",
@@ -304,14 +308,13 @@ const firebaseConfig = {
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
-// 🔥 เปลี่ยนมาใช้ Firestore เหมือนแอป Smart Ice
+// 🔥 กลับมาใช้ Firestore เหมือนแอปน้ำแข็งที่ลูกศิษย์เซ็ตไว้สมบูรณ์แล้ว
 const db = firebase.firestore();
 const storage = firebase.storage(); 
 let currentRoom = "1"; 
 let unsubscribeFB = null;
 let isIncomingSync = false; 
 
-// 🛠️ ฟังก์ชันเปลี่ยนห้อง 
 function changeFirebaseRoom() {
     const newRoom = document.getElementById('roomInputUI').value.trim();
     if(!newRoom) {
@@ -330,7 +333,7 @@ function syncToCloud() {
     if (isIncomingSync) return; 
     try {
         const projectState = {
-            version: 6, 
+            version: 7, 
             activeTab: activeMode(),
             scales: { 
                 game: document.getElementById('gameScaleSlider').value, 
@@ -348,20 +351,19 @@ function syncToCloud() {
             lastUpdate: Date.now()
         };
         
-        // โยนขึ้น Firestore แบบดุดัน
+        // โยนขึ้น Firestore
         db.collection("cyberpunk_rooms").doc("room_" + currentRoom).set(projectState)
         .catch(err => {
             console.error("Firestore Set Error:", err);
-            showToast("❌ ส่งข้อมูลไม่ผ่าน (รูปอาจจะใหญ่เกิน 1MB)", true);
+            showToast("❌ ส่งข้อมูลไม่ผ่าน (รูปใหญ่ไปหรือเน็ตหลุด)", true);
         });
     } catch (err) {
         console.error("Cloud Sync Error: ", err);
     }
 }
 
-// 🛠️ ฟังข้อมูลจาก Firestore 
 function startListeningToRoom() {
-    if (unsubscribeFB) unsubscribeFB(); // ปิดการฟังห้องเก่า
+    if (unsubscribeFB) unsubscribeFB(); 
     
     unsubscribeFB = db.collection("cyberpunk_rooms").doc("room_" + currentRoom).onSnapshot((doc) => {
         if (doc.exists) {
@@ -431,7 +433,7 @@ let snapGuides = { x:null, y:null };
 function showToast(msg, isError) {
   const t = document.getElementById('toast');
   t.innerText = msg;
-  t.className = 'fixed bottom-5 right-5 text-white px-6 py-3 rounded-lg shadow-lg font-bold transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none z-[110] text-xl ' + (isError ? 'bg-red-500' : 'bg-green-500');
+  t.className = 'fixed bottom-5 right-5 text-white px-6 py-3 rounded-lg shadow-lg font-bold transform transition-all duration-300 pointer-events-none z-[110] text-xl ' + (isError ? 'bg-red-500' : 'bg-green-500');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(function () { t.classList.add('translate-y-20', 'opacity-0'); }, 3000);
 }
@@ -1030,7 +1032,6 @@ document.addEventListener('mousemove',function(e){
   snapGuides.x=s.guideX; snapGuides.y=s.guideY;
 });
 
-// Hook 2: ปล่อยเมาส์จากการลาก อัปเดต Cloud
 document.addEventListener('mouseup',function(){
   let didChange = false;
 
@@ -1266,7 +1267,7 @@ function appendCardData(mode, data, scale) {
   syncRibbons(mode);
 }
 
-// 🛠️ เครื่องบีบอัดขั้นสุดยอด (สำหรับเป็นตัวเลือกสำรอง หาก Storage พัง)
+// 🛠️ เครื่องบีบอัดขั้นสุดยอด หั่นขนาดรูปให้เล็กที่สุดแต่ยังชัดพอดีจอ
 function compressImage(file, callback) {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -1275,26 +1276,27 @@ function compressImage(file, callback) {
         img.src = event.target.result;
         img.onload = function() {
             const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 600; // บีบให้กว้างสุดแค่ 600px
+            const MAX_WIDTH = 500; // หั่นความกว้างให้เหลือแค่ 500px ก็พอสำหรับแคตตาล็อก
             let width = img.width;
             let height = img.height;
             if (width > MAX_WIDTH) { height = Math.round((height * MAX_WIDTH) / width); width = MAX_WIDTH; }
             canvas.width = width; canvas.height = height;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
-            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6); // บีบคุณภาพเหลือ 60%
+            
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.5); // บีบคุณภาพเหลือ 50% ให้เบาหวิว
             callback(compressedDataUrl);
         }
     }
 }
 
-// 🛠️ โค้ดอัปโหลดแบบฉลาด (ลองใช้ Storage ก่อน ถ้าพังให้สลับไปใช้ Base64 บีบอัด)
+// 🛠️ โค้ดอัปโหลดแบบฉลาด (ลองใช้ Storage ก่อน ถ้าพังให้สลับไปใช้ Base64 บีบอัดลง Firestore)
 function handleUpload(e, mode) {
   const files = Array.from(e.target.files || []);
   if (!files.length) return;
   const scale = document.getElementById(mode + 'ScaleSlider').value;
   
-  showToast("⏳ กำลังพยายามอัปโหลด...");
+  showToast("⏳ กำลังพยายามอัปโหลดรูป...");
   
   files.forEach(function (file) {
       const storageRef = storage.ref('catalog_images/' + Date.now() + '_' + file.name);
@@ -1329,12 +1331,12 @@ function handleUpload(e, mode) {
 function saveProject() {
   try {
     const project = {
-      version: 6, activeTab: activeMode(),
+      version: 7, activeTab: activeMode(),
       scales: { game: document.getElementById('gameScaleSlider').value, car: document.getElementById('carScaleSlider').value, gameGrid: document.getElementById('gameGridScaleSlider').value, carGrid: document.getElementById('carGridScaleSlider').value },
       gameCards: getCardsState('gameGrid'), carCards: getCardsState('carGrid'),
       globalTexts: Array.from(document.querySelectorAll('.global-text-wrapper')).map(function (w) { const s = extractWrapperState(w); s.parent = w.parentElement.id; return s; })
     };
-    saveBlob(new Blob([JSON.stringify(project)], { type: 'application/json' }), 'cyberpunk_project_V6_' + Date.now() + '.json');
+    saveBlob(new Blob([JSON.stringify(project)], { type: 'application/json' }), 'cyberpunk_project_V7_' + Date.now() + '.json');
     showToast('✅ บันทึก Backup ลงเครื่องสำเร็จ!');
   } catch (err) { console.error(err); showToast('❌ บันทึกไม่สำเร็จ: ' + err.message, true); }
 }
