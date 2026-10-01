@@ -3,12 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Ultimate Cyberpunk Catalog Builder - 16:9 Full HD</title>
+<title>Ultimate Cyberpunk Catalog Builder - 16:9 Full HD (Real-time V4 with Compression)</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
+
+<!-- Firebase SDK (Realtime Database) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700;900&family=Prompt:wght@400;700;900&family=Mitr:wght@400;600&family=Sarabun:wght@400;700&family=Pridi:wght@400;600&family=Itim&family=K2D:wght@400;700;800&family=Chakra+Petch:wght@400;700&family=Bai+Jamjuree:wght@400;700&family=Sriracha&family=Chonburi&family=Mali:wght@400;700&family=Orbitron:wght@400;700;900&family=Audiowide&family=Bungee&family=Press+Start+2P&family=Anton&family=Pacifico&family=Righteous&family=Black+Ops+One&display=swap" rel="stylesheet">
 <style>
 body{font-family:'Kanit',sans-serif;background-color:#050510;color:#fff;background-image:linear-gradient(rgba(0,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,255,.03) 1px,transparent 1px);background-size:30px 30px;overflow-x:hidden}
@@ -55,15 +57,13 @@ input[type="number"]{-moz-appearance:textfield}
 .game-img{max-width:100%;max-height:100%;object-fit:contain;pointer-events:none;mix-blend-mode:screen;filter:drop-shadow(0 0 15px rgba(0,255,255,.6)) brightness(1.2);transform:scale(var(--img-scale,1.8))}
 .car-img{width:100%;height:100%;object-fit:contain;pointer-events:none;transform:scale(var(--img-scale,1))}
 
-/* ป้าย "ขายแล้ว/ติดเช่า" — วาดในเลเยอร์ลอยเหนือทุกอย่างเสมอ, อยู่มุมขวาบนของการ์ด */
 .ribbon-layer{position:absolute;inset:0;pointer-events:none;z-index:9000}
 .ribbon-wrapper{position:absolute;top:0;left:0;width:150px;height:150px;overflow:hidden;pointer-events:none;filter:drop-shadow(0 4px 6px rgba(0,0,0,.5))}
-.ribbon{position:absolute;top:25px;right:-45px;width:190px;background:linear-gradient(90deg,#d30000,#ff1a1a,#d30000);color:#fff;font-size:1.5rem;font-weight:900;text-align:center;padding:5px 0;transform:rotate(45deg);box-shadow:0 5px 15px rgba(255,0,0,.7);letter-spacing:2px;border-top:2px solid rgba(255,255,255,.8);border-bottom:2px solid rgba(255,255,255,.8);text-shadow:2px 2px 4px rgba(0,0,0,.8)}
+.ribbon{position:absolute;top:25px;left:-45px;width:190px;background:linear-gradient(90deg,#d30000,#ff1a1a,#d30000);color:#fff;font-size:1.5rem;font-weight:900;text-align:center;padding:5px 0;transform:rotate(-45deg);box-shadow:0 5px 15px rgba(255,0,0,.7);letter-spacing:2px;border-top:2px solid rgba(255,255,255,.8);border-bottom:2px solid rgba(255,255,255,.8);text-shadow:2px 2px 4px rgba(0,0,0,.8)}
 
-/* ---------- ข้อความ ---------- */
 .drag-wrapper{position:absolute;z-index:50;width:100%;display:flex;justify-content:center;pointer-events:none}
 .drag-wrapper .txt-target{cursor:text}
-.drag-wrapper.selected-text .txt-target{cursor:text}
+.drag-wrapper.selected-text .txt-target{cursor:move}
 .drag-wrapper.is-locked .txt-target{cursor:text}
 .drag-chip{position:absolute;top:-15px;left:50%;transform:translateX(-50%);width:24px;height:24px;border-radius:5px;background:rgba(0,255,255,.9);color:#000;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;cursor:move;opacity:0;transition:opacity .15s;z-index:80;pointer-events:auto}
 .drag-wrapper .txt-target:hover~.drag-chip,.drag-wrapper .txt-target:focus~.drag-chip,.drag-chip:hover,.drag-wrapper.selected-text .drag-chip{opacity:1}
@@ -82,7 +82,6 @@ input[type="number"]{-moz-appearance:textfield}
 .txt-detail:focus,.global-textarea:focus{background:rgba(0,0,0,.25)}
 .global-textarea{min-height:50px;resize:both}
 
-/* ---------- แถบเครื่องมือบนสุด (Word-like) ---------- */
 #topToolbar{position:sticky;top:8px}
 .tt-select,.tt-align{height:30px;background:#fff;color:#000;border-radius:5px;font-size:13px;outline:none;padding:0 4px}
 .tt-select.tt-font{width:150px}
@@ -95,6 +94,10 @@ input[type="number"]{-moz-appearance:textfield}
 .tt-group{display:flex;align-items:center;gap:4px;background:#1f2937;padding:4px 8px;border-radius:6px;font-size:11px;color:#9ca3af;border:1px solid #374151}
 .tt-color{width:30px;height:30px;cursor:pointer;border:none;padding:0;background:transparent;border-radius:5px}
 .tt-check{display:flex;align-items:center;gap:5px;background:#1f2937;padding:4px 10px;border-radius:6px;font-size:12px;border:1px solid #374151;cursor:pointer}
+
+/* สำหรับช่องใส่ชื่อห้อง */
+.room-input { background: #1f2937; border: 1px solid #374151; color: #0ff; padding: 6px 12px; border-radius: 6px; font-weight: bold; width: 120px; text-align: center; outline: none; }
+.room-input:focus { border-color: #0ff; box-shadow: 0 0 8px rgba(0,255,255,0.3); }
 
 #previewModalContainer::-webkit-scrollbar{width:10px;height:10px}
 #previewModalContainer::-webkit-scrollbar-track{background:rgba(0,0,0,.5)}
@@ -112,27 +115,30 @@ input[type="number"]{-moz-appearance:textfield}
   <div id="previewModalContainer" class="relative w-full max-w-[1400px] max-h-[75vh] overflow-auto border-2 border-cyan-600/50 rounded-xl bg-[#050510]">
     <img id="previewImageElement" src="" alt="Preview" class="w-full h-auto object-contain mx-auto">
   </div>
-  <div class="mt-6 flex flex-wrap justify-center gap-4" id="previewButtons">
+  <div class="mt-6 flex gap-4" id="previewButtons">
     <button onclick="downloadFromPreview()" class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white px-10 py-3 rounded-lg font-bold transition text-xl">⬇️ ดาวน์โหลด 1080p</button>
   </div>
 </div>
 
 <!-- Menu -->
-<div class="w-full max-w-6xl mb-4 flex flex-wrap gap-3 bg-gray-900/50 p-3 rounded-xl border border-gray-700/50 justify-between items-center">
+<div class="w-full max-w-6xl mb-4 flex flex-wrap gap-4 bg-gray-900/50 p-3 rounded-xl border border-gray-700/50 justify-between items-center">
   <div class="flex gap-4 flex-1 min-w-[300px]">
     <button onclick="switchTab('game')" id="tabGame" class="tab-btn active flex-1 py-3 text-lg font-bold rounded-lg border-2 border-transparent text-gray-400 hover:text-white uppercase tracking-widest">🎮 Game Shop (16:9)</button>
     <button onclick="switchTab('car')" id="tabCar" class="tab-btn flex-1 py-3 text-lg font-bold rounded-lg border-2 border-transparent text-gray-400 hover:text-white uppercase tracking-widest">🚗 Car Rental (16:9)</button>
   </div>
-  <div class="flex items-center gap-2 bg-gray-800 px-3 py-2 rounded-lg border border-emerald-500/30">
-    <span class="text-xs text-gray-400 whitespace-nowrap">👥 ห้องทำงานร่วม:</span>
-    <input type="text" id="roomIdInput" class="w-28 bg-gray-700 text-emerald-300 text-sm px-2 py-1.5 rounded outline-none" placeholder="default">
-    <button onclick="connectCloud(document.getElementById('roomIdInput').value.trim()||'default')" class="bg-emerald-700 hover:bg-emerald-600 text-white text-xs px-3 py-1.5 rounded font-bold whitespace-nowrap">เชื่อมต่อ</button>
-    <span id="syncStatus" class="text-xs text-gray-400 whitespace-nowrap">⏳ กำลังโหลด...</span>
+  
+  <!-- 🛠️ เพิ่มระบบเชื่อมต่อห้องทำงานที่นี่ -->
+  <div class="flex gap-2 items-center bg-gray-800 p-2 rounded-lg border border-gray-700">
+      <span class="text-xs text-gray-400 font-bold">👥 ห้องทำงาน:</span>
+      <input type="text" id="roomInputUI" class="room-input" value="1" placeholder="ชื่อห้อง">
+      <button onclick="changeFirebaseRoom()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-1.5 rounded font-bold text-sm transition">เชื่อมต่อ</button>
   </div>
-  <div class="flex gap-2 px-2">
-    <button onclick="undo()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-3 rounded-lg font-bold transition" title="ย้อนกลับ (Ctrl+Z)">↶</button>
-    <button onclick="redo()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-3 rounded-lg font-bold transition" title="ทำซ้ำ (Ctrl+Shift+Z)">↷</button>
-    <button onclick="saveProject()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-3 rounded-lg font-bold transition">💾 บันทึกไฟล์ (JSON)</button>
+
+  <div class="flex gap-3 px-2 items-center">
+    <!-- Cloud Status Indicator -->
+    <div id="cloudStatus" class="text-xs font-bold px-3 py-1 rounded-full bg-green-500/20 text-green-400 border border-green-500/50 transition-colors duration-300">☁️ Online</div>
+    
+    <button onclick="saveProject()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-3 rounded-lg font-bold transition">💾 เซฟลงเครื่อง</button>
     <label class="cursor-pointer bg-amber-600 hover:bg-amber-500 text-white px-5 py-3 rounded-lg font-bold transition">
       📂 โหลดไฟล์
       <input type="file" id="jsonLoadInput" accept=".json,application/json" class="hidden" onchange="loadProject(event)">
@@ -142,7 +148,7 @@ input[type="number"]{-moz-appearance:textfield}
 
 <!-- ================= แถบเครื่องมือบนสุดแบบ Word ================= -->
 <div id="topToolbar" class="hide-on-capture w-full max-w-6xl mb-4 bg-gray-900/95 backdrop-blur border border-cyan-500/40 rounded-xl p-3 shadow-lg z-[90]">
-  <div id="toolbarHint" class="text-center text-gray-500 text-sm py-1.5">🖱️ คลิกข้อความ/รูปเพื่อแก้ไข • Ctrl+คลิก หรือ ลากคลุมพื้นที่เพื่อเลือกหลายรูป • Ctrl+Z ย้อนกลับ</div>
+  <div id="toolbarHint" class="text-center text-gray-500 text-sm py-1.5">🖱️ คลิกข้อความ/รูปเพื่อแก้ไข • Ctrl+คลิก หรือ ลากคลุมพื้นที่เพื่อเลือกหลายรูป • ตอนลากจะมีเส้นไกด์ช่วยจัดแนว</div>
 
   <div id="textToolbar" class="hidden flex-wrap items-center gap-2 justify-center">
     <span class="tt-group">✍️ ข้อความ</span>
@@ -209,15 +215,15 @@ input[type="number"]{-moz-appearance:textfield}
     <div class="flex flex-col gap-2">
       <div class="flex items-center gap-3 bg-gray-800 px-4 py-2 rounded-lg border border-cyan-500/20">
         <label class="text-sm text-cyan-300 font-semibold">🔍 ซูมรูปทั้งหมด:</label>
-        <input type="range" id="gameScaleSlider" min="0.2" max="6" step="0.01" value="1.8" class="accent-cyan-400 cursor-pointer w-24" oninput="updateScale('game', this.value)">
-        <input type="number" id="gameScaleValue" step="0.01" value="1.80" class="w-16 bg-gray-700 text-cyan-400 font-bold text-center rounded border border-cyan-500/50 outline-none h-7" onchange="updateScale('game', this.value)" oninput="updateScale('game', this.value)">
+        <input type="range" id="gameScaleSlider" min="0.2" max="6" step="0.01" value="1.8" class="accent-cyan-400 cursor-pointer w-24" oninput="updateScale('game', this.value); syncToCloud();">
+        <input type="number" id="gameScaleValue" step="0.01" value="1.80" class="w-16 bg-gray-700 text-cyan-400 font-bold text-center rounded border border-cyan-500/50 outline-none h-7" onchange="updateScale('game', this.value); syncToCloud();" oninput="updateScale('game', this.value);">
         <span class="text-gray-500 mx-1">|</span>
         <label class="text-sm text-pink-300 font-semibold">🗂️ ย่อเลย์เอาต์:</label>
-        <input type="range" id="gameGridScaleSlider" min="0.3" max="1.5" step="0.01" value="1.00" class="accent-pink-400 cursor-pointer w-24" oninput="updateGridScale('game', this.value)">
-        <input type="number" id="gameGridScaleValue" step="0.01" value="1.00" class="w-16 bg-gray-700 text-pink-400 font-bold text-center rounded border border-pink-500/50 outline-none h-7" onchange="updateGridScale('game', this.value)" oninput="updateGridScale('game', this.value)">
+        <input type="range" id="gameGridScaleSlider" min="0.3" max="1.5" step="0.01" value="1.00" class="accent-pink-400 cursor-pointer w-24" oninput="updateGridScale('game', this.value); syncToCloud();">
+        <input type="number" id="gameGridScaleValue" step="0.01" value="1.00" class="w-16 bg-gray-700 text-pink-400 font-bold text-center rounded border border-pink-500/50 outline-none h-7" onchange="updateGridScale('game', this.value); syncToCloud();" oninput="updateGridScale('game', this.value);">
       </div>
     </div>
-    <div class="flex gap-3 flex-wrap">
+    <div class="flex gap-3">
       <button onclick="toggleOverviewMode()" class="btn-overview bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition">👁️ ซ่อนเครื่องมือ</button>
       <button onclick="toggleAllCardsLock()" class="bg-amber-700 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition">🔒 ล็อค/ปลดทั้งหมด</button>
       <button onclick="addGlobalText('gameCaptureArea')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-semibold text-sm">➕ ข้อความอิสระ</button>
@@ -225,7 +231,6 @@ input[type="number"]{-moz-appearance:textfield}
         <input type="file" id="gameImageUpload" class="hidden" accept="image/*" multiple>
       </label>
       <button onclick="previewImage('gameCaptureArea','game_banner')" class="bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg font-semibold text-sm">👀 พรีวิว</button>
-      <button onclick="copyImageLink('gameCaptureArea','game_banner')" class="bg-teal-600 hover:bg-teal-500 text-white px-4 py-2 rounded-lg font-semibold text-sm">📋 คัดลอกลิงก์รูป</button>
     </div>
   </div>
   <div class="scroll-wrapper">
@@ -252,15 +257,15 @@ input[type="number"]{-moz-appearance:textfield}
     <div class="flex flex-col gap-2">
       <div class="flex items-center gap-3 bg-gray-800 px-4 py-2 rounded-lg border border-pink-500/20">
         <label class="text-sm text-pink-300 font-semibold">🔍 ซูมรูปทั้งหมด:</label>
-        <input type="range" id="carScaleSlider" min="0.2" max="6" step="0.01" value="1.0" class="accent-pink-400 cursor-pointer w-24" oninput="updateScale('car', this.value)">
-        <input type="number" id="carScaleValue" step="0.01" value="1.00" class="w-16 bg-gray-700 text-pink-400 font-bold text-center rounded border border-pink-500/50 outline-none h-7" onchange="updateScale('car', this.value)" oninput="updateScale('car', this.value)">
+        <input type="range" id="carScaleSlider" min="0.2" max="6" step="0.01" value="1.0" class="accent-pink-400 cursor-pointer w-24" oninput="updateScale('car', this.value); syncToCloud();">
+        <input type="number" id="carScaleValue" step="0.01" value="1.00" class="w-16 bg-gray-700 text-pink-400 font-bold text-center rounded border border-pink-500/50 outline-none h-7" onchange="updateScale('car', this.value); syncToCloud();" oninput="updateScale('car', this.value);">
         <span class="text-gray-500 mx-1">|</span>
         <label class="text-sm text-cyan-300 font-semibold">🗂️ ย่อเลย์เอาต์:</label>
-        <input type="range" id="carGridScaleSlider" min="0.3" max="1.5" step="0.01" value="1.00" class="accent-cyan-400 cursor-pointer w-24" oninput="updateGridScale('car', this.value)">
-        <input type="number" id="carGridScaleValue" step="0.01" value="1.00" class="w-16 bg-gray-700 text-cyan-400 font-bold text-center rounded border border-cyan-500/50 outline-none h-7" onchange="updateGridScale('car', this.value)" oninput="updateGridScale('car', this.value)">
+        <input type="range" id="carGridScaleSlider" min="0.3" max="1.5" step="0.01" value="1.00" class="accent-cyan-400 cursor-pointer w-24" oninput="updateGridScale('car', this.value); syncToCloud();">
+        <input type="number" id="carGridScaleValue" step="0.01" value="1.00" class="w-16 bg-gray-700 text-cyan-400 font-bold text-center rounded border border-cyan-500/50 outline-none h-7" onchange="updateGridScale('car', this.value); syncToCloud();" oninput="updateGridScale('car', this.value);">
       </div>
     </div>
-    <div class="flex gap-3 flex-wrap">
+    <div class="flex gap-3">
       <button onclick="toggleOverviewMode()" class="btn-overview bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition">👁️ ซ่อนเครื่องมือ</button>
       <button onclick="toggleAllCardsLock()" class="bg-amber-700 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition">🔒 ล็อค/ปลดทั้งหมด</button>
       <button onclick="addGlobalText('carCaptureArea')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-semibold text-sm">➕ ข้อความอิสระ</button>
@@ -268,7 +273,6 @@ input[type="number"]{-moz-appearance:textfield}
         <input type="file" id="carImageUpload" class="hidden" accept="image/*" multiple>
       </label>
       <button onclick="previewImage('carCaptureArea','car_rental')" class="bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg font-semibold text-sm">👀 พรีวิว</button>
-      <button onclick="copyImageLink('carCaptureArea','car_rental')" class="bg-teal-600 hover:bg-teal-500 text-white px-4 py-2 rounded-lg font-semibold text-sm">📋 คัดลอกลิงก์รูป</button>
     </div>
   </div>
   <div class="scroll-wrapper">
@@ -288,6 +292,135 @@ input[type="number"]{-moz-appearance:textfield}
 <div id="toast" class="fixed bottom-5 right-5 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg font-bold transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none z-[110] text-xl">✅ อัปเดตสำเร็จ!</div>
 
 <script>
+/* ================= REAL-TIME CLOUD SYNC (FIREBASE RTDB) ================= */
+// ใส่ Firebase Config ของลูกศิษย์เรียบร้อย
+const firebaseConfig = {
+    apiKey: "AIzaSyBVirNpmGi1r53mf7pNnV59RGzEFKo4PS4",
+    authDomain: "smart-ice-tumnaaa.firebaseapp.com",
+    databaseURL: "https://smart-ice-tumnaaa-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "smart-ice-tumnaaa",
+    storageBucket: "smart-ice-tumnaaa.firebasestorage.app",
+    messagingSenderId: "349663033743",
+    appId: "1:349663033743:web:adf6793310195fb06e73fa"
+};
+
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const rtdb = firebase.database();
+let currentRoom = "1"; // ค่าตั้งต้นเหมือนในรูปของลูกศิษย์
+let catalogRoomRef = rtdb.ref('cyberpunk_rooms/room_' + currentRoom);
+let isIncomingSync = false; 
+
+// 🛠️ ฟังก์ชันเปลี่ยนห้อง (Dynamic Room System)
+function changeFirebaseRoom() {
+    const newRoom = document.getElementById('roomInputUI').value.trim();
+    if(!newRoom) {
+        showToast("⚠️ กรุณาใส่ชื่อห้อง!", true);
+        return;
+    }
+    
+    // ปิดการดักฟังห้องเก่า
+    catalogRoomRef.off();
+    
+    // ย้ายไปห้องใหม่
+    currentRoom = newRoom;
+    catalogRoomRef = rtdb.ref('cyberpunk_rooms/room_' + currentRoom);
+    
+    // เคลียร์หน้าจอรอรับข้อมูลใหม่
+    document.getElementById('gameGrid').innerHTML = '';
+    document.getElementById('carGrid').innerHTML = '';
+    refreshEmpty();
+    
+    showToast(`🔄 กำลังเชื่อมต่อห้อง: ${currentRoom}...`);
+    startListeningToRoom();
+}
+
+function syncToCloud() {
+    if (isIncomingSync) return; 
+    
+    try {
+        const projectState = {
+            version: 4, 
+            activeTab: activeMode(),
+            scales: { 
+                game: document.getElementById('gameScaleSlider').value, 
+                car: document.getElementById('carScaleSlider').value, 
+                gameGrid: document.getElementById('gameGridScaleSlider').value, 
+                carGrid: document.getElementById('carGridScaleSlider').value 
+            },
+            gameCards: getCardsState('gameGrid'), 
+            carCards: getCardsState('carGrid'),
+            globalTexts: Array.from(document.querySelectorAll('.global-text-wrapper')).map(function (w) { 
+                const s = extractWrapperState(w); 
+                s.parent = w.parentElement.id; 
+                return s; 
+            }),
+            lastUpdate: Date.now()
+        };
+        
+        catalogRoomRef.set(projectState).catch(err => {
+            console.error("Firebase Set Error (อาจจะไฟล์ใหญ่ไป):", err);
+            showToast("❌ ส่งข้อมูลไม่ผ่าน (รูปอาจจะใหญ่เกินไป)", true);
+        });
+    } catch (err) {
+        console.error("Cloud Sync Error: ", err);
+    }
+}
+
+// 🛠️ ฟังข้อมูลจาก Cloud 
+function startListeningToRoom() {
+    catalogRoomRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            const activeEl = document.activeElement;
+            const isEditingText = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
+            
+            if (isEditingText || drag || panDrag || marquee) {
+                console.log("🛡️ อาจารย์บล็อกการอัปเดตชั่วคราว เพราะลูกศิษย์กำลังทำงานอยู่");
+                return; 
+            }
+
+            isIncomingSync = true;
+            try {
+                applyProject(data); 
+                
+                const cloudIcon = document.getElementById('cloudStatus');
+                if(cloudIcon) {
+                    cloudIcon.classList.remove('text-red-400', 'bg-red-500/20');
+                    cloudIcon.innerHTML = `☁️ Online (ห้อง: ${currentRoom})`;
+                    cloudIcon.classList.add('text-blue-400', 'bg-blue-500/20');
+                    setTimeout(() => {
+                        cloudIcon.classList.add('text-green-400', 'bg-green-500/20');
+                        cloudIcon.classList.remove('text-blue-400', 'bg-blue-500/20');
+                    }, 1000);
+                }
+            } catch (err) {
+                console.error("Apply Cloud Data Error:", err);
+            }
+            setTimeout(() => { isIncomingSync = false; }, 300); 
+        } else {
+            // ถ้าห้องว่างเปล่า
+            document.getElementById('gameGrid').innerHTML = '';
+            document.getElementById('carGrid').innerHTML = '';
+            refreshEmpty();
+            const cloudIcon = document.getElementById('cloudStatus');
+            if(cloudIcon) cloudIcon.innerHTML = `☁️ Online (ห้องว่าง)`;
+        }
+    }, (errorObject) => {
+        console.error("❌ Firebase Error: " + errorObject.name);
+        const cloudIcon = document.getElementById('cloudStatus');
+        if(cloudIcon) {
+            cloudIcon.innerHTML = "❌ Offline (ติด Rules/เน็ตหลุด)";
+            cloudIcon.className = "text-xs font-bold px-3 py-1 rounded-full bg-red-500/20 text-red-400 border border-red-500/50";
+        }
+        showToast("⚠️️ Firebase ปฏิเสธการเข้าถึง! ไปเช็ค Security Rules ด่วน!", true);
+    });
+}
+
+// เริ่มต้นดักฟังห้อง 1 ทันทีที่เปิดเว็บ
+startListeningToRoom();
+
 /* ================= ค่าคงที่ ================= */
 const FONTS = ['Kanit','Prompt','Mitr','Sarabun','Pridi','Itim','K2D','Chakra Petch','Bai Jamjuree','Sriracha','Chonburi','Mali','Orbitron','Audiowide','Bungee','Press Start 2P','Anton','Pacifico','Righteous','Black Ops One'];
 const LATIN_ONLY = ['Orbitron','Audiowide','Bungee','Press Start 2P','Anton','Pacifico','Righteous','Black Ops One'];
@@ -298,8 +431,8 @@ const MIN_H = { game:'40px', car:'65px' };
 let currentPreviewDataUrl = '', currentDownloadName = '', lastCapture = null, toastTimer = null;
 const viewState = { game:{auto:true, zoom:1}, car:{auto:true, zoom:1} };
 let isOverviewMode = false;
-let selectedText = null;   // .drag-wrapper element
-let selectedCard = null;   // primary .item-card-wrapper element
+let selectedText = null;   
+let selectedCard = null;   
 let selectedCards = new Set();
 let suppressToolbar = false;
 let marquee = null;
@@ -331,8 +464,8 @@ function toggleAllCardsLock() {
   wrappers.forEach(function (w) { if (!w.classList.contains('is-locked')) anyUnlocked = true; });
   wrappers.forEach(function (w) { w.classList.toggle('is-locked', anyUnlocked); });
   if (selectedCard) populateImageToolbar(selectedCard);
-  onStateChanged();
   showToast(anyUnlocked ? '🔒 ล็อครูปทั้งหมดแล้ว!' : '🔓 ปลดล็อครูปทั้งหมดแล้ว!');
+  syncToCloud();
 }
 function getScale(el) { const w = el.offsetWidth; return w ? el.getBoundingClientRect().width / w : 1; }
 function activeMode() { return document.getElementById('tabGame').classList.contains('active') ? 'game' : 'car'; }
@@ -358,6 +491,7 @@ function switchTab(tab) {
   if (viewState[tab].auto) fitView(tab);
   deselectAll();
   refreshAutoGrow();
+  syncToCloud(); 
 }
 function setViewZoom(mode, z, manual) {
   z = Math.max(0.2, Math.min(5, z));
@@ -380,7 +514,7 @@ document.addEventListener('wheel', function (e) {
   if (e.ctrlKey) { e.preventDefault(); const mode = activeMode(); setViewZoom(mode, (viewState[mode].zoom || 1) + (e.deltaY > 0 ? -0.05 : 0.05), true); }
 }, { passive: false });
 
-/* ================= สเกลรูป / เลย์เอาต์ (ปุ่มรวมทั้งแท็บ) ================= */
+/* ================= สเกลรูป / เลย์เอาต์ ================= */
 function updateScale(mode, val, apply) {
   const num = parseFloat(val); if (isNaN(num)) return;
   const l = document.getElementById(mode + 'ScaleValue'); if (l && document.activeElement !== l) l.value = num.toFixed(2);
@@ -388,7 +522,6 @@ function updateScale(mode, val, apply) {
   if (apply === false) return;
   document.querySelectorAll('#' + mode + 'Grid img').forEach(function (img) { img.style.setProperty('--img-scale', val); });
   if (selectedCard && selectedCard.closest('#' + mode + 'Grid')) populateImageToolbar(selectedCard);
-  debouncedStateChanged();
 }
 function updateGridScale(mode, val) {
   const num = parseFloat(val); if (isNaN(num)) return;
@@ -396,7 +529,6 @@ function updateGridScale(mode, val) {
   const s = document.getElementById(mode + 'GridScaleSlider'); if (s && document.activeElement !== s) s.value = val;
   const grid = document.getElementById(mode + 'Grid'); if (grid) grid.style.setProperty('--grid-scale', val);
   syncRibbons(mode);
-  debouncedStateChanged();
 }
 
 /* ================= ราคา K ================= */
@@ -411,9 +543,9 @@ function revertKToNumber(input) {
   if (input.dataset.original) { input.value = input.dataset.original; input.setAttribute('value', input.value); }
   else { const v = input.value.trim().toUpperCase(); if (v.endsWith('K')) { const n = parseFloat(v.replace('K', '')); if (!isNaN(n)) { input.value = n * 1000; input.setAttribute('value', input.value); } } }
 }
-function syncText(el) { if (el.tagName === 'TEXTAREA') { el.textContent = el.value; autoGrow(el); } else el.setAttribute('value', el.value); debouncedStateChanged(); }
+function syncText(el) { if (el.tagName === 'TEXTAREA') { el.textContent = el.value; autoGrow(el); } else el.setAttribute('value', el.value); }
 
-/* ================= สไตล์ข้อความ: อ่าน/เขียนลง dataset + style โดยตรง ================= */
+/* ================= สไตล์ข้อความ ================= */
 function hex(c) { return c && /^#/.test(c) ? c : '#ffffff'; }
 function writeTextStyle(t, s) {
   t.dataset.font = s.font; t.dataset.color = s.color; t.dataset.strokeColor = s.strokeColor; t.dataset.strokeSize = s.strokeSize;
@@ -564,7 +696,7 @@ function getCardRectInArea(wrapper, area) {
   };
 }
 
-/* ================= ป้าย "ขายแล้ว/ติดเช่า" — วาดในเลเยอร์ลอยเหนือทุกอย่างเสมอ, มุมขวาบน ================= */
+/* ================= ป้าย ================= */
 function syncRibbons(mode) {
   const area = document.getElementById(mode + 'CaptureArea');
   const layer = document.getElementById(mode + 'RibbonLayer');
@@ -579,7 +711,7 @@ function syncRibbons(mode) {
     const s = r.width / baseW;
     const rb = document.createElement('div');
     rb.className = 'ribbon-wrapper';
-    rb.style.left = (r.left + r.width - 150 * s) + 'px';   // ชิดขอบขวาของการ์ด
+    rb.style.left = r.left + 'px';
     rb.style.top = r.top + 'px';
     rb.style.transform = 'scale(' + s + ')';
     rb.style.transformOrigin = 'top left';
@@ -707,7 +839,7 @@ function toggleTextLock() {
   const on = !selectedText.classList.contains('is-locked');
   selectedText.classList.toggle('is-locked', on);
   document.getElementById('ttLock').classList.toggle('on', on);
-  onStateChanged();
+  syncToCloud(); 
 }
 function applyTextToolbar() {
   if (suppressToolbar || !selectedText) return;
@@ -726,7 +858,7 @@ function applyTextToolbar() {
     spacing: parseFloat(document.getElementById('ttSpacing').value) || 0,
     lineHeight: parseFloat(document.getElementById('ttLine').value) || 1.2
   });
-  debouncedStateChanged();
+  syncToCloud(); 
 }
 function duplicateSelectedText() {
   if (!selectedText) return;
@@ -740,9 +872,14 @@ function duplicateSelectedText() {
   const w = addGlobalText(area.id, state);
   showToast('✅ ทำซ้ำข้อความสำเร็จ!');
   selectText(w);
-  onStateChanged();
 }
-function deleteSelectedText() { if (!selectedText) return; selectedText.remove(); deselectAll(); refreshEmpty(); onStateChanged(); }
+function deleteSelectedText() { 
+  if (!selectedText) return; 
+  selectedText.remove(); 
+  deselectAll(); 
+  refreshEmpty(); 
+  syncToCloud(); 
+}
 
 /* ================= สร้างช่องข้อความ ================= */
 function makeFieldWrapper(kind, isTextarea, placeholder, styleOver, posLeft, posTop) {
@@ -768,6 +905,7 @@ function addGlobalText(areaId, init) {
   document.getElementById(areaId).appendChild(w);
   applyInitToWrapper(w, init);
   if (init.isLocked) w.classList.add('is-locked');
+  syncToCloud(); 
   return w;
 }
 function applyInitToWrapper(w, init) {
@@ -792,18 +930,24 @@ function extractWrapperState(w) {
   return s;
 }
 
-/* ================= ลาก: ข้อความ (เฉพาะจากปุ่ม ✥ เท่านั้น) / การ์ด / pan รูป ================= */
-/* หมายเหตุสำคัญ: คลิกตรงตัวหนังสือ (txt-target) จะ "แก้ไขข้อความ" อย่างเดียวเสมอ ไม่ลากตำแหน่งเด็ดขาด
-   เพื่อไม่ให้ preventDefault ระหว่างพิมพ์ไปรบกวนโฟกัส/เคอร์เซอร์ (สาเหตุของอาการ "เด้งออก" เดิม) */
+/* ================= ลาก: ข้อความ / การ์ด / pan รูป ================= */
 let drag = null;
+
+// Hook 1: พิมพ์เสร็จ อัปเดต Cloud
+document.addEventListener('focusout', function(e) {
+  if(e.target.classList.contains('txt-target') || e.target.tagName === 'SELECT') {
+      syncToCloud();
+  }
+});
 
 document.addEventListener('mousedown', function(e) {
   const tag=e.target.tagName;
   const chip = e.target.closest('.drag-chip');
-  const clickedInsideText = e.target.closest('.drag-wrapper .txt-target');
+  const textTarget = e.target.closest('.drag-wrapper .txt-target');
+  const isDraggableText = chip || textTarget;
 
-  if (!chip && ['INPUT','TEXTAREA','BUTTON','SELECT','OPTION','LABEL'].indexOf(tag)>=0) return;
-  if (!chip && e.target.closest('.hide-on-capture')) return;
+  if (!isDraggableText && ['INPUT','TEXTAREA','BUTTON','SELECT','OPTION','LABEL'].indexOf(tag)>=0) return;
+  if (!isDraggableText && e.target.closest('.hide-on-capture')) return;
   if (isOverviewMode) return;
 
   if (chip) {
@@ -811,11 +955,17 @@ document.addEventListener('mousedown', function(e) {
     selectText(w);
     if (w.classList.contains('is-locked')) return;
     e.preventDefault();
-    drag={type:'text',el:w,sx:e.clientX,sy:e.clientY,ox:parseFloat(w.style.left)||0,oy:parseFloat(w.style.top)||0,scale:getScale(w.parentElement)};
+    drag={type:'text',el:w,sx:e.clientX,sy:e.clientY,ox:parseFloat(w.style.left)||0,oy:parseFloat(w.style.top)||0,scale:getScale(w.parentElement),moved:false};
     return;
   }
 
-  if (clickedInsideText) return; // ปล่อยให้เบราว์เซอร์จัดการโฟกัส/เคอร์เซอร์/พิมพ์ตามปกติ 100%
+  if (textTarget) {
+    const w = textTarget.closest('.drag-wrapper');
+    selectText(w);
+    if (w.classList.contains('is-locked')) return;
+    drag={type:'text',el:w,sx:e.clientX,sy:e.clientY,ox:parseFloat(w.style.left)||0,oy:parseFloat(w.style.top)||0,scale:getScale(w.parentElement),moved:false,textTarget:textTarget};
+    return;
+  }
 
   const card=e.target.closest('.item-card');
   if (card) {
@@ -866,6 +1016,9 @@ document.addEventListener('mousemove',function(e){
 
   if (drag.type==='text') {
     const dx=(e.clientX-drag.sx)/drag.scale, dy=(e.clientY-drag.sy)/drag.scale;
+    if (!drag.moved && Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy) < 5) return;
+    drag.moved=true;
+    e.preventDefault();
     drag.el.style.left=(drag.ox+dx)+'px';
     drag.el.style.top=(drag.oy+dy)+'px';
     return;
@@ -889,9 +1042,28 @@ document.addEventListener('mousemove',function(e){
   snapGuides.x=s.guideX; snapGuides.y=s.guideY;
 });
 
+// Hook 2: ปล่อยเมาส์จากการลาก อัปเดต Cloud
 document.addEventListener('mouseup',function(){
-  if (marquee) finishMarquee();
-  if (drag) { hideSnapGuides(); drag=null; syncAllRibbons(); onStateChanged(); }
+  let didChange = false;
+
+  if (marquee) { 
+      finishMarquee(); 
+      didChange = true;
+  }
+  if (drag) { 
+      hideSnapGuides(); 
+      drag = null; 
+      syncAllRibbons(); 
+      didChange = true; 
+  }
+  if (panDrag) {
+      panDrag = null;
+      didChange = true;
+  }
+
+  if (didChange) {
+      syncToCloud();
+  }
 });
 
 let panDrag = null;
@@ -911,7 +1083,6 @@ document.addEventListener('mousemove', function (e) {
   panDrag.el.dataset.panX = nx; panDrag.el.dataset.panY = ny;
   panDrag.el.style.setProperty('--pan-x', nx + 'px'); panDrag.el.style.setProperty('--pan-y', ny + 'px');
 });
-document.addEventListener('mouseup', function () { if (panDrag) { panDrag = null; onStateChanged(); } });
 
 /* ================= การ์ด (รูปภาพ) ================= */
 function createCardHTML(mode, src, scale) {
@@ -989,7 +1160,7 @@ function applyImageToolbar() {
   card.classList.toggle('is-grouped', document.getElementById('itGroup').checked);
   selectedCard.classList.toggle('is-locked', document.getElementById('itLock').checked);
   syncAllRibbons();
-  debouncedStateChanged();
+  syncToCloud(); 
 }
 function resetImageEffects() {
   if (!selectedCard) return;
@@ -998,8 +1169,8 @@ function resetImageEffects() {
   defaultImgDataset(card);
   applyImageStyles(card);
   populateImageToolbar(selectedCard);
-  onStateChanged();
   showToast('↺ รีเซ็ตเอฟเฟกต์ภาพแล้ว');
+  syncToCloud(); 
 }
 function addCardField(kind) {
   if (!selectedCard) return;
@@ -1017,7 +1188,7 @@ function addCardField(kind) {
   card.appendChild(w);
   autoGrow(w.querySelector('textarea'));
   selectText(w);
-  onStateChanged();
+  syncToCloud(); 
 }
 function duplicateSelectedCard() {
   if (!selectedCards.size && !selectedCard) return;
@@ -1036,8 +1207,8 @@ function duplicateSelectedCard() {
   });
   refreshEmpty();
   if(last) selectCard(last);
-  onStateChanged();
   showToast('✅ ทำซ้ำ '+created+' รูปสำเร็จ!');
+  syncToCloud(); 
 }
 function deleteSelectedCard() {
   if (!selectedCards.size && !selectedCard) return;
@@ -1046,8 +1217,8 @@ function deleteSelectedCard() {
   else if (selectedCard) selectedCard.remove();
   deselectAll(); refreshEmpty();
   syncAllRibbons();
-  onStateChanged();
   showToast('🗑️ ลบ '+count+' รูปแล้ว');
+  syncToCloud(); 
 }
 
 function extractCardState(cardWrapper) {
@@ -1107,35 +1278,65 @@ function appendCardData(mode, data, scale) {
   syncRibbons(mode);
 }
 
+// 🛠️ อาจารย์เพิ่มเครื่องบีบอัดภาพ (Canvas Resizer) ตรงนี้ เพื่อไม่ให้ Firebase สำลักตาย
+function compressImage(file, callback) {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = function(event) {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 800; // บีบให้ความกว้างเหลือแค่นี้พอ
+            let width = img.width;
+            let height = img.height;
+
+            if (width > MAX_WIDTH) {
+                height = Math.round((height * MAX_WIDTH) / width);
+                width = MAX_WIDTH;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // แปลงกลับเป็น Base64 คุณภาพ 70%
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            callback(compressedDataUrl);
+        }
+    }
+}
+
 function handleUpload(e, mode) {
   const files = Array.from(e.target.files || []);
   if (!files.length) return;
   const scale = document.getElementById(mode + 'ScaleSlider').value;
+  
+  showToast("⏳ กำลังบีบอัดและอัปโหลดรูป...");
+  
   files.forEach(function (file) {
-    const reader = new FileReader();
-    reader.onload = function (ev) {
-      appendCardData(mode, { imgSrc: ev.target.result, name: null, detail: null, price: null }, scale);
-      refreshEmpty();
-      onStateChanged();
-    };
-    reader.readAsDataURL(file);
+      // โยนรูปเข้าเครื่องบีบอัดก่อนส่ง
+      compressImage(file, function(compressedResult) {
+          appendCardData(mode, { imgSrc: compressedResult, name: null, detail: null, price: null }, scale); 
+          refreshEmpty(); 
+          syncToCloud(); 
+      });
   });
   e.target.value = '';
 }
 
-/* ================= บันทึก / โหลดไฟล์ JSON (สำรอง / ออฟไลน์) ================= */
-function buildProjectSnapshot() {
-  return {
-    version: 5, activeTab: activeMode(),
-    scales: { game: document.getElementById('gameScaleSlider').value, car: document.getElementById('carScaleSlider').value, gameGrid: document.getElementById('gameGridScaleSlider').value, carGrid: document.getElementById('carGridScaleSlider').value },
-    gameCards: getCardsState('gameGrid'), carCards: getCardsState('carGrid'),
-    globalTexts: Array.from(document.querySelectorAll('.global-text-wrapper')).map(function (w) { const s = extractWrapperState(w); s.parent = w.parentElement.id; return s; })
-  };
-}
+/* ================= บันทึก / โหลดโปรเจกต์ (Local Backup JSON) ================= */
 function saveProject() {
   try {
-    saveBlob(new Blob([JSON.stringify(buildProjectSnapshot())], { type: 'application/json' }), 'cyberpunk_project_' + Date.now() + '.json');
-    showToast('✅ บันทึกไฟล์ JSON สำเร็จ!');
+    const project = {
+      version: 4, activeTab: activeMode(),
+      scales: { game: document.getElementById('gameScaleSlider').value, car: document.getElementById('carScaleSlider').value, gameGrid: document.getElementById('gameGridScaleSlider').value, carGrid: document.getElementById('carGridScaleSlider').value },
+      gameCards: getCardsState('gameGrid'), carCards: getCardsState('carGrid'),
+      globalTexts: Array.from(document.querySelectorAll('.global-text-wrapper')).map(function (w) { const s = extractWrapperState(w); s.parent = w.parentElement.id; return s; })
+    };
+    saveBlob(new Blob([JSON.stringify(project)], { type: 'application/json' }), 'cyberpunk_project_' + Date.now() + '.json');
+    showToast('✅ บันทึก Backup ลงเครื่องสำเร็จ!');
   } catch (err) { console.error(err); showToast('❌ บันทึกไม่สำเร็จ: ' + err.message, true); }
 }
 function applyProject(data) {
@@ -1162,165 +1363,16 @@ function loadProject(event) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = function () {
-    try { applyProject(JSON.parse(reader.result)); onStateChanged(); showToast('✅ โหลดไฟล์สำเร็จ!'); }
+    try { 
+        applyProject(JSON.parse(reader.result)); 
+        showToast('✅ โหลดข้อมูลขึ้นจอสำเร็จ!'); 
+        syncToCloud(); 
+    }
     catch (err) { console.error(err); showToast('❌ โหลดไม่สำเร็จ: ' + err.message, true); }
   };
   reader.onerror = function () { showToast('❌ อ่านไฟล์ไม่ได้', true); };
   reader.readAsText(file);
   event.target.value = '';
-}
-
-/* ================= ↶↷ ประวัติย้อนกลับ/ทำซ้ำ ================= */
-let history = [];
-let historyIndex = -1;
-let isRestoringHistory = false;
-
-function commitHistory() {
-  const snap = JSON.stringify(buildProjectSnapshot());
-  if (history[historyIndex] === snap) return;
-  history = history.slice(0, historyIndex + 1);
-  history.push(snap);
-  historyIndex = history.length - 1;
-  if (history.length > 60) { history.shift(); historyIndex--; }
-}
-function undo() {
-  if (historyIndex <= 0) return showToast('⚠️ ไม่มีขั้นตอนก่อนหน้าแล้ว', true);
-  historyIndex--;
-  isRestoringHistory = true;
-  applyProject(JSON.parse(history[historyIndex]));
-  isRestoringHistory = false;
-  scheduleCloudSave();
-  showToast('↶ ย้อนกลับแล้ว');
-}
-function redo() {
-  if (historyIndex >= history.length - 1) return showToast('⚠️ ไม่มีขั้นตอนถัดไปแล้ว', true);
-  historyIndex++;
-  isRestoringHistory = true;
-  applyProject(JSON.parse(history[historyIndex]));
-  isRestoringHistory = false;
-  scheduleCloudSave();
-  showToast('↷ ทำซ้ำแล้ว');
-}
-
-/* ================= Firebase: ซิงค์เรียลไทม์หลายคน (วิธีเดียวกับไฟล์ Smart Ice) ================= */
-const firebaseConfig = {
-  apiKey: "AIzaSyBVirNpmGi1r53mf7pNnV59RGzEFKo4PS4",
-  authDomain: "smart-ice-tumnaaa.firebaseapp.com",
-  projectId: "smart-ice-tumnaaa",
-  storageBucket: "smart-ice-tumnaaa.firebasestorage.app",
-  messagingSenderId: "349663033743",
-  appId: "1:349663033743:web:adf6793310195fb06e73fa"
-};
-let cloudEnabled = true, db = null, storage = null;
-try {
-  firebase.initializeApp(firebaseConfig);
-  db = firebase.firestore();
-  storage = firebase.storage();
-} catch (e) { cloudEnabled = false; console.warn('Firebase init ล้มเหลว จะใช้งานได้แบบออฟไลน์ในเครื่องนี้เท่านั้น', e); }
-
-let ROOM_ID = localStorage.getItem('catalog_room_id') || 'default';
-let unsubscribeCloud = null;
-let cloudSaveTimer = null;
-let lastPushedJSON = '';
-let isApplyingRemote = false;
-
-function setSyncStatus(text, color) {
-  const el = document.getElementById('syncStatus');
-  if (el) { el.textContent = text; el.style.color = color || '#94a3b8'; }
-}
-
-async function uploadImageToStorage(dataUrl, folder) {
-  const blob = await (await fetch(dataUrl)).blob();
-  const path = folder + '/' + Date.now() + '_' + Math.random().toString(36).slice(2) + '.png';
-  const ref = storage.ref().child(path);
-  await ref.put(blob);
-  return await ref.getDownloadURL();
-}
-async function uploadPendingImages() {
-  const imgs = document.querySelectorAll('#gameGrid img, #carGrid img');
-  for (const img of imgs) {
-    if (img.src.indexOf('data:') === 0) {
-      try { img.src = await uploadImageToStorage(img.src, 'catalog_images'); }
-      catch (err) { console.warn('อัปโหลดรูปขึ้นคลาวด์ไม่สำเร็จ (จะใช้ได้แค่เครื่องนี้)', err); }
-    }
-  }
-}
-
-function connectCloud(roomId) {
-  if (!cloudEnabled) { setSyncStatus('⚪ ออฟไลน์ (ไม่ได้เชื่อมคลาวด์)', '#94a3b8'); return; }
-  if (unsubscribeCloud) unsubscribeCloud();
-  ROOM_ID = roomId || 'default';
-  localStorage.setItem('catalog_room_id', ROOM_ID);
-  const input = document.getElementById('roomIdInput'); if (input) input.value = ROOM_ID;
-  setSyncStatus('🔄 กำลังเชื่อมต่อ...', '#f59e0b');
-  unsubscribeCloud = db.collection('catalog_projects').doc(ROOM_ID).onSnapshot(function (doc) {
-    if (doc.exists) {
-      const remote = doc.data();
-      const remoteJSON = JSON.stringify(remote);
-      if (remoteJSON !== lastPushedJSON) {
-        isApplyingRemote = true;
-        try { applyProject(remote); } catch (err) { console.error(err); }
-        isApplyingRemote = false;
-        lastPushedJSON = remoteJSON;
-        commitHistory();
-      }
-      setSyncStatus('🟢 ซิงค์แล้ว (ห้อง: ' + ROOM_ID + ')', '#10b981');
-    } else {
-      setSyncStatus('🟡 ห้องใหม่ยังไม่มีข้อมูล — เริ่มเพิ่มรูปได้เลย', '#f59e0b');
-    }
-  }, function (err) {
-    console.error(err);
-    setSyncStatus('🔴 เชื่อมต่อไม่สำเร็จ', '#ef4444');
-  });
-}
-
-function scheduleCloudSave() {
-  if (!cloudEnabled || isApplyingRemote) return;
-  clearTimeout(cloudSaveTimer);
-  setSyncStatus('✏️ กำลังแก้ไข...', '#94a3b8');
-  cloudSaveTimer = setTimeout(pushToCloud, 900);
-}
-async function pushToCloud() {
-  if (!cloudEnabled) return;
-  try {
-    await uploadPendingImages();
-    const snap = buildProjectSnapshot();
-    const json = JSON.stringify(snap);
-    lastPushedJSON = json;
-    await db.collection('catalog_projects').doc(ROOM_ID).set(snap);
-    setSyncStatus('🟢 ซิงค์แล้ว (ห้อง: ' + ROOM_ID + ')', '#10b981');
-  } catch (err) {
-    console.error(err);
-    setSyncStatus('🔴 บันทึกขึ้นคลาวด์ไม่สำเร็จ (เช็ค Firebase Storage/Rules)', '#ef4444');
-  }
-}
-
-/* จุดศูนย์กลาง: เรียกทุกครั้งที่มีการแก้ไขจริงจากผู้ใช้ในเครื่องนี้ */
-function onStateChanged() {
-  if (isApplyingRemote) return;
-  if (!isRestoringHistory) commitHistory();
-  scheduleCloudSave();
-}
-let debounceTimer = null;
-function debouncedStateChanged() { clearTimeout(debounceTimer); debounceTimer = setTimeout(onStateChanged, 600); }
-
-/* ================= คัดลอกลิงก์รูปภาพ (อัปโหลดขึ้น Firebase Storage แล้วก็อปปี้ลิงก์ทันที) ================= */
-async function copyImageLink(targetId, prefix) {
-  if (!cloudEnabled) return showToast('❌ ต้องเชื่อมต่อคลาวด์ก่อนถึงจะสร้างลิงก์ได้', true);
-  showToast('⏳ กำลังอัปโหลดเพื่อสร้างลิงก์...');
-  try {
-    const dataUrl = await capture(targetId, 1);
-    const blob = await (await fetch(dataUrl)).blob();
-    const path = 'catalog_exports/' + prefix + '_' + Date.now() + '.png';
-    const ref = storage.ref().child(path);
-    await ref.put(blob);
-    const url = await ref.getDownloadURL();
-    await navigator.clipboard.writeText(url);
-    showToast('📋 คัดลอกลิงก์รูปภาพแล้ว! วางไปโพสต์ได้เลย');
-  } catch (err) {
-    console.error(err);
-    showToast('❌ สร้างลิงก์ไม่สำเร็จ (เช็คว่าเปิด Firebase Storage แล้วหรือยัง)', true);
-  }
 }
 
 /* ================= พรีวิว / ส่งออก ================= */
@@ -1367,20 +1419,18 @@ async function download4K() {
 /* ================= เริ่มต้น ================= */
 document.addEventListener('keydown',function(e){
   const tag=(e.target&&e.target.tagName)||'', editing=['INPUT','TEXTAREA','SELECT'].indexOf(tag)>=0;
-  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!e.shiftKey){ if(!editing){e.preventDefault();undo();} }
-  else if((e.ctrlKey||e.metaKey)&&(e.key.toLowerCase()==='y'||(e.shiftKey&&e.key.toLowerCase()==='z'))){ if(!editing){e.preventDefault();redo();} }
-  else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='a'&&!editing){e.preventDefault();selectAllCards();}
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='a'&&!editing){e.preventDefault();selectAllCards();}
   else if(e.key==='Escape'){if(marquee)finishMarquee();else deselectAll();}
-  else if((e.key==='Delete'||e.key==='Backspace')&&!editing&&selectedCards.size){e.preventDefault();deleteSelectedCard();}
+  else if((e.key==='Delete'||e.key==='Backspace')&&!editing&&selectedCards.size){
+      e.preventDefault();
+      deleteSelectedCard();
+  }
 });
 
 document.getElementById('gameImageUpload').addEventListener('change', function (e) { handleUpload(e, 'game'); });
 document.getElementById('carImageUpload').addEventListener('change', function (e) { handleUpload(e, 'car'); });
 document.getElementById('previewButtons').insertAdjacentHTML('beforeend', '<button onclick="download4K()" class="bg-gradient-to-r from-fuchsia-500 to-purple-500 hover:from-fuchsia-400 hover:to-purple-400 text-white px-10 py-3 rounded-lg font-bold transition text-xl">⬇️ ดาวน์โหลด 4K</button>');
 fitView('game');
-document.getElementById('roomIdInput').value = ROOM_ID;
-commitHistory();
-connectCloud(ROOM_ID);
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(refreshAutoGrow);
 </script>
 </body>
