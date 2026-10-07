@@ -63,8 +63,27 @@ input[type="number"]{-moz-appearance:textfield}
 .car-img{width:100%;height:100%;object-fit:contain;pointer-events:none;transform:scale(var(--img-scale,1))}
 
 .ribbon-layer{position:absolute;inset:0;pointer-events:none;z-index:9000}
-.ribbon-wrapper{position:absolute;top:0;left:0;width:150px;height:150px;overflow:hidden;pointer-events:none;filter:drop-shadow(0 4px 6px rgba(0,0,0,.5))}
-.ribbon{position:absolute;top:25px;left:-45px;width:190px;background:linear-gradient(90deg,#d30000,#ff1a1a,#d30000);color:#fff;font-size:1.5rem;font-weight:900;text-align:center;padding:5px 0;transform:rotate(-45deg);box-shadow:0 5px 15px rgba(255,0,0,.7);letter-spacing:2px;border-top:2px solid rgba(255,255,255,.8);border-bottom:2px solid rgba(255,255,255,.8);text-shadow:2px 2px 4px rgba(0,0,0,.8)}
+.ribbon-wrapper{position:absolute;top:0;width:150px;height:150px;overflow:hidden;pointer-events:none;filter:drop-shadow(0 4px 6px rgba(0,0,0,.5))}
+.ribbon{position:absolute;top:25px;right:-45px;width:190px;background:linear-gradient(90deg,#d30000,#ff1a1a,#d30000);color:#fff;font-size:1.5rem;font-weight:900;text-align:center;padding:5px 0;transform:rotate(45deg);box-shadow:0 5px 15px rgba(255,0,0,.7);letter-spacing:2px;border-top:2px solid rgba(255,255,255,.8);border-bottom:2px solid rgba(255,255,255,.8);text-shadow:2px 2px 4px rgba(0,0,0,.8)}
+
+/* ⏳ ป้ายนับถอยหลังติดเช่า (มุมซ้ายบนของการ์ด) */
+.rent-badge{position:absolute;top:10px;left:10px;z-index:60;pointer-events:none;font-size:15px;font-weight:900;color:#fff;background:linear-gradient(90deg,rgba(2,132,199,.95),rgba(34,211,238,.95));border:1px solid rgba(255,255,255,.6);border-radius:999px;padding:4px 12px;letter-spacing:1px;box-shadow:0 4px 14px rgba(0,0,0,.6);white-space:nowrap;font-variant-numeric:tabular-nums}
+.rent-badge.expired{background:linear-gradient(90deg,rgba(220,38,38,.95),rgba(239,68,68,.95));animation:rentBlink 1s infinite}
+@keyframes rentBlink{50%{opacity:.55}}
+
+/* 🏠 โหมดหน้าร้าน: ซ่อนเครื่องมือทั้งหมด เหลือแค่งานโชว์ */
+body.storefront .hide-in-store{display:none!important}
+#storeNav{display:none}
+body.storefront #storeNav{display:flex}
+#landing{display:none}
+body.show-landing #landing{display:flex}
+@keyframes floatGlow{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes neonPulse{0%,100%{box-shadow:0 0 25px rgba(0,255,255,.35)}50%{box-shadow:0 0 55px rgba(0,255,255,.7)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.landing-card{animation:fadeUp .6s ease both}
+.landing-card:nth-child(2){animation-delay:.12s}
+.landing-title{animation:floatGlow 4s ease-in-out infinite}
+.landing-btn{animation:neonPulse 2.6s ease-in-out infinite}
 
 .drag-wrapper{position:absolute;z-index:50;width:100%;display:flex;justify-content:center;pointer-events:none}
 .drag-wrapper .txt-target{cursor:text}
@@ -108,7 +127,36 @@ input[type="number"]{-moz-appearance:textfield}
 #previewModalContainer::-webkit-scrollbar-thumb{background:#0ff;border-radius:5px}
 </style>
 </head>
-<body class="min-h-screen p-4 md:p-8 flex flex-col items-center">
+<body class="min-h-screen p-4 md:p-8 flex flex-col items-center show-landing storefront">
+
+<!-- 🏠 หน้าแรก (หน้าร้าน): เลือกหมวดอย่างเดียว ไม่ต้องเจอเครื่องมือ -->
+<div id="landing" class="fixed inset-0 z-[95] flex-col items-center justify-center p-6 text-center" style="background:radial-gradient(ellipse at 50% 30%,rgba(0,255,255,.08),transparent 60%),#050510">
+  <div class="landing-title text-5xl md:text-6xl font-black tracking-widest mb-2" style="color:#0ff;text-shadow:0 0 30px rgba(0,255,255,.8)">CYBERPUNK CATALOG</div>
+  <div class="text-gray-400 mb-10 text-lg">เลือกร้านที่ต้องการดู • กด ✏️ แก้ไข เมื่อต้องการปรับแต่ง</div>
+  <div class="flex flex-col md:flex-row gap-6 w-full max-w-3xl justify-center">
+    <button onclick="enterShop('game')" class="landing-card landing-btn flex-1 bg-gray-900/80 border-2 border-cyan-400/60 rounded-2xl p-8 hover:scale-105 transition cursor-pointer">
+      <div class="text-6xl mb-3">🎮</div>
+      <div class="text-3xl font-black text-cyan-300 tracking-widest">GAME SHOP</div>
+      <div class="text-gray-400 mt-2">แคตตาล็อกเกม • ดูราคา/โปรโมชัน</div>
+    </button>
+    <button onclick="enterShop('car')" class="landing-card landing-btn flex-1 bg-gray-900/80 border-2 border-pink-500/60 rounded-2xl p-8 hover:scale-105 transition cursor-pointer" style="animation-delay:.3s">
+      <div class="text-6xl mb-3">🚗</div>
+      <div class="text-3xl font-black text-pink-300 tracking-widest">CAR RENTAL</div>
+      <div class="text-gray-400 mt-2">รถเช่า • เช็คเวลาติดเช่าคงเหลือ</div>
+    </button>
+  </div>
+  <div id="landingRoom" class="mt-8 text-sm text-gray-500"></div>
+</div>
+
+<!-- 🧭 แถบหน้าร้าน (แสดงตอนซ่อนเครื่องมือ) -->
+<div id="storeNav" class="w-full max-w-6xl mb-4 items-center justify-between gap-2 bg-gray-900/80 backdrop-blur border border-cyan-500/30 rounded-xl px-4 py-2">
+  <button onclick="goHome()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-bold text-sm transition">🏠 หน้าหลัก</button>
+  <div class="flex gap-2">
+    <button onclick="enterShop('game')" id="storeBtnGame" class="px-4 py-2 rounded-lg font-bold text-sm transition border-2">🎮 Game</button>
+    <button onclick="enterShop('car')" id="storeBtnCar" class="px-4 py-2 rounded-lg font-bold text-sm transition border-2">🚗 Car</button>
+  </div>
+  <button id="storeEditBtn" onclick="toggleStoreEdit()" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg font-bold text-sm transition">✏️ แก้ไข</button>
+</div>
 
 <!-- Modal พรีวิว -->
 <div id="previewModal" class="fixed inset-0 bg-black/95 z-[100] hidden flex-col items-center justify-center p-4 backdrop-blur-md">
@@ -127,7 +175,7 @@ input[type="number"]{-moz-appearance:textfield}
 </div>
 
 <!-- Menu -->
-<div class="w-full max-w-6xl mb-4 flex flex-wrap gap-4 bg-gray-900/50 p-3 rounded-xl border border-gray-700/50 justify-between items-center">
+<div class="hide-in-store w-full max-w-6xl mb-4 flex flex-wrap gap-4 bg-gray-900/50 p-3 rounded-xl border border-gray-700/50 justify-between items-center">
   <div class="flex gap-4 flex-1 min-w-[300px]">
     <button onclick="switchTab('game')" id="tabGame" class="tab-btn active flex-1 py-3 text-lg font-bold rounded-lg border-2 border-transparent text-gray-400 hover:text-white uppercase tracking-widest">🎮 Game Shop (16:9)</button>
     <button onclick="switchTab('car')" id="tabCar" class="tab-btn flex-1 py-3 text-lg font-bold rounded-lg border-2 border-transparent text-gray-400 hover:text-white uppercase tracking-widest">🚗 Car Rental (16:9)</button>
@@ -153,7 +201,7 @@ input[type="number"]{-moz-appearance:textfield}
 </div>
 
 <!-- ================= แถบเครื่องมือบนสุดแบบ Word ================= -->
-<div id="topToolbar" class="hide-on-capture w-full max-w-6xl mb-4 bg-gray-900/95 backdrop-blur border border-cyan-500/40 rounded-xl p-3 shadow-lg z-[90]">
+<div id="topToolbar" class="hide-in-store hide-on-capture w-full max-w-6xl mb-4 bg-gray-900/95 backdrop-blur border border-cyan-500/40 rounded-xl p-3 shadow-lg z-[90]">
   <div id="toolbarHint" class="text-center text-gray-500 text-sm py-1.5">🖱️ คลิกข้อความ/รูปเพื่อแก้ไข • Ctrl+คลิก หรือ ลากคลุมพื้นที่เพื่อเลือกหลายรูป • ตอนลากจะมีเส้นไกด์ช่วยจัดแนว</div>
 
   <div id="textToolbar" class="hidden flex-wrap items-center gap-2 justify-center">
@@ -197,6 +245,12 @@ input[type="number"]{-moz-appearance:textfield}
     <div class="tt-group">🌈 สีเพี้ยน<input type="number" id="itHue" class="tt-num narrow" min="0" max="360" oninput="applyImageToolbar()"></div>
     <button class="tt-btn" style="background:#475569" onclick="resetImageEffects()" title="รีเซ็ตเอฟเฟกต์ภาพ">↺ รีเซ็ตเอฟเฟกต์</button>
     <label class="tt-check"><input type="checkbox" id="itRibbon" oninput="applyImageToolbar()">🏷️ ป้ายติด</label>
+    <span class="tt-group">⏳ เช่า
+      <button class="tt-btn" style="background:#0369a1" onclick="setRentDays(1)" title="ติดเช่า 1 วัน นับจากตอนนี้">1 วัน</button>
+      <button class="tt-btn" style="background:#0369a1" onclick="setRentDays(3)" title="ติดเช่า 3 วัน นับจากตอนนี้">3 วัน</button>
+      <button class="tt-btn" style="background:#0369a1" onclick="setRentDays(7)" title="ติดเช่า 7 วัน นับจากตอนนี้">7 วัน</button>
+      <button class="tt-btn" style="background:#475569" onclick="setRentDays(0)" title="ยกเลิกติดเช่า">✕ ยกเลิก</button>
+    </span>
     <label class="tt-check"><input type="checkbox" id="itCropMode" oninput="applyImageToolbar()">✂️ ซ่อนขอบล้น</label>
     <label class="tt-check"><input type="checkbox" id="itGroup" oninput="applyImageToolbar()">🔒 ล็อคกลุ่ม</label>
     <label class="tt-check"><input type="checkbox" id="itLock" oninput="applyImageToolbar()">📌 ล็อคตำแหน่ง</label>
@@ -213,7 +267,7 @@ input[type="number"]{-moz-appearance:textfield}
 
 <!-- GAME MODE -->
 <section id="gameMode" class="w-full flex flex-col items-center">
-  <div class="hide-on-capture w-full max-w-6xl bg-gray-900 border border-cyan-500/30 p-6 rounded-xl mb-6 flex flex-wrap gap-4 items-center justify-between">
+  <div class="hide-in-store hide-on-capture w-full max-w-6xl bg-gray-900 border border-cyan-500/30 p-6 rounded-xl mb-6 flex flex-wrap gap-4 items-center justify-between">
     <div>
       <h1 class="text-2xl font-bold text-cyan-400">GAME CATALOG (1080p)</h1>
       <p class="text-sm text-gray-400 mt-1">อัปโหลดรูป • คลิกข้อความ/รูปเพื่อแก้ไขที่แถบด้านบน • Ctrl + ลูกกลิ้งเมาส์ = ซูมพื้นที่ทำงาน</p>
@@ -256,7 +310,7 @@ input[type="number"]{-moz-appearance:textfield}
 
 <!-- CAR MODE -->
 <section id="carMode" class="w-full flex flex-col items-center hidden">
-  <div class="hide-on-capture w-full max-w-6xl bg-gray-900 border border-pink-500/30 p-6 rounded-xl mb-6 flex flex-wrap gap-4 items-center justify-between">
+  <div class="hide-in-store hide-on-capture w-full max-w-6xl bg-gray-900 border border-pink-500/30 p-6 rounded-xl mb-6 flex flex-wrap gap-4 items-center justify-between">
     <div>
       <h1 class="text-2xl font-bold text-pink-400">VEHICLE RENTAL (1080p)</h1>
       <p class="text-sm text-gray-400 mt-1">อัปโหลดรูป • คลิกข้อความ/รูปเพื่อแก้ไขที่แถบด้านบน • Ctrl + ลูกกลิ้งเมาส์ = ซูมพื้นที่ทำงาน</p>
@@ -478,6 +532,8 @@ function changeFirebaseRoom() {
     saveLocal();
     currentRoom = newRoom;
     imageCache = {}; uploadedSig = {}; lastCloudUpdate = 0; lastPushedAt = 0;
+    try { loadImageCache(); } catch(e) {}
+    try { document.getElementById('landingRoom').textContent = 'ห้องทำงาน: ' + currentRoom + ' • กด 🔗 ลิงก์ ในโหมดแก้ไขเพื่อส่งให้เพื่อน'; } catch(e) {}
     try { const u = new URL(location.href); u.searchParams.set('room', currentRoom); history.replaceState(null,'',u.toString()); } catch(e) {}
     document.getElementById('gameGrid').innerHTML = '';
     document.getElementById('carGrid').innerHTML = '';
@@ -732,6 +788,42 @@ function toggleOverviewMode() {
   });
   if (isOverviewMode) deselectAll();
 }
+
+/* ================= หน้าร้าน / โหมดแก้ไข ================= */
+function setStorefront(on) {
+  document.body.classList.toggle('storefront', on);
+  document.getElementById('gameCaptureArea').classList.toggle('view-only-mode', on);
+  document.getElementById('carCaptureArea').classList.toggle('view-only-mode', on);
+  isOverviewMode = on;
+  const btn = document.getElementById('storeEditBtn');
+  if (btn) {
+    if (on) { btn.innerHTML = '✏️ แก้ไข'; btn.className = 'bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg font-bold text-sm transition'; }
+    else { btn.innerHTML = '👁️ ดูหน้าร้าน'; btn.className = 'bg-slate-600 hover:bg-slate-500 text-white px-4 py-2 rounded-lg font-bold text-sm transition'; }
+  }
+  paintStoreNav();
+  if (on) deselectAll();
+}
+function enterShop(mode) {
+  document.body.classList.remove('show-landing');
+  switchTab(mode);
+  setStorefront(true);
+}
+function goHome() {
+  deselectAll();
+  document.body.classList.add('show-landing');
+  try { document.getElementById('landingRoom').textContent = 'ห้องทำงาน: ' + currentRoom + ' • กด 🔗 ลิงก์ ในโหมดแก้ไขเพื่อส่งให้เพื่อน'; } catch(e) {}
+}
+function toggleStoreEdit() {
+  const on = document.body.classList.contains('storefront');
+  setStorefront(!on);
+  showToast(!on ? '👁️ กลับสู่หน้าร้าน' : '✏️ โหมดแก้ไข: ปรับได้ทุกอย่าง เซฟอัตโนมัติ');
+}
+function paintStoreNav() {
+  const m = (typeof activeMode === 'function') ? activeMode() : 'game';
+  const g = document.getElementById('storeBtnGame'), c = document.getElementById('storeBtnCar');
+  if (g) { const on = m === 'game'; g.className = 'px-4 py-2 rounded-lg font-bold text-sm transition border-2 ' + (on ? 'bg-cyan-600 border-cyan-400 text-white' : 'bg-transparent border-gray-600 text-gray-400 hover:text-white'); }
+  if (c) { const on = m === 'car'; c.className = 'px-4 py-2 rounded-lg font-bold text-sm transition border-2 ' + (on ? 'bg-pink-600 border-pink-400 text-white' : 'bg-transparent border-gray-600 text-gray-400 hover:text-white'); }
+}
 function toggleAllCardsLock() {
   const mode = activeMode();
   const wrappers = document.getElementById(mode + 'Grid').querySelectorAll('.item-card-wrapper');
@@ -767,6 +859,7 @@ function switchTab(tab) {
   if (viewState[tab].auto) fitView(tab);
   deselectAll();
   refreshAutoGrow();
+  try { paintStoreNav(); } catch(e) {}
 }
 function setViewZoom(mode, z, manual) {
   z = Math.max(0.2, Math.min(5, z));
@@ -986,7 +1079,7 @@ function syncRibbons(mode) {
     const s = r.width / baseW;
     const rb = document.createElement('div');
     rb.className = 'ribbon-wrapper';
-    rb.style.left = r.left + 'px';
+    rb.style.left = (r.left + r.width - 150 * s) + 'px';
     rb.style.top = r.top + 'px';
     rb.style.transform = 'scale(' + s + ')';
     rb.style.transformOrigin = 'top left';
@@ -995,6 +1088,55 @@ function syncRibbons(mode) {
   });
 }
 function syncAllRibbons() { syncRibbons('game'); syncRibbons('car'); }
+
+/* ================= ⏳ นับถอยหลังติดเช่า ================= */
+function fmtDur(ms) {
+  if (ms < 0) ms = 0;
+  const s = Math.floor(ms / 1000);
+  const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60), ss = s % 60;
+  const p = function(n){ return (n < 10 ? '0' : '') + n; };
+  return (d > 0 ? d + 'ว ' : '') + p(h) + ':' + p(m) + ':' + p(ss);
+}
+function updateRentBadge(card) {
+  if (!card) return;
+  const until = parseInt(card.dataset.rentUntil || '0', 10) || 0;
+  let b = card.querySelector(':scope > .rent-badge');
+  if (!until) { if (b) b.remove(); return; }
+  if (!b) { b = document.createElement('div'); b.className = 'rent-badge'; card.appendChild(b); }
+  const left = until - Date.now();
+  if (left <= 0) { b.textContent = '⏰ หมดเวลาเช่า'; b.classList.add('expired'); }
+  else { b.textContent = '⏳ เหลือ ' + fmtDur(left); b.classList.remove('expired'); }
+}
+function renderRentBadges() {
+  try {
+    document.querySelectorAll('#gameGrid .item-card, #carGrid .item-card').forEach(updateRentBadge);
+  } catch(e) {}
+}
+function setRentDays(days) {
+  if (!selectedCard) return showToast('⚠️ คลิกเลือกรูปรถก่อน', true);
+  const card = selectedCard.querySelector('.item-card');
+  if (!card) return;
+  if (days > 0) {
+    card.dataset.rentUntil = String(Date.now() + days * 86400000);
+    card.classList.add('marked-ribbon');
+    const end = new Date(Date.now() + days * 86400000);
+    showToast('⏳ ติดเช่า ' + days + ' วัน (ถึง ' + end.toLocaleString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + ')');
+  } else {
+    delete card.dataset.rentUntil;
+    card.classList.remove('marked-ribbon');
+    showToast('✅ ยกเลิกติดเช่าแล้ว');
+  }
+  updateRentBadge(card);
+  syncAllRibbons();
+  try { populateImageToolbar(selectedCard); } catch(e) {}
+  syncToCloud();
+}
+setInterval(function() {
+  if (document.hidden) return;
+  try {
+    document.querySelectorAll('.item-card[data-rent-until]').forEach(updateRentBadge);
+  } catch(e) {}
+}, 1000);
 
 function hideSnapGuides() {
   document.querySelectorAll('.smart-guide').forEach(function(g){ g.style.display='none'; });
@@ -1438,6 +1580,7 @@ function applyImageToolbar() {
   d.hue = document.getElementById('itHue').value || '0';
   applyImageStyles(card);
   card.classList.toggle('marked-ribbon', document.getElementById('itRibbon').checked);
+  if (!document.getElementById('itRibbon').checked) { try { delete card.dataset.rentUntil; } catch(e){} updateRentBadge(card); }
   card.querySelector('.image-container').classList.toggle('cropped-mode', document.getElementById('itCropMode').checked);
   card.classList.toggle('is-grouped', document.getElementById('itGroup').checked);
   selectedCard.classList.toggle('is-locked', document.getElementById('itLock').checked);
@@ -1482,6 +1625,7 @@ function duplicateSelectedCard() {
     const data=extractCardState(source);
     data.cardX=(parseFloat(data.cardX)||0)+30;
     data.cardY=(parseFloat(data.cardY)||0)+30;
+    data.rentUntil=''; // การ์ดทำซ้ำเริ่มนับเวลาใหม่เอง ไม่เอานับถอยหลังเดิมติดมา
     const scale=document.getElementById(mode+'ScaleSlider').value;
     appendCardData(mode,data,scale);
     last=document.getElementById(mode+'Grid').lastElementChild;
@@ -1517,6 +1661,7 @@ function extractCardState(cardWrapper) {
     panX: pan.dataset.panX || '0', panY: pan.dataset.panY || '0',
     cardX: cardWrapper.dataset.cardX || '0', cardY: cardWrapper.dataset.cardY || '0',
     isRibbon: card.classList.contains('marked-ribbon'),
+    rentUntil: card.dataset.rentUntil || '',
     isCropped: card.querySelector('.image-container').classList.contains('cropped-mode'),
     isGrouped: card.classList.contains('is-grouped'),
     isLocked: cardWrapper.classList.contains('is-locked'),
@@ -1541,6 +1686,7 @@ function appendCardData(mode, data, scale) {
   card.className = 'item-card ' + mode + '-card' + (grouped ? ' is-grouped' : '') + (data.isRibbon ? ' marked-ribbon' : '');
   card.innerHTML = createCardHTML(mode, data.imgSrc, data.imgScale || scale);
   if (data.imgId) { try { card.querySelector('img').dataset.imgId = data.imgId; } catch(e){} }
+  if (data.rentUntil) { try { card.dataset.rentUntil = data.rentUntil; } catch(e){} }
   if (data.isCropped) card.querySelector('.image-container').classList.add('cropped-mode');
   const pan = card.querySelector('.pan-wrapper');
   pan.dataset.panX = data.panX || 0; pan.dataset.panY = data.panY || 0;
@@ -1566,6 +1712,7 @@ function appendCardData(mode, data, scale) {
   wrapper.appendChild(card);
   grid.appendChild(wrapper);
   syncRibbons(mode);
+  try { updateRentBadge(card); } catch(e) {}
 }
 
 // 🛠️ บีบอัดรูปก่อนอัปโหลดขึ้น Storage (ลดเวลาอัปโหลด/พื้นที่ใช้งาน — ไม่ได้มีไว้หนีลิมิต 1MB แล้วเพราะ
@@ -1880,6 +2027,7 @@ document.getElementById('previewButtons').insertAdjacentHTML('beforeend', '<butt
     const urlRoom = getRoomFromURL();
     if (urlRoom) { currentRoom = urlRoom; }
     document.getElementById('roomInputUI').value = currentRoom;
+    try { document.getElementById('landingRoom').textContent = 'ห้องทำงาน: ' + currentRoom + ' • กด 🔗 ลิงก์ ในโหมดแก้ไขเพื่อส่งให้เพื่อน'; } catch(e) {}
     loadImageCache();
     const cached = loadLocal();
     if (cached && ((cached.gameCards||[]).length || (cached.carCards||[]).length || (cached.globalTexts||[]).length)) {
