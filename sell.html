@@ -122,7 +122,7 @@ input[type="number"]{-moz-appearance:textfield}
   <div class="mt-6 flex gap-4" id="previewButtons">
     <button onclick="downloadFromPreview()" class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white px-10 py-3 rounded-lg font-bold transition text-xl">⬇️ ดาวน์โหลด 1080p</button>
     <button onclick="copyPreviewLink()" class="bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-400 hover:to-cyan-400 text-white px-10 py-3 rounded-lg font-bold transition text-xl">🔗 คัดลอกลิงก์รูป</button>
-    <button onclick="setupLinkConfig()" class="bg-slate-600 hover:bg-slate-500 text-white px-4 py-3 rounded-lg font-bold transition text-xl" title="ตั้งค่า Cloudinary ใหม่">⚙️</button>
+    <button onclick="setupDiscordWh()" class="bg-slate-600 hover:bg-slate-500 text-white px-4 py-3 rounded-lg font-bold transition text-xl" title="ตั้งค่า Discord webhook ใหม่">⚙️</button>
   </div>
 </div>
 
@@ -1755,17 +1755,24 @@ async function uploadToCloudinary(blob, filename, cfg) {
   if (!res.ok || !j.secure_url) throw new Error((j.error && j.error.message) || ('HTTP ' + res.status));
   return j.secure_url;
 }
-async function uploadImageForLink(blob, filename) {
+async function uploadImageForLink(blob, filename, caption) {
+  const errs = [];
+  // 1) Discord ก่อน — ได้ลิงก์ cdn.discordapp.com ตรงตามที่ต้องการ
+  if (getDiscordWh()) {
+    try { return await uploadToDiscord(blob, filename, caption); }
+    catch (e) { errs.push('discord: ' + shortErr(e)); console.warn('discord failed:', e); }
+  }
+  // 2) Cloudinary (ถ้าตั้งค่าไว้)
   const cfg = getLinkCfg();
   if (cfg) {
     try { return await uploadToCloudinary(blob, filename, cfg); }
-    catch (e) { console.warn('cloudinary failed:', e); throw new Error('cloudinary: ' + shortErr(e) + ' (เช็คชื่อ preset ว่าเป็น Unsigned)'); }
+    catch (e) { errs.push('cloudinary: ' + shortErr(e)); console.warn('cloudinary failed:', e); }
   }
-  const errs = [];
+  // 3) catbox (ไม่ต้องตั้งค่า แต่อาจโดนบล็อก)
   try { return await uploadToCatbox(blob, filename); }
   catch (e) { errs.push('catbox: ' + shortErr(e)); console.warn('catbox failed:', e); }
   const err = new Error(errs.join(' | ') || 'อัปโหลดไม่ผ่าน');
-  err.needSetup = true;
+  err.needSetup = !getDiscordWh();
   throw err;
 }
 async function copyTextAuto(t) {
@@ -1779,22 +1786,59 @@ async function copyTextAuto(t) {
     return !!ok;
   } catch(e) { return false; }
 }
-async function copyImageLinkFromDataUrl(dataUrl, name) {
-  if (!getLinkCfg()) {
-    showToast('⚙️ ตั้งค่าลิงก์รูปครั้งแรกก่อน (ฟรี 1 นาที)...');
-    if (!setupLinkConfig()) return;
+/* ---- ส่งรูปเข้า Discord ตรงๆ ผ่าน Webhook -> ได้ลิงก์ cdn.discordapp.com ทันที ----
+   สร้าง Webhook ครั้งเดียว: เปิด Discord -> ช่องที่จะเก็บรูป -> แก้ไขช่อง -> การผสานรวม
+   -> เว็บฮุค -> เว็บฮุคใหม่ -> คัดลอก URL เว็บฮุค */
+const DISCORD_CFG_KEY = 'discord_wh_v1';
+function getDiscordWh() {
+  try {
+    const u = (localStorage.getItem(DISCORD_CFG_KEY) || '').trim();
+    if (/^https:\/\/(discord\.com|discordapp\.com)\/api\/webhooks\/\d+\/.+/.test(u)) return u;
+  } catch(e) {}
+  return null;
+}
+function setupDiscordWh() {
+  const u = prompt('ตั้งค่าลิงก์ Discord (ครั้งเดียว จำในเครื่องนี้)\n\n1. เปิด Discord -> เข้าช่องที่จะเก็บรูป\n2. ชื่อช่องเฟือง (แก้ไขช่อง) -> การผสานรวม -> เว็บฮุค\n3. เว็บฮุคใหม่ -> คัดลอก URL เว็บฮุค -> วางตรงนี้:', getDiscordWh() || '');
+  if (!u) return false;
+  const t = u.trim();
+  if (!/^https:\/\/(discord\.com|discordapp\.com)\/api\/webhooks\/\d+\/.+/.test(t)) {
+    showToast('⚠️ URL ไม่ใช่ webhook ของ Discord', true);
+    return false;
   }
-  showToast('⏳ กำลังอัปโหลดรูปเพื่อสร้างลิงก์...');
+  try { localStorage.setItem(DISCORD_CFG_KEY, t); } catch(e) {}
+  showToast('✅ จำ Discord แล้ว กดปุ่ม 🔗 ได้เลย');
+  return true;
+}
+async function uploadToDiscord(blob, filename, caption) {
+  const wh = getDiscordWh();
+  if (!wh) throw new Error('ยังไม่ได้ตั้งค่า webhook');
+  const fd = new FormData();
+  fd.append('file', blob, filename || ('catalog_' + Date.now() + '.png'));
+  fd.append('payload_json', JSON.stringify({ content: caption || '' }));
+  const sep = wh.indexOf('?') >= 0 ? '&' : '?';
+  const res = await fetch(wh + sep + 'wait=true', { method: 'POST', body: fd });
+  const j = await res.json().catch(function(){ return {}; });
+  if (!res.ok) throw new Error((j && j.message) || ('Discord ตอบ HTTP ' + res.status));
+  const att = j && j.attachments && j.attachments[0];
+  if (!att || !att.url) throw new Error('Discord ไม่คืนลิงก์รูป');
+  return att.url;
+}
+async function copyImageLinkFromDataUrl(dataUrl, name, caption) {
+  if (!getDiscordWh() && !getLinkCfg()) {
+    showToast('⚙️ ตั้งค่า Discord ครั้งแรกก่อน (30 วิ)...');
+    if (!setupDiscordWh()) return;
+  }
+  showToast('⏳ กำลังส่งรูปไป Discord...');
   try {
     const blob = await (await fetch(dataUrl)).blob();
-    const url = await uploadImageForLink(blob, name);
+    const url = await uploadImageForLink(blob, name, caption);
     const ok = await copyTextAuto(url);
-    if (ok) showToast('🔗 คัดลอกลิงก์แล้ว! เอาไปวางใน Discord ได้เลย');
+    if (ok) showToast('🔗 คัดลอกลิงก์ Discord แล้ว! เอาไปวางได้เลย');
     else { showToast('🔗 ได้ลิงก์แล้ว แต่ก๊อปอัตโนมัติไม่ได้', true); try { prompt('คัดลอกลิงก์รูป:', url); } catch(e) {} }
   } catch (err) {
     console.error(err);
     if (err && err.needSetup) {
-      if (setupLinkConfig()) { await copyImageLinkFromDataUrl(dataUrl, name); }
+      if (setupDiscordWh()) { await copyImageLinkFromDataUrl(dataUrl, name, caption); }
     } else {
       showToast('❌ สร้างลิงก์ไม่สำเร็จ: ' + shortErr(err) + ' (ดู Console)', true);
     }
@@ -1802,13 +1846,15 @@ async function copyImageLinkFromDataUrl(dataUrl, name) {
 }
 async function copyPreviewLink() {
   if (!currentPreviewDataUrl) return showToast('⚠️ กดพรีวิวก่อน แล้วค่อยกดปุ่มนี้', true);
-  await copyImageLinkFromDataUrl(currentPreviewDataUrl, currentDownloadName || ('preview_' + Date.now() + '.png'));
+  const label = (lastCapture && lastCapture.prefix === 'car_rental') ? 'CAR RENTAL' : 'GAME SHOP';
+  await copyImageLinkFromDataUrl(currentPreviewDataUrl, currentDownloadName || ('preview_' + Date.now() + '.png'), 'CATALOG ห้อง:' + currentRoom + ' • ' + label + ' • 1080p');
 }
 async function copyModeLink(targetId, prefix) {
   showToast('⏳ กำลังสร้างรูป 1080p...');
   try {
     const dataUrl = await capture(targetId, 1);
-    await copyImageLinkFromDataUrl(dataUrl, prefix + '_1080p_' + Date.now() + '.png');
+    const label = prefix === 'car_rental' ? 'CAR RENTAL' : 'GAME SHOP';
+    await copyImageLinkFromDataUrl(dataUrl, prefix + '_1080p_' + Date.now() + '.png', 'CATALOG ห้อง:' + currentRoom + ' • ' + label + ' • 1080p');
   } catch (err) { console.error(err); showToast('❌ สร้างลิงก์ไม่สำเร็จ', true); }
 }
 
