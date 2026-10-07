@@ -71,10 +71,9 @@ input[type="number"]{-moz-appearance:textfield}
 .rent-badge.expired{color:#fff;background:linear-gradient(90deg,rgba(220,38,38,.95),rgba(239,68,68,.95));animation:rentBlink 1s infinite}
 @keyframes rentBlink{50%{opacity:.55}}
 
-/* 🏠 โหมดหน้าร้าน: ซ่อนเครื่องมือทั้งหมด เหลือแค่งานโชว์ */
+/* 🏠 โหมดหน้าร้าน: ซ่อนเครื่องมือทั้งหมด เหลือแค่งานโชว์ (แถบนำทางแสดงตลอด มีปุ่มกลับหน้าหลัก) */
 body.storefront .hide-in-store{display:none!important}
-#storeNav{display:none}
-body.storefront #storeNav{display:flex}
+#storeNav{display:flex}
 #landing{display:none}
 body.show-landing #landing{display:flex}
 @keyframes floatGlow{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
@@ -91,7 +90,38 @@ body.show-landing #landing{display:flex}
 .qm-btn.red{background:#7f1d1d}
 #rentModal{display:none}
 #rentModal.open{display:flex}
+#linkModal{display:none}
+#linkModal.open{display:flex}
 .rent-row{display:flex;align-items:center;gap:10px;background:#111827;border:1px solid #374151;border-radius:10px;padding:8px 12px}
+
+/* 🍎 LIGHT THEME (สไตล์ Apple): ครอบเฉพาะโครงเว็บ พื้นงานแคตตาล็อกยังเข้มเหมือนเดิม */
+body{background:#f5f5f7!important;background-image:none!important;color:#1d1d1f!important}
+#landing{background:radial-gradient(ellipse at 50% 20%,rgba(0,113,227,.08),transparent 55%),#f5f5f7!important}
+#landing .landing-title{color:#1d1d1f!important;text-shadow:none!important}
+#landing .text-gray-400{color:#6e6e73!important}
+#landing button.landing-card{background:rgba(255,255,255,.9)!important;border-color:#d2d2d7!important;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+#landing #statGames{color:#6d28d9!important}
+#landing #statCars{color:#b45309!important}
+#landing #landingRoom{color:#86868b!important}
+#storeNav{background:rgba(255,255,255,.8)!important;border-color:#d2d2d7!important;box-shadow:0 4px 16px rgba(0,0,0,.06)}
+#quickMenu{background:rgba(255,255,255,.96)!important;border-color:#d2d2d7!important;box-shadow:0 12px 32px rgba(0,0,0,.15)}
+#quickTitle{color:#1d1d1f!important}
+#topToolbar{background:rgba(255,255,255,.88)!important;border-color:#d2d2d7!important;box-shadow:0 4px 16px rgba(0,0,0,.06);color:#1d1d1f}
+#toolbarHint{color:#86868b!important}
+.tt-group{background:#f1f1f3!important;color:#515154!important;border-color:#d2d2d7!important}
+.tt-check{background:#f1f1f3!important;color:#1d1d1f!important;border-color:#d2d2d7!important}
+.tt-btn{background:#e8e8ed!important;color:#1d1d1f!important}
+.tt-btn.on{background:#0071e3!important;color:#fff!important}
+div.hide-in-store.bg-gray-900{background:rgba(255,255,255,.88)!important;border-color:#d2d2d7!important;box-shadow:0 4px 16px rgba(0,0,0,.06)}
+div.hide-in-store .text-gray-400{color:#6e6e73!important}
+div.hide-in-store label.text-violet-300{color:#6d28d9!important}
+div.hide-in-store label.text-amber-300{color:#b45309!important}
+.rent-row{background:#fff!important;border-color:#d2d2d7!important;color:#1d1d1f;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+#rentList .text-gray-400{color:#86868b!important}
+#linkModal>div{background:#fff!important;border-color:#d2d2d7!important}
+#linkModalHint{color:#6e6e73!important}
+#previewModal{background:rgba(0,0,0,.6)!important}
+#toast{box-shadow:0 8px 24px rgba(0,0,0,.18)!important}
 .landing-card{animation:fadeUp .6s ease both}
 .landing-card:nth-child(2){animation-delay:.12s}
 .landing-title{animation:floatGlow 4s ease-in-out infinite}
@@ -169,8 +199,8 @@ body.show-landing #landing{display:flex}
     <button onclick="openRentModal()" class="bg-amber-700 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-bold text-sm transition">⏳ ติดเช่า (<span id="rentCount">0</span>)</button>
   </div>
   <div class="flex gap-2">
-    <button onclick="enterShop('game')" id="storeBtnGame" class="px-4 py-2 rounded-lg font-bold text-sm transition border-2">🎮 Game</button>
-    <button onclick="enterShop('car')" id="storeBtnCar" class="px-4 py-2 rounded-lg font-bold text-sm transition border-2">🚗 Car</button>
+    <button onclick="storeSwitch('game')" id="storeBtnGame" class="px-4 py-2 rounded-lg font-bold text-sm transition border-2">🎮 Game</button>
+    <button onclick="storeSwitch('car')" id="storeBtnCar" class="px-4 py-2 rounded-lg font-bold text-sm transition border-2">🚗 Car</button>
   </div>
   <button id="storeEditBtn" onclick="toggleStoreEdit()" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg font-bold text-sm transition">✏️ แก้ไข</button>
 </div>
@@ -184,6 +214,20 @@ body.show-landing #landing{display:flex}
   <button class="qm-btn red" onclick="quickRent(0)">🏷️ เอาป้ายติดเช่าออก</button>
   <button class="qm-btn sky" onclick="quickCopyLink()">🔗 ก๊อปลิงก์รูปหน้านี้</button>
   <button class="qm-btn gray" onclick="quickEdit()">✏️ แก้ไขเต็ม</button>
+</div>
+
+<!-- 🔗 กล่องลิงก์รูป (กันก๊อปอัตโนมัติล้มเหลว: มีช่องให้แตะก๊อปเองได้ชัวร์ๆ) -->
+<div id="linkModal" class="fixed inset-0 bg-black/90 z-[130] flex-col items-center justify-center p-4">
+  <div class="w-full max-w-xl bg-gray-900 border border-sky-500/50 rounded-2xl p-6">
+    <h3 class="text-xl font-black text-sky-300 mb-3">🔗 ลิงก์รูปพร้อมแล้ว</h3>
+    <input id="linkModalUrl" readonly onclick="this.select()" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-green-300 outline-none" value="">
+    <div id="linkModalHint" class="text-sm text-gray-400 mt-2">กดปุ่มคัดลอก แล้วเอาไปวางได้เลย</div>
+    <div class="flex gap-3 mt-4">
+      <button onclick="copyLinkModalUrl()" class="flex-1 bg-sky-600 hover:bg-sky-500 text-white px-4 py-3 rounded-lg font-bold transition">📋 คัดลอกลิงก์</button>
+      <button onclick="openLinkModalUrl()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-3 rounded-lg font-bold transition">👀 เปิดดู</button>
+      <button onclick="closeLinkModal()" class="bg-slate-600 hover:bg-slate-500 text-white px-4 py-3 rounded-lg font-bold transition">✕ ปิด</button>
+    </div>
+  </div>
 </div>
 
 <!-- ⏳ ห้องรวมรถติดเช่า -->
@@ -243,6 +287,12 @@ body.show-landing #landing{display:flex}
 
   <div id="textToolbar" class="hidden flex-wrap items-center gap-2 justify-center">
     <span class="tt-group">✍️ ข้อความ</span>
+    <select id="ttKind" class="tt-select" onchange="changeTextKind()" title="ประเภทข้อความ (ชื่อ/รายละเอียด/ราคา) — ระบบใช้จำแนกชื่อรถ">
+      <option value="name">📛 ชื่อ</option>
+      <option value="detail">📝 รายละเอียด</option>
+      <option value="price">💰 ราคา</option>
+      <option value="global">💬 อิสระ</option>
+    </select>
     <select id="ttFont" class="tt-select tt-font" oninput="applyTextToolbar()" title="ฟอนต์"></select>
     <input type="number" id="ttSize" class="tt-num narrow" min="6" max="500" oninput="applyTextToolbar()" title="ขนาด (px)">
     <button id="ttBold" class="tt-btn" onclick="toggleTt('ttBold')" title="ตัวหนา"><b>B</b></button>
@@ -451,6 +501,7 @@ async function uploadImageDoc(imgId, dataUrl) {
     await batch.commit();
     imageCache[imgId] = small;
     uploadedSig[imgId] = small.length;
+    imgRev++; saveImgRev(); // รูปเปลี่ยน -> ดันเลขรุ่น กันโหลดรูปซ้ำทุกครั้งที่ข้อความขยับ
     return small;
 }
 async function loadAllImages() {
@@ -482,6 +533,7 @@ async function deleteOrphanImages(usedIds) {
             }
         });
         if (has) await batch.commit();
+        if (has) { imgRev++; saveImgRev(); }
     } catch(e) { console.warn('ลบรูปเก่าไม่สำเร็จ (ข้ามได้)', e); }
 }
 try { firebase.auth().signInAnonymously().catch(function(e){ console.warn('Anonymous auth:', e); var c = e && e.code || ''; if (c === 'auth/unauthorized-domain') showToast('⚠️ โดเมนนี้ยังไม่ได้รับอนุญาต: Firebase Console → Authentication → Settings → Authorized domains → Add domain', true); else if (c === 'auth/configuration-not-found' || c === 'auth/operation-not-allowed') showToast('⚠️ ยังไม่ได้เปิด Anonymous login: Firebase Console → Build → Authentication → Get started → เปิด Anonymous → Save', true); }); } catch(e) { console.warn(e); }
@@ -496,6 +548,12 @@ let isIncomingSync = false;
 let cloudSaveTimer = null;
 let lastPushedAt = 0;
 let lastCloudUpdate = 0;
+let lastImgRev = null;
+let imgRev = 0;
+function imgRevKey() { return 'imgrev_' + currentRoom + '_v9'; }
+function loadImgRev() { try { const v = parseInt(localStorage.getItem(imgRevKey()) || '0', 10); return isNaN(v) ? 0 : v; } catch(e) { return 0; } }
+function saveImgRev() { try { localStorage.setItem(imgRevKey(), String(imgRev)); } catch(e) {} }
+function timeNow() { try { return new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' }); } catch(e) { return ''; } }
 let suppressLocalLoad = false;
 
 function localKey() { return 'cyberpunk_room_' + currentRoom + '_v9'; }
@@ -568,8 +626,9 @@ function changeFirebaseRoom() {
     }
     saveLocal();
     currentRoom = newRoom;
-    imageCache = {}; uploadedSig = {}; lastCloudUpdate = 0; lastPushedAt = 0;
+    imageCache = {}; uploadedSig = {}; lastCloudUpdate = 0; lastPushedAt = 0; lastImgRev = null;
     try { loadImageCache(); } catch(e) {}
+    try { imgRev = loadImgRev(); lastImgRev = imgRev; } catch(e) {}
     try { document.getElementById('landingRoom').textContent = 'ห้องทำงาน: ' + currentRoom + ' • กด 🔗 ลิงก์ ในโหมดแก้ไขเพื่อส่งให้เพื่อน'; } catch(e) {}
     try { const u = new URL(location.href); u.searchParams.set('room', currentRoom); history.replaceState(null,'',u.toString()); } catch(e) {}
     document.getElementById('gameGrid').innerHTML = '';
@@ -682,10 +741,10 @@ async function pushToCloudNow(manual) {
     if (isIncomingSync && !manual) return;
     clearTimeout(cloudSaveTimer);
     saveLocal();
-    setCloudStatus('⏳ กำลังซิงค์...', 'saving');
+    setCloudStatus('⏳ กำลังบันทึก...', 'saving');
     try {
         ensureImgIds();
-        await uploadPendingImagesToFirestore(function(done, total){ setCloudStatus('⏳ บีบอัดรูป ' + done + '/' + total, 'saving'); });
+        await uploadPendingImagesToFirestore(function(done, total){ setCloudStatus('⏳ บันทึกรูป ' + done + '/' + total, 'saving'); });
     } catch (err) {
         console.error("Image save Error:", err);
         showToast("⚠️ เก็บรูปไม่สำเร็จ (" + (err.message || 'ไม่ทราบสาเหตุ') + ") แต่บันทึกข้อความ/ตำแหน่งลงเครื่องแล้ว", true);
@@ -705,6 +764,7 @@ async function pushToCloudNow(manual) {
             gameCards: gameMeta,
             carCards: carMeta,
             globalTexts: full.globalTexts,
+            imgRev: imgRev,
             lastUpdate: Date.now()
         };
         const approxSize = JSON.stringify(projectState).length;
@@ -718,7 +778,8 @@ async function pushToCloudNow(manual) {
         persistImageCache();
         lastPushedAt = Date.now();
         lastCloudUpdate = projectState.lastUpdate;
-        setCloudStatus(`☁️ Online (ห้อง: ${currentRoom})`, true);
+        lastImgRev = imgRev;
+        setCloudStatus('☁️ บันทึกแล้ว ' + timeNow(), true);
         if (manual) showToast('☁️ เซฟขึ้นเว็บสำเร็จ! รีเฟรช/ส่งลิงก์ได้เลย');
     } catch (err) {
         console.error("Firestore Set Error:", err);
@@ -744,8 +805,13 @@ function startListeningToRoom() {
             }
             isIncomingSync = true;
             try {
-                await loadAllImages();
-                persistImageCache();
+                const remoteRev = (data && typeof data.imgRev === 'number') ? data.imgRev : null;
+                const needImg = (remoteRev === null) || (lastImgRev === null) || (remoteRev !== lastImgRev);
+                if (needImg) {
+                    await loadAllImages();
+                    persistImageCache();
+                    if (remoteRev !== null) { lastImgRev = remoteRev; imgRev = Math.max(imgRev, remoteRev); saveImgRev(); }
+                }
                 const domMap = currentDomImages();
                 const g = resolveCardsMeta(data.gameCards, domMap);
                 const cr = resolveCardsMeta(data.carCards, domMap);
@@ -844,6 +910,11 @@ function enterShop(mode) {
   document.body.classList.remove('show-landing');
   switchTab(mode);
   setStorefront(true);
+}
+function storeSwitch(mode) {
+  // ปุ่ม Game/Car บนแถบนำทาง: อยู่โหมดแก้ไขแค่สลับแท็บ, อยู่หน้าร้านค่อยเข้าโหมดดู
+  if (document.body.classList.contains('storefront')) enterShop(mode);
+  else switchTab(mode);
 }
 function goHome() {
   deselectAll();
@@ -1135,14 +1206,11 @@ function fmtDur(ms) {
   return (d > 0 ? d + 'ว ' : '') + p(h) + ':' + p(m) + ':' + p(ss);
 }
 function updateRentBadge(card) {
-  if (!card) return;
-  const until = parseInt(card.dataset.rentUntil || '0', 10) || 0;
-  let b = card.querySelector(':scope > .rent-badge');
-  if (!until) { if (b) b.remove(); return; }
-  if (!b) { b = document.createElement('div'); b.className = 'rent-badge'; card.appendChild(b); }
-  const left = until - Date.now();
-  if (left <= 0) { b.textContent = '⏰ หมดเวลาเช่า'; b.classList.add('expired'); }
-  else { b.textContent = '⏳ เหลือ ' + fmtDur(left); b.classList.remove('expired'); }
+  // เอาป้ายเวลาออกจากตัวการ์ดตามคำขอ — เวลาคงเหลือดูในห้อง "⏳ ติดเช่า" แทน (ป้ายติดเช่ามุมขวายังอยู่)
+  try { const b = card && card.querySelector(':scope > .rent-badge'); if (b) b.remove(); } catch(e) {}
+  try {
+    if (card) Array.from(card.querySelectorAll('.rent-badge')).forEach(function(b){ b.remove(); });
+  } catch(e) {}
 }
 function renderRentBadges() {
   try {
@@ -1160,12 +1228,15 @@ function setRentDaysFor(wrapper, days) {
   const card = wrapper.querySelector('.item-card');
   if (!card) return;
   if (days > 0) {
-    card.dataset.rentUntil = String(Date.now() + days * 86400000);
+    const start = Date.now();
+    card.dataset.rentStart = String(start);
+    card.dataset.rentUntil = String(start + days * 86400000);
     card.classList.add('marked-ribbon');
-    const end = new Date(Date.now() + days * 86400000);
+    const end = new Date(start + days * 86400000);
     showToast('⏳ ติดเช่า ' + days + ' วัน (ถึง ' + end.toLocaleString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + ')');
   } else {
     delete card.dataset.rentUntil;
+    delete card.dataset.rentStart;
     card.classList.remove('marked-ribbon');
     showToast('✅ ยกเลิกติดเช่าแล้ว');
   }
@@ -1174,13 +1245,35 @@ function setRentDaysFor(wrapper, days) {
   updateShopStats();
   syncToCloud();
 }
+function cardFieldText(wrapper, kinds) {
+  kinds = kinds || ['name', 'detail', 'price'];
+  try {
+    for (const k of kinds) {
+      const scope = wrapper.querySelector('.' + k + '-wrapper');
+      if (!scope) continue;
+      const t = scope.querySelector('.txt-target') || scope.querySelector('input, textarea');
+      if (!t) continue;
+      const v = ((t.value !== undefined && t.value !== null && String(t.value)) || t.textContent || t.getAttribute('value') || '').trim();
+      if (v) return v;
+    }
+  } catch(e) {}
+  return '';
+}
+function cardIndex(wrapper) {
+  try {
+    const sibs = Array.from(wrapper.parentElement.children);
+    return sibs.indexOf(wrapper) + 1;
+  } catch(e) { return 0; }
+}
 function cardDisplayName(wrapper) {
   try {
-    const t = wrapper.querySelector('.name-wrapper .txt-target');
-    const v = (t && (t.value || t.textContent) || '').trim();
+    const v = cardFieldText(wrapper, ['name']);
     if (v) return v;
+    const d = cardFieldText(wrapper, ['detail', 'price']);
+    if (d) return d.length > 40 ? d.slice(0, 40) + '…' : d;
   } catch(e) {}
-  return '(ยังไม่มีชื่อ)';
+  const i = cardIndex(wrapper);
+  return i ? ('การ์ดที่ ' + i) : '(ยังไม่มีชื่อ)';
 }
 /* ---- 📊 สถิติหน้าร้าน + ตัวนับติดเช่า ---- */
 function collectRentItems() {
@@ -1191,7 +1284,8 @@ function collectRentItems() {
       if (!card) return;
       const until = parseInt((card.dataset.rentUntil || '0'), 10) || 0;
       if (!until) return;
-      items.push({ wrapper: w, mode: g[1], modeLabel: g[2], name: cardDisplayName(w), until: until, left: until - Date.now() });
+      const start = parseInt((card.dataset.rentStart || '0'), 10) || 0;
+      items.push({ wrapper: w, mode: g[1], modeLabel: g[2], name: cardDisplayName(w), until: until, start: start, left: until - Date.now() });
     });
   });
   items.sort(function(a, b){ return a.left - b.left; });
@@ -1260,9 +1354,20 @@ function openRentModal() {
       const row = document.createElement('div');
       row.className = 'rent-row';
       const leftCls = it.left <= 0 ? 'text-red-400 font-black' : 'text-amber-300 font-black';
-      row.innerHTML = '<span class="text-xs bg-gray-700 rounded px-2 py-1 whitespace-nowrap">' + it.modeLabel + '</span>' +
-        '<span class="flex-1 font-bold truncate">' + it.name.replace(/</g, '&lt;') + '</span>' +
-        '<span class="' + leftCls + ' whitespace-nowrap font-variant-numeric:tabular-nums">' + (it.left <= 0 ? '⏰ หมดเวลา' : '⏳ ' + fmtDur(it.left)) + '</span>';
+      let thumb = '';
+      try {
+        const im = it.wrapper.querySelector('img');
+        if (im && im.src) thumb = im.src;
+      } catch(e) {}
+      let startTxt = '';
+      try {
+        startTxt = it.start ? new Date(it.start).toLocaleString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—';
+      } catch(e) { startTxt = '—'; }
+      row.innerHTML = (thumb ? '<img src="' + thumb + '" style="width:56px;height:56px;object-fit:cover;border-radius:8px;flex-shrink:0;background:#000">' : '') +
+        '<span class="text-xs bg-gray-700 rounded px-2 py-1 whitespace-nowrap">' + it.modeLabel + '</span>' +
+        '<span class="flex-1 min-w-0"><span class="font-bold truncate block">' + it.name.replace(/</g, '&lt;') + '</span>' +
+        '<span class="text-xs text-gray-400">เช่า ' + startTxt + '</span></span>' +
+        '<span class="rent-left ' + leftCls + ' whitespace-nowrap font-variant-numeric:tabular-nums" data-until="' + it.until + '">' + (it.left <= 0 ? '⏰ หมดเวลา' : '⏳ ' + fmtDur(it.left)) + '</span>';
       const btn = document.createElement('button');
       btn.className = 'bg-slate-600 hover:bg-slate-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg whitespace-nowrap';
       btn.textContent = 'ยกเลิกเช่า';
@@ -1285,9 +1390,20 @@ function releaseRentAt(i) {
 }
 setInterval(function() {
   if (document.hidden) return;
+  try { updateShopStats(); } catch(e) {}
+  // เวลาในห้องติดเช่าเดินเองทุกวินาที (เรนเดอร์ครั้งเดียวตอนเปิด ไม่ต้องเปิดใหม่)
   try {
-    document.querySelectorAll('.item-card[data-rent-until]').forEach(updateRentBadge);
-    updateShopStats();
+    document.querySelectorAll('#rentList .rent-left').forEach(function(el) {
+      const until = parseInt(el.getAttribute('data-until') || '0', 10) || 0;
+      const left = until - Date.now();
+      if (left <= 0) {
+        el.textContent = '⏰ หมดเวลา';
+        el.classList.remove('text-amber-300');
+        el.classList.add('text-red-400');
+      } else {
+        el.textContent = '⏳ ' + fmtDur(left);
+      }
+    });
   } catch(e) {}
 }, 1000);
 
@@ -1400,7 +1516,123 @@ function populateTextToolbar(wrapper) {
   document.getElementById('ttLine').value = s.lineHeight;
   const locked = wrapper.classList.contains('is-locked');
   document.getElementById('ttLock').classList.toggle('on', locked);
+  const kind = wrapper.classList.contains('name-wrapper') ? 'name'
+    : wrapper.classList.contains('detail-wrapper') ? 'detail'
+    : wrapper.classList.contains('price-wrapper') ? 'price' : 'global';
+  const ks = document.getElementById('ttKind');
+  ks.value = kind;
+  ks.disabled = false;
+  ks.title = 'ประเภทข้อความ — เปลี่ยนได้เลย (อิสระ ↔ ชื่อ/รายละเอียด/ราคา)';
   suppressToolbar = false;
+}
+function gridScaleOf(mode) {
+  try {
+    const grid = document.getElementById(mode + 'Grid');
+    return parseFloat((grid && grid.style.getPropertyValue('--grid-scale')) || '1') || 1;
+  } catch(e) { return 1; }
+}
+function changeTextKind() {
+  if (!selectedText || suppressToolbar) return;
+  const v = document.getElementById('ttKind').value;
+  const w = selectedText;
+  if (!w.isConnected) return;
+  const isGlobal = w.classList.contains('global-text-wrapper');
+  if (!isGlobal) {
+    if (v === 'global') { convertCardFieldToGlobal(w); return; }
+    ['name-wrapper', 'detail-wrapper', 'price-wrapper'].forEach(function(c){ w.classList.remove(c); });
+    w.classList.add(v + '-wrapper');
+    showToast('✅ ตั้งเป็น' + (v === 'name' ? '📛 ชื่อ' : v === 'detail' ? '📝 รายละเอียด' : '💰 ราคา') + 'แล้ว');
+    syncToCloud();
+    return;
+  }
+  if (v === 'global') return;
+  attachGlobalToCard(w, v);
+}
+function attachGlobalToCard(w, kind) {
+  const area = w.closest('#gameCaptureArea,#carCaptureArea');
+  if (!area) return;
+  const mode = area.id === 'gameCaptureArea' ? 'game' : 'car';
+  const wrappers = Array.from(area.querySelectorAll('.item-card-wrapper'));
+  if (!wrappers.length) return showToast('⚠️ ยังไม่มีการ์ดในหน้านี้', true);
+  const asc = getScale(area) || 1;
+  const ar = area.getBoundingClientRect();
+  const wr = w.getBoundingClientRect();
+  const gx = (wr.left - ar.left) / asc, gy = (wr.top - ar.top) / asc;
+  let best = null, bestD = 1e9, insideFound = false;
+  wrappers.forEach(function(cw) {
+    const r = getCardRectInArea(cw, area);
+    const inside = gx >= r.left && gx <= r.right && gy >= r.top && gy <= r.bottom;
+    const cx = (r.left + r.right) / 2, cy = (r.top + r.bottom) / 2;
+    const d = Math.hypot(gx - cx, gy - cy);
+    if (inside) { best = cw; insideFound = true; }
+    else if (!insideFound && d < bestD && d < 400) { best = cw; bestD = d; }
+  });
+  if (!best) {
+    // ไม่ทับใบไหนเลย: หาใบใกล้สุดแล้วถามก่อนแนบ (กันแนบผิดใบ)
+    let nb = null, nd = 1e9;
+    wrappers.forEach(function(cw) {
+      const r = getCardRectInArea(cw, area);
+      const d = Math.hypot(gx - (r.left + r.right) / 2, gy - (r.top + r.bottom) / 2);
+      if (d < nd) { nd = d; nb = cw; }
+    });
+    console.log('attach: จุด (' + Math.round(gx) + ',' + Math.round(gy) + ') ห่างใบใกล้สุด ' + Math.round(nd) + 'px');
+    if (!nb) return;
+    let label = 'การ์ด';
+    try { label = cardDisplayName(nb) || label; } catch(e) {}
+    if (!confirm('ข้อความไม่ได้ทับการ์ดไหนเลย\n\nกด "ตกลง" เพื่อแนบกับใบที่ใกล้ที่สุด (' + label + ')\nกด "ยกเลิก" แล้วลากข้อความไปทับการ์ดก่อน')) return;
+    best = nb;
+  }
+  const card = best.querySelector('.item-card');
+  if (!card) return;
+  if (card.querySelector('.' + kind + '-wrapper')) {
+    selectText(card.querySelector('.' + kind + '-wrapper'));
+    return showToast('⚠️ การ์ดนี้มีช่องนี้แล้ว (เลือกช่องเดิมให้)', true);
+  }
+  const r = getCardRectInArea(best, area);
+  const gs = gridScaleOf(mode);
+  const t = w.querySelector('.txt-target');
+  const tw = t ? (t.getBoundingClientRect().width / asc) : 200;
+  w.classList.remove('global-text-wrapper');
+  w.classList.add(kind + '-wrapper');
+  if (t) {
+    t.classList.remove('global-textarea');
+    t.style.width = Math.max(60, tw / gs) + 'px';
+  }
+  w.style.left = ((gx - r.left) / gs) + 'px';
+  w.style.top = ((gy - r.top) / gs) + 'px';
+  card.appendChild(w);
+  try { autoGrow(w.querySelector('textarea')); } catch(e) {}
+  selectText(w);
+  populateTextToolbar(w);
+  const label = kind === 'name' ? '📛 ชื่อ' : kind === 'detail' ? '📝 รายละเอียด' : '💰 ราคา';
+  showToast('✅ ย้ายเป็น' + label + 'ของการ์ดแล้ว');
+  syncAllRibbons();
+  syncToCloud();
+}
+function convertCardFieldToGlobal(w) {
+  const card = w.closest('.item-card');
+  const area = card ? card.closest('#gameCaptureArea,#carCaptureArea') : null;
+  if (!card || !area) return;
+  const mode = area.id === 'gameCaptureArea' ? 'game' : 'car';
+  const asc = getScale(area) || 1;
+  const gs = gridScaleOf(mode);
+  const r = getCardRectInArea(card.closest('.item-card-wrapper'), area);
+  const lx = parseFloat(w.style.left) || 0, ly = parseFloat(w.style.top) || 0;
+  const t = w.querySelector('.txt-target');
+  const tw = t ? (t.getBoundingClientRect().width / asc) : 420;
+  ['name-wrapper', 'detail-wrapper', 'price-wrapper'].forEach(function(c){ w.classList.remove(c); });
+  w.classList.add('global-text-wrapper');
+  if (t) {
+    if (t.tagName === 'TEXTAREA') t.classList.add('global-textarea');
+    t.style.width = Math.max(120, tw) + 'px';
+  }
+  w.style.left = (r.left + lx * gs) + 'px';
+  w.style.top = (r.top + ly * gs) + 'px';
+  area.appendChild(w);
+  selectText(w);
+  populateTextToolbar(w);
+  showToast('✅ ย้ายเป็น💬ข้อความอิสระแล้ว');
+  syncToCloud();
 }
 function setTt(id, on) { const b = document.getElementById(id); b.classList.toggle('on', !!on); b.dataset.on = on ? '1' : '0'; }
 function toggleTt(id) { setTt(id, document.getElementById(id).dataset.on !== '1'); applyTextToolbar(); }
@@ -1518,7 +1750,7 @@ document.addEventListener('mousedown', function(e) {
 
   if (!isDraggableText && ['INPUT','TEXTAREA','BUTTON','SELECT','OPTION','LABEL'].indexOf(tag)>=0) return;
   if (!isDraggableText && e.target.closest('.hide-on-capture')) return;
-  if (e.target.closest('#quickMenu') || e.target.closest('#rentModal')) return;
+  if (e.target.closest('#quickMenu') || e.target.closest('#rentModal') || e.target.closest('#linkModal')) return;
   if (isOverviewMode) {
     // หน้าร้าน: คลิกรูป = เมนูด่วน (เช่า/เอาป้ายออก/ก๊อปลิงก์) คลิกที่ว่าง = ปิดเมนู
     if (document.body.classList.contains('storefront')) {
@@ -1742,7 +1974,7 @@ function applyImageToolbar() {
   d.hue = document.getElementById('itHue').value || '0';
   applyImageStyles(card);
   card.classList.toggle('marked-ribbon', document.getElementById('itRibbon').checked);
-  if (!document.getElementById('itRibbon').checked) { try { delete card.dataset.rentUntil; } catch(e){} updateRentBadge(card); }
+  if (!document.getElementById('itRibbon').checked) { try { delete card.dataset.rentUntil; delete card.dataset.rentStart; } catch(e){} updateRentBadge(card); }
   card.querySelector('.image-container').classList.toggle('cropped-mode', document.getElementById('itCropMode').checked);
   card.classList.toggle('is-grouped', document.getElementById('itGroup').checked);
   selectedCard.classList.toggle('is-locked', document.getElementById('itLock').checked);
@@ -1787,7 +2019,8 @@ function duplicateSelectedCard() {
     const data=extractCardState(source);
     data.cardX=(parseFloat(data.cardX)||0)+30;
     data.cardY=(parseFloat(data.cardY)||0)+30;
-    data.rentUntil=''; // การ์ดทำซ้ำเริ่มนับเวลาใหม่เอง ไม่เอานับถอยหลังเดิมติดมา
+    data.rentUntil='';
+    data.rentStart=''; // การ์ดทำซ้ำเริ่มนับเวลาใหม่เอง ไม่เอานับถอยหลังเดิมติดมา
     const scale=document.getElementById(mode+'ScaleSlider').value;
     appendCardData(mode,data,scale);
     last=document.getElementById(mode+'Grid').lastElementChild;
@@ -1824,6 +2057,7 @@ function extractCardState(cardWrapper) {
     cardX: cardWrapper.dataset.cardX || '0', cardY: cardWrapper.dataset.cardY || '0',
     isRibbon: card.classList.contains('marked-ribbon'),
     rentUntil: card.dataset.rentUntil || '',
+    rentStart: card.dataset.rentStart || '',
     isCropped: card.querySelector('.image-container').classList.contains('cropped-mode'),
     isGrouped: card.classList.contains('is-grouped'),
     isLocked: cardWrapper.classList.contains('is-locked'),
@@ -1849,6 +2083,7 @@ function appendCardData(mode, data, scale) {
   card.innerHTML = createCardHTML(mode, data.imgSrc, data.imgScale || scale);
   if (data.imgId) { try { card.querySelector('img').dataset.imgId = data.imgId; } catch(e){} }
   if (data.rentUntil) { try { card.dataset.rentUntil = data.rentUntil; } catch(e){} }
+  if (data.rentStart) { try { card.dataset.rentStart = data.rentStart; } catch(e){} }
   if (data.isCropped) card.querySelector('.image-container').classList.add('cropped-mode');
   const pan = card.querySelector('.pan-wrapper');
   pan.dataset.panX = data.panX || 0; pan.dataset.panY = data.panY || 0;
@@ -2133,20 +2368,43 @@ async function uploadToDiscord(blob, filename, caption) {
   if (!att || !att.url) throw new Error('Discord ไม่คืนลิงก์รูป');
   return att.url;
 }
+async function pngDataUrlToJpegBlob(dataUrl, q) {
+  // แปลง PNG 1080p เป็น JPEG (~เล็กลง 3-5 เท่า) อัปโหลดไวขึ้นมาก คุณภาพยังพอใช้ลง Discord
+  return new Promise(function(resolve, reject) {
+    const img = new Image();
+    img.onload = function() {
+      try {
+        const c = document.createElement('canvas');
+        c.width = img.width; c.height = img.height;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#0b101e'; ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(img, 0, 0);
+        c.toBlob(function(b) { b ? resolve(b) : reject(new Error('แปลงรูปไม่สำเร็จ')); }, 'image/jpeg', q || 0.85);
+      } catch(e) { reject(e); }
+    };
+    img.onerror = function() { reject(new Error('อ่านรูปไม่ได้')); };
+    img.src = dataUrl;
+  });
+}
 async function copyImageLinkFromDataUrl(dataUrl, name, caption) {
   if (!getDiscordWh() && !getLinkCfg()) {
     showToast('⚙️ ตั้งค่า Discord ครั้งแรกก่อน (30 วิ)...');
     if (!setupDiscordWh()) return;
   }
-  showToast('⏳ กำลังส่งรูปไป Discord...');
+  let blob;
   try {
-    const blob = await (await fetch(dataUrl)).blob();
-    console.log('link: แคปรูปได้ ' + Math.round(blob.size / 1024) + 'KB, เริ่มอัปโหลด...');
+    showToast('⏳ กำลังย่อไฟล์รูป...');
+    try { blob = await pngDataUrlToJpegBlob(dataUrl, 0.85); }
+    catch(e) { blob = await (await fetch(dataUrl)).blob(); }
+    console.log('link: ไฟล์หลังย่อ ' + Math.round(blob.size / 1024) + 'KB, เริ่มอัปโหลด...');
+    showToast('⏳ กำลังอัปโหลด...');
     const url = await uploadImageForLink(blob, name, caption);
     console.log('link: ได้ URL แล้ว ' + url.slice(0, 60) + '...');
-    const ok = await copyTextAuto(url);
+    let ok = false;
+    try { ok = await copyTextAuto(url); } catch(e) { ok = false; }
+    openLinkModal(url, ok);
     if (ok) showToast('🔗 คัดลอกลิงก์ Discord แล้ว! เอาไปวางได้เลย');
-    else { showToast('🔗 ได้ลิงก์แล้ว แต่ก๊อปอัตโนมัติไม่ได้', true); try { prompt('คัดลอกลิงก์รูป:', url); } catch(e) {} }
+    else showToast('🔗 ได้ลิงก์แล้ว กด📋คัดลอกในกล่อง', true);
   } catch (err) {
     console.error(err);
     if (err && err.needSetup) {
@@ -2156,6 +2414,35 @@ async function copyImageLinkFromDataUrl(dataUrl, name, caption) {
     }
   }
 }
+let lastLinkUrl = '';
+function openLinkModal(url, autoCopied) {
+  lastLinkUrl = url || '';
+  try {
+    document.getElementById('linkModalUrl').value = lastLinkUrl;
+    document.getElementById('linkModalHint').textContent = autoCopied
+      ? '✅ คัดลอกให้แล้ว เอาไปวางได้เลย (ถ้าไม่ติด กด📋อีกที)'
+      : 'แตะที่ช่องลิงก์เพื่อเลือก แล้วกด 📋 คัดลอกลิงก์';
+    document.getElementById('linkModal').classList.add('open');
+    document.getElementById('linkModalUrl').select();
+  } catch(e) {}
+}
+function closeLinkModal() {
+  try { document.getElementById('linkModal').classList.remove('open'); } catch(e) {}
+  lastLinkUrl = '';
+}
+async function copyLinkModalUrl() {
+  const inp = document.getElementById('linkModalUrl');
+  let ok = false;
+  try { ok = await copyTextAuto(inp.value); } catch(e) { ok = false; }
+  if (!ok) { try { inp.select(); ok = document.execCommand('copy'); } catch(e) { ok = false; } }
+  if (ok) {
+    showToast('🔗 คัดลอกลิงก์แล้ว!');
+    try { document.getElementById('linkModalHint').textContent = '✅ คัดลอกแล้ว เอาไปวางได้เลย'; } catch(e) {}
+  } else {
+    showToast('⚠️ ก๊อปไม่ได้ แตะค้างที่ลิงก์แล้วคัดลอกเอง', true);
+  }
+}
+function openLinkModalUrl() { try { if (lastLinkUrl) window.open(lastLinkUrl, '_blank'); } catch(e) {} }
 async function copyPreviewLink() {
   if (!currentPreviewDataUrl) return showToast('⚠️ กดพรีวิวก่อน แล้วค่อยกดปุ่มนี้', true);
   const label = (lastCapture && lastCapture.prefix === 'car_rental') ? 'CAR RENTAL' : 'GAME SHOP';
@@ -2174,7 +2461,7 @@ async function copyModeLink(targetId, prefix) {
 document.addEventListener('keydown',function(e){
   const tag=(e.target&&e.target.tagName)||'', editing=['INPUT','TEXTAREA','SELECT'].indexOf(tag)>=0;
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='a'&&!editing){e.preventDefault();selectAllCards();}
-  else if(e.key==='Escape'){if(marquee)finishMarquee();else deselectAll(); try{closeQuickMenu();closeRentModal();}catch(err){}}
+  else if(e.key==='Escape'){if(marquee)finishMarquee();else deselectAll(); try{closeQuickMenu();closeRentModal();closeLinkModal();}catch(err){}}
   else if((e.key==='Delete'||e.key==='Backspace')&&!editing&&selectedCards.size){
       e.preventDefault();
       deleteSelectedCard();
@@ -2185,13 +2472,14 @@ document.getElementById('gameImageUpload').addEventListener('change', function (
 document.getElementById('carImageUpload').addEventListener('change', function (e) { handleUpload(e, 'car'); });
 document.getElementById('previewButtons').insertAdjacentHTML('beforeend', '<button onclick="download4K()" class="bg-gradient-to-r from-fuchsia-500 to-purple-500 hover:from-fuchsia-400 hover:to-purple-400 text-white px-10 py-3 rounded-lg font-bold transition text-xl">⬇️ ดาวน์โหลด 4K</button>');
 (function initApp(){
-  console.log('APP BUILD: 2026-10-07-discord-link (webhook+cloudinary+catbox)');
+  console.log('APP BUILD: 2026-10-07-apple3 (attach-confirm-nearest)');
   try {
     const urlRoom = getRoomFromURL();
     if (urlRoom) { currentRoom = urlRoom; }
     document.getElementById('roomInputUI').value = currentRoom;
     try { document.getElementById('landingRoom').textContent = 'ห้องทำงาน: ' + currentRoom + ' • กด 🔗 ลิงก์ ในโหมดแก้ไขเพื่อส่งให้เพื่อน'; } catch(e) {}
     loadImageCache();
+    try { imgRev = loadImgRev(); lastImgRev = imgRev; } catch(e) {}
     const cached = loadLocal();
     if (cached && ((cached.gameCards||[]).length || (cached.carCards||[]).length || (cached.globalTexts||[]).length)) {
       cached.gameCards = resolveCardsMeta(cached.gameCards, imageCache);
