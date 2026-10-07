@@ -18,15 +18,15 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700;900&family=Prompt:wght@400;700;900&family=Mitr:wght@400;600&family=Sarabun:wght@400;700&family=Pridi:wght@400;600&family=Itim&family=K2D:wght@400;700;800&family=Chakra+Petch:wght@400;700&family=Bai+Jamjuree:wght@400;700&family=Sriracha&family=Chonburi&family=Mali:wght@400;700&family=Orbitron:wght@400;700;900&family=Audiowide&family=Bungee&family=Press+Start+2P&family=Anton&family=Pacifico&family=Righteous&family=Black+Ops+One&display=swap" rel="stylesheet">
 <style>
-body{font-family:'Kanit',sans-serif;background-color:#050510;color:#fff;background-image:linear-gradient(rgba(0,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,255,.03) 1px,transparent 1px);background-size:30px 30px;overflow-x:hidden}
+body{font-family:'Kanit',sans-serif;background-color:#0a0a12;color:#fff;background-image:linear-gradient(rgba(251,191,36,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(251,191,36,.045) 1px,transparent 1px);background-size:30px 30px;overflow-x:hidden}
 input[type="number"]::-webkit-inner-spin-button,input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 input[type="number"]{-moz-appearance:textfield}
 .tab-btn{position:relative;overflow:hidden;transition:all .3s}
-.tab-btn.active{background:rgba(0,255,255,.1);border-color:#0ff;box-shadow:0 0 15px rgba(0,255,255,.4),inset 0 0 10px rgba(0,255,255,.2);color:#0ff}
+.tab-btn.active{background:rgba(251,191,36,.12);border-color:#fbbf24;box-shadow:0 0 15px rgba(251,191,36,.4),inset 0 0 10px rgba(251,191,36,.2);color:#fbbf24}
 .scroll-wrapper{width:100%;overflow-x:auto;padding-bottom:20px;display:flex;justify-content:flex-start}
 .scroll-wrapper::-webkit-scrollbar{height:12px}
 .scroll-wrapper::-webkit-scrollbar-track{background:#050914;border-radius:6px}
-.scroll-wrapper::-webkit-scrollbar-thumb{background:#0ff;border-radius:6px}
+.scroll-wrapper::-webkit-scrollbar-thumb{background:#fbbf24;border-radius:6px}
 .view-holder{position:relative;flex-shrink:0;margin:0 auto}
 
 .capturing .hide-on-capture,.view-only-mode .hide-on-capture{display:none!important}
@@ -56,7 +56,7 @@ input[type="number"]{-moz-appearance:textfield}
 .game-card .image-container{height:210px;position:relative;z-index:1}
 .car-card .image-container{height:100%;position:absolute;inset:0;z-index:1}
 .image-container.cropped-mode{overflow:hidden!important}
-.item-card.selected-card .image-container{outline:3px dashed #0ff;outline-offset:3px}
+.item-card.selected-card .image-container{outline:3px dashed #fbbf24;outline-offset:3px}
 .pan-wrapper{position:absolute;width:100%;height:100%;display:flex;align-items:center;justify-content:center;transform:translate(var(--pan-x,0px),var(--pan-y,0px));cursor:grab}
 .pan-wrapper:active{cursor:grabbing}
 .game-img{max-width:100%;max-height:100%;object-fit:contain;pointer-events:none;mix-blend-mode:screen;filter:drop-shadow(0 0 15px rgba(0,255,255,.6)) brightness(1.2);transform:scale(var(--img-scale,1.8))}
@@ -67,8 +67,8 @@ input[type="number"]{-moz-appearance:textfield}
 .ribbon{position:absolute;top:25px;right:-45px;width:190px;background:linear-gradient(90deg,#d30000,#ff1a1a,#d30000);color:#fff;font-size:1.5rem;font-weight:900;text-align:center;padding:5px 0;transform:rotate(45deg);box-shadow:0 5px 15px rgba(255,0,0,.7);letter-spacing:2px;border-top:2px solid rgba(255,255,255,.8);border-bottom:2px solid rgba(255,255,255,.8);text-shadow:2px 2px 4px rgba(0,0,0,.8)}
 
 /* ⏳ ป้ายนับถอยหลังติดเช่า (มุมซ้ายบนของการ์ด) */
-.rent-badge{position:absolute;top:10px;left:10px;z-index:60;pointer-events:none;font-size:15px;font-weight:900;color:#fff;background:linear-gradient(90deg,rgba(2,132,199,.95),rgba(34,211,238,.95));border:1px solid rgba(255,255,255,.6);border-radius:999px;padding:4px 12px;letter-spacing:1px;box-shadow:0 4px 14px rgba(0,0,0,.6);white-space:nowrap;font-variant-numeric:tabular-nums}
-.rent-badge.expired{background:linear-gradient(90deg,rgba(220,38,38,.95),rgba(239,68,68,.95));animation:rentBlink 1s infinite}
+.rent-badge{position:absolute;top:10px;left:10px;z-index:60;pointer-events:none;font-size:15px;font-weight:900;color:#1c1005;background:linear-gradient(90deg,#f59e0b,#fde68a);border:1px solid rgba(255,255,255,.7);border-radius:999px;padding:4px 12px;letter-spacing:1px;box-shadow:0 4px 14px rgba(0,0,0,.6);white-space:nowrap;font-variant-numeric:tabular-nums}
+.rent-badge.expired{color:#fff;background:linear-gradient(90deg,rgba(220,38,38,.95),rgba(239,68,68,.95));animation:rentBlink 1s infinite}
 @keyframes rentBlink{50%{opacity:.55}}
 
 /* 🏠 โหมดหน้าร้าน: ซ่อนเครื่องมือทั้งหมด เหลือแค่งานโชว์ */
@@ -78,8 +78,20 @@ body.storefront #storeNav{display:flex}
 #landing{display:none}
 body.show-landing #landing{display:flex}
 @keyframes floatGlow{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-@keyframes neonPulse{0%,100%{box-shadow:0 0 25px rgba(0,255,255,.35)}50%{box-shadow:0 0 55px rgba(0,255,255,.7)}}
+@keyframes neonPulse{0%,100%{box-shadow:0 0 25px rgba(251,191,36,.3)}50%{box-shadow:0 0 55px rgba(251,191,36,.65)}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+/* ⚡ เมนูด่วนหน้าร้าน (คลิกรูปแล้วเด้ง) */
+#quickMenu{position:fixed;z-index:120;min-width:220px}
+#quickMenu.hidden{display:none}
+.qm-btn{display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:9px 12px;border-radius:9px;font-weight:700;font-size:14px;color:#fff;background:#374151;transition:all .15s;cursor:pointer}
+.qm-btn:hover{filter:brightness(1.25)}
+.qm-btn.gold{background:linear-gradient(90deg,#b45309,#f59e0b);color:#1c1005}
+.qm-btn.sky{background:linear-gradient(90deg,#0369a1,#0ea5e9)}
+.qm-btn.gray{background:#4b5563}
+.qm-btn.red{background:#7f1d1d}
+#rentModal{display:none}
+#rentModal.open{display:flex}
+.rent-row{display:flex;align-items:center;gap:10px;background:#111827;border:1px solid #374151;border-radius:10px;padding:8px 12px}
 .landing-card{animation:fadeUp .6s ease both}
 .landing-card:nth-child(2){animation-delay:.12s}
 .landing-title{animation:floatGlow 4s ease-in-out infinite}
@@ -89,13 +101,13 @@ body.show-landing #landing{display:flex}
 .drag-wrapper .txt-target{cursor:text}
 .drag-wrapper.selected-text .txt-target{cursor:move}
 .drag-wrapper.is-locked .txt-target{cursor:text}
-.drag-chip{position:absolute;top:-15px;left:50%;transform:translateX(-50%);width:24px;height:24px;border-radius:5px;background:rgba(0,255,255,.9);color:#000;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;cursor:move;opacity:0;transition:opacity .15s;z-index:80;pointer-events:auto}
+.drag-chip{position:absolute;top:-15px;left:50%;transform:translateX(-50%);width:24px;height:24px;border-radius:5px;background:rgba(251,191,36,.95);color:#000;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;cursor:move;opacity:0;transition:opacity .15s;z-index:80;pointer-events:auto}
 .drag-wrapper .txt-target:hover~.drag-chip,.drag-wrapper .txt-target:focus~.drag-chip,.drag-chip:hover,.drag-wrapper.selected-text .drag-chip{opacity:1}
 .drag-wrapper.is-locked .drag-chip{cursor:not-allowed;background:rgba(239,68,68,.85)}
-.drag-wrapper.selected-text .txt-target{outline:1px dashed rgba(0,255,255,.8);outline-offset:4px;border-radius:4px}
+.drag-wrapper.selected-text .txt-target{outline:1px dashed rgba(251,191,36,.9);outline-offset:4px;border-radius:4px}
 .multi-selected{outline:3px solid #f59e0b!important;outline-offset:3px;border-radius:6px}
-.selection-marquee{position:absolute;display:none;z-index:95;pointer-events:none;border:1px solid #00ffff;background:rgba(0,255,255,.08);box-shadow:0 0 18px rgba(0,255,255,.18)}
-.smart-guide{position:absolute;display:none;z-index:96;pointer-events:none;background:#00ffff;box-shadow:0 0 8px rgba(0,255,255,.9)}
+.selection-marquee{position:absolute;display:none;z-index:95;pointer-events:none;border:1px solid #fbbf24;background:rgba(251,191,36,.08);box-shadow:0 0 18px rgba(251,191,36,.18)}
+.smart-guide{position:absolute;display:none;z-index:96;pointer-events:none;background:#fbbf24;box-shadow:0 0 8px rgba(251,191,36,.9)}
 .smart-guide-x{top:0;bottom:0;width:1px}
 .smart-guide-y{left:0;right:0;height:1px}
 #gameCaptureArea.is-selecting,#carCaptureArea.is-selecting{cursor:crosshair}
@@ -112,45 +124,50 @@ body.show-landing #landing{display:flex}
 .tt-num{width:52px;height:30px;background:#fff;color:#000;border-radius:5px;text-align:center;font-size:13px;outline:none}
 .tt-num.narrow{width:44px}
 .tt-btn{min-width:30px;height:30px;padding:0 8px;border-radius:5px;background:#374151;color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:700}
-.tt-btn.on{background:#0ff;color:#000}
+.tt-btn.on{background:#fbbf24;color:#000}
 .tt-btn.danger{background:#7f1d1d}
 .tt-btn.danger.on{background:#ef4444;color:#fff}
 .tt-group{display:flex;align-items:center;gap:4px;background:#1f2937;padding:4px 8px;border-radius:6px;font-size:11px;color:#9ca3af;border:1px solid #374151}
 .tt-color{width:30px;height:30px;cursor:pointer;border:none;padding:0;background:transparent;border-radius:5px}
 .tt-check{display:flex;align-items:center;gap:5px;background:#1f2937;padding:4px 10px;border-radius:6px;font-size:12px;border:1px solid #374151;cursor:pointer}
 
-.room-input { background: #1f2937; border: 1px solid #374151; color: #0ff; padding: 6px 12px; border-radius: 6px; font-weight: bold; width: 120px; text-align: center; outline: none; }
-.room-input:focus { border-color: #0ff; box-shadow: 0 0 8px rgba(0,255,255,0.3); }
+.room-input { background: #1f2937; border: 1px solid #374151; color: #fbbf24; padding: 6px 12px; border-radius: 6px; font-weight: bold; width: 120px; text-align: center; outline: none; }
+.room-input:focus { border-color: #fbbf24; box-shadow: 0 0 8px rgba(251,191,36,0.3); }
 
 #previewModalContainer::-webkit-scrollbar{width:10px;height:10px}
 #previewModalContainer::-webkit-scrollbar-track{background:rgba(0,0,0,.5)}
-#previewModalContainer::-webkit-scrollbar-thumb{background:#0ff;border-radius:5px}
+#previewModalContainer::-webkit-scrollbar-thumb{background:#fbbf24;border-radius:5px}
 </style>
 </head>
 <body class="min-h-screen p-4 md:p-8 flex flex-col items-center show-landing storefront">
 
 <!-- 🏠 หน้าแรก (หน้าร้าน): เลือกหมวดอย่างเดียว ไม่ต้องเจอเครื่องมือ -->
-<div id="landing" class="fixed inset-0 z-[95] flex-col items-center justify-center p-6 text-center" style="background:radial-gradient(ellipse at 50% 30%,rgba(0,255,255,.08),transparent 60%),#050510">
-  <div class="landing-title text-5xl md:text-6xl font-black tracking-widest mb-2" style="color:#0ff;text-shadow:0 0 30px rgba(0,255,255,.8)">CYBERPUNK CATALOG</div>
-  <div class="text-gray-400 mb-10 text-lg">เลือกร้านที่ต้องการดู • กด ✏️ แก้ไข เมื่อต้องการปรับแต่ง</div>
+<div id="landing" class="fixed inset-0 z-[95] flex-col items-center justify-center p-6 text-center" style="background:radial-gradient(ellipse at 50% 25%,rgba(251,191,36,.1),transparent 55%),radial-gradient(ellipse at 80% 90%,rgba(139,92,246,.08),transparent 50%),#0a0a12">
+  <div class="landing-title text-5xl md:text-6xl font-black tracking-widest mb-2" style="color:#fbbf24;text-shadow:0 0 30px rgba(251,191,36,.7)">CYBERPUNK CATALOG</div>
+  <div class="text-gray-400 mb-8 text-lg">เลือกร้านที่ต้องการดู • กด ✏️ แก้ไข เมื่อต้องการปรับแต่ง</div>
   <div class="flex flex-col md:flex-row gap-6 w-full max-w-3xl justify-center">
-    <button onclick="enterShop('game')" class="landing-card landing-btn flex-1 bg-gray-900/80 border-2 border-cyan-400/60 rounded-2xl p-8 hover:scale-105 transition cursor-pointer">
+    <button onclick="enterShop('game')" class="landing-card landing-btn flex-1 bg-gray-900/80 border-2 border-violet-400/60 rounded-2xl p-8 hover:scale-105 transition cursor-pointer">
       <div class="text-6xl mb-3">🎮</div>
-      <div class="text-3xl font-black text-cyan-300 tracking-widest">GAME SHOP</div>
+      <div class="text-3xl font-black text-violet-300 tracking-widest">GAME SHOP</div>
       <div class="text-gray-400 mt-2">แคตตาล็อกเกม • ดูราคา/โปรโมชัน</div>
+      <div id="statGames" class="mt-3 text-sm font-bold text-violet-200/80">🎮 — รายการ</div>
     </button>
-    <button onclick="enterShop('car')" class="landing-card landing-btn flex-1 bg-gray-900/80 border-2 border-pink-500/60 rounded-2xl p-8 hover:scale-105 transition cursor-pointer" style="animation-delay:.3s">
+    <button onclick="enterShop('car')" class="landing-card landing-btn flex-1 bg-gray-900/80 border-2 border-amber-400/60 rounded-2xl p-8 hover:scale-105 transition cursor-pointer" style="animation-delay:.3s">
       <div class="text-6xl mb-3">🚗</div>
-      <div class="text-3xl font-black text-pink-300 tracking-widest">CAR RENTAL</div>
+      <div class="text-3xl font-black text-amber-300 tracking-widest">CAR RENTAL</div>
       <div class="text-gray-400 mt-2">รถเช่า • เช็คเวลาติดเช่าคงเหลือ</div>
+      <div id="statCars" class="mt-3 text-sm font-bold text-amber-200/80">🚗 — คัน • ว่าง — • เช่า —</div>
     </button>
   </div>
   <div id="landingRoom" class="mt-8 text-sm text-gray-500"></div>
 </div>
 
 <!-- 🧭 แถบหน้าร้าน (แสดงตอนซ่อนเครื่องมือ) -->
-<div id="storeNav" class="w-full max-w-6xl mb-4 items-center justify-between gap-2 bg-gray-900/80 backdrop-blur border border-cyan-500/30 rounded-xl px-4 py-2">
-  <button onclick="goHome()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-bold text-sm transition">🏠 หน้าหลัก</button>
+<div id="storeNav" class="w-full max-w-6xl mb-4 items-center justify-between gap-2 bg-gray-900/80 backdrop-blur border border-amber-500/30 rounded-xl px-4 py-2">
+  <div class="flex gap-2">
+    <button onclick="goHome()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-bold text-sm transition">🏠 หน้าหลัก</button>
+    <button onclick="openRentModal()" class="bg-amber-700 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-bold text-sm transition">⏳ ติดเช่า (<span id="rentCount">0</span>)</button>
+  </div>
   <div class="flex gap-2">
     <button onclick="enterShop('game')" id="storeBtnGame" class="px-4 py-2 rounded-lg font-bold text-sm transition border-2">🎮 Game</button>
     <button onclick="enterShop('car')" id="storeBtnCar" class="px-4 py-2 rounded-lg font-bold text-sm transition border-2">🚗 Car</button>
@@ -158,13 +175,33 @@ body.show-landing #landing{display:flex}
   <button id="storeEditBtn" onclick="toggleStoreEdit()" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg font-bold text-sm transition">✏️ แก้ไข</button>
 </div>
 
+<!-- ⚡ เมนูด่วน: คลิกรูปในหน้าร้านแล้วเด้ง -->
+<div id="quickMenu" class="hidden bg-gray-900/95 border border-amber-400/60 rounded-xl p-2 shadow-2xl flex-col gap-1">
+  <div id="quickTitle" class="text-center text-sm font-bold text-amber-200 px-2 py-1 truncate" style="max-width:240px">—</div>
+  <button class="qm-btn gold" onclick="quickRent(1)">⏳ ติดเช่า 1 วัน</button>
+  <button class="qm-btn gold" onclick="quickRent(3)">⏳ ติดเช่า 3 วัน</button>
+  <button class="qm-btn gold" onclick="quickRent(7)">⏳ ติดเช่า 7 วัน</button>
+  <button class="qm-btn red" onclick="quickRent(0)">🏷️ เอาป้ายติดเช่าออก</button>
+  <button class="qm-btn sky" onclick="quickCopyLink()">🔗 ก๊อปลิงก์รูปหน้านี้</button>
+  <button class="qm-btn gray" onclick="quickEdit()">✏️ แก้ไขเต็ม</button>
+</div>
+
+<!-- ⏳ ห้องรวมรถติดเช่า -->
+<div id="rentModal" class="fixed inset-0 bg-black/90 z-[100] flex-col items-center justify-center p-4 backdrop-blur-md">
+  <div class="flex justify-between items-center w-full max-w-2xl mb-4">
+    <h3 class="text-2xl font-black text-amber-300">⏳ ติดเช่าอยู่ (<span id="rentModalCount">0</span>)</h3>
+    <button onclick="closeRentModal()" class="text-white bg-red-600 hover:bg-red-500 rounded-lg px-5 py-2 font-bold transition">✕ ปิด</button>
+  </div>
+  <div id="rentList" class="w-full max-w-2xl flex-col gap-2 overflow-auto" style="max-height:70vh;display:flex"></div>
+</div>
+
 <!-- Modal พรีวิว -->
 <div id="previewModal" class="fixed inset-0 bg-black/95 z-[100] hidden flex-col items-center justify-center p-4 backdrop-blur-md">
   <div class="flex justify-between items-center w-full max-w-[1400px] mb-4">
-    <h3 class="text-3xl font-bold text-cyan-400">👀 พรีวิวภาพ (Preview)</h3>
+    <h3 class="text-3xl font-bold text-amber-300">👀 พรีวิวภาพ (Preview)</h3>
     <button onclick="closePreview()" class="text-white bg-red-600 hover:bg-red-500 rounded-lg px-6 py-2 font-bold text-lg transition">✕ ปิดพรีวิว</button>
   </div>
-  <div id="previewModalContainer" class="relative w-full max-w-[1400px] max-h-[75vh] overflow-auto border-2 border-cyan-600/50 rounded-xl bg-[#050510]">
+  <div id="previewModalContainer" class="relative w-full max-w-[1400px] max-h-[75vh] overflow-auto border-2 border-amber-500/50 rounded-xl bg-[#0a0a12]">
     <img id="previewImageElement" src="" alt="Preview" class="w-full h-auto object-contain mx-auto">
   </div>
   <div class="mt-6 flex gap-4" id="previewButtons">
@@ -184,14 +221,14 @@ body.show-landing #landing{display:flex}
   <div class="flex gap-2 items-center bg-gray-800 p-2 rounded-lg border border-gray-700">
       <span class="text-xs text-gray-400 font-bold">👥 ห้องทำงาน:</span>
       <input type="text" id="roomInputUI" class="room-input" value="1" placeholder="ชื่อห้อง">
-      <button onclick="changeFirebaseRoom()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-1.5 rounded font-bold text-sm transition">เชื่อมต่อ</button>
+      <button onclick="changeFirebaseRoom()" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded font-bold text-sm transition">เชื่อมต่อ</button>
       <button onclick="copyRoomLink()" class="bg-slate-600 hover:bg-slate-500 text-white px-3 py-1.5 rounded font-bold text-sm transition" title="คัดลอกลิงก์ห้องนี้ส่งให้คนอื่น">🔗 ลิงก์</button>
   </div>
 
   <div class="flex gap-3 px-2 items-center">
     <div id="cloudStatus" class="text-xs font-bold px-3 py-1 rounded-full bg-green-500/20 text-green-400 border border-green-500/50 transition-colors duration-300">☁️ Online</div>
 
-    <button onclick="pushToCloudNow(true)" class="bg-cyan-600 hover:bg-cyan-500 text-white px-5 py-3 rounded-lg font-bold transition" title="บันทึกขึ้นคลาวด์ทันที">☁️ เซฟขึ้นเว็บ</button>
+    <button onclick="pushToCloudNow(true)" class="bg-violet-600 hover:bg-violet-500 text-white px-5 py-3 rounded-lg font-bold transition" title="บันทึกขึ้นคลาวด์ทันที">☁️ เซฟขึ้นเว็บ</button>
     <button onclick="saveProject()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-3 rounded-lg font-bold transition">💾 เซฟลงเครื่อง</button>
     <label class="cursor-pointer bg-amber-600 hover:bg-amber-500 text-white px-5 py-3 rounded-lg font-bold transition">
       📂 โหลดไฟล์
@@ -201,7 +238,7 @@ body.show-landing #landing{display:flex}
 </div>
 
 <!-- ================= แถบเครื่องมือบนสุดแบบ Word ================= -->
-<div id="topToolbar" class="hide-in-store hide-on-capture w-full max-w-6xl mb-4 bg-gray-900/95 backdrop-blur border border-cyan-500/40 rounded-xl p-3 shadow-lg z-[90]">
+<div id="topToolbar" class="hide-in-store hide-on-capture w-full max-w-6xl mb-4 bg-gray-900/95 backdrop-blur border border-amber-500/40 rounded-xl p-3 shadow-lg z-[90]">
   <div id="toolbarHint" class="text-center text-gray-500 text-sm py-1.5">🖱️ คลิกข้อความ/รูปเพื่อแก้ไข • Ctrl+คลิก หรือ ลากคลุมพื้นที่เพื่อเลือกหลายรูป • ตอนลากจะมีเส้นไกด์ช่วยจัดแนว</div>
 
   <div id="textToolbar" class="hidden flex-wrap items-center gap-2 justify-center">
@@ -267,27 +304,27 @@ body.show-landing #landing{display:flex}
 
 <!-- GAME MODE -->
 <section id="gameMode" class="w-full flex flex-col items-center">
-  <div class="hide-in-store hide-on-capture w-full max-w-6xl bg-gray-900 border border-cyan-500/30 p-6 rounded-xl mb-6 flex flex-wrap gap-4 items-center justify-between">
+  <div class="hide-in-store hide-on-capture w-full max-w-6xl bg-gray-900 border border-violet-500/30 p-6 rounded-xl mb-6 flex flex-wrap gap-4 items-center justify-between">
     <div>
-      <h1 class="text-2xl font-bold text-cyan-400">GAME CATALOG (1080p)</h1>
+      <h1 class="text-2xl font-bold text-violet-300">GAME CATALOG (1080p)</h1>
       <p class="text-sm text-gray-400 mt-1">อัปโหลดรูป • คลิกข้อความ/รูปเพื่อแก้ไขที่แถบด้านบน • Ctrl + ลูกกลิ้งเมาส์ = ซูมพื้นที่ทำงาน</p>
     </div>
     <div class="flex flex-col gap-2">
-      <div class="flex items-center gap-3 bg-gray-800 px-4 py-2 rounded-lg border border-cyan-500/20">
-        <label class="text-sm text-cyan-300 font-semibold">🔍 ซูมรูปทั้งหมด:</label>
-        <input type="range" id="gameScaleSlider" min="0.2" max="6" step="0.01" value="1.8" class="accent-cyan-400 cursor-pointer w-24" oninput="updateScale('game', this.value); syncToCloud();">
-        <input type="number" id="gameScaleValue" step="0.01" value="1.80" class="w-16 bg-gray-700 text-cyan-400 font-bold text-center rounded border border-cyan-500/50 outline-none h-7" onchange="updateScale('game', this.value); syncToCloud();" oninput="updateScale('game', this.value);">
+      <div class="flex items-center gap-3 bg-gray-800 px-4 py-2 rounded-lg border border-violet-500/20">
+        <label class="text-sm text-violet-300 font-semibold">🔍 ซูมรูปทั้งหมด:</label>
+        <input type="range" id="gameScaleSlider" min="0.2" max="6" step="0.01" value="1.8" class="accent-violet-400 cursor-pointer w-24" oninput="updateScale('game', this.value); syncToCloud();">
+        <input type="number" id="gameScaleValue" step="0.01" value="1.80" class="w-16 bg-gray-700 text-violet-300 font-bold text-center rounded border border-violet-500/50 outline-none h-7" onchange="updateScale('game', this.value); syncToCloud();" oninput="updateScale('game', this.value);">
         <span class="text-gray-500 mx-1">|</span>
-        <label class="text-sm text-pink-300 font-semibold">🗂️ ย่อเลย์เอาต์:</label>
-        <input type="range" id="gameGridScaleSlider" min="0.3" max="1.5" step="0.01" value="1.00" class="accent-pink-400 cursor-pointer w-24" oninput="updateGridScale('game', this.value); syncToCloud();">
-        <input type="number" id="gameGridScaleValue" step="0.01" value="1.00" class="w-16 bg-gray-700 text-pink-400 font-bold text-center rounded border border-pink-500/50 outline-none h-7" onchange="updateGridScale('game', this.value); syncToCloud();" oninput="updateGridScale('game', this.value);">
+        <label class="text-sm text-violet-300 font-semibold">🗂️ ย่อเลย์เอาต์:</label>
+        <input type="range" id="gameGridScaleSlider" min="0.3" max="1.5" step="0.01" value="1.00" class="accent-violet-300 cursor-pointer w-24" oninput="updateGridScale('game', this.value); syncToCloud();">
+        <input type="number" id="gameGridScaleValue" step="0.01" value="1.00" class="w-16 bg-gray-700 text-violet-300 font-bold text-center rounded border border-violet-500/50 outline-none h-7" onchange="updateGridScale('game', this.value); syncToCloud();" oninput="updateGridScale('game', this.value);">
       </div>
     </div>
     <div class="flex gap-3">
       <button onclick="toggleOverviewMode()" class="btn-overview bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition">👁️ ซ่อนเครื่องมือ</button>
       <button onclick="toggleAllCardsLock()" class="bg-amber-700 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition">🔒 ล็อค/ปลดทั้งหมด</button>
       <button onclick="addGlobalText('gameCaptureArea')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-semibold text-sm">➕ ข้อความอิสระ</button>
-      <label class="cursor-pointer bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-semibold text-sm">📂 เพิ่มรูปไอเทม
+      <label class="cursor-pointer bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg font-semibold text-sm">📂 เพิ่มรูปไอเทม
         <input type="file" id="gameImageUpload" class="hidden" accept="image/*" multiple>
       </label>
       <button onclick="previewImage('gameCaptureArea','game_banner')" class="bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg font-semibold text-sm">👀 พรีวิว</button>
@@ -310,30 +347,30 @@ body.show-landing #landing{display:flex}
 
 <!-- CAR MODE -->
 <section id="carMode" class="w-full flex flex-col items-center hidden">
-  <div class="hide-in-store hide-on-capture w-full max-w-6xl bg-gray-900 border border-pink-500/30 p-6 rounded-xl mb-6 flex flex-wrap gap-4 items-center justify-between">
+  <div class="hide-in-store hide-on-capture w-full max-w-6xl bg-gray-900 border border-amber-500/30 p-6 rounded-xl mb-6 flex flex-wrap gap-4 items-center justify-between">
     <div>
-      <h1 class="text-2xl font-bold text-pink-400">VEHICLE RENTAL (1080p)</h1>
+      <h1 class="text-2xl font-bold text-amber-300">VEHICLE RENTAL (1080p)</h1>
       <p class="text-sm text-gray-400 mt-1">อัปโหลดรูป • คลิกข้อความ/รูปเพื่อแก้ไขที่แถบด้านบน • Ctrl + ลูกกลิ้งเมาส์ = ซูมพื้นที่ทำงาน</p>
     </div>
     <div class="flex flex-col gap-2">
-      <div class="flex items-center gap-3 bg-gray-800 px-4 py-2 rounded-lg border border-pink-500/20">
-        <label class="text-sm text-pink-300 font-semibold">🔍 ซูมรูปทั้งหมด:</label>
-        <input type="range" id="carScaleSlider" min="0.2" max="6" step="0.01" value="1.0" class="accent-pink-400 cursor-pointer w-24" oninput="updateScale('car', this.value); syncToCloud();">
-        <input type="number" id="carScaleValue" step="0.01" value="1.00" class="w-16 bg-gray-700 text-pink-400 font-bold text-center rounded border border-pink-500/50 outline-none h-7" onchange="updateScale('car', this.value); syncToCloud();" oninput="updateScale('car', this.value);">
+      <div class="flex items-center gap-3 bg-gray-800 px-4 py-2 rounded-lg border border-amber-500/20">
+        <label class="text-sm text-amber-300 font-semibold">🔍 ซูมรูปทั้งหมด:</label>
+        <input type="range" id="carScaleSlider" min="0.2" max="6" step="0.01" value="1.0" class="accent-amber-400 cursor-pointer w-24" oninput="updateScale('car', this.value); syncToCloud();">
+        <input type="number" id="carScaleValue" step="0.01" value="1.00" class="w-16 bg-gray-700 text-amber-300 font-bold text-center rounded border border-amber-500/50 outline-none h-7" onchange="updateScale('car', this.value); syncToCloud();" oninput="updateScale('car', this.value);">
         <span class="text-gray-500 mx-1">|</span>
-        <label class="text-sm text-cyan-300 font-semibold">🗂️ ย่อเลย์เอาต์:</label>
-        <input type="range" id="carGridScaleSlider" min="0.3" max="1.5" step="0.01" value="1.00" class="accent-cyan-400 cursor-pointer w-24" oninput="updateGridScale('car', this.value); syncToCloud();">
-        <input type="number" id="carGridScaleValue" step="0.01" value="1.00" class="w-16 bg-gray-700 text-cyan-400 font-bold text-center rounded border border-pink-500/50 outline-none h-7" onchange="updateGridScale('car', this.value); syncToCloud();" oninput="updateGridScale('car', this.value);">
+        <label class="text-sm text-amber-300 font-semibold">🗂️ ย่อเลย์เอาต์:</label>
+        <input type="range" id="carGridScaleSlider" min="0.3" max="1.5" step="0.01" value="1.00" class="accent-amber-300 cursor-pointer w-24" oninput="updateGridScale('car', this.value); syncToCloud();">
+        <input type="number" id="carGridScaleValue" step="0.01" value="1.00" class="w-16 bg-gray-700 text-amber-300 font-bold text-center rounded border border-amber-500/50 outline-none h-7" onchange="updateGridScale('car', this.value); syncToCloud();" oninput="updateGridScale('car', this.value);">
       </div>
     </div>
     <div class="flex gap-3">
       <button onclick="toggleOverviewMode()" class="btn-overview bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition">👁️ ซ่อนเครื่องมือ</button>
       <button onclick="toggleAllCardsLock()" class="bg-amber-700 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-semibold text-sm transition">🔒 ล็อค/ปลดทั้งหมด</button>
       <button onclick="addGlobalText('carCaptureArea')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-semibold text-sm">➕ ข้อความอิสระ</button>
-      <label class="cursor-pointer bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-lg font-semibold text-sm">📂 เพิ่มรูปรถ
+      <label class="cursor-pointer bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg font-semibold text-sm">📂 เพิ่มรูปรถ
         <input type="file" id="carImageUpload" class="hidden" accept="image/*" multiple>
       </label>
-      <button onclick="previewImage('carCaptureArea','car_rental')" class="bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg font-semibold text-sm">👀 พรีวิว</button>
+      <button onclick="previewImage('carCaptureArea','car_rental')" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg font-semibold text-sm">👀 พรีวิว</button>
       <button onclick="copyModeLink('carCaptureArea','car_rental')" class="bg-sky-600 hover:bg-sky-500 text-white px-4 py-2 rounded-lg font-semibold text-sm" title="สร้างรูปแล้วคัดลอกลิงก์ทันที ไม่ต้องดาวน์โหลด">🔗 ลิงก์รูป</button>
     </div>
   </div>
@@ -821,8 +858,8 @@ function toggleStoreEdit() {
 function paintStoreNav() {
   const m = (typeof activeMode === 'function') ? activeMode() : 'game';
   const g = document.getElementById('storeBtnGame'), c = document.getElementById('storeBtnCar');
-  if (g) { const on = m === 'game'; g.className = 'px-4 py-2 rounded-lg font-bold text-sm transition border-2 ' + (on ? 'bg-cyan-600 border-cyan-400 text-white' : 'bg-transparent border-gray-600 text-gray-400 hover:text-white'); }
-  if (c) { const on = m === 'car'; c.className = 'px-4 py-2 rounded-lg font-bold text-sm transition border-2 ' + (on ? 'bg-pink-600 border-pink-400 text-white' : 'bg-transparent border-gray-600 text-gray-400 hover:text-white'); }
+  if (g) { const on = m === 'game'; g.className = 'px-4 py-2 rounded-lg font-bold text-sm transition border-2 ' + (on ? 'bg-violet-600 border-violet-400 text-white' : 'bg-transparent border-gray-600 text-gray-400 hover:text-white'); }
+  if (c) { const on = m === 'car'; c.className = 'px-4 py-2 rounded-lg font-bold text-sm transition border-2 ' + (on ? 'bg-amber-600 border-amber-400 text-white' : 'bg-transparent border-gray-600 text-gray-400 hover:text-white'); }
 }
 function toggleAllCardsLock() {
   const mode = activeMode();
@@ -1111,10 +1148,16 @@ function renderRentBadges() {
   try {
     document.querySelectorAll('#gameGrid .item-card, #carGrid .item-card').forEach(updateRentBadge);
   } catch(e) {}
+  updateShopStats();
 }
 function setRentDays(days) {
   if (!selectedCard) return showToast('⚠️ คลิกเลือกรูปรถก่อน', true);
-  const card = selectedCard.querySelector('.item-card');
+  setRentDaysFor(selectedCard, days);
+  try { populateImageToolbar(selectedCard); } catch(e) {}
+}
+function setRentDaysFor(wrapper, days) {
+  if (!wrapper || !wrapper.isConnected) return;
+  const card = wrapper.querySelector('.item-card');
   if (!card) return;
   if (days > 0) {
     card.dataset.rentUntil = String(Date.now() + days * 86400000);
@@ -1128,13 +1171,123 @@ function setRentDays(days) {
   }
   updateRentBadge(card);
   syncAllRibbons();
-  try { populateImageToolbar(selectedCard); } catch(e) {}
+  updateShopStats();
   syncToCloud();
+}
+function cardDisplayName(wrapper) {
+  try {
+    const t = wrapper.querySelector('.name-wrapper .txt-target');
+    const v = (t && (t.value || t.textContent) || '').trim();
+    if (v) return v;
+  } catch(e) {}
+  return '(ยังไม่มีชื่อ)';
+}
+/* ---- 📊 สถิติหน้าร้าน + ตัวนับติดเช่า ---- */
+function collectRentItems() {
+  const items = [];
+  [['gameGrid', 'game', '🎮 GAME'], ['carGrid', 'car', '🚗 CAR']].forEach(function(g) {
+    Array.from(document.getElementById(g[0]).querySelectorAll('.item-card-wrapper')).forEach(function(w) {
+      const card = w.querySelector('.item-card');
+      if (!card) return;
+      const until = parseInt((card.dataset.rentUntil || '0'), 10) || 0;
+      if (!until) return;
+      items.push({ wrapper: w, mode: g[1], modeLabel: g[2], name: cardDisplayName(w), until: until, left: until - Date.now() });
+    });
+  });
+  items.sort(function(a, b){ return a.left - b.left; });
+  return items;
+}
+function updateShopStats() {
+  try {
+    const cars = document.getElementById('carGrid').querySelectorAll('.item-card-wrapper').length;
+    const games = document.getElementById('gameGrid').querySelectorAll('.item-card-wrapper').length;
+    const now = Date.now();
+    let rented = 0;
+    document.querySelectorAll('#carGrid .item-card').forEach(function(c) {
+      if (parseInt(c.dataset.rentUntil || '0', 10) > now) rented++;
+    });
+    const rc = document.getElementById('rentCount');
+    if (rc) rc.textContent = rented;
+    const sc = document.getElementById('statCars');
+    if (sc) sc.textContent = '🚗 ' + cars + ' คัน • ว่าง ' + (cars - rented) + ' • เช่า ' + rented;
+    const sg = document.getElementById('statGames');
+    if (sg) sg.textContent = '🎮 ' + games + ' รายการ';
+  } catch(e) {}
+}
+/* ---- ⚡ เมนูด่วนหน้าร้าน ---- */
+let quickTarget = null;
+function openQuickMenu(x, y, wrapper) {
+  quickTarget = wrapper;
+  const q = document.getElementById('quickMenu');
+  try { document.getElementById('quickTitle').textContent = cardDisplayName(wrapper); } catch(e) {}
+  q.classList.remove('hidden');
+  const w = 240, h = 320;
+  q.style.left = Math.max(8, Math.min(x - w / 2, window.innerWidth - w - 8)) + 'px';
+  q.style.top = Math.max(8, Math.min(y + 12, window.innerHeight - h - 8)) + 'px';
+}
+function closeQuickMenu() {
+  quickTarget = null;
+  try { document.getElementById('quickMenu').classList.add('hidden'); } catch(e) {}
+}
+function quickRent(days) {
+  const w = quickTarget;
+  closeQuickMenu();
+  if (!w) return;
+  setRentDaysFor(w, days);
+}
+function quickCopyLink() {
+  closeQuickMenu();
+  const m = (typeof activeMode === 'function') ? activeMode() : 'game';
+  copyModeLink(m + 'CaptureArea', m === 'car' ? 'car_rental' : 'game_banner');
+}
+function quickEdit() {
+  const w = quickTarget;
+  closeQuickMenu();
+  setStorefront(false);
+  if (w && w.isConnected) selectCard(w, false);
+}
+/* ---- ⏳ ห้องรวมรถติดเช่า ---- */
+let rentModalItems = [];
+function openRentModal() {
+  rentModalItems = collectRentItems();
+  const list = document.getElementById('rentList');
+  document.getElementById('rentModalCount').textContent = rentModalItems.length;
+  list.innerHTML = '';
+  if (!rentModalItems.length) {
+    list.innerHTML = '<div class="text-center text-gray-400 py-10 text-lg">✅ ไม่มีรถติดเช่า รถว่างทั้งหมดพร้อมปล่อย!</div>';
+  } else {
+    rentModalItems.forEach(function(it, i) {
+      const row = document.createElement('div');
+      row.className = 'rent-row';
+      const leftCls = it.left <= 0 ? 'text-red-400 font-black' : 'text-amber-300 font-black';
+      row.innerHTML = '<span class="text-xs bg-gray-700 rounded px-2 py-1 whitespace-nowrap">' + it.modeLabel + '</span>' +
+        '<span class="flex-1 font-bold truncate">' + it.name.replace(/</g, '&lt;') + '</span>' +
+        '<span class="' + leftCls + ' whitespace-nowrap font-variant-numeric:tabular-nums">' + (it.left <= 0 ? '⏰ หมดเวลา' : '⏳ ' + fmtDur(it.left)) + '</span>';
+      const btn = document.createElement('button');
+      btn.className = 'bg-slate-600 hover:bg-slate-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg whitespace-nowrap';
+      btn.textContent = 'ยกเลิกเช่า';
+      btn.onclick = (function(idx){ return function(){ releaseRentAt(idx); }; })(i);
+      row.appendChild(btn);
+      list.appendChild(row);
+    });
+  }
+  document.getElementById('rentModal').classList.add('open');
+}
+function closeRentModal() {
+  try { document.getElementById('rentModal').classList.remove('open'); } catch(e) {}
+  rentModalItems = [];
+}
+function releaseRentAt(i) {
+  const it = rentModalItems[i];
+  if (!it || !it.wrapper.isConnected) return showToast('⚠️ การ์ดนี้ไม่อยู่แล้ว', true);
+  setRentDaysFor(it.wrapper, 0);
+  openRentModal();
 }
 setInterval(function() {
   if (document.hidden) return;
   try {
     document.querySelectorAll('.item-card[data-rent-until]').forEach(updateRentBadge);
+    updateShopStats();
   } catch(e) {}
 }, 1000);
 
@@ -1365,7 +1518,16 @@ document.addEventListener('mousedown', function(e) {
 
   if (!isDraggableText && ['INPUT','TEXTAREA','BUTTON','SELECT','OPTION','LABEL'].indexOf(tag)>=0) return;
   if (!isDraggableText && e.target.closest('.hide-on-capture')) return;
-  if (isOverviewMode) return;
+  if (e.target.closest('#quickMenu') || e.target.closest('#rentModal')) return;
+  if (isOverviewMode) {
+    // หน้าร้าน: คลิกรูป = เมนูด่วน (เช่า/เอาป้ายออก/ก๊อปลิงก์) คลิกที่ว่าง = ปิดเมนู
+    if (document.body.classList.contains('storefront')) {
+      const cw = e.target.closest('.item-card-wrapper');
+      if (cw) openQuickMenu(e.clientX, e.clientY, cw);
+      else closeQuickMenu();
+    }
+    return;
+  }
 
   if (chip) {
     const w=chip.closest('.drag-wrapper');
@@ -1528,13 +1690,13 @@ function applyImageStyles(card) {
   if (!cont || !img) return;
   cont.style.clipPath = shapeClipPath(d.shape || 'none');
   cont.style.borderRadius = (d.radius || 0) + 'px';
-  cont.style.border = (parseFloat(d.borderWidth) > 0) ? (d.borderWidth + 'px solid ' + (d.borderColor || '#00ffff')) : 'none';
+  cont.style.border = (parseFloat(d.borderWidth) > 0) ? (d.borderWidth + 'px solid ' + (d.borderColor || '#fbbf24')) : 'none';
   cont.style.boxShadow = d.shadow === '1' ? '0 12px 34px rgba(0,0,0,.65)' : 'none';
   img.style.filter = 'brightness(' + (d.brightness || 100) + '%) contrast(' + (d.contrast || 100) + '%) saturate(' + (d.saturate || 100) + '%) grayscale(' + (d.grayscale || 0) + '%) blur(' + (d.blur || 0) + 'px) hue-rotate(' + (d.hue || 0) + 'deg)';
 }
 function defaultImgDataset(card) {
   const d = card.dataset;
-  d.shape = d.shape || 'none'; d.radius = d.radius || '0'; d.borderWidth = d.borderWidth || '0'; d.borderColor = d.borderColor || '#00ffff'; d.shadow = d.shadow || '0';
+  d.shape = d.shape || 'none'; d.radius = d.radius || '0'; d.borderWidth = d.borderWidth || '0'; d.borderColor = d.borderColor || '#fbbf24'; d.shadow = d.shadow || '0';
   d.brightness = d.brightness || '100'; d.contrast = d.contrast || '100'; d.saturate = d.saturate || '100'; d.grayscale = d.grayscale || '0'; d.blur = d.blur || '0'; d.hue = d.hue || '0';
 }
 
@@ -1604,7 +1766,7 @@ function addCardField(kind) {
   if (existing) { selectText(existing); return; }
   const mode = card.classList.contains('game-card') ? 'game' : 'car';
   const placeholders = { name: 'ชื่อสินค้า/รุ่นรถ', detail: 'รายละเอียด...', price: '฿ ราคา' };
-  const accent = mode === 'game' ? '#00ffff' : '#ff007f';
+  const accent = mode === 'game' ? '#a78bfa' : '#fbbf24';
   const isTextarea = kind === 'detail';
   const w = makeFieldWrapper(kind, isTextarea, placeholders[kind], {
     size: SIZE[mode][kind], color: kind === 'detail' ? '#e2e8f0' : accent, glowColor: kind === 'detail' ? '#e2e8f0' : accent, glowSize: kind === 'detail' ? 0 : 14, bold: kind !== 'detail'
@@ -1786,6 +1948,7 @@ function applyProject(data, opts) {
   });
   refreshEmpty();
   syncAllRibbons();
+  try { renderRentBadges(); } catch(e) {}
   switchTab(data.activeTab === 'car' ? 'car' : 'game');
   if (!opts.silent) { saveLocal(); }
 }
@@ -2011,7 +2174,7 @@ async function copyModeLink(targetId, prefix) {
 document.addEventListener('keydown',function(e){
   const tag=(e.target&&e.target.tagName)||'', editing=['INPUT','TEXTAREA','SELECT'].indexOf(tag)>=0;
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='a'&&!editing){e.preventDefault();selectAllCards();}
-  else if(e.key==='Escape'){if(marquee)finishMarquee();else deselectAll();}
+  else if(e.key==='Escape'){if(marquee)finishMarquee();else deselectAll(); try{closeQuickMenu();closeRentModal();}catch(err){}}
   else if((e.key==='Delete'||e.key==='Backspace')&&!editing&&selectedCards.size){
       e.preventDefault();
       deleteSelectedCard();
