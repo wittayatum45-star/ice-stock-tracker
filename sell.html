@@ -1831,7 +1831,9 @@ async function copyImageLinkFromDataUrl(dataUrl, name, caption) {
   showToast('⏳ กำลังส่งรูปไป Discord...');
   try {
     const blob = await (await fetch(dataUrl)).blob();
+    console.log('link: แคปรูปได้ ' + Math.round(blob.size / 1024) + 'KB, เริ่มอัปโหลด...');
     const url = await uploadImageForLink(blob, name, caption);
+    console.log('link: ได้ URL แล้ว ' + url.slice(0, 60) + '...');
     const ok = await copyTextAuto(url);
     if (ok) showToast('🔗 คัดลอกลิงก์ Discord แล้ว! เอาไปวางได้เลย');
     else { showToast('🔗 ได้ลิงก์แล้ว แต่ก๊อปอัตโนมัติไม่ได้', true); try { prompt('คัดลอกลิงก์รูป:', url); } catch(e) {} }
@@ -1855,7 +1857,7 @@ async function copyModeLink(targetId, prefix) {
     const dataUrl = await capture(targetId, 1);
     const label = prefix === 'car_rental' ? 'CAR RENTAL' : 'GAME SHOP';
     await copyImageLinkFromDataUrl(dataUrl, prefix + '_1080p_' + Date.now() + '.png', 'CATALOG ห้อง:' + currentRoom + ' • ' + label + ' • 1080p');
-  } catch (err) { console.error(err); showToast('❌ สร้างลิงก์ไม่สำเร็จ', true); }
+  } catch (err) { console.error(err); showToast('❌ แคปรูปไม่สำเร็จ: ' + shortErr(err), true); }
 }
 
 /* ================= เริ่มต้น (FIXED: กู้ localStorage ก่อน แล้วค่อยฟัง cloud) ================= */
@@ -1873,6 +1875,7 @@ document.getElementById('gameImageUpload').addEventListener('change', function (
 document.getElementById('carImageUpload').addEventListener('change', function (e) { handleUpload(e, 'car'); });
 document.getElementById('previewButtons').insertAdjacentHTML('beforeend', '<button onclick="download4K()" class="bg-gradient-to-r from-fuchsia-500 to-purple-500 hover:from-fuchsia-400 hover:to-purple-400 text-white px-10 py-3 rounded-lg font-bold transition text-xl">⬇️ ดาวน์โหลด 4K</button>');
 (function initApp(){
+  console.log('APP BUILD: 2026-10-07-discord-link (webhook+cloudinary+catbox)');
   try {
     const urlRoom = getRoomFromURL();
     if (urlRoom) { currentRoom = urlRoom; }
