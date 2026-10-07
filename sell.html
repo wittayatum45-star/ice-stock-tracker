@@ -1700,7 +1700,20 @@ async function download4K() {
 }
 
 /* ================= คัดลอกลิงก์รูป (ไม่ต้องดาวน์โหลด/ไม่ต้องผ่าน Discord) =================
-   แคปรูป 1080p -> อัปโหลดไปโฮสต์รูปฟรี (catbox, ไม่ต้องสมัคร/ไม่ต้องจ่าย) -> คัดลอก URL ให้อัตโนมัติ */
+   วิธีตั้งค่าให้ชัวร์ 100% (ฟรี ไม่ต้องผูกบัตร):
+   1) สมัคร https://cloudinary.com (ฟรี) -> Settings -> Upload -> Upload presets -> Add
+      ตั้ง Signing Mode = Unsigned -> Save จะได้ชื่อ preset มา
+   2) เอา Cloud name (อยู่หน้า Dashboard) + ชื่อ preset มาใส่ 2 บรรทัดล่างนี้ แล้วอัปไฟล์ขึ้น GitHub
+   ถ้ายังไม่ใส่ โค้ดจะลองโฮสต์ฟรีที่ไม่ต้องตั้งค่าก่อน (catbox) ถ้าโดนบล็อกจะบอกให้มาตั้งค่านี้ */
+const LINK_HOST = {
+  cloudinaryName: '',    // เช่น 'my-shop-123'
+  cloudinaryPreset: ''   // เช่น 'unsigned_shop'
+};
+function shortErr(e) {
+  const m = String((e && e.message) || e || '');
+  if (/failed to fetch/i.test(m)) return 'เครือข่าย/CORS โดนบล็อก';
+  return m.slice(0, 100);
+}
 async function uploadToCatbox(blob, filename) {
   const fd = new FormData();
   fd.append('reqtype', 'fileupload');
@@ -1710,6 +1723,25 @@ async function uploadToCatbox(blob, filename) {
   const url = (await res.text()).trim();
   if (url.indexOf('http') !== 0) throw new Error(url.slice(0, 120) || 'โฮสต์ตอบกลับผิดปกติ');
   return url;
+}
+async function uploadToCloudinary(blob, filename) {
+  const fd = new FormData();
+  fd.append('file', blob, filename || ('catalog_' + Date.now() + '.png'));
+  fd.append('upload_preset', LINK_HOST.cloudinaryPreset);
+  const res = await fetch('https://api.cloudinary.com/v1_1/' + LINK_HOST.cloudinaryName + '/image/upload', { method: 'POST', body: fd });
+  const j = await res.json().catch(function(){ return {}; });
+  if (!res.ok || !j.secure_url) throw new Error((j.error && j.error.message) || ('HTTP ' + res.status));
+  return j.secure_url;
+}
+async function uploadImageForLink(blob, filename) {
+  const errs = [];
+  try { return await uploadToCatbox(blob, filename); }
+  catch (e) { errs.push('catbox: ' + shortErr(e)); console.warn('catbox failed:', e); }
+  if (LINK_HOST.cloudinaryName && LINK_HOST.cloudinaryPreset) {
+    try { return await uploadToCloudinary(blob, filename); }
+    catch (e) { errs.push('cloudinary: ' + shortErr(e)); console.warn('cloudinary failed:', e); }
+  }
+  throw new Error(errs.join(' | ') || 'อัปโหลดไม่ผ่าน');
 }
 async function copyTextAuto(t) {
   try { await navigator.clipboard.writeText(t); return true; } catch(e) {}
@@ -1726,11 +1758,16 @@ async function copyImageLinkFromDataUrl(dataUrl, name) {
   showToast('⏳ กำลังอัปโหลดรูปเพื่อสร้างลิงก์...');
   try {
     const blob = await (await fetch(dataUrl)).blob();
-    const url = await uploadToCatbox(blob, name);
+    const url = await uploadImageForLink(blob, name);
     const ok = await copyTextAuto(url);
     if (ok) showToast('🔗 คัดลอกลิงก์แล้ว! เอาไปวางใน Discord ได้เลย');
     else { showToast('🔗 ได้ลิงก์แล้ว แต่ก๊อปอัตโนมัติไม่ได้', true); try { prompt('คัดลอกลิงก์รูป:', url); } catch(e) {} }
-  } catch (err) { console.error(err); showToast('❌ สร้างลิงก์ไม่สำเร็จ: ' + (err.message || ''), true); }
+  } catch (err) {
+    console.error(err);
+    const needSetup = !LINK_HOST.cloudinaryName || !LINK_HOST.cloudinaryPreset;
+    showToast('❌ สร้างลิงก์ไม่สำเร็จ' + (needSetup ? ' — วิธีชัวร์: ใส่ Cloudinary ฟรี 2 ค่าในโค้ด (ดูคอมเมนต์ LINK_HOST)' : ''), true);
+    try { prompt('สาเหตุ (เอาไปเช็ค): ' + String((err && err.message) || err), ''); } catch(e) {}
+  }
 }
 async function copyPreviewLink() {
   if (!currentPreviewDataUrl) return showToast('⚠️ กดพรีวิวก่อน แล้วค่อยกดปุ่มนี้', true);
