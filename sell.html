@@ -121,6 +121,7 @@ input[type="number"]{-moz-appearance:textfield}
   </div>
   <div class="mt-6 flex gap-4" id="previewButtons">
     <button onclick="downloadFromPreview()" class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white px-10 py-3 rounded-lg font-bold transition text-xl">⬇️ ดาวน์โหลด 1080p</button>
+    <button onclick="copyPreviewLink()" class="bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-400 hover:to-cyan-400 text-white px-10 py-3 rounded-lg font-bold transition text-xl">🔗 คัดลอกลิงก์รูป</button>
   </div>
 </div>
 
@@ -235,6 +236,7 @@ input[type="number"]{-moz-appearance:textfield}
         <input type="file" id="gameImageUpload" class="hidden" accept="image/*" multiple>
       </label>
       <button onclick="previewImage('gameCaptureArea','game_banner')" class="bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg font-semibold text-sm">👀 พรีวิว</button>
+      <button onclick="copyModeLink('gameCaptureArea','game_banner')" class="bg-sky-600 hover:bg-sky-500 text-white px-4 py-2 rounded-lg font-semibold text-sm" title="สร้างรูปแล้วคัดลอกลิงก์ทันที ไม่ต้องดาวน์โหลด">🔗 ลิงก์รูป</button>
     </div>
   </div>
   <div class="scroll-wrapper">
@@ -277,6 +279,7 @@ input[type="number"]{-moz-appearance:textfield}
         <input type="file" id="carImageUpload" class="hidden" accept="image/*" multiple>
       </label>
       <button onclick="previewImage('carCaptureArea','car_rental')" class="bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg font-semibold text-sm">👀 พรีวิว</button>
+      <button onclick="copyModeLink('carCaptureArea','car_rental')" class="bg-sky-600 hover:bg-sky-500 text-white px-4 py-2 rounded-lg font-semibold text-sm" title="สร้างรูปแล้วคัดลอกลิงก์ทันที ไม่ต้องดาวน์โหลด">🔗 ลิงก์รูป</button>
     </div>
   </div>
   <div class="scroll-wrapper">
@@ -1694,6 +1697,51 @@ async function download4K() {
   showToast('⏳ กำลังสร้างไฟล์ 4K (3840×2160)...');
   try { await saveDataUrl(await capture(lastCapture.targetId, 2), lastCapture.prefix + '_4K_' + Date.now() + '.png'); showToast('✅ ดาวน์โหลด 4K สำเร็จ!'); }
   catch (err) { console.error(err); showToast('❌ สร้าง 4K ไม่สำเร็จ', true); }
+}
+
+/* ================= คัดลอกลิงก์รูป (ไม่ต้องดาวน์โหลด/ไม่ต้องผ่าน Discord) =================
+   แคปรูป 1080p -> อัปโหลดไปโฮสต์รูปฟรี (catbox, ไม่ต้องสมัคร/ไม่ต้องจ่าย) -> คัดลอก URL ให้อัตโนมัติ */
+async function uploadToCatbox(blob, filename) {
+  const fd = new FormData();
+  fd.append('reqtype', 'fileupload');
+  fd.append('fileToUpload', blob, filename || ('catalog_' + Date.now() + '.png'));
+  const res = await fetch('https://catbox.moe/user/api.php', { method: 'POST', body: fd });
+  if (!res.ok) throw new Error('อัปโหลดไม่ผ่าน (HTTP ' + res.status + ')');
+  const url = (await res.text()).trim();
+  if (url.indexOf('http') !== 0) throw new Error(url.slice(0, 120) || 'โฮสต์ตอบกลับผิดปกติ');
+  return url;
+}
+async function copyTextAuto(t) {
+  try { await navigator.clipboard.writeText(t); return true; } catch(e) {}
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    const ok = document.execCommand('copy');
+    ta.remove();
+    return !!ok;
+  } catch(e) { return false; }
+}
+async function copyImageLinkFromDataUrl(dataUrl, name) {
+  showToast('⏳ กำลังอัปโหลดรูปเพื่อสร้างลิงก์...');
+  try {
+    const blob = await (await fetch(dataUrl)).blob();
+    const url = await uploadToCatbox(blob, name);
+    const ok = await copyTextAuto(url);
+    if (ok) showToast('🔗 คัดลอกลิงก์แล้ว! เอาไปวางใน Discord ได้เลย');
+    else { showToast('🔗 ได้ลิงก์แล้ว แต่ก๊อปอัตโนมัติไม่ได้', true); try { prompt('คัดลอกลิงก์รูป:', url); } catch(e) {} }
+  } catch (err) { console.error(err); showToast('❌ สร้างลิงก์ไม่สำเร็จ: ' + (err.message || ''), true); }
+}
+async function copyPreviewLink() {
+  if (!currentPreviewDataUrl) return showToast('⚠️ กดพรีวิวก่อน แล้วค่อยกดปุ่มนี้', true);
+  await copyImageLinkFromDataUrl(currentPreviewDataUrl, currentDownloadName || ('preview_' + Date.now() + '.png'));
+}
+async function copyModeLink(targetId, prefix) {
+  showToast('⏳ กำลังสร้างรูป 1080p...');
+  try {
+    const dataUrl = await capture(targetId, 1);
+    await copyImageLinkFromDataUrl(dataUrl, prefix + '_1080p_' + Date.now() + '.png');
+  } catch (err) { console.error(err); showToast('❌ สร้างลิงก์ไม่สำเร็จ', true); }
 }
 
 /* ================= เริ่มต้น (FIXED: กู้ localStorage ก่อน แล้วค่อยฟัง cloud) ================= */
