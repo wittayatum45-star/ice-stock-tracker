@@ -122,6 +122,7 @@ input[type="number"]{-moz-appearance:textfield}
   <div class="mt-6 flex gap-4" id="previewButtons">
     <button onclick="downloadFromPreview()" class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white px-10 py-3 rounded-lg font-bold transition text-xl">⬇️ ดาวน์โหลด 1080p</button>
     <button onclick="copyPreviewLink()" class="bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-400 hover:to-cyan-400 text-white px-10 py-3 rounded-lg font-bold transition text-xl">🔗 คัดลอกลิงก์รูป</button>
+    <button onclick="setupLinkConfig()" class="bg-slate-600 hover:bg-slate-500 text-white px-4 py-3 rounded-lg font-bold transition text-xl" title="ตั้งค่า Cloudinary ใหม่">⚙️</button>
   </div>
 </div>
 
@@ -1700,15 +1701,35 @@ async function download4K() {
 }
 
 /* ================= คัดลอกลิงก์รูป (ไม่ต้องดาวน์โหลด/ไม่ต้องผ่าน Discord) =================
-   วิธีตั้งค่าให้ชัวร์ 100% (ฟรี ไม่ต้องผูกบัตร):
-   1) สมัคร https://cloudinary.com (ฟรี) -> Settings -> Upload -> Upload presets -> Add
-      ตั้ง Signing Mode = Unsigned -> Save จะได้ชื่อ preset มา
-   2) เอา Cloud name (อยู่หน้า Dashboard) + ชื่อ preset มาใส่ 2 บรรทัดล่างนี้ แล้วอัปไฟล์ขึ้น GitHub
-   ถ้ายังไม่ใส่ โค้ดจะลองโฮสต์ฟรีที่ไม่ต้องตั้งค่าก่อน (catbox) ถ้าโดนบล็อกจะบอกให้มาตั้งค่านี้ */
+   ใช้ Cloudinary (ฟรี ไม่ผูกบัตร) เป็นทางหลัก — ตั้งค่า "ครั้งเดียวในหน้าเว็บ" ไม่ต้องแก้โค้ด:
+   1) สมัคร https://cloudinary.com (ฟรี) -> หน้า Dashboard จด "Cloud name"
+   2) Settings (ฟันเฟือง) -> Upload -> Upload presets -> Add upload preset
+      Signing Mode = Unsigned -> Save -> จด "ชื่อ preset"
+   3) กดปุ่ม 🔗 ลิงก์รูป -> เว็บจะถาม 2 ค่านี้ครั้งเดียว จำไว้ในเครื่องนี้ตลอดไป
+   (ถ้าอยากล็อกค่าในโค้ดเลยก็ใส่ใน LINK_HOST ด้านล่างได้) */
 const LINK_HOST = {
-  cloudinaryName: '',    // เช่น 'my-shop-123'
-  cloudinaryPreset: ''   // เช่น 'unsigned_shop'
+  cloudinaryName: 'rrwvj70y',    // ตั้งให้แล้ว พร้อมใช้
+  cloudinaryPreset: 'h6sz2e0s'   // unsigned preset พร้อมใช้
 };
+const LINK_CFG_KEY = 'imglink_cfg_v1';
+function getLinkCfg() {
+  if (LINK_HOST.cloudinaryName && LINK_HOST.cloudinaryPreset) return { name: LINK_HOST.cloudinaryName, preset: LINK_HOST.cloudinaryPreset };
+  try {
+    const o = JSON.parse(localStorage.getItem(LINK_CFG_KEY) || '{}');
+    if (o && o.name && o.preset) return o;
+  } catch(e) {}
+  return null;
+}
+function setupLinkConfig() {
+  const cur = getLinkCfg() || {};
+  const name = prompt('ตั้งค่าลิงก์รูป (ครั้งเดียว)\n1. สมัครฟรีที่ cloudinary.com\n2. จด Cloud name จากหน้า Dashboard\n\nใส่ Cloud name:', cur.name || '');
+  if (!name) return false;
+  const preset = prompt('3. ที่ cloudinary: Settings -> Upload -> Upload presets -> Add\nSigning Mode = Unsigned -> Save\n\nใส่ชื่อ preset:', cur.preset || '');
+  if (!preset) return false;
+  try { localStorage.setItem(LINK_CFG_KEY, JSON.stringify({ name: name.trim(), preset: preset.trim() })); } catch(e) {}
+  showToast('✅ จำค่าลิงก์รูปแล้ว กดปุ่ม 🔗 ได้เลย');
+  return true;
+}
 function shortErr(e) {
   const m = String((e && e.message) || e || '');
   if (/failed to fetch/i.test(m)) return 'เครือข่าย/CORS โดนบล็อก';
@@ -1724,24 +1745,28 @@ async function uploadToCatbox(blob, filename) {
   if (url.indexOf('http') !== 0) throw new Error(url.slice(0, 120) || 'โฮสต์ตอบกลับผิดปกติ');
   return url;
 }
-async function uploadToCloudinary(blob, filename) {
+async function uploadToCloudinary(blob, filename, cfg) {
+  cfg = cfg || getLinkCfg() || {};
   const fd = new FormData();
   fd.append('file', blob, filename || ('catalog_' + Date.now() + '.png'));
-  fd.append('upload_preset', LINK_HOST.cloudinaryPreset);
-  const res = await fetch('https://api.cloudinary.com/v1_1/' + LINK_HOST.cloudinaryName + '/image/upload', { method: 'POST', body: fd });
+  fd.append('upload_preset', cfg.preset);
+  const res = await fetch('https://api.cloudinary.com/v1_1/' + cfg.name + '/image/upload', { method: 'POST', body: fd });
   const j = await res.json().catch(function(){ return {}; });
   if (!res.ok || !j.secure_url) throw new Error((j.error && j.error.message) || ('HTTP ' + res.status));
   return j.secure_url;
 }
 async function uploadImageForLink(blob, filename) {
+  const cfg = getLinkCfg();
+  if (cfg) {
+    try { return await uploadToCloudinary(blob, filename, cfg); }
+    catch (e) { console.warn('cloudinary failed:', e); throw new Error('cloudinary: ' + shortErr(e) + ' (เช็คชื่อ preset ว่าเป็น Unsigned)'); }
+  }
   const errs = [];
   try { return await uploadToCatbox(blob, filename); }
   catch (e) { errs.push('catbox: ' + shortErr(e)); console.warn('catbox failed:', e); }
-  if (LINK_HOST.cloudinaryName && LINK_HOST.cloudinaryPreset) {
-    try { return await uploadToCloudinary(blob, filename); }
-    catch (e) { errs.push('cloudinary: ' + shortErr(e)); console.warn('cloudinary failed:', e); }
-  }
-  throw new Error(errs.join(' | ') || 'อัปโหลดไม่ผ่าน');
+  const err = new Error(errs.join(' | ') || 'อัปโหลดไม่ผ่าน');
+  err.needSetup = true;
+  throw err;
 }
 async function copyTextAuto(t) {
   try { await navigator.clipboard.writeText(t); return true; } catch(e) {}
@@ -1755,6 +1780,10 @@ async function copyTextAuto(t) {
   } catch(e) { return false; }
 }
 async function copyImageLinkFromDataUrl(dataUrl, name) {
+  if (!getLinkCfg()) {
+    showToast('⚙️ ตั้งค่าลิงก์รูปครั้งแรกก่อน (ฟรี 1 นาที)...');
+    if (!setupLinkConfig()) return;
+  }
   showToast('⏳ กำลังอัปโหลดรูปเพื่อสร้างลิงก์...');
   try {
     const blob = await (await fetch(dataUrl)).blob();
@@ -1764,9 +1793,11 @@ async function copyImageLinkFromDataUrl(dataUrl, name) {
     else { showToast('🔗 ได้ลิงก์แล้ว แต่ก๊อปอัตโนมัติไม่ได้', true); try { prompt('คัดลอกลิงก์รูป:', url); } catch(e) {} }
   } catch (err) {
     console.error(err);
-    const needSetup = !LINK_HOST.cloudinaryName || !LINK_HOST.cloudinaryPreset;
-    showToast('❌ สร้างลิงก์ไม่สำเร็จ' + (needSetup ? ' — วิธีชัวร์: ใส่ Cloudinary ฟรี 2 ค่าในโค้ด (ดูคอมเมนต์ LINK_HOST)' : ''), true);
-    try { prompt('สาเหตุ (เอาไปเช็ค): ' + String((err && err.message) || err), ''); } catch(e) {}
+    if (err && err.needSetup) {
+      if (setupLinkConfig()) { await copyImageLinkFromDataUrl(dataUrl, name); }
+    } else {
+      showToast('❌ สร้างลิงก์ไม่สำเร็จ: ' + shortErr(err) + ' (ดู Console)', true);
+    }
   }
 }
 async function copyPreviewLink() {
