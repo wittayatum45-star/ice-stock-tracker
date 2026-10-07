@@ -7,10 +7,10 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
 
-<!-- 🔥 Firebase SDK (Firestore + Storage) -->
+<!-- 🔥 Firebase SDK (Firestore + Auth เท่านั้น — ไม่ใช้ Storage/Blaze แล้ว) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-storage-compat.js"></script>
 
 <!-- 👁️ vConsole สำหรับส่อง Log บนมือถือ -->
 <script src="https://unpkg.com/vconsole@latest/dist/vconsole.min.js"></script>
@@ -135,11 +135,13 @@ input[type="number"]{-moz-appearance:textfield}
       <span class="text-xs text-gray-400 font-bold">👥 ห้องทำงาน:</span>
       <input type="text" id="roomInputUI" class="room-input" value="1" placeholder="ชื่อห้อง">
       <button onclick="changeFirebaseRoom()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-1.5 rounded font-bold text-sm transition">เชื่อมต่อ</button>
+      <button onclick="copyRoomLink()" class="bg-slate-600 hover:bg-slate-500 text-white px-3 py-1.5 rounded font-bold text-sm transition" title="คัดลอกลิงก์ห้องนี้ส่งให้คนอื่น">🔗 ลิงก์</button>
   </div>
 
   <div class="flex gap-3 px-2 items-center">
     <div id="cloudStatus" class="text-xs font-bold px-3 py-1 rounded-full bg-green-500/20 text-green-400 border border-green-500/50 transition-colors duration-300">☁️ Online</div>
-    
+
+    <button onclick="pushToCloudNow(true)" class="bg-cyan-600 hover:bg-cyan-500 text-white px-5 py-3 rounded-lg font-bold transition" title="บันทึกขึ้นคลาวด์ทันที">☁️ เซฟขึ้นเว็บ</button>
     <button onclick="saveProject()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-3 rounded-lg font-bold transition">💾 เซฟลงเครื่อง</button>
     <label class="cursor-pointer bg-amber-600 hover:bg-amber-500 text-white px-5 py-3 rounded-lg font-bold transition">
       📂 โหลดไฟล์
@@ -294,7 +296,10 @@ input[type="number"]{-moz-appearance:textfield}
 <div id="toast" class="fixed bottom-5 right-5 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg font-bold transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none z-[110] text-xl">✅ อัปเดตสำเร็จ!</div>
 
 <script>
-/* ================= REAL-TIME CLOUD SYNC (🔥 FIRESTORE + STORAGE V9) ================= */
+/* ================= REAL-TIME CLOUD SYNC (Firestore-only: ไม่ใช้ Storage/Blaze) ================
+   รูปถูกบีบอัดแล้วหั่นเป็นชิ้นเล็กๆ เก็บใน subcollection images ใต้เอกสารห้อง
+   เอกสารห้องหลักจึงมีแค่ข้อความ/ตำแหน่ง (เล็กมาก) ไม่ชนลิมิต 1MB อีก ไม่ต้องเปิด Storage/Blaze
+*/
 const firebaseConfig = {
     apiKey: "AIzaSyBVirNpmGi1r53mf7pNnV59RGzEFKo4PS4",
     authDomain: "smart-ice-tumnaaa.firebaseapp.com",
@@ -308,11 +313,157 @@ if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
 const db = firebase.firestore();
-const storage = firebase.storage();
-let currentRoom = "1"; 
+/* ===== Firestore-only (ไม่ใช้ Storage/Blaze): รูปถูกบีบอัดแล้วหั่นเป็นชิ้นเล็กๆ
+   เก็บใน subcollection images ใต้เอกสารห้อง รูปจึงไม่ต้องพึ่ง bucket ภายนอกเลย ===== */
+const IMG_CHUNK_LEN = 700000; // ตัวอักษรต่อ 1 chunk (ต่ำกว่าลิมิต 1MB/เอกสารแบบเผื่อๆ)
+let imageCache = {};   // imgId -> dataUrl (ที่โหลดจากคลาวด์แล้ว)
+let uploadedSig = {};   // imgId -> ความยาว dataUrl ที่อัปโหลดไปแล้ว (กันเขียนซ้ำ)
+function roomDocRef() { return db.collection("cyberpunk_rooms").doc("room_" + currentRoom); }
+function imagesColRef() { return roomDocRef().collection("images"); }
+function newImgId() { return 'img_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8); }
+async function downscaleForFirestore(dataUrl) {
+    // บีบแบบไล่ระดับจนเล็กพอเก็บลง Firestore (เป้า < 850KB/รูป)
+    const steps = [[800, 0.65], [700, 0.6], [600, 0.55], [500, 0.5]];
+    let cur = dataUrl;
+    for (const st of steps) {
+        cur = await downscaleDataUrl(cur, st[0], st[1]);
+        if (cur.length < 850000) return cur;
+    }
+    return cur;
+}
+function splitChunks(str) {
+    const out = [];
+    for (let i = 0; i < str.length; i += IMG_CHUNK_LEN) out.push(str.slice(i, i + IMG_CHUNK_LEN));
+    return out;
+}
+async function uploadImageDoc(imgId, dataUrl) {
+    if (uploadedSig[imgId] === dataUrl.length) return; // เคยอัปโหลดตัวนี้แล้ว ข้าม
+    const small = await downscaleForFirestore(dataUrl);
+    if (small.length >= 950000) throw new Error('รูปใหญ่เกินไปแม้บีบอัดแล้ว (' + Math.round(small.length/1024) + 'KB) ลดจำนวนรูปก่อน');
+    const parts = splitChunks(small);
+    const imgRef = imagesColRef().doc(imgId);
+    const oldSnap = await imgRef.get().catch(function(){ return null; });
+    const oldN = (oldSnap && oldSnap.exists && oldSnap.data().n) || 0;
+    const batch = db.batch();
+    batch.set(imgRef, { n: parts.length, updatedAt: Date.now() }, { merge: true });
+    parts.forEach(function(p, i) {
+        const id = ('0000' + i).slice(-4);
+        batch.set(imgRef.collection('parts').doc(id), { d: p });
+    });
+    for (let i = parts.length; i < oldN; i++) {
+        batch.delete(imgRef.collection('parts').doc(('0000' + i).slice(-4)));
+    }
+    await batch.commit();
+    imageCache[imgId] = small;
+    uploadedSig[imgId] = small.length;
+    return small;
+}
+async function loadAllImages() {
+    const out = {};
+    const snap = await imagesColRef().get();
+    const docs = snap.docs || [];
+    for (const d of docs) {
+        const n = (d.data() && d.data().n) || 0;
+        if (!n) continue;
+        const psnap = await d.ref.collection('parts').orderBy(firebase.firestore.FieldPath.documentId()).get();
+        let s = '';
+        psnap.forEach(function(p) { s += (p.data() && p.data().d) || ''; });
+        if (s) out[d.id] = s;
+    }
+    imageCache = out;
+    return out;
+}
+async function deleteOrphanImages(usedIds) {
+    try {
+        const snap = await imagesColRef().get();
+        const batch = db.batch();
+        let has = false;
+        snap.forEach(function(d) {
+            if (!usedIds[d.id]) {
+                const n = (d.data() && d.data().n) || 0;
+                for (let i = 0; i < n; i++) batch.delete(d.ref.collection('parts').doc(('0000' + i).slice(-4)));
+                batch.delete(d.ref);
+                has = true;
+            }
+        });
+        if (has) await batch.commit();
+    } catch(e) { console.warn('ลบรูปเก่าไม่สำเร็จ (ข้ามได้)', e); }
+}
+try { firebase.auth().signInAnonymously().catch(function(e){ console.warn('Anonymous auth:', e); var c = e && e.code || ''; if (c === 'auth/unauthorized-domain') showToast('⚠️ โดเมนนี้ยังไม่ได้รับอนุญาต: Firebase Console → Authentication → Settings → Authorized domains → Add domain', true); else if (c === 'auth/configuration-not-found' || c === 'auth/operation-not-allowed') showToast('⚠️ ยังไม่ได้เปิด Anonymous login: Firebase Console → Build → Authentication → Get started → เปิด Anonymous → Save', true); }); } catch(e) { console.warn(e); }
+
+function getRoomFromURL() {
+    try { const u = new URL(location.href); const r = u.searchParams.get('room'); if (r) return r.trim(); } catch(e) {}
+    return null;
+}
+let currentRoom = getRoomFromURL() || "1";
 let unsubscribeFB = null;
-let isIncomingSync = false; 
+let isIncomingSync = false;
 let cloudSaveTimer = null;
+let lastPushedAt = 0;
+let lastCloudUpdate = 0;
+let suppressLocalLoad = false;
+
+function localKey() { return 'cyberpunk_room_' + currentRoom + '_v9'; }
+function imgCacheKey() { return 'cyberpunk_imgs_' + currentRoom + '_v9'; }
+function saveLocal() {
+    try {
+        const projectState = collectProjectState();
+        localStorage.setItem(localKey(), JSON.stringify(projectState));
+    } catch(e) { console.warn('localStorage save failed (อาจเต็มเพราะรูป base64):', e); }
+}
+function loadLocal() {
+    try {
+        const raw = localStorage.getItem(localKey());
+        if (!raw) return null;
+        return JSON.parse(raw);
+    } catch(e) { return null; }
+}
+// จำรูปแยกอีกก้อน (best-effort) กันกรณี state ในเครื่องเป็นแบบ imgId อ้างอิงแล้วรีเฟรชก่อนโหลดรูปจากคลาวด์เสร็จ
+function persistImageCache() {
+    try { localStorage.setItem(imgCacheKey(), JSON.stringify(imageCache)); }
+    catch(e) { console.warn('จำรูปในเครื่องไม่ครบ (quota เต็ม) จะโหลดจากคลาวด์แทน', e); }
+}
+function loadImageCache() {
+    try {
+        const raw = localStorage.getItem(imgCacheKey());
+        if (!raw) return;
+        const o = JSON.parse(raw);
+        if (o && typeof o === 'object') imageCache = o;
+    } catch(e) {}
+}
+function collectProjectState() {
+    return {
+        version: 9,
+        activeTab: (typeof activeMode === 'function' ? activeMode() : 'game'),
+        scales: {
+            game: document.getElementById('gameScaleSlider').value,
+            car: document.getElementById('carScaleSlider').value,
+            gameGrid: document.getElementById('gameGridScaleSlider').value,
+            carGrid: document.getElementById('carGridScaleSlider').value
+        },
+        gameCards: getCardsState('gameGrid'),
+        carCards: getCardsState('carGrid'),
+        globalTexts: Array.from(document.querySelectorAll('.global-text-wrapper')).map(function (w) {
+            const s = extractWrapperState(w);
+            s.parent = w.parentElement.id;
+            return s;
+        }),
+        lastUpdate: Date.now()
+    };
+}
+function copyRoomLink() {
+    const url = new URL(location.href);
+    url.searchParams.set('room', currentRoom);
+    const link = url.toString();
+    if (navigator.clipboard) navigator.clipboard.writeText(link).then(function(){ showToast('🔗 คัดลอกลิงก์ห้องแล้ว ส่งให้คนอื่นได้เลย!'); });
+    else { prompt('คัดลอกลิงก์นี้:', link); }
+}
+function setCloudStatus(html, ok) {
+    const cloudIcon = document.getElementById('cloudStatus');
+    if (!cloudIcon) return;
+    cloudIcon.innerHTML = html;
+    cloudIcon.className = "text-xs font-bold px-3 py-1 rounded-full border transition-colors duration-300 " + (ok === false ? "bg-red-500/20 text-red-400 border-red-500/50" : ok === 'saving' ? "bg-amber-500/20 text-amber-300 border-amber-500/50" : "bg-green-500/20 text-green-400 border-green-500/50");
+}
 
 function changeFirebaseRoom() {
     const newRoom = document.getElementById('roomInputUI').value.trim();
@@ -320,127 +471,226 @@ function changeFirebaseRoom() {
         showToast("⚠️ กรุณาใส่ชื่อห้อง!", true);
         return;
     }
+    saveLocal();
     currentRoom = newRoom;
+    imageCache = {}; uploadedSig = {}; lastCloudUpdate = 0; lastPushedAt = 0;
+    try { const u = new URL(location.href); u.searchParams.set('room', currentRoom); history.replaceState(null,'',u.toString()); } catch(e) {}
     document.getElementById('gameGrid').innerHTML = '';
     document.getElementById('carGrid').innerHTML = '';
+    document.querySelectorAll('.global-text-wrapper').forEach(function(n){ n.remove(); });
+    loadImageCache();
+    const cached = loadLocal();
+    if (cached) {
+        cached.gameCards = resolveCardsMeta(cached.gameCards, imageCache);
+        cached.carCards = resolveCardsMeta(cached.carCards, imageCache);
+        try { applyProject(cached, { silent: true }); } catch(e){}
+    }
     refreshEmpty();
     showToast(`🔄 กำลังเชื่อมต่อห้อง: ${currentRoom}...`);
     startListeningToRoom();
 }
 
-/* 🖼️ อัปโหลดรูปขึ้น Firebase Storage แล้วคืนเป็นลิงก์ — ทำให้เอกสาร Firestore มีแต่ข้อความ/ลิงก์ (เล็กมาก)
-   ไม่มีทางชนขีดจำกัด 1MB ต่อเอกสารอีกต่อไป ไม่ว่าจะมีรูปกี่รูปก็ตาม */
-async function uploadImageToStorage(dataUrl, folder) {
-    const blob = await (await fetch(dataUrl)).blob();
-    const path = folder + '/' + currentRoom + '/' + Date.now() + '_' + Math.random().toString(36).slice(2) + '.jpg';
-    const ref = storage.ref().child(path);
-    await ref.put(blob);
-    return await ref.getDownloadURL();
+/* บีบอัดรูป (ใช้ทั้งตอนเลือกรูปใหม่และตอนเซฟขึ้นคลาวด์) */
+function downscaleDataUrl(dataUrl, maxW, quality) {
+    return new Promise(function(resolve) {
+        const img = new Image();
+        img.onload = function() {
+            let w = img.width, h = img.height;
+            if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+            // ถ้าเล็กอยู่แล้วและเป็น jpeg ให้ใช้เดิมเลย
+            if (img.width <= maxW && dataUrl.length < 600000) { resolve(dataUrl); return; }
+            const c = document.createElement('canvas'); c.width = w; c.height = h;
+            c.getContext('2d').drawImage(img, 0, 0, w, h);
+            resolve(c.toDataURL('image/jpeg', quality || 0.72));
+        };
+        img.onerror = function(){ resolve(dataUrl); };
+        img.src = dataUrl;
+    });
 }
-async function uploadPendingImagesToStorage() {
-    const imgs = document.querySelectorAll('#gameGrid img, #carGrid img');
-    for (const img of imgs) {
-        if (img.src.indexOf('data:') === 0) {
-            try { img.src = await uploadImageToStorage(img.src, 'catalog_images'); }
-            catch (err) { console.warn('อัปโหลดรูปขึ้น Storage ไม่สำเร็จ (จะยังเห็นรูปแค่เครื่องนี้)', err); }
+/* เตรียมรูปก่อนเซฟ: รูป http ใช้ URL เดิมได้เลย, รูป data: จะถูกบีบอัด+หั่นเก็บใน images */
+async function uploadPendingImagesToFirestore(onProgress) {
+    const imgs = Array.from(document.querySelectorAll('#gameGrid img, #carGrid img'));
+    const dataImgs = imgs.filter(function(im){ return im.src.indexOf('data:') === 0; });
+    for (let i = 0; i < dataImgs.length; i++) {
+        if (onProgress) onProgress(i + 1, dataImgs.length);
+        try {
+            if (!dataImgs[i].dataset.imgId) dataImgs[i].dataset.imgId = newImgId();
+            const small = await uploadImageDoc(dataImgs[i].dataset.imgId, dataImgs[i].src);
+            if (small && small !== dataImgs[i].src) dataImgs[i].src = small; // เก็บเวอร์ชันบีบอัดไว้ในจอด้วย
+        } catch (err) {
+            console.warn('เก็บรูปลง Firestore ไม่สำเร็จ', err);
+            throw err;
         }
     }
 }
 
-/* ตัวที่เรียกจาก UI ทั้งหมด — แค่ "ตั้งเวลา" ไว้ ไม่ยิงขึ้นคลาวด์ทันที เพื่อไม่ให้ยิง .set() รัวจนคิวแตก
-   (ต้นเหตุของ error resource-exhausted ที่เจอ) */
 function syncToCloud() {
     if (isIncomingSync) return;
+    saveLocal(); // เซฟลงเครื่องเบราว์เซอร์ทันที กันรีเฟรชแล้วหาย
     clearTimeout(cloudSaveTimer);
-    cloudSaveTimer = setTimeout(pushToCloudNow, 800);
+    cloudSaveTimer = setTimeout(function(){ pushToCloudNow(false); }, 800);
 }
 
-async function pushToCloudNow() {
+function ensureImgIds() {
+    // ผูก imgId ลง DOM ก่อนเก็บ state (กันสร้าง id ใหม่ทุกครั้งที่เซฟ)
+    ['gameGrid', 'carGrid'].forEach(function(gid) {
+        Array.from(document.getElementById(gid).querySelectorAll('img')).forEach(function(im) {
+            if (im.src.indexOf('data:') === 0 && !im.dataset.imgId) im.dataset.imgId = newImgId();
+        });
+    });
+}
+function cardsToCloudMeta(cards) {
+    // เอกสารห้องต้องเล็ก (<1MB): รูป data: เก็บแค่ imgId อ้างอิง, รูป http เก็บ URL ตรงๆ
+    return (cards || []).map(function(c) {
+        const m = Object.assign({}, c);
+        if (m.imgSrc && m.imgSrc.indexOf('data:') === 0) {
+            if (!m.imgId) m.imgId = newImgId();
+            m.imgSrc = null;
+        } else {
+            m.imgId = m.imgId || null;
+        }
+        return m;
+    });
+}
+function resolveCardsMeta(cards, fallback) {
+    // แปลงกลับตอนโหลด: imgId -> dataUrl จาก imageCache (fallback = รูปที่อยู่บนจอตอนนี้ กันรูปหาย)
+    fallback = fallback || {};
+    let missing = 0;
+    const out = (cards || []).map(function(c) {
+        const m = Object.assign({}, c);
+        const usable = (typeof isUsableSrc === 'function') ? isUsableSrc(m.imgSrc) : !!(m.imgSrc && m.imgSrc !== 'null');
+        if (!usable && m.imgId) {
+            if (imageCache[m.imgId]) m.imgSrc = imageCache[m.imgId];
+            else if (fallback[m.imgId]) m.imgSrc = fallback[m.imgId];
+            else { m.imgSrc = BLANK_GIF; missing++; }
+        } else if (!usable && !m.imgId) {
+            m.imgSrc = BLANK_GIF; missing++;
+        }
+        return m;
+    });
+    out._missing = missing;
+    return out;
+}
+function currentDomImages() {
+    const map = {};
     try {
-        await uploadPendingImagesToStorage(); // แปลงรูป base64 ที่เหลือให้เป็นลิงก์ก่อนเสมอ
+        Array.from(document.querySelectorAll('#gameGrid img, #carGrid img')).forEach(function(im) {
+            if (im.dataset.imgId && im.src && im.src.indexOf('data:') === 0) map[im.dataset.imgId] = im.src;
+        });
+    } catch(e) {}
+    return map;
+}
+
+async function pushToCloudNow(manual) {
+    if (isIncomingSync && !manual) return;
+    clearTimeout(cloudSaveTimer);
+    saveLocal();
+    setCloudStatus('⏳ กำลังซิงค์...', 'saving');
+    try {
+        ensureImgIds();
+        await uploadPendingImagesToFirestore(function(done, total){ setCloudStatus('⏳ บีบอัดรูป ' + done + '/' + total, 'saving'); });
+    } catch (err) {
+        console.error("Image save Error:", err);
+        showToast("⚠️ เก็บรูปไม่สำเร็จ (" + (err.message || 'ไม่ทราบสาเหตุ') + ") แต่บันทึกข้อความ/ตำแหน่งลงเครื่องแล้ว", true);
+        setCloudStatus('❌ เก็บรูปไม่ผ่าน', false);
+        return;
+    }
+    try {
+        const full = collectProjectState();
+        const usedIds = {};
+        const gameMeta = cardsToCloudMeta(full.gameCards);
+        const carMeta = cardsToCloudMeta(full.carCards);
+        gameMeta.concat(carMeta).forEach(function(c){ if (c.imgId && !((c.imgSrc||'').indexOf('http') === 0)) usedIds[c.imgId] = true; });
         const projectState = {
-            version: 9, 
-            activeTab: activeMode(),
-            scales: { 
-                game: document.getElementById('gameScaleSlider').value, 
-                car: document.getElementById('carScaleSlider').value, 
-                gameGrid: document.getElementById('gameGridScaleSlider').value, 
-                carGrid: document.getElementById('carGridScaleSlider').value 
-            },
-            gameCards: getCardsState('gameGrid'), 
-            carCards: getCardsState('carGrid'),
-            globalTexts: Array.from(document.querySelectorAll('.global-text-wrapper')).map(function (w) { 
-                const s = extractWrapperState(w); 
-                s.parent = w.parentElement.id; 
-                return s; 
-            }),
+            version: 9,
+            activeTab: full.activeTab,
+            scales: full.scales,
+            gameCards: gameMeta,
+            carCards: carMeta,
+            globalTexts: full.globalTexts,
             lastUpdate: Date.now()
         };
-        await db.collection("cyberpunk_rooms").doc("room_" + currentRoom).set(projectState);
-        const cloudIcon = document.getElementById('cloudStatus');
-        if (cloudIcon && !cloudIcon.innerHTML.includes('Offline')) {
-            cloudIcon.innerHTML = `☁️ Online (ห้อง: ${currentRoom})`;
-            cloudIcon.className = "text-xs font-bold px-3 py-1 rounded-full bg-green-500/20 text-green-400 border border-green-500/50 transition-colors duration-300";
+        const approxSize = JSON.stringify(projectState).length;
+        if (approxSize > 900000) {
+            showToast("⚠️ ข้อความ/ตำแหน่งยังใหญ่เกิน ~" + Math.round(approxSize/1024) + "KB ลดจำนวนการ์ดก่อน", true);
+            setCloudStatus('❌ ข้อมูลใหญ่เกินลิมิต', false);
+            return;
         }
+        await roomDocRef().set(projectState);
+        await deleteOrphanImages(usedIds);
+        persistImageCache();
+        lastPushedAt = Date.now();
+        lastCloudUpdate = projectState.lastUpdate;
+        setCloudStatus(`☁️ Online (ห้อง: ${currentRoom})`, true);
+        if (manual) showToast('☁️ เซฟขึ้นเว็บสำเร็จ! รีเฟรช/ส่งลิงก์ได้เลย');
     } catch (err) {
         console.error("Firestore Set Error:", err);
-        showToast("⚠️ ซิงค์ขึ้นคลาวด์ไม่สำเร็จ: " + (err.code || err.message || 'ไม่ทราบสาเหตุ'), true);
-        const cloudIcon = document.getElementById('cloudStatus');
-        if (cloudIcon) {
-            cloudIcon.innerHTML = "❌ ซิงค์ไม่สำเร็จ";
-            cloudIcon.className = "text-xs font-bold px-3 py-1 rounded-full bg-red-500/20 text-red-400 border border-red-500/50";
-        }
+        let msg = (err.code || err.message || 'ไม่ทราบสาเหตุ');
+        if (err.code === 'permission-denied') msg = 'permission-denied: ไปเปิด Firestore Rules (ดู FIREBASE_SETUP)';
+        if (err.code === 'resource-exhausted' || /larger than|maximum/i.test(String(err.message))) msg = 'เอกสารใหญ่เกิน 1MB';
+        showToast("⚠️ ซิงค์ขึ้นคลาวด์ไม่สำเร็จ: " + msg, true);
+        setCloudStatus("❌ ซิงค์ไม่สำเร็จ", false);
     }
 }
 
 function startListeningToRoom() {
-    if (unsubscribeFB) unsubscribeFB(); 
-    
-    unsubscribeFB = db.collection("cyberpunk_rooms").doc("room_" + currentRoom).onSnapshot((doc) => {
+    if (unsubscribeFB) unsubscribeFB();
+    setCloudStatus('⏳ เชื่อมต่อ...', 'saving');
+    unsubscribeFB = roomDocRef().onSnapshot(async (doc) => {
         if (doc.exists) {
             const data = doc.data();
+            if (data && data.lastUpdate && data.lastUpdate <= lastCloudUpdate && (Date.now() - lastPushedAt) < 5000) return;
             const activeEl = document.activeElement;
             const isEditingText = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
-            
-            if (isEditingText || drag || panDrag || marquee) {
-                return; 
+            if (isEditingText || (typeof drag !== 'undefined' && drag) || (typeof panDrag !== 'undefined' && panDrag) || (typeof marquee !== 'undefined' && marquee)) {
+                return;
             }
-
             isIncomingSync = true;
             try {
-                applyProject(data); 
-                const cloudIcon = document.getElementById('cloudStatus');
-                if(cloudIcon) {
-                    cloudIcon.classList.remove('text-red-400', 'bg-red-500/20');
-                    cloudIcon.innerHTML = `☁️ Online (ห้อง: ${currentRoom})`;
-                    cloudIcon.classList.add('text-blue-400', 'bg-blue-500/20');
-                    setTimeout(() => {
-                        cloudIcon.classList.add('text-green-400', 'bg-green-500/20');
-                        cloudIcon.classList.remove('text-blue-400', 'bg-blue-500/20');
-                    }, 1000);
+                await loadAllImages();
+                persistImageCache();
+                const domMap = currentDomImages();
+                const g = resolveCardsMeta(data.gameCards, domMap);
+                const cr = resolveCardsMeta(data.carCards, domMap);
+                const miss = (g._missing || 0) + (cr._missing || 0);
+                console.log('โหลดรูปจากคลาวด์: มี ' + Object.keys(imageCache).length + ' รูป, หาไม่เจอ ' + miss + ' รูป');
+                data.gameCards = g;
+                data.carCards = cr;
+                applyProject(data, { silent: true });
+                if (miss > 0) {
+                    showToast('⚠️ ข้อความมาครบ แต่รูปหาย ' + miss + ' รูป (ยังไม่เซฟทับของในเครื่อง) เช็ค Rules บรรทัด {sub=**}', true);
+                } else {
+                    saveLocal();
                 }
+                const broken = countBrokenImages();
+                if (broken > 0) console.warn('การ์ดรูปเสีย (src null/ว่าง): ' + broken + ' ใบ — กดเซฟ 1 ครั้งเพื่อซ่อมการอ้างอิง แล้วรีเฟรช');
+                if (data && data.lastUpdate) lastCloudUpdate = data.lastUpdate;
+                setCloudStatus(`☁️ Online (ห้อง: ${currentRoom})`, true);
             } catch (err) {
                 console.error("Apply Cloud Data Error:", err);
             }
-            setTimeout(() => { isIncomingSync = false; }, 300); 
+            setTimeout(() => { isIncomingSync = false; }, 300);
         } else {
-            document.getElementById('gameGrid').innerHTML = '';
-            document.getElementById('carGrid').innerHTML = '';
-            refreshEmpty();
-            const cloudIcon = document.getElementById('cloudStatus');
-            if(cloudIcon) cloudIcon.innerHTML = `☁️ Online (ห้องว่าง)`;
+            // ห้องว่างบนคลาวด์: อย่าล้างจอทิ้งถ้ามี cache ในเครื่อง (กันเปิดครั้งแรกแล้วข้อมูลหาย)
+            const cached = loadLocal();
+            if (cached && ((cached.gameCards||[]).length || (cached.carCards||[]).length || (cached.globalTexts||[]).length)) {
+                setCloudStatus(`☁️ ห้องว่างบนเว็บ • มีงานในเครื่องนี้`, true);
+            } else {
+                setCloudStatus(`☁️ Online (ห้องว่าง)`, true);
+            }
         }
     }, (error) => {
         console.error("❌ Firestore Error: ", error);
-        const cloudIcon = document.getElementById('cloudStatus');
-        if(cloudIcon) {
-            cloudIcon.innerHTML = "❌ Offline (ติด Rules/เน็ตหลุด)";
-            cloudIcon.className = "text-xs font-bold px-3 py-1 rounded-full bg-red-500/20 text-red-400 border border-red-500/50";
+        setCloudStatus("❌ Offline (ติด Rules/เน็ตหลุด)", false);
+        if (error && error.code === 'permission-denied') {
+            showToast("⚠️ Firestore ปฏิเสธการเข้าถึง (permission-denied)! ต้องแก้ Rules ดูไฟล์ FIREBASE_SETUP", true);
+        } else {
+            showToast("⚠️ อ่านคลาวด์ไม่สำเร็จ แต่ยังทำงานด้วยข้อมูลในเครื่องได้", true);
         }
-        showToast("⚠️ Firestore ปฏิเสธการเข้าถึง! ไปเช็ค Rules ด่วน!", true);
     });
 }
-startListeningToRoom();
+/* หมายเหตุ: startListeningToRoom() จะถูกเรียกตอนท้ายไฟล์หลังฟังก์ชันทั้งหมดโหลดครบ
+   เพื่อกัน race condition ตอนรีเฟรช */
 
 /* ================= ค่าคงที่ ================= */
 const FONTS = ['Kanit','Prompt','Mitr','Sarabun','Pridi','Itim','K2D','Chakra Petch','Bai Jamjuree','Sriracha','Chonburi','Mali','Orbitron','Audiowide','Bungee','Press Start 2P','Anton','Pacifico','Righteous','Black Ops One'];
@@ -463,7 +713,8 @@ let snapGuides = { x:null, y:null };
 function showToast(msg, isError) {
   const t = document.getElementById('toast');
   t.innerText = msg;
-  t.className = 'fixed bottom-5 right-5 text-white px-6 py-3 rounded-lg shadow-lg font-bold transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none z-[110] text-xl ' + (isError ? 'bg-red-500' : 'bg-green-500');
+  t.className = 'fixed bottom-5 right-5 text-white px-6 py-3 rounded-lg shadow-lg font-bold transition-all duration-300 pointer-events-none z-[110] text-xl ' + (isError ? 'bg-red-500' : 'bg-green-500');
+  t.classList.remove('translate-y-20', 'opacity-0');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(function () { t.classList.add('translate-y-20', 'opacity-0'); }, 3000);
 }
@@ -915,8 +1166,9 @@ function makeFieldWrapper(kind, isTextarea, placeholder, styleOver, posLeft, pos
   writeTextStyle(t, defaultTextStyle(styleOver));
   return w;
 }
-function addGlobalText(areaId, init) {
+function addGlobalText(areaId, init, opts) {
   init = init || {};
+  opts = opts || {};
   const w = makeFieldWrapper('global-text', true, 'พิมพ์ข้อความที่นี่...', { size: 48, glowSize: 12 }, init.left, init.top);
   const t = w.querySelector('.txt-target');
   t.classList.add('global-textarea');
@@ -925,7 +1177,7 @@ function addGlobalText(areaId, init) {
   document.getElementById(areaId).appendChild(w);
   applyInitToWrapper(w, init);
   if (init.isLocked) w.classList.add('is-locked');
-  syncToCloud(); 
+  if (!opts.silent) syncToCloud();
   return w;
 }
 function applyInitToWrapper(w, init) {
@@ -1094,10 +1346,27 @@ document.addEventListener('mousemove', function (e) {
 });
 
 /* ================= การ์ด (รูปภาพ) ================= */
+const BLANK_GIF = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+function isUsableSrc(s) {
+  return !!(s && s !== 'null' && !String(s).endsWith('/null') && (String(s).indexOf('data:') === 0 || String(s).indexOf('http') === 0));
+}
 function createCardHTML(mode, src, scale) {
   const imgClass = mode === 'game' ? 'game-img' : 'car-img';
   const sc = Number(scale) || 1;
-  return '<div class="image-container"><div class="pan-wrapper" data-pan-x="0" data-pan-y="0"><img src="' + src + '" class="' + imgClass + '" draggable="false" style="--img-scale:' + sc + ';"></div></div>';
+  // กัน src="null" (เคยฝังจากการ์ดเสียรุ่นก่อน) — ใช้ภาพว่างแทน จะได้ไม่ยิง request .../null
+  if (!isUsableSrc(src)) src = BLANK_GIF;
+  // crossorigin สำคัญบน GitHub Pages: ไม่ใส่แล้ว html-to-image จะ export ติด tainted canvas
+  return '<div class="image-container"><div class="pan-wrapper" data-pan-x="0" data-pan-y="0"><img crossorigin="anonymous" src="' + src + '" class="' + imgClass + '" draggable="false" style="--img-scale:' + sc + ';"></div></div>';
+}
+function countBrokenImages() {
+  let n = 0;
+  try {
+    Array.from(document.querySelectorAll('#gameGrid img, #carGrid img')).forEach(function(im) {
+      const a = im.getAttribute('src') || '';
+      if (a === BLANK_GIF || !isUsableSrc(im.src)) n++;
+    });
+  } catch(e) {}
+  return n;
 }
 function shapeClipPath(shape) {
   switch (shape) {
@@ -1234,8 +1503,13 @@ function extractCardState(cardWrapper) {
   const card = cardWrapper.querySelector('.item-card'), img = card.querySelector('img'), pan = card.querySelector('.pan-wrapper');
   defaultImgDataset(card);
   const d = card.dataset;
+  // กันรูปเสีย ".../null" (จากข้อมูลรุ่นก่อน) ฝังถาวร: เก็บเป็น null + คง imgId ไว้ให้ resolve ใหม่ได้
+  const attr = (img.getAttribute && img.getAttribute('src')) || '';
+  const abs = img.src || '';
+  const broken = !isUsableSrc(attr) && !isUsableSrc(abs);
   return {
-    imgSrc: img.src, imgScale: img.style.getPropertyValue('--img-scale') || '',
+    imgId: img.dataset.imgId || null,
+    imgSrc: broken ? null : (attr.indexOf('data:') === 0 ? attr : abs), imgScale: img.style.getPropertyValue('--img-scale') || '',
     panX: pan.dataset.panX || '0', panY: pan.dataset.panY || '0',
     cardX: cardWrapper.dataset.cardX || '0', cardY: cardWrapper.dataset.cardY || '0',
     isRibbon: card.classList.contains('marked-ribbon'),
@@ -1262,6 +1536,7 @@ function appendCardData(mode, data, scale) {
   const card = document.createElement('div');
   card.className = 'item-card ' + mode + '-card' + (grouped ? ' is-grouped' : '') + (data.isRibbon ? ' marked-ribbon' : '');
   card.innerHTML = createCardHTML(mode, data.imgSrc, data.imgScale || scale);
+  if (data.imgId) { try { card.querySelector('img').dataset.imgId = data.imgId; } catch(e){} }
   if (data.isCropped) card.querySelector('.image-container').classList.add('cropped-mode');
   const pan = card.querySelector('.pan-wrapper');
   pan.dataset.panX = data.panX || 0; pan.dataset.panY = data.panY || 0;
@@ -1272,7 +1547,9 @@ function appendCardData(mode, data, scale) {
 
   [['name', false], ['detail', true], ['price', false]].forEach(function (p) {
     const kind = p[0], isTextarea = p[1];
-    if (!data[kind] || !data[kind].text) return;
+    if (!data[kind]) return;
+    // เดิมใช้ !data[kind].text ทำให้ช่องที่ยังว่างหายตอนรีโหลด — เก็บไว้ถ้ามี object อยู่
+    if (!data[kind].text && !data[kind].left && !data[kind].top) return;
     const placeholders = { name: 'ชื่อสินค้า/รุ่นรถ', detail: 'รายละเอียด...', price: '฿ ราคา' };
     const w = makeFieldWrapper(kind, isTextarea, placeholders[kind], {}, data[kind].left || '0px', data[kind].top || POS[mode][kind]);
     if (kind === 'detail') w.querySelector('.txt-target').style.minHeight = MIN_H[mode];
@@ -1340,7 +1617,8 @@ function saveProject() {
     showToast('✅ บันทึก Backup ลงเครื่องสำเร็จ!');
   } catch (err) { console.error(err); showToast('❌ บันทึกไม่สำเร็จ: ' + err.message, true); }
 }
-function applyProject(data) {
+function applyProject(data, opts) {
+  opts = opts || {};
   if (!data || typeof data !== 'object') throw new Error('ไฟล์ไม่มีข้อมูล');
   deselectAll();
   const sc = data.scales || {}, gS = sc.game || 1.8, cS = sc.car || 1.0;
@@ -1352,12 +1630,13 @@ function applyProject(data) {
   (data.gameCards || []).forEach(function (c) { try { appendCardData('game', c, gS); } catch (err) { console.warn('ข้ามการ์ดที่เสีย', err); } });
   (data.carCards || []).forEach(function (c) { try { appendCardData('car', c, cS); } catch (err) { console.warn('ข้ามการ์ดที่เสีย', err); } });
   (data.globalTexts || []).forEach(function (gt) {
-    try { let area = gt.parent || 'gameCaptureArea'; if (area === 'gameScaleWrapper') area = 'gameCaptureArea'; if (area === 'carScaleWrapper') area = 'carCaptureArea'; if (!document.getElementById(area)) area = 'gameCaptureArea'; addGlobalText(area, gt); }
+    try { let area = gt.parent || 'gameCaptureArea'; if (area === 'gameScaleWrapper') area = 'gameCaptureArea'; if (area === 'carScaleWrapper') area = 'carCaptureArea'; if (!document.getElementById(area)) area = 'gameCaptureArea'; addGlobalText(area, gt, { silent: true }); }
     catch (err) { console.warn('ข้ามข้อความที่เสีย', err); }
   });
   refreshEmpty();
   syncAllRibbons();
   switchTab(data.activeTab === 'car' ? 'car' : 'game');
+  if (!opts.silent) { saveLocal(); }
 }
 function loadProject(event) {
   const file = event.target.files && event.target.files[0];
@@ -1390,7 +1669,7 @@ async function capture(targetId, ratio) {
     area.querySelectorAll('.txt-target').forEach(function (t) { fams.add(getComputedStyle(t).fontFamily.split(',')[0].trim()); });
     await Promise.all(Array.from(fams).map(function (f) { return document.fonts.load('900 32px ' + f, 'กขคAa').catch(function () {}); }));
     await new Promise(function (r) { setTimeout(r, 250); });
-    return await htmlToImage.toPng(area, { backgroundColor: '#050510', pixelRatio: ratio, width: 1920, height: 1080, style: { transform: 'none', margin: '0' } });
+    return await htmlToImage.toPng(area, { backgroundColor: '#050510', pixelRatio: ratio, width: 1920, height: 1080, cacheBust: true, useCORS: true, style: { transform: 'none', margin: '0' } });
   } finally { area.classList.remove('capturing'); area.style.transform = prev; }
 }
 async function previewImage(targetId, prefix) {
@@ -1417,7 +1696,7 @@ async function download4K() {
   catch (err) { console.error(err); showToast('❌ สร้าง 4K ไม่สำเร็จ', true); }
 }
 
-/* ================= เริ่มต้น ================= */
+/* ================= เริ่มต้น (FIXED: กู้ localStorage ก่อน แล้วค่อยฟัง cloud) ================= */
 document.addEventListener('keydown',function(e){
   const tag=(e.target&&e.target.tagName)||'', editing=['INPUT','TEXTAREA','SELECT'].indexOf(tag)>=0;
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='a'&&!editing){e.preventDefault();selectAllCards();}
@@ -1431,8 +1710,24 @@ document.addEventListener('keydown',function(e){
 document.getElementById('gameImageUpload').addEventListener('change', function (e) { handleUpload(e, 'game'); });
 document.getElementById('carImageUpload').addEventListener('change', function (e) { handleUpload(e, 'car'); });
 document.getElementById('previewButtons').insertAdjacentHTML('beforeend', '<button onclick="download4K()" class="bg-gradient-to-r from-fuchsia-500 to-purple-500 hover:from-fuchsia-400 hover:to-purple-400 text-white px-10 py-3 rounded-lg font-bold transition text-xl">⬇️ ดาวน์โหลด 4K</button>');
-fitView('game');
-if (document.fonts && document.fonts.ready) document.fonts.ready.then(refreshAutoGrow);
+(function initApp(){
+  try {
+    const urlRoom = getRoomFromURL();
+    if (urlRoom) { currentRoom = urlRoom; }
+    document.getElementById('roomInputUI').value = currentRoom;
+    loadImageCache();
+    const cached = loadLocal();
+    if (cached && ((cached.gameCards||[]).length || (cached.carCards||[]).length || (cached.globalTexts||[]).length)) {
+      cached.gameCards = resolveCardsMeta(cached.gameCards, imageCache);
+      cached.carCards = resolveCardsMeta(cached.carCards, imageCache);
+      try { applyProject(cached, { silent: true }); console.log('โหลดงานจากเครื่องนี้ (localStorage) สำเร็จ'); } catch(e){ console.warn(e); }
+    }
+  } catch(e){ console.warn(e); }
+  fitView('game');
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(refreshAutoGrow);
+  startListeningToRoom();
+  window.addEventListener('beforeunload', function(){ try { saveLocal(); } catch(e){} });
+})();
 </script>
 </body>
 </html>
