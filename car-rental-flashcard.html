@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ระบบเช่ารถแฟลชการ์ด • Car Rental FlashCard Studio</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'></text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800;900&family=Prompt:wght@400;600;700;800&family=Sarabun:wght@400;600;700&family=Mitr:wght@400;600;700&family=Itim&family=Mali:wght@400;700&family=Sriracha&family=Chakra+Petch:wght@400;600;700&family=Bai+Jamjuree:wght@400;600;700&family=K2D:wght@400;700;800&family=Orbitron:wght@500;700;900&family=Audiowide&family=Bungee&family=Russo+One&family=Zen+Dots&family=Racing+Sans+One&display=swap" rel="stylesheet">
-<!-- 🔥 Firebase (Firestore + Auth) สำหรับซิงค์ข้อมูลร่วมกันหลายคนแบบเรียลไทม์ -->
+<!-- Firebase (Firestore + Auth) สำหรับซิงค์ข้อมูลร่วมกันหลายคนแบบเรียลไทม์ -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
@@ -121,8 +121,10 @@ body.flip-vertical .fback{transform:rotateX(180deg)}
 .fimg img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
 .badge{position:absolute;top:10px;left:10px;z-index:5;font-size:12px;font-weight:800;padding:4px 11px;border-radius:999px;letter-spacing:.4px;box-shadow:0 4px 12px rgba(0,0,0,.4);white-space:nowrap}
 .badge.ok{background:#16a34a;color:#fff}
-.badge.rented{background:linear-gradient(90deg,#f59e0b,#fde047);color:#231400}
+.badge.rented{background:#dc2626;color:#fff}
 .badge.maint{background:#64748b;color:#fff}
+.ribbon{position:absolute;top:0;left:0;width:54%;aspect-ratio:1;z-index:6;overflow:hidden;pointer-events:none}
+.ribbon>b{position:absolute;top:31%;left:-32%;width:164%;transform:rotate(-45deg);background:#dc2626;color:#fff;text-align:center;font-size:clamp(12px,1.15vw,17px);font-weight:900;letter-spacing:.5px;padding:6px 0;box-shadow:0 4px 14px rgba(0,0,0,.45);border-top:1px solid rgba(255,255,255,.3);border-bottom:1px solid rgba(0,0,0,.3);text-shadow:0 1px 2px rgba(0,0,0,.4)}
 .cdown{position:absolute;top:10px;right:10px;z-index:5;font-size:12px;font-weight:800;color:#1c1005;background:rgba(255,255,255,.92);border:1px solid rgba(0,0,0,.15);border-radius:999px;padding:4px 11px;letter-spacing:.5px;white-space:nowrap;font-variant-numeric:tabular-nums;box-shadow:0 4px 12px rgba(0,0,0,.4)}
 .cdown.expired{color:#fff;background:#dc2626;border-color:#fca5a5;animation:blink 1s infinite}
 @keyframes blink{50%{opacity:.5}}
@@ -296,18 +298,18 @@ body:fullscreen .hero{padding-top:26px}
 
 <!-- ═══════════ แถบบน ═══════════ -->
 <header class="topbar">
-  <div class="logo">🏁 <span id="brandName">CAR RENTAL</span> <span class="sub">FLASHCARD STUDIO</span></div>
+  <div class="logo"><span id="brandName">CAR RENTAL</span> <span class="sub">FLASHCARD STUDIO</span></div>
   <nav class="tabs">
-    <button class="tab active" data-page="store">🏠 หน้าร้าน</button>
-    <button class="tab" data-page="manage">🚗 จัดการรถ</button>
-    <button class="tab" data-page="poster">🖼️ ทำโปสเตอร์</button>
-    <button class="tab" data-page="design">🎨 ตกแต่งการ์ด</button>
-    <button class="tab" data-page="data">⚙️ ข้อมูลร้าน</button>
+    <button class="tab active" data-page="store">หน้าร้าน</button>
+    <button class="tab" data-page="manage">จัดการรถ</button>
+    <button class="tab" data-page="poster">ทำโปสเตอร์</button>
+    <button class="tab" data-page="design">ตกแต่งการ์ด</button>
+    <button class="tab" data-page="data">ข้อมูลร้าน</button>
   </nav>
   <div class="flex" style="display:flex;gap:6px;align-items:center">
-    <div class="cloudchip" id="cloudStatus" title="สถานะซิงค์คลาวด์ — คลิกเพื่อจัดการห้องทำงานร่วม">☁️ …</div>
-    <button class="btn sm ghost" id="btnQuickExport" title="ส่งออกข้อมูลทั้งหมดเป็นไฟล์ .json (รถ+ธีม+ร้าน)">📤 เซฟไฟล์</button>
-    <button class="btn sm ghost" id="btnQuickImport" title="นำเข้าไฟล์สำรอง .json">📂 โหลดไฟล์</button>
+    <div class="cloudchip" id="cloudStatus" title="สถานะซิงค์คลาวด์ — คลิกเพื่อจัดการห้องทำงานร่วม">…</div>
+    <button class="btn sm ghost" id="btnQuickExport" title="ส่งออกข้อมูลทั้งหมดเป็นไฟล์ .json (รถ+ธีม+ร้าน)">เซฟไฟล์</button>
+    <button class="btn sm ghost" id="btnQuickImport" title="นำเข้าไฟล์สำรอง .json">โหลดไฟล์</button>
     <button class="btn accent" id="btnQuickAdd">＋ เพิ่มรถ</button>
   </div>
 </header>
@@ -330,16 +332,16 @@ body:fullscreen .hero{padding-top:26px}
 
     <div class="storebar">
       <div class="seg" id="viewSeg">
-        <button data-view="carousel" class="on">🎬 สไลด์</button>
-        <button data-view="grid">🔲 ตาราง</button>
+        <button data-view="carousel" class="on">สไลด์</button>
+        <button data-view="grid">ตาราง</button>
       </div>
-      <button class="btn sm" id="autoToggle">⏸ หยุดเล่น</button>
-      <div class="speedbox">⚡ ความเร็ว <input type="range" id="autoSpeed" min="2" max="15" step="0.5" value="4"><b id="autoSpeedLabel">4.0 วิ</b></div>
+      <button class="btn sm" id="autoToggle">หยุดเล่น</button>
+      <div class="speedbox">ความเร็ว <input type="range" id="autoSpeed" min="2" max="15" step="0.5" value="4"><b id="autoSpeedLabel">4.0 วิ</b></div>
       <select class="inp" id="tplSelect" title="เลือกธีมสำเร็จรูปใช้ได้ทันที">
-        <option value="">🎨 เลือกธีมการ์ด…</option>
+        <option value="">เลือกธีมการ์ด…</option>
       </select>
-      <button class="btn sm ghost" id="btnImportDesign" title="โหลดไฟล์ตั้งค่า/ข้อมูล .json">📂 โหลดไฟล์</button>
-      <button class="btn sm ghost" id="btnFull" title="แสดงเต็มจอ">⤢ เต็มจอ</button>
+      <button class="btn sm ghost" id="btnImportDesign" title="โหลดไฟล์ตั้งค่า/ข้อมูล .json">โหลดไฟล์</button>
+      <button class="btn sm ghost" id="btnFull" title="แสดงเต็มจอ">เต็มจอ</button>
     </div>
 
     <div id="carouselWrap">
@@ -351,12 +353,12 @@ body:fullscreen .hero{padding-top:26px}
     <div class="cprog" id="cProgWrap"><i id="cProg"></i></div>
     <div id="gridWrap"><div class="grid" id="grid"></div></div>
     <div class="empty" id="emptyStore" style="display:none">
-      <div class="big">🚗💨</div>
+      <div class="big"></div>
       <h3>ยังไม่มีรถในระบบ</h3>
       <p>เพิ่มรูปรถของคุณเพื่อสร้างแฟลชการ์ด หรือลองใส่รถตัวอย่างดูก่อนได้</p>
       <div class="row">
         <button class="btn accent" onclick="openEditor(null)">＋ เพิ่มรถคันแรก</button>
-        <button class="btn" onclick="addDemoCars()">✨ ใส่รถตัวอย่าง 5 คัน</button>
+        <button class="btn" onclick="addDemoCars()">ใส่รถตัวอย่าง 5 คัน</button>
       </div>
     </div>
   </div>
@@ -365,12 +367,12 @@ body:fullscreen .hero{padding-top:26px}
 <!-- ═══════════ หน้าจัดการรถ ═══════════ -->
 <section class="page" id="page-manage">
   <div class="mbar">
-    <input class="inp grow" id="mSearch" placeholder="🔍 ค้นหา ชื่อรถ / ป้ายทะเบียน…">
+    <input class="inp grow" id="mSearch" placeholder="ค้นหา ชื่อรถ / ป้ายทะเบียน…">
     <select class="inp" id="mStatus">
       <option value="">สถานะทั้งหมด</option>
-      <option value="available">🟢 ว่าง</option>
-      <option value="rented">🟡 ติดเช่า</option>
-      <option value="maintenance">⚪ ซ่อมบำรุง</option>
+      <option value="available">ว่าง</option>
+      <option value="rented">ติดเช่า</option>
+      <option value="maintenance">ซ่อมบำรุง</option>
     </select>
     <select class="inp" id="mSort">
       <option value="new">ใหม่สุดก่อน</option>
@@ -382,7 +384,7 @@ body:fullscreen .hero{padding-top:26px}
   </div>
   <div class="mlist" id="manageList"></div>
   <div class="empty" id="emptyManage" style="display:none">
-    <div class="big">📋</div>
+    <div class="big"></div>
     <h3 id="emptyManageText">ยังไม่มีรถ</h3>
     <div class="row"><button class="btn accent" onclick="openEditor(null)">＋ เพิ่มรถ</button></div>
   </div>
@@ -393,28 +395,28 @@ body:fullscreen .hero{padding-top:26px}
   <div class="pwrap">
     <div class="panelbox">
       <details open>
-        <summary>🚗 เลือกรถที่จะขึ้นโปสเตอร์ (<span id="posterCount">0</span>)</summary>
+        <summary>เลือกรถที่จะขึ้นโปสเตอร์ (<span id="posterCount">0</span>)</summary>
         <div class="btnrow" style="padding-bottom:6px">
-          <button class="btn sm" id="btnSelAll">☑️ เลือกทั้งหมด</button>
-          <button class="btn sm" id="btnSelFree">🟢 เฉพาะคันว่าง</button>
-          <button class="btn sm ghost" id="btnSelNone">✕ ล้างเลือก</button>
+          <button class="btn sm" id="btnSelAll">เลือกทั้งหมด</button>
+          <button class="btn sm" id="btnSelFree">เฉพาะคันว่าง</button>
+          <button class="btn sm ghost" id="btnSelNone">ล้างเลือก</button>
         </div>
         <div class="pickgrid" id="pickGrid"></div>
       </details>
       <details open>
-        <summary>📐 รูปแบบโปสเตอร์</summary>
+        <summary>รูปแบบโปสเตอร์</summary>
         <div class="dgrid">
           <div class="ctl"><span>ขนาดหน้าจอ</span>
             <select class="inp" id="pSize">
-              <option value="16x9">🖥 แนวนอน 1920×1080</option>
-              <option value="3x2">🖼 แนวนอน 1800×1200</option>
-              <option value="4x5">📱 แนวตั้ง 1080×1350</option>
-              <option value="9x16">📲 แนวตั้ง 1080×1920</option>
+              <option value="16x9">แนวนอน 1920×1080</option>
+              <option value="3x2">แนวนอน 1800×1200</option>
+              <option value="4x5">แนวตั้ง 1080×1350</option>
+              <option value="9x16">แนวตั้ง 1080×1920</option>
             </select>
           </div>
           <div class="ctl"><span>จำนวนคอลัมน์</span>
             <select class="inp" id="pCols">
-              <option value="auto">✨ จัดอัตโนมัติ (แน่น)</option>
+              <option value="auto">จัดอัตโนมัติ (แน่น)</option>
               <option value="2">2 คอลัมน์</option><option value="3">3 คอลัมน์</option>
               <option value="4">4 คอลัมน์</option><option value="5">5 คอลัมน์</option>
               <option value="6">6 คอลัมน์</option><option value="7">7 คอลัมน์</option>
@@ -425,39 +427,39 @@ body:fullscreen .hero{padding-top:26px}
           <div class="ctl"><span>ช่องไฟ <i class="val" id="pGapVal">16px</i></span><div class="rowc"><input type="range" id="pGap" min="6" max="60" value="16"></div></div>
           <div class="field"><span style="font-size:12px;font-weight:600;color:var(--sub)">หัวเรื่องโปสเตอร์</span><input class="inp" id="pTitle" placeholder="(ใช้ชื่อร้าน)"></div>
           <div class="field"><span style="font-size:12px;font-weight:600;color:var(--sub)">คำโปยใต้หัวเรื่อง</span><input class="inp" id="pSub" placeholder="เช่ร ราคาพิเศษประจำเดือนนี้ ทักแชทเลย"></div>
-          <label class="chk"><input type="checkbox" id="pShowHeader" checked>📰 แสดงหัวเรื่อง</label>
-          <label class="chk"><input type="checkbox" id="pShowPlate" checked>🔖 แสดงป้ายทะเบียน</label>
-          <label class="chk"><input type="checkbox" id="pShowStatus" checked>🏷️ แสดงป้ายสถานะ/นับถอยหลัง</label>
-          <label class="chk"><input type="checkbox" id="pShowPrice" checked>💰 แสดงราคา</label>
+          <label class="chk"><input type="checkbox" id="pShowHeader" checked>แสดงหัวเรื่อง</label>
+          <label class="chk"><input type="checkbox" id="pShowPlate" checked>แสดงป้ายทะเบียน</label>
+          <label class="chk"><input type="checkbox" id="pShowStatus" checked>แสดงป้ายสถานะ/นับถอยหลัง</label>
+          <label class="chk"><input type="checkbox" id="pShowPrice" checked>แสดงราคา</label>
         </div>
         <div class="btnrow">
-          <button class="btn accent" id="btnPosterDl">⬇️ ดาวน์โหลด PNG</button>
-          <button class="btn" id="btnPosterRe">🔄 รีเฟรชใหม่</button>
+          <button class="btn accent" id="btnPosterDl">ดาวน์โหลด PNG</button>
+          <button class="btn" id="btnPosterRe">รีเฟรชใหม่</button>
         </div>
       </details>
       <details open>
-        <summary>💬 Discord: ส่งรูป → ได้ลิงก์กลับมาใช้เลย</summary>
+        <summary>Discord: ส่งรูป → ได้ลิงก์กลับมาใช้เลย</summary>
         <div class="dcstep"><b>ขั้น 1.</b> ใน Discord: Server Settings → Integrations → <b>Webhooks</b> → New Webhook → <b>Copy URL</b> แล้ววางในช่องด้านล่าง</div>
         <div class="urlrow">
           <input class="inp" id="whUrl" placeholder="https://discord.com/api/webhooks/...">
-          <button class="btn sm" id="btnWhSave" title="จำ webhook ไว้ใช้ครั้งหน้า">💾</button>
+          <button class="btn sm" id="btnWhSave" title="จำ webhook ไว้ใช้ครั้งหน้า"></button>
         </div>
         <div class="dcstep"><b>ขั้น 2.</b> กดปุ่มส่ง — ระบบอัปโหลดโปสเตอร์ขึ้น Discord แล้ว <b>ลิงก์รูป CDN เด้งกลับมาในกล่องเขียว + ก๊อปให้อัตโนมัติ</b> (ไม่ต้องคลิกขวาเอง)</div>
         <div class="btnrow" style="padding-top:8px">
-          <button class="btn violet" id="btnWhSend">🚀 ส่งโปสเตอร์ขึ้น Discord</button>
-          <button class="btn sm" id="btnCopyLast" title="คัดลอกลิงก์ล่าสุด">📋 ก๊อปลิงก์ล่าสุด</button>
+          <button class="btn violet" id="btnWhSend">ส่งโปสเตอร์ขึ้น Discord</button>
+          <button class="btn sm" id="btnCopyLast" title="คัดลอกลิงก์ล่าสุด">ก๊อปลิงก์ล่าสุด</button>
         </div>
         <div class="linkbox"><input id="linkResult" readonly placeholder="ลิงก์รูปจาก Discord จะขึ้นที่นี่… กดช่องนี้เพื่อเลือกทั้งหมดแล้วก๊อป"></div>
         <div class="dcstep" style="margin-top:10px"><b>ขั้น 3.</b> มีลิงก์รูป Discord อยู่แล้ว? วางลิงก์ตรงนี้เพื่อ <b>ตรวจ+ก๊อป</b> หรือใช้เป็นพื้นหลังทันที</div>
         <div class="urlrow">
           <input class="inp" id="dcLinkIn" placeholder="วางลิงก์รูป เช่น https://cdn.discordapp.com/attachments/...">
-          <button class="btn sm" id="btnDcCopy" title="ตรวจลิงก์แล้วคัดลอก">📋 ตรวจ+ก๊อป</button>
-          <button class="btn sm" id="btnDcUse" title="ใช้ลิงก์นี้เป็นพื้นหลังหน้าร้านและโปสเตอร์">🌌 ใช้เป็นพื้นหลัง</button>
+          <button class="btn sm" id="btnDcCopy" title="ตรวจลิงก์แล้วคัดลอก">ตรวจ+ก๊อป</button>
+          <button class="btn sm" id="btnDcUse" title="ใช้ลิงก์นี้เป็นพื้นหลังหน้าร้านและโปสเตอร์">ใช้เป็นพื้นหลัง</button>
         </div>
       </details>
     </div>
     <div class="pcanvasbox">
-      <h3 style="font-size:16px;font-weight:800;margin-bottom:12px">👁️ ตัวอย่างโปสเตอร์ (ภาพจริงตามขนาดที่เลือก)</h3>
+      <h3 style="font-size:16px;font-weight:800;margin-bottom:12px">ตัวอย่างโปสเตอร์ (ภาพจริงตามขนาดที่เลือก)</h3>
       <canvas id="posterCanvas" width="1920" height="1080"></canvas>
     </div>
   </div>
@@ -468,20 +470,20 @@ body:fullscreen .hero{padding-top:26px}
   <div class="dwrap">
     <div class="dpreview">
       <div class="stage" id="previewBox"></div>
-      <div class="cap">👁️ พรีวิวสด — <b>ลากข้อความ (ชื่อ/ราคา/ทะเบียน/รายละเอียด) เพื่อจัดตำแหน่งเอง</b> ใช้ได้กับการ์ดทุกใบ + โปสเตอร์</div>
+      <div class="cap">พรีวิวสด — <b>ลากข้อความ (ชื่อ/ราคา/ทะเบียน/รายละเอียด) เพื่อจัดตำแหน่งเอง</b> ใช้ได้กับการ์ดทุกใบ + โปสเตอร์</div>
       <div class="btnrow" style="justify-content:center">
         <button class="btn sm" id="btnResetLayout">↺ จัดตำแหน่งข้อความเดิม</button>
-        <button class="btn sm" id="btnExportDesign">📤 บันทึกธีมเป็นไฟล์</button>
+        <button class="btn sm" id="btnExportDesign">บันทึกธีมเป็นไฟล์</button>
         <button class="btn sm ghost" id="btnResetDesign">↺ รีเซ็ตธีม</button>
       </div>
     </div>
     <div class="panelbox">
       <details open>
-        <summary>✨ เทมเพลตสำเร็จรูป (อนิเมะ / แข่งรถ)</summary>
+        <summary>เทมเพลตสำเร็จรูป (อนิเมะ / แข่งรถ)</summary>
         <div class="swatches" id="presetRow"></div>
       </details>
       <details open>
-        <summary>🎨 สีและกรอบการ์ด</summary>
+        <summary>สีและกรอบการ์ด</summary>
         <div class="dgrid">
           <div class="ctl"><span>พื้นการ์ดสีที่ 1</span><div class="rowc"><input type="color" data-dk="cardBg1"></div></div>
           <div class="ctl"><span>พื้นการ์ดสีที่ 2</span><div class="rowc"><input type="color" data-dk="cardBg2"></div></div>
@@ -493,11 +495,11 @@ body:fullscreen .hero{padding-top:26px}
           <div class="ctl"><span>ความหนาขอบ <i class="val" data-val="borderWidth"></i></span><div class="rowc"><input type="range" min="0" max="6" step="0.5" data-dk="borderWidth"></div></div>
           <div class="ctl"><span>มุมโค้งการ์ด <i class="val" data-val="radius"></i></span><div class="rowc"><input type="range" min="0" max="40" data-dk="radius"></div></div>
           <div class="ctl"><span>แสงเรืองแสง (Glow) <i class="val" data-val="glow"></i></span><div class="rowc"><input type="range" min="0" max="70" data-dk="glow"></div></div>
-          <label class="chk"><input type="checkbox" data-dk="shadow">🌑 เงาใต้การ์ด</label>
+          <label class="chk"><input type="checkbox" data-dk="shadow">เงาใต้การ์ด</label>
         </div>
       </details>
       <details>
-        <summary>✍️ ตัวอักษร</summary>
+        <summary>ตัวอักษร</summary>
         <div class="dgrid">
           <div class="ctl"><span>ฟอนต์</span><select class="inp" data-dk="fontFamily" id="fontSelect"></select></div>
           <div class="ctl"><span>ขนาดชื่อรถ <i class="val" data-val="titleSize"></i></span><div class="rowc"><input type="range" min="14" max="40" data-dk="titleSize"></div></div>
@@ -506,7 +508,7 @@ body:fullscreen .hero{padding-top:26px}
         </div>
       </details>
       <details>
-        <summary>🖼️ รูปภาพบนการ์ด</summary>
+        <summary>รูปภาพบนการ์ด</summary>
         <div class="dgrid">
           <div class="ctl"><span>สัดส่วนรูป</span>
             <select class="inp" data-dk="imageRatio">
@@ -517,10 +519,10 @@ body:fullscreen .hero{padding-top:26px}
             </select>
           </div>
           <div class="ctl"><span>มุมโค้งรูป <i class="val" data-val="imageRadius"></i></span><div class="rowc"><input type="range" min="0" max="40" data-dk="imageRadius"></div></div>
-          <label class="chk"><input type="checkbox" data-dk="showPrice">💰 แสดงราคาบนการ์ด</label>
-          <label class="chk"><input type="checkbox" data-dk="showStatus">🏷️ แสดงป้ายสถานะ</label>
+          <label class="chk"><input type="checkbox" data-dk="showPrice">แสดงราคาบนการ์ด</label>
+          <label class="chk"><input type="checkbox" data-dk="showStatus">แสดงป้ายสถานะ</label>
         </div>
-        <div class="sect">🖌️ ใช้สไตล์รูปกับรถทั้งหมด</div>
+        <div class="sect">ใช้สไตล์รูปกับรถทั้งหมด</div>
         <div class="fxbtns">
           <button class="fxb" data-fxall="reset">ปกติ</button>
           <button class="fxb" data-fxall="lux">หรูหรา</button>
@@ -531,7 +533,7 @@ body:fullscreen .hero{padding-top:26px}
         </div>
       </details>
       <details>
-        <summary>⚡ แอนิเมชันและความเร็ว</summary>
+        <summary>แอนิเมชันและความเร็ว</summary>
         <div class="dgrid">
           <div class="ctl"><span>ความเร็วพลิกการ์ด <i class="val" data-val="flipSpeed"></i></span><div class="rowc"><input type="range" min="200" max="1500" step="50" data-dk="flipSpeed"></div></div>
           <div class="ctl"><span>ทิศทางพลิก</span>
@@ -543,25 +545,25 @@ body:fullscreen .hero{padding-top:26px}
           <div class="ctl"><span>เวลาต่อการ์ดในสไลด์ <i class="val" data-val="slideInterval"></i></span><div class="rowc"><input type="range" min="2" max="15" step="0.5" data-dk="slideInterval"></div></div>
           <div class="ctl"><span>เอฟเฟกต์ตอนปรากฏ</span>
             <select class="inp" data-dk="transition">
-              <option value="slide">➡ สไลด์</option>
-              <option value="fade">🌫 จาง</option>
-              <option value="zoom">🔍 ซูม</option>
+              <option value="slide">สไลด์</option>
+              <option value="fade">จาง</option>
+              <option value="zoom">ซูม</option>
             </select>
           </div>
-          <label class="chk"><input type="checkbox" data-dk="autoPlay">▶️ เล่นสไลด์อัตโนมัติ</label>
-          <label class="chk"><input type="checkbox" data-dk="hoverLift">🎈 การ์ดลอยเมื่อชี้เมาส์</label>
+          <label class="chk"><input type="checkbox" data-dk="autoPlay">เล่นสไลด์อัตโนมัติ</label>
+          <label class="chk"><input type="checkbox" data-dk="hoverLift">การ์ดลอยเมื่อชี้เมาส์</label>
         </div>
       </details>
       <details>
-        <summary>🌌 พื้นหลังหน้าร้าน</summary>
+        <summary>พื้นหลังหน้าร้าน</summary>
         <div class="dgrid">
           <div class="ctl"><span>สีพื้นหลัง 1</span><div class="rowc"><input type="color" data-dk="bg1"></div></div>
           <div class="ctl"><span>สีพื้นหลัง 2</span><div class="rowc"><input type="color" data-dk="bg2"></div></div>
           <div class="ctl"><span>ลายพื้นหลัง</span>
             <select class="inp" data-dk="bgPattern">
               <option value="grid">▦ เส้นกริด</option>
-              <option value="checker">🏁 ธงตลาด (ลายสี่เหลี่ยมสลับ)</option>
-              <option value="speed">💨 เส้นความเร็ว</option>
+              <option value="checker">ธงตลาด (ลายสี่เหลี่ยมสลับ)</option>
+              <option value="speed">เส้นความเร็ว</option>
               <option value="dots">⋯ จุด</option>
               <option value="none">— เรียบ</option>
             </select>
@@ -579,19 +581,19 @@ body:fullscreen .hero{padding-top:26px}
 <section class="page" id="page-data">
   <div class="dwrap2">
     <div class="cardbox" id="cloudCard" style="border-color:color-mix(in srgb,var(--accent) 40%,transparent)">
-      <h3>☁️ ห้องทำงานร่วมกัน (ซิงค์เรียลไทม์ 2-3 คน)</h3>
+      <h3>ห้องทำงานร่วมกัน (ซิงค์เรียลไทม์ 2-3 คน)</h3>
       <p style="color:var(--sub);font-size:13.5px;line-height:1.6;margin-bottom:12px">ทุกคนใส่<b style="color:var(--text)">ชื่อห้องเดียวกัน</b> (หรือเปิดลิงก์ห้องเดียวกัน) — ใครแก้ไขข้อมูล ไม่ว่าเพิ่มรถ แก้ราคา เปลี่ยนธีม ติดเช่า ทุกคนจะเห็น<b style="color:var(--text)">อัตโนมัติภายใน 1-2 วินาที</b> • ระบบเซฟขึ้นคลาวด์ให้เองตลอด ไม่ต้องกดอะไร</p>
       <div class="btnrow" style="align-items:center" id="roomRow">
-        <span style="font-size:13px;font-weight:700;color:var(--sub)">👥 ห้อง:</span>
+        <span style="font-size:13px;font-weight:700;color:var(--sub)">ห้อง:</span>
         <input class="inp" id="roomInputUI" style="width:130px" value="1" placeholder="ชื่อห้อง">
         <button class="btn accent sm" id="btnJoinRoom">เข้าร่วมห้อง</button>
-        <button class="btn sm" id="btnCopyRoom" title="คัดลอกลิงก์ห้องนี้ส่งให้เพื่อน — เปิดแล้วใช้ข้อมูลชุดเดียวกันทันที">🔗 ลิงก์ห้อง</button>
-        <button class="btn sm violet" id="btnForcePush">☁️ เซฟขึ้นคลาวด์เดี๋ยวนี้</button>
+        <button class="btn sm" id="btnCopyRoom" title="คัดลอกลิงก์ห้องนี้ส่งให้เพื่อน — เปิดแล้วใช้ข้อมูลชุดเดียวกันทันที">ลิงก์ห้อง</button>
+        <button class="btn sm violet" id="btnForcePush">เซฟขึ้นคลาวด์เดี๋ยวนี้</button>
       </div>
       <div id="cloudDetail" style="font-size:12.5px;color:var(--sub);margin-top:10px">กำลังเชื่อมต่อ…</div>
     </div>
     <div class="cardbox">
-      <h3>🏪 ข้อมูลร้าน</h3>
+      <h3>ข้อมูลร้าน</h3>
       <div class="formgrid">
         <div class="field"><label>ชื่อร้าน / ชื่อเว็บ</label><input class="inp" data-sk="name" placeholder="เช่ร สมชาย คาร์เรนทัล"></div>
         <div class="field"><label>คำโปรย (Subtitle)</label><input class="inp" data-sk="tagline" placeholder="เช่น รถแข่งลายสวย ราคาถูก ทักแชทเลย"></div>
@@ -601,18 +603,18 @@ body:fullscreen .hero{padding-top:26px}
       </div>
     </div>
     <div class="cardbox">
-      <h3>💾 สำรองและกู้คืนข้อมูล</h3>
+      <h3>สำรองและกู้คืนข้อมูล</h3>
       <p style="color:var(--sub);font-size:13.5px;margin-bottom:12px">ข้อมูลทั้งหมดถูกบันทึกอัตโนมัติลงเบราว์เซอร์นี้ • ย้ายเครื่อง/ส่งให้เพื่อน ให้ส่งออกไฟล์ .json แล้วโหลดกลับได้ทันที (รวมรูปรถทุกคัน)</p>
       <div class="btnrow">
-        <button class="btn accent" id="btnExport">📤 ส่งออกข้อมูลทั้งหมด</button>
-        <button class="btn" id="btnImport">📂 นำเข้าไฟล์สำรอง</button>
-        <button class="btn danger" id="btnResetAll">🗑️ ล้างข้อมูลทั้งหมด</button>
+        <button class="btn accent" id="btnExport">ส่งออกข้อมูลทั้งหมด</button>
+        <button class="btn" id="btnImport">นำเข้าไฟล์สำรอง</button>
+        <button class="btn danger" id="btnResetAll">ล้างข้อมูลทั้งหมด</button>
       </div>
       <div class="storagebar"><i id="storageBar" style="width:0%"></i></div>
       <div style="font-size:12px;color:var(--sub)" id="storageInfo">—</div>
     </div>
     <div class="cardbox help">
-      <h3>📖 คู่มือใช้งานอย่างรวดเร็ว</h3>
+      <h3>คู่มือใช้งานอย่างรวดเร็ว</h3>
       <p><b>1. เพิ่มรถ</b> — แท็บ "จัดการรถ" → "เพิ่มรถ" → ใส่ <b>รูป + ชื่อรถ + ความเร็ว + ที่นั่ง + ราคา + รายละเอียด (เช่น รถกาชาได้จากไหน) + ป้ายทะเบียน</b> ก็ครบแล้ว ระบบเดินเครื่องเองหมด</p>
       <p><b>2. ป้ายทะเบียนใส่ยังไง</b> — รูปแบบไทย: <b>ตัวอักษร 1-2 ตัว + เว้นวรรค + เลขไม่เกิน 4 หลัก</b> เช่น "กท 1234" หรือแบบเก่า "1กก 5678" และ<b>ใส่ชื่อจังหวัดต่อท้ายได้</b> เช่น "กท 1234 กรุงเทพมหานคร" — ช่องกรอกมีพรีวิวป้ายจริงและเช็ครูปแบบให้ทันที (เป็นรถเกมจะใส่อะไรก็ได้ แค่เตือนให้รู้)</p>
       <p><b>3. ทำโปสเตอร์ + ได้ลิงก์รูปจาก Discord</b> — แท็บ "ทำโปสเตอร์": ติ๊กเลือกรถที่จะขึ้น (จัดตารางอัตโนมัติ 20 คันก็จัดได้) → เลือกขนาดหน้าจอ → กด <b>"ส่งขึ้น Discord"</b> (ตั้ง Webhook ครั้งเดียว) ระบบจะอัปโหลดแล้ว<b>ก๊อปลิงก์รูปมาวางให้เอง</b> หรือจะดาวน์โหลด PNG ไปวางใน Discord เองแล้วคลิกขวา Copy Link ก็ได้เหมือนกัน</p>
@@ -626,20 +628,20 @@ body:fullscreen .hero{padding-top:26px}
 <!-- ═══════════ โมดัลเพิ่ม/แก้ไขรถ ═══════════ -->
 <div class="modal" id="editorModal">
   <div class="mbox">
-    <div class="mhead"><h3 id="edTitle">＋ เพิ่มรถใหม่</h3><button class="mclose" onclick="closeEditor()">✕</button></div>
+    <div class="mhead"><h3 id="edTitle">＋ เพิ่มรถใหม่</h3><button class="mclose" onclick="closeEditor()"></button></div>
     <div class="mbody">
       <div>
-        <div class="sect">🖼️ รูปรถ + เครื่องมือตกแต่งรูป</div>
+        <div class="sect">รูปรถ + เครื่องมือตกแต่งรูป</div>
         <div class="drop" id="dropZone">
           <img id="edPreview" alt="พรีวิวรูปรถ" style="display:none">
-          <div class="lbl" id="dropLabel">📥 คลิกเลือกรูป หรือลากรูปมาวางที่นี่<br><span style="font-size:11px;opacity:.7">(ระบบบีบอัดรูปให้เบาอัตโนมัติ)</span></div>
+          <div class="lbl" id="dropLabel">คลิกเลือกรูป หรือลากรูปมาวางที่นี่<br><span style="font-size:11px;opacity:.7">(ระบบบีบอัดรูปให้เบาอัตโนมัติ)</span></div>
         </div>
         <input type="file" id="imgInput" accept="image/*" hidden>
         <div class="urlrow">
           <input class="inp" id="imgUrl" placeholder="หรือวางลิงก์รูป เช่น ลิงก์จาก Discord (https://...)">
-          <button class="btn sm" id="btnUrl" title="ใช้ลิงก์นี้เป็นรูปรถ">🔗 ใช้ลิงก์</button>
+          <button class="btn sm" id="btnUrl" title="ใช้ลิงก์นี้เป็นรูปรถ">ใช้ลิงก์</button>
         </div>
-        <div style="font-size:12px;color:var(--sub);margin-top:6px">💡 <b>ลากภาพด้านบนด้วยเมาส์</b>เพื่อขยับจุดโฟกัสในกรอบ แล้วปรับขนาดด้วยแถบ "🔍 ซูมรูป" ด้านล่าง</div>
+        <div style="font-size:12px;color:var(--sub);margin-top:6px"><b>ลากภาพด้านบนด้วยเมาส์</b>เพื่อขยับจุดโฟกัสในกรอบ แล้วปรับขนาดด้วยแถบ "ซูมรูป" ด้านล่าง</div>
         <div class="fxbox" id="fxPanel">
           <div class="fxbtns">
             <button class="fxb" data-fx="reset">ปกติ</button>
@@ -650,21 +652,21 @@ body:fullscreen .hero{padding-top:26px}
             <button class="fxb" data-fx="cool">เย็นตา</button>
           </div>
           <div class="fxgrid">
-            <div class="ctl"><span>☀️ สว่าง <i class="val" data-val="brightness"></i></span><input type="range" min="40" max="170" data-fxk="brightness"></div>
+            <div class="ctl"><span>สว่าง <i class="val" data-val="brightness"></i></span><input type="range" min="40" max="170" data-fxk="brightness"></div>
             <div class="ctl"><span>◐ คอนทราสต์ <i class="val" data-val="contrast"></i></span><input type="range" min="40" max="180" data-fxk="contrast"></div>
-            <div class="ctl"><span>🎨 อิ่มสี <i class="val" data-val="saturate"></i></span><input type="range" min="0" max="220" data-fxk="saturate"></div>
-            <div class="ctl"><span>⚫ ขาวดำ <i class="val" data-val="grayscale"></i></span><input type="range" min="0" max="100" data-fxk="grayscale"></div>
-            <div class="ctl"><span>💧 เบลอ <i class="val" data-val="blur"></i></span><input type="range" min="0" max="8" step="0.2" data-fxk="blur"></div>
-            <div class="ctl"><span>🌈 สีเพี้ยน <i class="val" data-val="hue"></i></span><input type="range" min="0" max="360" data-fxk="hue"></div>
-            <div class="ctl"><span>🖥 ซีเปีย <i class="val" data-val="sepia"></i></span><input type="range" min="0" max="100" data-fxk="sepia"></div>
-            <div class="ctl"><span>🔍 ซูมรูป <i class="val" data-val="zoom"></i></span><input type="range" min="100" max="260" data-fxk="zoom"></div>
+            <div class="ctl"><span>อิ่มสี <i class="val" data-val="saturate"></i></span><input type="range" min="0" max="220" data-fxk="saturate"></div>
+            <div class="ctl"><span>ขาวดำ <i class="val" data-val="grayscale"></i></span><input type="range" min="0" max="100" data-fxk="grayscale"></div>
+            <div class="ctl"><span>เบลอ <i class="val" data-val="blur"></i></span><input type="range" min="0" max="8" step="0.2" data-fxk="blur"></div>
+            <div class="ctl"><span>สีเพี้ยน <i class="val" data-val="hue"></i></span><input type="range" min="0" max="360" data-fxk="hue"></div>
+            <div class="ctl"><span>ซีเปีย <i class="val" data-val="sepia"></i></span><input type="range" min="0" max="100" data-fxk="sepia"></div>
+            <div class="ctl"><span>ซูมรูป <i class="val" data-val="zoom"></i></span><input type="range" min="100" max="260" data-fxk="zoom"></div>
             <div class="ctl"><span>↔ เลื่อนโฟกัสซ้าย-ขวา <i class="val" data-val="panx"></i></span><input type="range" min="-100" max="100" data-fxk="panx"></div>
             <div class="ctl"><span>↕ เลื่อนโฟกัสบน-ล่าง <i class="val" data-val="pany"></i></span><input type="range" min="-100" max="100" data-fxk="pany"></div>
           </div>
         </div>
       </div>
       <div>
-        <div class="sect">🚘 ข้อมูลรถ</div>
+        <div class="sect">ข้อมูลรถ</div>
         <div class="edgrid">
           <div class="field full"><label>ชื่อรถ / รุ่น *</label><input class="inp" id="f-name" placeholder="เช่น Nissan GT-R Nismo"></div>
           <div class="field"><label>ความเร็วสูงสุด *</label><input class="inp" id="f-speed" placeholder="เช่น 315 กม./ชม. หรือ Class S"></div>
@@ -674,19 +676,19 @@ body:fullscreen .hero{padding-top:26px}
         </div>
         <div class="platePreview" id="platePreview"></div>
         <div class="plateHint" id="plateHint"></div>
-        <div class="sect">📝 รายละเอียด (เช่น รถกาชา ได้จากไหน จุดเด่น ฯลฯ)</div>
+        <div class="sect">รายละเอียด (เช่น รถกาชา ได้จากไหน จุดเด่น ฯลฯ)</div>
         <textarea class="inp" id="f-details" style="min-height:110px" placeholder="ตัวอย่าง: รถกาชา Event อำมาตย์&#10;• ดริฟท์แกรบมือ&#10;• สปีดโค้งสูงสุดในเกม&#10;• ติดโบนัสเต็มระบบ"></textarea>
-        <div class="sect">🏷️ สถานะ</div>
+        <div class="sect">สถานะ</div>
         <div class="edgrid">
-          <div class="field"><label>สถานะปัจจุบัน</label><select class="inp" id="f-status"><option value="available">🟢 พร้อมให้เช่า</option><option value="rented">🟡 ติดเช่า</option><option value="maintenance">⚪ ซ่อมบำรุง</option></select></div>
+          <div class="field"><label>สถานะปัจจุบัน</label><select class="inp" id="f-status"><option value="available">พร้อมให้เช่า</option><option value="rented">ติดเช่า</option><option value="maintenance">ซ่อมบำรุง</option></select></div>
           <div class="field" id="daysField"><label>เช่าอีกกี่วัน (ป้ายนับถอยหลัง)</label><input class="inp" id="f-days" type="number" min="1" max="365" value="1"></div>
         </div>
       </div>
     </div>
     <div class="mfoot">
-      <button class="btn danger sm" id="edDelete" style="display:none;margin-right:auto">🗑️ ลบรถคันนี้</button>
+      <button class="btn danger sm" id="edDelete" style="display:none;margin-right:auto">ลบรถคันนี้</button>
       <button class="btn ghost" onclick="closeEditor()">ยกเลิก</button>
-      <button class="btn accent" id="edSave">💾 บันทึก</button>
+      <button class="btn accent" id="edSave">บันทึก</button>
     </div>
   </div>
 </div>
@@ -737,9 +739,23 @@ function hhmmss(ms){
   return (d > 0 ? d + 'วัน ' : '') + h + ':' + m + ':' + ss;
 }
 function copyText(txt, okMsg){
-  if (navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(txt).then(() => toast(okMsg || 'คัดลอกแล้ว')).catch(() => prompt('คัดลอกเอง:', txt));
-  } else prompt('คัดลอกเอง:', txt);
+  const done = () => toast(okMsg || 'คัดลอกแล้ว');
+  const ask = () => window.prompt('คัดลอกข้อความด้านล่างนี้:', txt);
+  const fallback = () => {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = txt; ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed'; ta.style.top = '0'; ta.style.left = '0'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      try { ta.setSelectionRange(0, txt.length); } catch(e){}
+      const ok = document.execCommand('copy');
+      ta.remove();
+      if (ok) done(); else ask();
+    } catch(e){ ask(); }
+  };
+  if (window.isSecureContext && navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(done).catch(fallback);
+  } else fallback();
 }
 
 /* ---------- ค่าคงที่ ---------- */
@@ -770,16 +786,16 @@ const DEFAULT_DESIGN = {
 };
 
 const PRESETS = {
-  gold:   { label:'Midnight Gold', emoji:'👑', cardBg1:'#161d33', cardBg2:'#232c4d', cardAngle:135, accent:'#f5b942', btnText:'#1b1305', textColor:'#ffffff', subColor:'#a9b4d6', borderColor:'#f5b942', borderWidth:1, radius:20, glow:18, bg1:'#0a0e1c', bg2:'#141b31', bgPattern:'grid',   fontFamily:'Kanit' },
-  neon:   { label:'Neon Cyber',    emoji:'🌌', cardBg1:'#0d1226', cardBg2:'#1c1140', cardAngle:160, accent:'#22d3ee', btnText:'#03202a', textColor:'#ffffff', subColor:'#93a5d8', borderColor:'#22d3ee', borderWidth:1.5, radius:16, glow:26, bg1:'#070b18', bg2:'#120a2b', bgPattern:'dots',   fontFamily:'Chakra Petch' },
-  light:  { label:'Clean Light',   emoji:'☁️', cardBg1:'#ffffff', cardBg2:'#eef2fa', cardAngle:180, accent:'#0a6cff', btnText:'#ffffff', textColor:'#17213d', subColor:'#5b6b8c', borderColor:'#0a6cff', borderWidth:1, radius:22, glow:6,  bg1:'#eef2f9', bg2:'#dfe7f5', bgPattern:'none',   fontFamily:'Prompt' },
-  ocean:  { label:'Ocean Deep',    emoji:'🌊', cardBg1:'#0b2233', cardBg2:'#0f3a4d', cardAngle:135, accent:'#2dd4bf', btnText:'#02251f', textColor:'#ffffff', subColor:'#9fc6c9', borderColor:'#2dd4bf', borderWidth:1, radius:18, glow:14, bg1:'#071823', bg2:'#0d2c3a', bgPattern:'grid',   fontFamily:'Bai Jamjuree' },
-  purple: { label:'Royal Purple',  emoji:'🔮', cardBg1:'#1b1233', cardBg2:'#331b57', cardAngle:145, accent:'#c084fc', btnText:'#241040', textColor:'#ffffff', subColor:'#b9a9e0', borderColor:'#c084fc', borderWidth:1.5, radius:20, glow:22, bg1:'#100a1f', bg2:'#1d1136', bgPattern:'dots',   fontFamily:'K2D' },
-  sunset: { label:'Sunset Drive',  emoji:'🌇', cardBg1:'#2a1420', cardBg2:'#4a2030', cardAngle:150, accent:'#fb923c', btnText:'#331104', textColor:'#ffffff', subColor:'#e0b9a9', borderColor:'#fb923c', borderWidth:1, radius:22, glow:18, bg1:'#180d14', bg2:'#2b1521', bgPattern:'none',   fontFamily:'Mitr' },
-  carbon: { label:'Carbon Sport',  emoji:'🏎️', cardBg1:'#111214', cardBg2:'#232327', cardAngle:135, accent:'#ef4444', btnText:'#ffffff', textColor:'#f3f4f6', subColor:'#9aa0ab', borderColor:'#ef4444', borderWidth:2, radius:12, glow:16, bg1:'#0a0b0c', bg2:'#16171a', bgPattern:'grid',  fontFamily:'Russo One' },
-  race:   { label:'Racing Flag',   emoji:'🏁', cardBg1:'#15161a', cardBg2:'#33363e', cardAngle:135, accent:'#ffd400', btnText:'#201c00', textColor:'#ffffff', subColor:'#c8cdd6', borderColor:'#ffd400', borderWidth:2, radius:14, glow:16, bg1:'#0e0f12', bg2:'#22252b', bgPattern:'checker', fontFamily:'Racing Sans One' },
-  sakura: { label:'Anime Sakura',  emoji:'🌸', cardBg1:'#fff0f6', cardBg2:'#ffd9e8', cardAngle:150, accent:'#e4467c', btnText:'#ffffff', textColor:'#3d2030', subColor:'#8a5c72', borderColor:'#e4467c', borderWidth:1.5, radius:26, glow:10, bg1:'#fdf2f8', bg2:'#fce7f3', bgPattern:'none',   fontFamily:'Itim' },
-  blaze:  { label:'Blaze Racing',  emoji:'🔥', cardBg1:'#1f0600', cardBg2:'#4a1200', cardAngle:150, accent:'#fb5607', btnText:'#ffffff', textColor:'#ffffff', subColor:'#e8b39a', borderColor:'#fb5607', borderWidth:1.5, radius:16, glow:26, bg1:'#170401', bg2:'#2b0900', bgPattern:'speed',  fontFamily:'Bungee' },
+  gold:   { label:'Midnight Gold', emoji:'', cardBg1:'#161d33', cardBg2:'#232c4d', cardAngle:135, accent:'#f5b942', btnText:'#1b1305', textColor:'#ffffff', subColor:'#a9b4d6', borderColor:'#f5b942', borderWidth:1, radius:20, glow:18, bg1:'#0a0e1c', bg2:'#141b31', bgPattern:'grid',   fontFamily:'Kanit' },
+  neon:   { label:'Neon Cyber',    emoji:'', cardBg1:'#0d1226', cardBg2:'#1c1140', cardAngle:160, accent:'#22d3ee', btnText:'#03202a', textColor:'#ffffff', subColor:'#93a5d8', borderColor:'#22d3ee', borderWidth:1.5, radius:16, glow:26, bg1:'#070b18', bg2:'#120a2b', bgPattern:'dots',   fontFamily:'Chakra Petch' },
+  light:  { label:'Clean Light',   emoji:'', cardBg1:'#ffffff', cardBg2:'#eef2fa', cardAngle:180, accent:'#0a6cff', btnText:'#ffffff', textColor:'#17213d', subColor:'#5b6b8c', borderColor:'#0a6cff', borderWidth:1, radius:22, glow:6,  bg1:'#eef2f9', bg2:'#dfe7f5', bgPattern:'none',   fontFamily:'Prompt' },
+  ocean:  { label:'Ocean Deep',    emoji:'', cardBg1:'#0b2233', cardBg2:'#0f3a4d', cardAngle:135, accent:'#2dd4bf', btnText:'#02251f', textColor:'#ffffff', subColor:'#9fc6c9', borderColor:'#2dd4bf', borderWidth:1, radius:18, glow:14, bg1:'#071823', bg2:'#0d2c3a', bgPattern:'grid',   fontFamily:'Bai Jamjuree' },
+  purple: { label:'Royal Purple',  emoji:'', cardBg1:'#1b1233', cardBg2:'#331b57', cardAngle:145, accent:'#c084fc', btnText:'#241040', textColor:'#ffffff', subColor:'#b9a9e0', borderColor:'#c084fc', borderWidth:1.5, radius:20, glow:22, bg1:'#100a1f', bg2:'#1d1136', bgPattern:'dots',   fontFamily:'K2D' },
+  sunset: { label:'Sunset Drive',  emoji:'', cardBg1:'#2a1420', cardBg2:'#4a2030', cardAngle:150, accent:'#fb923c', btnText:'#331104', textColor:'#ffffff', subColor:'#e0b9a9', borderColor:'#fb923c', borderWidth:1, radius:22, glow:18, bg1:'#180d14', bg2:'#2b1521', bgPattern:'none',   fontFamily:'Mitr' },
+  carbon: { label:'Carbon Sport',  emoji:'', cardBg1:'#111214', cardBg2:'#232327', cardAngle:135, accent:'#ef4444', btnText:'#ffffff', textColor:'#f3f4f6', subColor:'#9aa0ab', borderColor:'#ef4444', borderWidth:2, radius:12, glow:16, bg1:'#0a0b0c', bg2:'#16171a', bgPattern:'grid',  fontFamily:'Russo One' },
+  race:   { label:'Racing Flag',   emoji:'', cardBg1:'#15161a', cardBg2:'#33363e', cardAngle:135, accent:'#ffd400', btnText:'#201c00', textColor:'#ffffff', subColor:'#c8cdd6', borderColor:'#ffd400', borderWidth:2, radius:14, glow:16, bg1:'#0e0f12', bg2:'#22252b', bgPattern:'checker', fontFamily:'Racing Sans One' },
+  sakura: { label:'Anime Sakura',  emoji:'', cardBg1:'#fff0f6', cardBg2:'#ffd9e8', cardAngle:150, accent:'#e4467c', btnText:'#ffffff', textColor:'#3d2030', subColor:'#8a5c72', borderColor:'#e4467c', borderWidth:1.5, radius:26, glow:10, bg1:'#fdf2f8', bg2:'#fce7f3', bgPattern:'none',   fontFamily:'Itim' },
+  blaze:  { label:'Blaze Racing',  emoji:'', cardBg1:'#1f0600', cardBg2:'#4a1200', cardAngle:150, accent:'#fb5607', btnText:'#ffffff', textColor:'#ffffff', subColor:'#e8b39a', borderColor:'#fb5607', borderWidth:1.5, radius:16, glow:26, bg1:'#170401', bg2:'#2b0900', bgPattern:'speed',  fontFamily:'Bungee' },
 };
 
 const DEFAULT_POSTER = { title:'', sub:'', size:'16x9', cols:'auto', gap:16, showHeader:true, showPlate:true, showStatus:true, showPrice:true };
@@ -796,9 +812,14 @@ function defaultState(){
 
 /* ---------- โหลด/บันทึก (มี migration จากข้อมูลเวอร์ชันเก่า) ---------- */
 let state = defaultState();
+function storeKey(){ return 'carFlashcards_v1_r' + currentRoom; }
+function saveLocalOnly(){
+  try { localStorage.setItem(storeKey(), JSON.stringify(state)); }
+  catch(e){ console.warn('บันทึกลงเครื่องไม่สำเร็จ (พื้นที่เต็ม):', e); toast('พื้นที่เบราว์เซอร์เต็ม ลองลบรูปเก่าหรือส่งออกไฟล์ก่อน', true); }
+}
 function save(){
-  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
-  catch(e){ console.warn('บันทึกลงเครื่องไม่สำเร็จ (พื้นที่เต็ม):', e); toast('⚠️ พื้นที่เบราว์เซอร์เต็ม ลองลบรูปเก่าหรือส่งออกไฟล์ก่อน', true); }
+  saveLocalOnly();
+  scheduleCloudPush();
   updateStorageInfo();
 }
 const saveDebounced = debounce(save, 500);
@@ -824,7 +845,8 @@ function migrateCar(c){
 }
 function load(){
   try {
-    const raw = localStorage.getItem(STORE_KEY);
+    let raw = localStorage.getItem(storeKey());
+    if (!raw && currentRoom === '1') raw = localStorage.getItem(STORE_KEY); // ข้อมูลชุดเก่าก่อนมีระบบห้อง
     if (!raw) return;
     const obj = JSON.parse(raw);
     if (obj && typeof obj === 'object'){
@@ -840,13 +862,313 @@ function load(){
   } catch(e){ console.warn('โหลดข้อมูลเก่าไม่สำเร็จ:', e); }
 }
 
+/* ═══════════ ระบบซิงค์คลาวด์ใช้ร่วมกันหลายเครื่อง (Firestore เรียลไทม์) ═══════════
+   หลักการ: ทุกคน "ห้องเดียวกัน" = ข้อมูลชุดเดียวกัน
+   • เครื่องใครแก้อะไร → เซฟขึ้น Firestore อัตโนมัติ → ทุกเครื่องที่เปิดห้องนี้อยู่รับ update ทันที
+   • รูป data: ถูกบีบอัดแล้วหั่นเป็นชิ้น (chunk) เก็บใน subcollection "images"
+     เอกสารห้องหลักเก็บเฉพาะข้อความ/ตำแหน่ง จึงเล็ก ไม่ชนลิมิต 1MB ของ Firestore
+   • ออฟไลน์ก็ใช้ได้ตามปกติ (เก็บในเครื่อง) เน็ตกลับมาแล้วซิงค์ต่อเอง */
+const firebaseConfig = {
+  apiKey: "AIzaSyBVirNpmGi1r53mf7pNnV59RGzEFKo4PS4",
+  authDomain: "smart-ice-tumnaaa.firebaseapp.com",
+  projectId: "smart-ice-tumnaaa",
+  storageBucket: "smart-ice-tumnaaa.firebasestorage.app",
+  messagingSenderId: "349663033743",
+  appId: "1:349663033743:web:adf6793310195fb06e73fa"
+};
+let db = null;
+try {
+  if (typeof firebase !== 'undefined'){
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+  }
+} catch(e){ console.warn('Firebase init:', e); }
+let fbAuthReady = false, appInited = false;
+function maybeStartCloud(){
+  if (appInited && fbAuthReady && db) startListeningToRoom();
+}
+try {
+  firebase.auth().onAuthStateChanged(function(u){
+    if (u && !fbAuthReady){ fbAuthReady = true; maybeStartCloud(); }
+  });
+  firebase.auth().signInAnonymously().catch(function(e){
+    console.warn('Anonymous auth:', e);
+    var c = e && e.code || '';
+    if (c === 'auth/unauthorized-domain') setCloudStatus('โดเมนนี้ยังไม่ได้รับอนุญาต: Firebase Console → Authentication → Settings → Authorized domains → Add domain', false);
+    else if (c === 'auth/configuration-not-found' || c === 'auth/operation-not-allowed') setCloudStatus('ยังไม่ได้เปิด Anonymous login: Firebase Console → Build → Authentication → Get started → เปิด Anonymous → Save', false);
+  });
+} catch(e) { console.warn(e); }
+
+function cleanRoomName(v){ return String(v == null ? '' : v).trim().replace(/[\/\\#?]+/g, '-').slice(0, 30); }
+function getRoomFromURL(){
+  try { const u = new URL(location.href); const r = cleanRoomName(u.searchParams.get('room')); if (r) return r; } catch(e){}
+  return null;
+}
+let currentRoom = getRoomFromURL() || '1';
+let unsubscribeFB = null, isIncomingSync = false, cloudSaveTimer = null;
+let lastPushedAt = 0, lastCloudUpdate = 0, lastImgRev = null, imgRev = 0;
+let imageCache = {}, uploadedSig = {}, pendingSnap = null, pendingTimer = null;
+const seededRooms = {};
+
+function roomDocRef(){ return db.collection('cyberpunk_rooms').doc('carflash_' + currentRoom); }
+function imagesColRef(){ return roomDocRef().collection('images'); }
+function newImgId(){ return 'img_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8); }
+function imgRevKey(){ return 'carflash_imgrev_r' + currentRoom; }
+function loadImgRev(){ try { const v = parseInt(localStorage.getItem(imgRevKey()) || '0', 10); return isNaN(v) ? 0 : v; } catch(e){ return 0; } }
+function saveImgRev(){ try { localStorage.setItem(imgRevKey(), String(imgRev)); } catch(e){} }
+function timeNow(){ try { return new Date().toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit', second:'2-digit' }); } catch(e){ return ''; } }
+function setCloudStatus(html, cls){
+  const el = $('#cloudStatus'); if (!el) return;
+  el.innerHTML = html;
+  el.className = 'cloudchip' + (cls ? ' ' + cls : '');
+  const det = $('#cloudDetail');
+  if (det) det.textContent = 'ห้องปัจจุบัน: ' + currentRoom + ' • ' + html.replace(/<[^>]*>/g, '');
+}
+const scheduleCloudPush = debounce(() => pushToCloudNow(false), 1200);
+
+async function downscaleForFirestore(dataUrl){
+  const steps = [[800, .65], [700, .6], [600, .55], [500, .5]];
+  let cur = dataUrl;
+  for (const st of steps){
+    if (cur.length < 850000) break;
+    cur = await compressImage(cur, st[0], st[1]);
+    if (cur.length < 850000) break;
+  }
+  return cur;
+}
+function splitChunks(str){
+  const out = [];
+  for (let i = 0; i < str.length; i += 700000) out.push(str.slice(i, i + 700000));
+  return out;
+}
+async function uploadImageDoc(imgId, dataUrl){
+  if (!imgId) return;
+  if (uploadedSig[imgId] === dataUrl.length) return; // อัปโหลดชิ้นนี้ไปแล้ว ข้าม
+  const small = await downscaleForFirestore(dataUrl);
+  if (small.length >= 950000) throw new Error('รูปใหญ่เกินไปแม้บีบอัดแล้ว (' + Math.round(small.length / 1024) + 'KB)');
+  const parts = splitChunks(small);
+  const imgRef = imagesColRef().doc(imgId);
+  const oldSnap = await imgRef.get().catch(() => null);
+  const oldN = (oldSnap && oldSnap.exists && oldSnap.data().n) || 0;
+  const batch = db.batch();
+  batch.set(imgRef, { n: parts.length, updatedAt: Date.now() }, { merge: true });
+  parts.forEach((p, i) => batch.set(imgRef.collection('parts').doc(('0000' + i).slice(-4)), { d: p }));
+  for (let i = parts.length; i < oldN; i++) batch.delete(imgRef.collection('parts').doc(('0000' + i).slice(-4)));
+  await batch.commit();
+  imageCache[imgId] = small;
+  uploadedSig[imgId] = small.length;
+  imgRev++; saveImgRev();
+}
+async function loadAllImages(){
+  const out = {};
+  const snap = await imagesColRef().get();
+  for (const d of snap.docs || []){
+    const n = (d.data() && d.data().n) || 0;
+    if (!n) continue;
+    const psnap = await d.ref.collection('parts').orderBy(firebase.firestore.FieldPath.documentId()).get();
+    let s = '';
+    psnap.forEach(p => { s += (p.data() && p.data().d) || ''; });
+    if (s) out[d.id] = s;
+  }
+  imageCache = out;
+  return out;
+}
+async function deleteOrphanImages(usedIds){
+  try {
+    const snap = await imagesColRef().get();
+    const batch = db.batch();
+    let has = false;
+    snap.forEach(d => {
+      if (!usedIds[d.id]){
+        const n = (d.data() && d.data().n) || 0;
+        for (let i = 0; i < n; i++) batch.delete(d.ref.collection('parts').doc(('0000' + i).slice(-4)));
+        batch.delete(d.ref);
+        has = true;
+      }
+    });
+    if (has){ await batch.commit(); imgRev++; saveImgRev(); }
+  } catch(e){ console.warn('ลบรูปกำพร้าไม่สำเร็จ (ข้ามได้)', e); }
+}
+function ensureImgIds(){
+  state.cars.forEach(c => {
+    if (c.image && c.image.indexOf('data:') === 0 && !c.imgId) c.imgId = newImgId();
+  });
+}
+function fallbackImages(){
+  const map = {};
+  state.cars.forEach(c => { if (c.imgId && c.image) map[c.imgId] = c.image; });
+  return map;
+}
+async function pushToCloudNow(manual){
+  if (!db) return;
+  if (!fbAuthReady){ scheduleCloudPush(); return; }
+  if (isIncomingSync && !manual) return;
+  clearTimeout(cloudSaveTimer);
+  setCloudStatus('กำลังบันทึก…', 'saving');
+  try {
+    ensureImgIds();
+    const dataImgs = state.cars.filter(c => c.image && c.image.indexOf('data:') === 0);
+    for (let i = 0; i < dataImgs.length; i++){
+      setCloudStatus('อัปโหลดรูป ' + (i + 1) + '/' + dataImgs.length, 'saving');
+      await uploadImageDoc(dataImgs[i].imgId, dataImgs[i].image);
+    }
+    const usedIds = {};
+    const meta = state.cars.map(c => {
+      const m = Object.assign({}, c);
+      if (m.image && m.image.indexOf('data:') === 0){
+        if (!m.imgId) m.imgId = newImgId();
+        m.image = '';
+        usedIds[m.imgId] = true;
+      }
+      return m;
+    });
+    const payload = {
+      app: 'carFlashcards', version: 2,
+      shop: state.shop, cars: meta, design: state.design, poster: state.poster,
+      imgRev: imgRev, lastUpdate: Date.now()
+    };
+    if (JSON.stringify(payload).length > 900000){
+      setCloudStatus('ข้อมูลใหญ่เกินลิมิต', 'err');
+      toast('ข้อมูลตัวอักษรใหญ่เกินลิมิต Firestore ลดจำนวนการ์ด/ความยาวรายละเอียดก่อน', true);
+      return;
+    }
+    await roomDocRef().set(payload);
+    await deleteOrphanImages(usedIds);
+    lastPushedAt = Date.now();
+    lastCloudUpdate = payload.lastUpdate;
+    lastImgRev = imgRev;
+    setCloudStatus('บันทึกแล้ว ' + timeNow(), '');
+    if (manual) toast('เซฟขึ้นคลาวด์แล้ว — ทุกคนในห้อง "' + currentRoom + '" จะเห็นข้อมูลชุดนี้');
+  } catch(err){
+    console.error('Cloud push error:', err);
+    let msg = (err && (err.code || err.message)) || 'ไม่ทราบสาเหตุ';
+    if (err && err.code === 'permission-denied') msg = 'permission-denied — ต้องอนุญาต Firestore Rules ให้ collection "cyberpunk_rooms"';
+    if (err && err.code === 'unauthenticated') msg = 'ยังไม่ได้เปิด Anonymous Login ใน Firebase';
+    setCloudStatus('ซิงค์ไม่สำเร็จ', 'err');
+    toast('เซฟขึ้นคลาวด์ไม่สำเร็จ: ' + msg + ' (ข้อมูลในเครื่องยังปลอดภัย)', true);
+  }
+}
+function isInteracting(){
+  const ae = document.activeElement;
+  if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA') && !['checkbox', 'range', 'color', 'radio', 'button', 'file'].includes(ae.type)) return true;
+  if (window.__dragging) return true;
+  return false;
+}
+function schedulePendingRetry(){
+  clearTimeout(pendingTimer);
+  pendingTimer = setTimeout(async () => {
+    if (!pendingSnap) return;
+    if (!isInteracting()){ const d = pendingSnap; pendingSnap = null; await applyRemoteDoc(d); }
+    else schedulePendingRetry();
+  }, 2500);
+}
+async function applyRemoteDoc(data){
+  isIncomingSync = true;
+  try {
+    const remoteRev = (typeof data.imgRev === 'number') ? data.imgRev : null;
+    const needImg = remoteRev === null || lastImgRev === null || remoteRev !== lastImgRev;
+    if (needImg){
+      await loadAllImages();
+      if (remoteRev !== null){ lastImgRev = remoteRev; imgRev = Math.max(imgRev, remoteRev); saveImgRev(); }
+    }
+    const fb = fallbackImages();
+    state.shop = Object.assign(defaultState().shop, data.shop || {});
+    state.design = Object.assign({}, DEFAULT_DESIGN, data.design || {});
+    state.design.layout = Object.assign({}, DEFAULT_DESIGN.layout, state.design.layout || {});
+    state.poster = Object.assign({}, DEFAULT_POSTER, data.poster || {});
+    state.cars = (Array.isArray(data.cars) ? data.cars : []).filter(c => c && c.name).map(c => {
+      const m = migrateCar(Object.assign({}, c));
+      const usable = m.image && (m.image.indexOf('http') === 0 || m.image.indexOf('data:') === 0);
+      if (!usable && m.imgId) m.image = imageCache[m.imgId] || fb[m.imgId] || svgCarPlaceholder(m.name || 'รถ', 215);
+      return m;
+    });
+    uploadedSig = {};
+    state.cars.forEach(c => { if (c.imgId && imageCache[c.imgId]) uploadedSig[c.imgId] = imageCache[c.imgId].length; });
+    applyDesign();
+    renderAll();
+    syncPosterForm();
+    syncShopInputs();
+    saveLocalOnly();
+    if (data.lastUpdate) lastCloudUpdate = data.lastUpdate;
+    setCloudStatus('ออนไลน์ • ห้อง ' + currentRoom, '');
+  } catch(err){
+    console.error('Apply cloud data error:', err);
+  } finally {
+    setTimeout(() => { isIncomingSync = false; }, 350);
+  }
+}
+function maybeSeedEmptyRoom(){
+  if (seededRooms[currentRoom]) return;
+  seededRooms[currentRoom] = true;
+  if (state.cars.length){
+    toast('ห้อง "' + currentRoom + '" ยังว่างบนคลาวด์ — อัปโหลดข้อมูลในเครื่องนี้ (' + state.cars.length + ' คัน) ขึ้นไปให้แล้ว');
+    pushToCloudNow(false);
+  } else {
+    setCloudStatus('ออนไลน์ • ห้อง ' + currentRoom + ' (ว่าง)', '');
+  }
+}
+function startListeningToRoom(){
+  if (!db){ setCloudStatus('ใช้ในเครื่องนี้ (ออฟไลน์)', 'err'); return; }
+  if (unsubscribeFB) unsubscribeFB();
+  setCloudStatus('เชื่อมต่อห้อง ' + currentRoom + '…', 'saving');
+  unsubscribeFB = roomDocRef().onSnapshot(async doc => {
+    if (doc.exists){
+      const data = doc.data();
+      if (!data || data.app !== 'carFlashcards'){
+        setCloudStatus('ห้องนี้มีข้อมูลอื่นอยู่ ลองใช้ชื่อห้องใหม่', 'err');
+        return;
+      }
+      if (data.lastUpdate && data.lastUpdate <= lastCloudUpdate && (Date.now() - lastPushedAt) < 5000) return;
+      if (isInteracting()){ pendingSnap = data; schedulePendingRetry(); return; }
+      await applyRemoteDoc(data);
+    } else {
+      maybeSeedEmptyRoom();
+    }
+  }, err => {
+    console.error('Firestore listener error:', err);
+    setCloudStatus('Offline — ใช้ข้อมูลในเครื่องได้ต่อ', 'err');
+    if (err && err.code === 'permission-denied') toast('Firestore ปฏิเสธการเข้าถึง (permission-denied) — ต้องตั้ง Rules ให้ collection "cyberpunk_rooms" อ่าน/เขียนได้', true);
+  });
+}
+function changeFirebaseRoom(){
+  const newRoom = cleanRoomName($('#roomInputUI').value);
+  if (!newRoom){ toast('ใส่ชื่อห้องก่อน', true); return; }
+  if (newRoom === currentRoom){ toast('กำลังใช้ห้องนี้อยู่แล้ว'); return; }
+  saveLocalOnly();
+  currentRoom = newRoom;
+  imageCache = {}; uploadedSig = {}; lastCloudUpdate = 0; lastPushedAt = 0; lastImgRev = null; pendingSnap = null;
+  imgRev = loadImgRev(); lastImgRev = imgRev;
+  try { const u = new URL(location.href); u.searchParams.set('room', currentRoom); history.replaceState(null, '', u.toString()); } catch(e){}
+  state = defaultState();
+  load();
+  applyDesign(); renderAll(); syncPosterForm(); syncShopInputs();
+  toast('ย้ายไปห้อง "' + currentRoom + '" แล้ว กำลังดึงข้อมูลจากคลาวด์…');
+  maybeStartCloud();
+}
+function roomShareURL(){
+  try {
+    const u = new URL(location.href);
+    u.searchParams.set('room', currentRoom);
+    u.hash = '';
+    return u.toString();
+  } catch(e){ return location.href; }
+}
+function copyRoomLink(){
+  const link = roomShareURL();
+  if (location.protocol === 'file:'){
+    copyText(link, 'คัดลอกลิงก์แล้ว — ลิงก์ไฟล์ในเครื่องเพื่อนเปิดไม่ได้ ต้องอัปโหลดเว็บขึ้นออนไลน์ก่อน');
+    return;
+  }
+  copyText(link, 'คัดลอกลิงก์ห้องแล้ว ส่งให้เพื่อนเปิดได้เลย ทุกคนเห็นข้อมูลชุดเดียวกัน');
+}
+
 /* ---------- รูปตัวอย่าง (SVG) ---------- */
 function svgCarPlaceholder(text, hue){
   const svg = "<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450'>" +
     "<defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>" +
     "<stop offset='0' stop-color='hsl(" + hue + ",55%,26%)'/><stop offset='1' stop-color='hsl(" + ((hue + 60) % 360) + ",55%,13%)'/>" +
     "</linearGradient></defs><rect width='800' height='450' fill='url(#g)'/>" +
-    "<text x='400' y='205' font-size='130' text-anchor='middle'>🏎️</text>" +
+    "<text x='400' y='205' font-size='130' text-anchor='middle'></text>" +
     "<text x='400' y='305' font-size='34' fill='rgba(255,255,255,.9)' text-anchor='middle' font-family='sans-serif' font-weight='bold'>" + esc(text) + "</text>" +
     "</svg>";
   return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
@@ -869,7 +1191,7 @@ function addDemoCars(){
     });
   });
   save(); renderAll();
-  toast('✨ เพิ่มรถตัวอย่าง 5 คันแล้ว ลองแตะการ์ดเพื่อพลิกดู!');
+  toast('เพิ่มรถตัวอย่าง 5 คันแล้ว ลองแตะการ์ดเพื่อพลิกดู!');
 }
 
 /* ---------- ใช้ธีม (CSS Variables) ---------- */
@@ -937,7 +1259,7 @@ function parsePlate(s){
 }
 function plateHTML(car){
   if (!car.plate) return '';
-  return '<div class="plateline" data-lk="plate" style="transform:translate(' + (LX.plateX || 0) + 'px,' + (LX.plateY || 0) + 'px)">🔖 ' + esc(normalizePlate(car.plate)) + '</div>';
+  return '<div class="plateline" data-lk="plate" style="transform:translate(' + (LX.plateX || 0) + 'px,' + (LX.plateY || 0) + 'px)">' + esc(normalizePlate(car.plate)) + '</div>';
 }
 
 /* ---------- สร้างการ์ด ---------- */
@@ -959,13 +1281,13 @@ function buildFCard(car, opts){
   if (typeof opts.delay === 'number') el.style.animationDelay = opts.delay + 'ms';
 
   const chips = [];
-  if (car.speed) chips.push('⚡ ' + car.speed);
-  if (car.seats) chips.push('👥 ' + car.seats + ' ที่นั่ง');
+  if (car.speed) chips.push(car.speed);
+  if (car.seats) chips.push(car.seats + ' ที่นั่ง');
 
   const front =
     '<div class="fimg" style="border-radius:var(--img-radius)">' +
       '<img src="' + esc(car.image || svgCarPlaceholder(car.name || 'รถ', 215)) + '" alt="' + esc(car.name || '') + '" loading="lazy" style="filter:' + fxStr(car.imgFx) + ';transform:' + fxTransform(car.imgFx) + '" onerror="this.onerror=null;this.src=\'' + svgCarPlaceholder('ไม่มีรูป', 0).replace(/'/g, '%27') + '\'">' +
-      (d.showStatus ? '<span class="badge ' + st.cls + '">' + st.label + '</span>' : '') +
+      (d.showStatus ? (st.cls === 'rented' ? '<div class="ribbon"><b>' + esc(st.label) + '</b></div>' : '<span class="badge ' + st.cls + '">' + st.label + '</span>') : '') +
       (car.status === 'rented' ? '<span class="cdown" data-cdown="' + esc(car.id) + '"></span>' : '') +
     '</div>' +
     '<div class="fbody">' +
@@ -974,24 +1296,24 @@ function buildFCard(car, opts){
       '<div class="fprice-row" data-lk="price" style="transform:translate(' + LX.priceX + 'px,' + LX.priceY + 'px)">' +
         (d.showPrice ? '<div class="fprice">' + fmtBaht(car.pricePerDay) + ' <small>บาท/วัน</small></div>' : '<div></div>') +
       '</div>' +
-      (car.plate ? '<div class="plateline fpl" data-lk="plate" style="transform:translate(' + LX.plateX + 'px,' + LX.plateY + 'px)">🔖 ' + esc(normalizePlate(car.plate)) + '</div>' : '') +
+      (car.plate ? '<div class="plateline fpl" data-lk="plate" style="transform:translate(' + LX.plateX + 'px,' + LX.plateY + 'px)">' + esc(normalizePlate(car.plate)) + '</div>' : '') +
     '</div>' +
     '<div class="fhint">แตะเพื่อพลิกดูรายละเอียด ↻</div>';
 
   const rows = [];
-  if (car.speed) rows.push(['⚡ ความเร็ว', esc(car.speed)]);
-  if (car.seats) rows.push(['👥 ที่นั่ง', esc(car.seats) + ' ตำแหน่ง']);
-  rows.push(['💰 ราคาเช่า', fmtBaht(car.pricePerDay) + ' บาท/วัน']);
+  if (car.speed) rows.push(['ความเร็ว', esc(car.speed)]);
+  if (car.seats) rows.push(['ที่นั่ง', esc(car.seats) + ' ตำแหน่ง']);
+  rows.push(['ราคาเช่า', fmtBaht(car.pricePerDay) + ' บาท/วัน']);
 
   const shop = state.shop;
   const back =
-    '<div class="btitle">📋 รายละเอียดรถ</div>' +
+    '<div class="btitle">รายละเอียดรถ</div>' +
     '<div class="fname" style="font-size:calc(var(--title-size) * .82)">' + esc(car.name || '') + '</div>' +
     rows.map(r => '<div class="brow"><span>' + r[0] + '</span><b>' + r[1] + '</b></div>').join('') +
-    (car.plate ? '<div class="plateline" data-lk="plate" style="transform:translate(' + LX.plateX + 'px,' + LX.plateY + 'px)">🔖 ' + esc(normalizePlate(car.plate)) + '</div>' : '') +
+    (car.plate ? '<div class="plateline" data-lk="plate" style="transform:translate(' + LX.plateX + 'px,' + LX.plateY + 'px)">' + esc(normalizePlate(car.plate)) + '</div>' : '') +
     (car.details ? '<div class="bnote" data-lk="detail" style="transform:translate(' + LX.detailX + 'px,' + LX.detailY + 'px)">' + esc(car.details) + '</div>' : '') +
     '<div class="bcontact">' +
-      (shop.phone ? '<a class="tel" href="tel:' + esc(String(shop.phone).replace(/[^0-9+]/g, '')) + '">📞 โทรจอง</a>' : '') +
+      (shop.phone ? '<a class="tel" href="tel:' + esc(String(shop.phone).replace(/[^0-9+]/g, '')) + '">โทรจอง</a>' : '') +
       '<button type="button" class="back" data-back>↺ กลับด้านหน้า</button>' +
     '</div>';
 
@@ -1063,7 +1385,7 @@ function restartProgress(){
 }
 function restartAutoplay(){
   clearInterval(autoTimer);
-  $('#autoToggle').innerHTML = autoPausedByUser ? '▶️ เล่นสไลด์' : '⏸ หยุดเล่น';
+  $('#autoToggle').innerHTML = autoPausedByUser ? 'เล่นสไลด์' : 'หยุดเล่น';
   $('#autoSpeed').value = state.design.slideInterval;
   $('#autoSpeedLabel').textContent = Number(state.design.slideInterval).toFixed(1) + ' วิ';
   restartProgress();
@@ -1084,8 +1406,8 @@ function updateCountdowns(){
     if (!c || c.status !== 'rented'){ el.textContent = ''; return; }
     if (!c.rentEnd){ el.textContent = 'ติดเช่า'; return; }
     const left = c.rentEnd - Date.now();
-    if (left <= 0){ el.textContent = '⏰ ครบกำหนดคืน!'; el.classList.add('expired'); }
-    else { el.textContent = '⏳ ' + hhmmss(left); el.classList.remove('expired'); }
+    if (left <= 0){ el.textContent = 'ครบกำหนดคืน!'; el.classList.add('expired'); }
+    else { el.textContent = hhmmss(left); el.classList.remove('expired'); }
   });
 }
 
@@ -1096,9 +1418,9 @@ function renderHero(){
   $('#brandName').textContent = s.name || 'CAR RENTAL';
   $('#heroTag').textContent = s.tagline || 'ระบบแฟลชการ์ดแสดงรถให้เช่า • แตะการ์ดเพื่อพลิกดูรายละเอียด';
   let c = '';
-  if (s.phone) c += '<a class="btn sm ok" href="tel:' + esc(String(s.phone).replace(/[^0-9+]/g, '')) + '">📞 ' + esc(s.phone) + '</a>';
-  if (s.line) c += '<button class="btn sm" id="copyLine" title="คัดลอก LINE ID">💬 LINE: ' + esc(s.line) + '</button>';
-  if (s.address) c += '<span class="statchip">📍 ' + esc(s.address) + '</span>';
+  if (s.phone) c += '<a class="btn sm ok" href="tel:' + esc(String(s.phone).replace(/[^0-9+]/g, '')) + '">' + esc(s.phone) + '</a>';
+  if (s.line) c += '<button class="btn sm" id="copyLine" title="คัดลอก LINE ID">LINE: ' + esc(s.line) + '</button>';
+  if (s.address) c += '<span class="statchip">' + esc(s.address) + '</span>';
   $('#heroContact').innerHTML = c;
   const cp = $('#copyLine');
   if (cp) cp.onclick = () => copyText(s.line, 'คัดลอก LINE ID แล้ว');
@@ -1138,23 +1460,23 @@ function renderManage(){
       '<div class="info">' +
         '<div class="n">' + esc(c.name || 'ไม่ระบุชื่อ') + ' <span class="st ' + st.cls + '">' + st.label + '</span></div>' +
         '<div class="s">' +
-          (c.plate ? '<span>🔖 ' + esc(normalizePlate(c.plate)) + '</span>' : '') +
-          (c.speed ? '<span>⚡ ' + esc(c.speed) + '</span>' : '') +
-          (c.seats ? '<span>👥 ' + esc(c.seats) + '</span>' : '') +
+          (c.plate ? '<span>' + esc(normalizePlate(c.plate)) + '</span>' : '') +
+          (c.speed ? '<span>' + esc(c.speed) + '</span>' : '') +
+          (c.seats ? '<span>' + esc(c.seats) + '</span>' : '') +
           (c.status === 'rented' ? '<span data-cdown="' + esc(c.id) + '" style="color:var(--accent);font-weight:700"></span>' : '') +
         '</div>' +
       '</div>' +
       '<div class="price">' + fmtBaht(c.pricePerDay) + ' ฿/วัน</div>' +
-      '<label class="poster-chk" title="เลือกให้ขึ้นโปสเตอร์"><input type="checkbox" data-poster data-id="' + esc(c.id) + '"' + (c.onPoster ? ' checked' : '') + '>🖼️ โปสเตอร์</label>' +
+      '<label class="poster-chk" title="เลือกให้ขึ้นโปสเตอร์"><input type="checkbox" data-poster data-id="' + esc(c.id) + '"' + (c.onPoster ? ' checked' : '') + '>โปสเตอร์</label>' +
       '<div class="acts">' +
-        '<button class="btn sm" data-act="rent1" data-id="' + esc(c.id) + '" title="ติดเช่า 1 วัน">⏳ 1 วัน</button>' +
-        '<button class="btn sm" data-act="rent3" data-id="' + esc(c.id) + '" title="ติดเช่า 3 วัน">⏳ 3 วัน</button>' +
-        '<button class="btn sm" data-act="rent7" data-id="' + esc(c.id) + '" title="ติดเช่า 7 วัน">⏳ 7 วัน</button>' +
-        '<button class="btn sm ok" data-act="return" data-id="' + esc(c.id) + '" title="รับคืนแล้ว สถานะกลับเป็นว่าง">✓ คืนแล้ว</button>' +
-        '<button class="btn sm" data-act="maint" data-id="' + esc(c.id) + '" title="ตั้งเป็นซ่อมบำรุง / กดอีกครั้งเพื่อกลับว่าง">🔧 ซ่อม</button>' +
-        '<button class="btn sm" data-act="edit" data-id="' + esc(c.id) + '">✏️ แก้ไข</button>' +
-        '<button class="btn sm ghost" data-act="dup" data-id="' + esc(c.id) + '" title="ทำซ้ำ">📋</button>' +
-        '<button class="btn sm danger" data-act="del" data-id="' + esc(c.id) + '" title="ลบ">🗑️</button>' +
+        '<button class="btn sm" data-act="rent1" data-id="' + esc(c.id) + '" title="ติดเช่า 1 วัน">1 วัน</button>' +
+        '<button class="btn sm" data-act="rent3" data-id="' + esc(c.id) + '" title="ติดเช่า 3 วัน">3 วัน</button>' +
+        '<button class="btn sm" data-act="rent7" data-id="' + esc(c.id) + '" title="ติดเช่า 7 วัน">7 วัน</button>' +
+        '<button class="btn sm ok" data-act="return" data-id="' + esc(c.id) + '" title="รับคืนแล้ว สถานะกลับเป็นว่าง">คืนแล้ว</button>' +
+        '<button class="btn sm" data-act="maint" data-id="' + esc(c.id) + '" title="ตั้งเป็นซ่อมบำรุง / กดอีกครั้งเพื่อกลับว่าง">ซ่อม</button>' +
+        '<button class="btn sm" data-act="edit" data-id="' + esc(c.id) + '">แก้ไข</button>' +
+        '<button class="btn sm ghost" data-act="dup" data-id="' + esc(c.id) + '" title="ทำซ้ำ"></button>' +
+        '<button class="btn sm danger" data-act="del" data-id="' + esc(c.id) + '" title="ลบ"></button>' +
       '</div>';
     box.appendChild(row);
   });
@@ -1166,9 +1488,9 @@ function setStatus(id, status, days){
   c.status = status;
   c.rentEnd = status === 'rented' ? Date.now() + (days || 1) * 864e5 : null;
   save(); renderManage(); renderStore(); renderStats();
-  if (status === 'rented') toast('⏳ ' + (c.name || 'รถ') + ' ติดเช่า ' + (days || 1) + ' วัน — ป้ายนับถอยหลังติดบนการ์ดแล้ว');
-  else if (status === 'available') toast('✓ ' + (c.name || 'รถ') + ' พร้อมให้เช่าแล้ว');
-  else toast('🔧 ' + (c.name || 'รถ') + ' อยู่ระหว่างซ่อมบำรุง');
+  if (status === 'rented') toast((c.name || 'รถ') + ' ติดเช่า ' + (days || 1) + ' วัน — ป้ายนับถอยหลังติดบนการ์ดแล้ว');
+  else if (status === 'available') toast((c.name || 'รถ') + ' พร้อมให้เช่าแล้ว');
+  else toast((c.name || 'รถ') + ' อยู่ระหว่างซ่อมบำรุง');
 }
 function duplicateCar(id){
   const c = findCar(id); if (!c) return;
@@ -1176,13 +1498,13 @@ function duplicateCar(id){
   copy.id = uid(); copy.name = (c.name || '') + ' (สำเนา)'; copy.createdAt = Date.now();
   copy.status = 'available'; copy.rentEnd = null;
   state.cars.push(copy);
-  save(); renderAll(); toast('📋 ทำซ้ำ "' + (c.name || 'รถ') + '" แล้ว');
+  save(); renderAll(); toast('ทำซ้ำ "' + (c.name || 'รถ') + '" แล้ว');
 }
 function deleteCar(id){
   const c = findCar(id); if (!c) return;
-  confirmBox('🗑️ ลบรถคันนี้?', 'ลบ "' + (c.name || 'รถ') + '" ถาวร จะไม่สามารถกู้คืนได้ (แนะนำส่งออกไฟล์สำรองก่อน)', () => {
+  confirmBox('ลบรถคันนี้?', 'ลบ "' + (c.name || 'รถ') + '" ถาวร จะไม่สามารถกู้คืนได้ (แนะนำส่งออกไฟล์สำรองก่อน)', () => {
     state.cars = state.cars.filter(x => x.id !== id);
-    save(); renderAll(); toast('🗑️ ลบแล้ว');
+    save(); renderAll(); toast('ลบแล้ว');
   });
 }
 
@@ -1197,13 +1519,13 @@ function paintPlatePreview(){
   if (!v.trim()){ box.innerHTML = ''; hint.textContent = 'รูปแบบไทย: กท 1234 (เลขไม่เกิน 4 หลัก • ใส่จังหวัดท้ายได้ เช่น กท 1234 กรุงเทพมหานคร)'; hint.className = 'plateHint'; return; }
   const ck = plateCheck(v);
   const p = parsePlate(v);
-  box.innerHTML = '<div class="plateDemo">🔖 ' + esc(p.main) + (p.prov ? ' • ' + esc(p.prov) : '') + '</div>';
-  if (ck.ok){ hint.textContent = '✓ รูปแบบป้ายถูกต้อง — จะแสดงเป็นตัวเล็กๆ ใต้ราคาบนการ์ด'; hint.className = 'plateHint ok'; }
-  else { hint.textContent = '⚠️ รูปแบบไม่ตรงป้ายไทย (ใช้ต่อได้ถ้าเป็นป้ายเกม) แนะนำ เช่น "กท 1234" หรือ "1กก 5678"'; hint.className = 'plateHint warn'; }
+  box.innerHTML = '<div class="plateDemo">' + esc(p.main) + (p.prov ? ' • ' + esc(p.prov) : '') + '</div>';
+  if (ck.ok){ hint.textContent = 'รูปแบบป้ายถูกต้อง — จะแสดงเป็นตัวเล็กๆ ใต้ราคาบนการ์ด'; hint.className = 'plateHint ok'; }
+  else { hint.textContent = 'รูปแบบไม่ตรงป้ายไทย (ใช้ต่อได้ถ้าเป็นป้ายเกม) แนะนำ เช่น "กท 1234" หรือ "1กก 5678"'; hint.className = 'plateHint warn'; }
 }
 function openEditor(id){
   edCar = id ? findCar(id) : null;
-  $('#edTitle').textContent = edCar ? '✏️ แก้ไข: ' + (edCar.name || 'รถ') : '＋ เพิ่มรถใหม่';
+  $('#edTitle').textContent = edCar ? 'แก้ไข: ' + (edCar.name || 'รถ') : '＋ เพิ่มรถใหม่';
   $('#edDelete').style.display = edCar ? 'inline-flex' : 'none';
   const c = edCar || {};
   $('#f-name').value = c.name || '';
@@ -1273,19 +1595,19 @@ function compressImage(dataUrl, maxW, quality){
 }
 async function handleImageFile(file){
   try {
-    toast('⏳ กำลังประมวลผลรูป…');
+    toast('กำลังประมวลผลรูป…');
     let du = await readImageFile(file);
     du = await compressImage(du, 1400, 0.84);
     edImage = du;
     paintEditorImage();
-    toast('✅ ใส่รูปเรียบร้อย ปรับแต่งต่อได้เลย');
-  } catch(e){ toast('⚠️ ' + (e.message || 'ใส่รูปไม่สำเร็จ'), true); }
+    toast('ใส่รูปเรียบร้อย ปรับแต่งต่อได้เลย');
+  } catch(e){ toast(e.message || 'ใส่รูปไม่สำเร็จ', true); }
 }
 function collectEditor(){
   const name = $('#f-name').value.trim();
-  if (!name){ toast('⚠️ กรุณาใส่ชื่อรถ', true); $('#f-name').focus(); return null; }
+  if (!name){ toast('กรุณาใส่ชื่อรถ', true); $('#f-name').focus(); return null; }
   const price = parseFloat($('#f-price').value);
-  if (isNaN(price) || price < 0){ toast('⚠️ กรุณาใส่ราคาเช่า/วันเป็นตัวเลข', true); $('#f-price').focus(); return null; }
+  if (isNaN(price) || price < 0){ toast('กรุณาใส่ราคาเช่า/วันเป็นตัวเลข', true); $('#f-price').focus(); return null; }
   const seatsV = $('#f-seats').value;
   const status = $('#f-status').value;
   const seats = seatsV === '' ? '' : (parseInt(seatsV, 10) || 0);
@@ -1303,8 +1625,8 @@ function collectEditor(){
 }
 function saveEditor(){
   const data = collectEditor(); if (!data) return;
-  if (edCar){ Object.assign(edCar, data, { id:edCar.id, createdAt: edCar.createdAt || Date.now() }); toast('💾 บันทึกการแก้ไขแล้ว'); }
-  else { state.cars.push(Object.assign({ id:uid(), onPoster:true, createdAt:Date.now() }, data)); toast('✅ เพิ่มรถใหม่แล้ว ไปดูที่หน้าร้านได้เลย'); }
+  if (edCar){ Object.assign(edCar, data, { id:edCar.id, createdAt: edCar.createdAt || Date.now() }); toast('บันทึกการแก้ไขแล้ว'); }
+  else { state.cars.push(Object.assign({ id:uid(), onPoster:true, createdAt:Date.now() }, data)); toast('เพิ่มรถใหม่แล้ว ไปดูที่หน้าร้านได้เลย'); }
   save(); renderAll(); closeEditor();
 }
 
@@ -1356,7 +1678,7 @@ function bindLayoutDrag(card){
       el.style.cursor = 'grab';
       if (moved){
         save(); renderStore(); renderManage(); renderPosterDebounced();
-        toast('✅ จำตำแหน่ง "' + ({name:'ชื่อรถ',price:'ราคา',plate:'ทะเบียน',detail:'รายละเอียด'}[key] || key) + '" ใหม่แล้ว (ใช้กับการ์ดทุกใบ + โปสเตอร์)');
+        toast('จำตำแหน่ง "' + ({name:'ชื่อรถ',price:'ราคา',plate:'ทะเบียน',detail:'รายละเอียด'}[key] || key) + '" ใหม่แล้ว (ใช้กับการ์ดทุกใบ + โปสเตอร์)');
         renderPreview();
       }
     };
@@ -1404,7 +1726,7 @@ function applyPreset(key, silent){
   Object.assign(state.design, p);
   state.design.bgUrl = keepUrl;
   applyDesign(); syncDesignInputs(); renderStore(); renderPreview(); renderPresetUI(); saveDebounced();
-  if (!silent) toast('🎨 ใช้ธีม "' + p.label + '" แล้ว');
+  if (!silent) toast('ใช้ธีม "' + p.label + '" แล้ว');
 }
 function renderPresetUI(){
   $$('.sw').forEach(b => b.classList.toggle('on', b.dataset.preset === state.design.preset));
@@ -1434,7 +1756,7 @@ function renderSwatches(){
     const p = PRESETS[key];
     const b = document.createElement('button');
     b.className = 'sw'; b.dataset.preset = key; b.type = 'button';
-    b.innerHTML = '<span class="box" style="background:linear-gradient(135deg,' + p.cardBg1 + ',' + p.cardBg2 + ');border-color:' + p.accent + '"><i style="position:absolute;left:6px;top:6px;width:14px;height:14px;border-radius:50%;background:' + p.accent + ';box-shadow:0 0 10px ' + p.accent + '"></i></span><span>' + p.emoji + ' ' + p.label + '</span>';
+    b.innerHTML = '<span class="box" style="background:linear-gradient(135deg,' + p.cardBg1 + ',' + p.cardBg2 + ');border-color:' + p.accent + '"><i style="position:absolute;left:6px;top:6px;width:14px;height:14px;border-radius:50%;background:' + p.accent + ';box-shadow:0 0 10px ' + p.accent + '"></i></span><span>' + p.label + '</span>';
     b.onclick = () => applyPreset(key);
     row.appendChild(b);
   });
@@ -1448,7 +1770,7 @@ function renderPickGrid(){
     const d = document.createElement('div');
     d.className = 'pick' + (c.onPoster ? ' on' : '');
     d.dataset.id = c.id;
-    d.innerHTML = '<span class="tick">✓</span><img src="' + esc(c.image || svgCarPlaceholder('?', 220)) + '" alt="" onerror="this.src=\'' + svgCarPlaceholder('?', 0).replace(/'/g, '%27') + '\'"><div class="pn">' + esc(c.name || '') + '</div>';
+    d.innerHTML = '<span class="tick"></span><img src="' + esc(c.image || svgCarPlaceholder('?', 220)) + '" alt="" onerror="this.src=\'' + svgCarPlaceholder('?', 0).replace(/'/g, '%27') + '\'"><div class="pn">' + esc(c.name || '') + '</div>';
     d.onclick = () => { c.onPoster = !c.onPoster; save(); renderPickGrid(); updatePosterCount(); renderPosterDebounced(); };
     box.appendChild(d);
   });
@@ -1610,7 +1932,7 @@ async function renderPoster(){
     ctx.fillText('อัปเดต ' + when + ' • ' + n + ' คัน • ' + (state.shop.phone ? 'โทร ' + state.shop.phone : state.shop.name || ''), W / 2, H - H * .012);
   } catch(e){
     console.warn('วาดโปสเตอร์ไม่สำเร็จ:', e);
-    toast('⚠️ วาดโปสเตอร์ไม่สำเร็จ: ' + (e.message || ''), true);
+    toast('วาดโปสเตอร์ไม่สำเร็จ: ' + (e.message || ''), true);
   }
 }
 const renderPosterDebounced = debounce(renderPoster, 350);
@@ -1639,8 +1961,8 @@ function drawPosterCard(ctx, car, img, x, y, w, h, P, D){
 
   /* แถวสเปค: ความเร็ว • ที่นั่ง */
   const chips = [];
-  if (car.speed) chips.push('⚡ ' + car.speed);
-  if (car.seats) chips.push('👥 ' + car.seats + ' ที่นั่ง');
+  if (car.speed) chips.push(car.speed);
+  if (car.seats) chips.push(car.seats + ' ที่นั่ง');
   if (chips.length){
     ctx.font = fontStr(w * .048, '600');
     ctx.fillStyle = D.subColor;
@@ -1665,32 +1987,48 @@ function drawPosterCard(ctx, car, img, x, y, w, h, P, D){
   }
   ctx.restore();
 
-  /* ป้ายสถานะ + นับถอยหลัง มุมซ้ายบนของรูป */
+  /* ป้ายสถานะ: ริบบิ้นแดงทแยงมุมใหญ่ (ติดเช่า) / ป้ายเล็ก (สถานะอื่น) */
   if (P.showStatus){
     const st = statusInfo(car);
-    ctx.font = fontStr(w * .05, '800');
-    ctx.textBaseline = 'middle';
-    const label = st.label;
-    const tw = ctx.measureText(label).width;
-    const bx = ix + w * .02, by = iy + w * .02, bh = w * .095;
-    ctx.fillStyle = st.cls === 'ok' ? '#16a34a' : st.cls === 'rented' ? '#f59e0b' : '#64748b';
-    roundRectPath(ctx, bx, by, tw + w * .07, bh, bh / 2);
-    ctx.fill();
-    ctx.fillStyle = st.cls === 'rented' ? '#231400' : '#fff';
-    ctx.textAlign = 'left';
-    ctx.fillText(label, bx + w * .035, by + bh / 2 + 1);
-    if (car.status === 'rented' && car.rentEnd){
-      const txt = car.rentEnd <= Date.now() ? '⏰ ครบกำหนด!' : '⏳ ' + hhmmss(car.rentEnd - Date.now());
-      ctx.font = fontStr(w * .046, '800');
-      const tw2 = ctx.measureText(txt).width;
-      const bx2 = ix + iw - tw2 - w * .09, by2 = by;
-      ctx.fillStyle = car.rentEnd <= Date.now() ? '#dc2626' : 'rgba(255,255,255,.94)';
-      roundRectPath(ctx, bx2, by2, tw2 + w * .07, bh, bh / 2);
+    if (st.cls === 'rented'){
+      /* ริบบิ้นพาดมุมซ้ายบน ให้เห็นชัดว่าไม่ว่าง */
+      const c1 = w * .04, c2 = w * .42;
+      const u1 = c1 / Math.SQRT2, u2 = c2 / Math.SQRT2;
+      ctx.save();
+      roundRectPath(ctx, x, y, w, h, r);
+      ctx.clip();
+      ctx.translate(x, y);
+      ctx.rotate(-Math.PI / 4);
+      const L = w * 1.2;
+      ctx.fillStyle = '#dc2626';
+      ctx.fillRect(-L / 2, u1, L, u2 - u1);
+      ctx.fillStyle = 'rgba(255,255,255,.22)';
+      ctx.fillRect(-L / 2, u1, L, Math.max(1, w * .009));
+      ctx.fillStyle = 'rgba(0,0,0,.22)';
+      ctx.fillRect(-L / 2, u2 - Math.max(1, w * .009), L, Math.max(1, w * .009));
+      ctx.fillStyle = '#fff';
+      ctx.font = fontStr(w * .105, '900');
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.shadowColor = 'rgba(0,0,0,.35)';
+      ctx.shadowBlur = w * .012;
+      ctx.fillText('ติดเช่า', 0, u2 - (u2 - u1) * .42);
+      ctx.restore();
+      ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'center';
+    } else {
+      ctx.font = fontStr(w * .05, '800');
+      ctx.textBaseline = 'middle';
+      const label = st.label;
+      const tw = ctx.measureText(label).width;
+      const bx = ix + w * .02, by = iy + w * .02, bh = w * .095;
+      ctx.fillStyle = st.cls === 'ok' ? '#16a34a' : '#64748b';
+      roundRectPath(ctx, bx, by, tw + w * .07, bh, bh / 2);
       ctx.fill();
-      ctx.fillStyle = car.rentEnd <= Date.now() ? '#fff' : '#1c1005';
-      ctx.fillText(txt, bx2 + w * .035, by2 + bh / 2 + 1);
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'left';
+      ctx.fillText(label, bx + w * .035, by + bh / 2 + 1);
+      ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'center';
     }
-    ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'center';
   }
 
   /* ราคาใหญ่กลางล่าง (สไตล์ป้ายราคาตัวอย่าง) */
@@ -1702,7 +2040,7 @@ function drawPosterCard(ctx, car, img, x, y, w, h, P, D){
   if (P.showPlate && car.plate){
     ctx.font = fontStr(w * .045, '700');
     ctx.fillStyle = D.subColor;
-    ctx.fillText(fitText(ctx, '🔖 ' + normalizePlate(car.plate), w * .93), x + w / 2, y + w * .92);
+    ctx.fillText(fitText(ctx, normalizePlate(car.plate), w * .93), x + w / 2, y + w * .92);
   }
 }
 
@@ -1722,31 +2060,31 @@ function stamp(){
 }
 async function downloadPoster(){
   try {
-    toast('⏳ กำลังรวมไฟล์ภาพ…');
+    toast('กำลังรวมไฟล์ภาพ…');
     const blob = await posterBlob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = 'car-poster-' + stamp() + '.png';
     document.body.appendChild(a); a.click();
     setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 4000);
-    toast('⬇️ ดาวน์โหลดโปสเตอร์แล้ว เอาไปวางใน Discord แล้วคลิกขวา Copy Link ได้เลย');
-  } catch(e){ toast('⚠️ ' + e.message, true); }
+    toast('ดาวน์โหลดโปสเตอร์แล้ว เอาไปวางใน Discord แล้วคลิกขวา Copy Link ได้เลย');
+  } catch(e){ toast(e.message, true); }
 }
 async function sendPosterToDiscord(){
   const wh = $('#whUrl').value.trim();
   if (!/^https:\/\/(discord\.com|discordapp\.com)\/api\/webhooks\//.test(wh)){
-    toast('⚠️ วางลิงก์ Discord Webhook ก่อน (Server Settings → Integrations → Webhooks → Copy URL)', true);
+    toast('วางลิงก์ Discord Webhook ก่อน (Server Settings → Integrations → Webhooks → Copy URL)', true);
     return;
   }
   try { localStorage.setItem(WH_KEY, wh); } catch(e){}
   const btn = $('#btnWhSend');
-  btn.disabled = true; btn.textContent = '⏳ กำลังส่ง…';
+  btn.disabled = true; btn.textContent = 'กำลังส่ง…';
   try {
     const blob = await posterBlob();
     const fd = new FormData();
     const name = 'car-poster-' + stamp() + '.png';
     fd.append('files[0]', blob, name);
-    fd.append('payload_json', JSON.stringify({ content: '🏁 โปสเตอร์รถให้เช่า ' + name }));
+    fd.append('payload_json', JSON.stringify({ content: 'โปสเตอร์รถให้เช่า ' + name }));
     const res = await fetch(wh + '?wait=true', { method:'POST', body: fd });
     if (!res.ok){
       let msg = 'HTTP ' + res.status;
@@ -1758,11 +2096,11 @@ async function sendPosterToDiscord(){
     if (!link) throw new Error('ไม่พบลิงก์รูปในการตอบกลับของ Discord');
     $('#linkResult').value = link;
     try { localStorage.setItem(LINK_KEY, link); } catch(e){}
-    copyText(link, '🔗 ได้ลิงก์รูปจาก Discord แล้ว ก๊อปใส่คลิปบอร์ดให้เรียบร้อย!');
+    copyText(link, 'ได้ลิงก์รูปจาก Discord แล้ว ก๊อปใส่คลิปบอร์ดให้เรียบร้อย!');
   } catch(e){
-    toast('⚠️ ส่งขึ้น Discord ไม่สำเร็จ: ' + (e.message || e), true);
+    toast('ส่งขึ้น Discord ไม่สำเร็จ: ' + (e.message || e), true);
   } finally {
-    btn.disabled = false; btn.textContent = '🚀 ส่งโปสเตอร์ขึ้น Discord';
+    btn.disabled = false; btn.textContent = 'ส่งโปสเตอร์ขึ้น Discord';
   }
 }
 
@@ -1776,14 +2114,14 @@ function downloadJSON(obj, name){
 }
 function exportAll(){
   downloadJSON({ app:'carFlashcards', version:2, exportedAt:new Date().toISOString(), shop:state.shop, cars:state.cars, design:state.design, poster:state.poster }, 'car-rental-backup-' + stamp() + '.json');
-  toast('📤 ส่งออกข้อมูลทั้งหมดแล้ว (รวมรูปรถ)');
+  toast('ส่งออกข้อมูลทั้งหมดแล้ว (รวมรูปรถ)');
 }
 function exportDesign(){
   downloadJSON({ app:'carFlashcards', version:2, type:'design-only', design:state.design }, 'car-theme-' + stamp() + '.json');
-  toast('📤 บันทึกไฟล์ธีมแล้ว');
+  toast('บันทึกไฟล์ธีมแล้ว');
 }
 function handleImportedObject(obj){
-  if (!obj || typeof obj !== 'object' || (!obj.design && !obj.cars)){ toast('⚠️ ไฟล์ไม่ใช่รูปแบบของระบบนี้', true); return; }
+  if (!obj || typeof obj !== 'object' || (!obj.design && !obj.cars)){ toast('ไฟล์ไม่ใช่รูปแบบของระบบนี้', true); return; }
   const designOnly = obj.type === 'design-only' || (!obj.cars && obj.design);
   const apply = () => {
     if (obj.design && typeof obj.design === 'object'){
@@ -1798,10 +2136,10 @@ function handleImportedObject(obj){
       renderHero(); renderManage(); renderStats(); renderPickGrid();
     }
     save(); renderAll();
-    toast(designOnly ? '🎨 โหลดธีมจากไฟล์แล้ว' : '📂 กู้คืนข้อมูลจากไฟล์แล้ว (' + state.cars.length + ' คัน)');
+    toast(designOnly ? 'โหลดธีมจากไฟล์แล้ว' : 'กู้คืนข้อมูลจากไฟล์แล้ว (' + state.cars.length + ' คัน)');
   };
   if (!designOnly && state.cars.length){
-    confirmBox('📂 นำเข้าไฟล์สำรอง?', 'ข้อมูลปัจจุบัน (' + state.cars.length + ' คัน) จะถูกแทนที่ด้วยข้อมูลจากไฟล์', apply);
+    confirmBox('นำเข้าไฟล์สำรอง?', 'ข้อมูลปัจจุบัน (' + state.cars.length + ' คัน) จะถูกแทนที่ด้วยข้อมูลจากไฟล์', apply);
   } else apply();
 }
 function importFile(ev){
@@ -1811,22 +2149,22 @@ function importFile(ev){
   const fr = new FileReader();
   fr.onload = () => {
     try { handleImportedObject(JSON.parse(String(fr.result))); }
-    catch(e){ toast('⚠️ ไฟล์ .json ไม่ถูกต้อง: ' + (e.message || ''), true); }
+    catch(e){ toast('ไฟล์ .json ไม่ถูกต้อง: ' + (e.message || ''), true); }
   };
-  fr.onerror = () => toast('⚠️ อ่านไฟล์ไม่สำเร็จ', true);
+  fr.onerror = () => toast('อ่านไฟล์ไม่สำเร็จ', true);
   fr.readAsText(f);
 }
 function resetAll(){
-  confirmBox('🗑️ ล้างข้อมูลทั้งหมด?', 'ลบรถทุกคัน ธีม และข้อมูลร้าน ถาวร! แนะนำส่งออกไฟล์สำรองก่อน', () => {
+  confirmBox('ล้างข้อมูลทั้งหมด?', 'ลบรถทุกคัน ธีม และข้อมูลร้าน ถาวร! แนะนำส่งออกไฟล์สำรองก่อน', () => {
     state = defaultState();
     try { localStorage.removeItem(STORE_KEY); } catch(e){}
     save(); renderAll();
-    toast('🧹 ล้างข้อมูลทั้งหมดแล้ว เริ่มใหม่ได้เลย');
+    toast('ล้างข้อมูลทั้งหมดแล้ว เริ่มใหม่ได้เลย');
   });
 }
 function updateStorageInfo(){
   try {
-    const size = new Blob([localStorage.getItem(STORE_KEY) || '']).size;
+    const size = new Blob([localStorage.getItem(storeKey()) || '']).size;
     const kb = size / 1024;
     $('#storageInfo').textContent = 'ใช้พื้นที่ ' + (kb > 1024 ? (kb / 1024).toFixed(2) + ' MB' : Math.round(kb) + ' KB') + ' • ' + state.cars.length + ' คัน';
     $('#storageBar').style.width = Math.min(100, kb / 50 * 100) + '%';
@@ -1867,7 +2205,7 @@ function renderAll(){
 function bindEvents(){
   $$('.tab').forEach(t => t.onclick = () => switchPage(t.dataset.page));
   $$('#viewSeg button').forEach(b => b.onclick = () => setView(b.dataset.view));
-  $('#autoToggle').onclick = () => { autoPausedByUser = !autoPausedByUser; restartAutoplay(); toast(autoPausedByUser ? '⏸ หยุดสไลด์อัตโนมัติแล้ว' : '▶️ เล่นสไลด์อัตโนมัติต่อแล้ว'); };
+  $('#autoToggle').onclick = () => { autoPausedByUser = !autoPausedByUser; restartAutoplay(); toast(autoPausedByUser ? 'หยุดสไลด์อัตโนมัติแล้ว' : 'เล่นสไลด์อัตโนมัติต่อแล้ว'); };
   $('#autoSpeed').oninput = e => {
     state.design.slideInterval = parseFloat(e.target.value) || 4;
     $('#autoSpeedLabel').textContent = state.design.slideInterval.toFixed(1) + ' วิ';
@@ -1878,7 +2216,7 @@ function bindEvents(){
   $('#btnFull').onclick = () => {
     const el = document.documentElement;
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-    else el.requestFullscreen().catch(() => toast('⚠️ เบราว์เซอร์ไม่อนุญาตเต็มจอ', true));
+    else el.requestFullscreen().catch(() => toast('เบราว์เซอร์ไม่อนุญาตเต็มจอ', true));
   };
   $('#cPrev').onclick = () => { goToIndex(activeIndex() - 1); restartProgress(); };
   $('#cNext').onclick = () => { goToIndex(activeIndex() + 1); restartProgress(); };
@@ -1934,9 +2272,9 @@ function bindEvents(){
   bindImagePan();
   $('#btnUrl').onclick = () => {
     const v = $('#imgUrl').value.trim();
-    if (!/^https?:\/\//i.test(v)){ toast('⚠️ วางลิงก์รูปที่ขึ้นต้นด้วย https:// เช่น ลิงก์รูปจาก Discord', true); return; }
+    if (!/^https?:\/\//i.test(v)){ toast('วางลิงก์รูปที่ขึ้นต้นด้วย https:// เช่น ลิงก์รูปจาก Discord', true); return; }
     edImage = v; paintEditorImage();
-    toast('🔗 ใช้ลิงก์รูปนี้แล้ว (ระบบจะโหลดตอนแสดงผล)');
+    toast('ใช้ลิงก์รูปนี้แล้ว (ระบบจะโหลดตอนแสดงผล)');
   };
   $('#fxPanel').addEventListener('input', e => {
     const inp = e.target.closest('[data-fxk]'); if (!inp) return;
@@ -1951,7 +2289,7 @@ function bindEvents(){
       const fx = Object.assign({}, DEFAULT_FX, p);
       state.cars.forEach(c => c.imgFx = Object.assign({}, fx));
       save(); renderStore(); renderManage(); renderPreview(); renderPosterDebounced();
-      toast('🖌️ ใช้สไตล์รูปกับรถทั้งหมด ' + state.cars.length + ' คันแล้ว');
+      toast('ใช้สไตล์รูปกับรถทั้งหมด ' + state.cars.length + ' คันแล้ว');
     } else {
       Object.assign(edFx, p);
       syncFxInputs(); paintEditorImage();
@@ -1979,7 +2317,7 @@ function bindEvents(){
   $('#btnBgUrlApply').onclick = () => {
     state.design.bgUrl = $('[data-dk="bgUrl"]').value.trim();
     applyDesign(); save(); renderPosterDebounced();
-    toast(state.design.bgUrl ? '🌌 ใช้ลิงก์รูปเป็นพื้นหลังแล้ว' : '🌌 ล้างพื้นหลังลิงก์รูปแล้ว');
+    toast(state.design.bgUrl ? 'ใช้ลิงก์รูปเป็นพื้นหลังแล้ว' : 'ล้างพื้นหลังลิงก์รูปแล้ว');
   };
   $('#btnExportDesign').onclick = exportDesign;
   $('#btnResetLayout').onclick = () => {
@@ -2016,30 +2354,30 @@ function bindEvents(){
   $('#btnSelFree').onclick = () => setAllPoster(false, true);
   $('#btnSelNone').onclick = () => setAllPoster(false, false);
   $('#btnPosterDl').onclick = downloadPoster;
-  $('#btnPosterRe').onclick = () => { renderPoster(); toast('🔄 รีเฟรชโปสเตอร์แล้ว'); };
+  $('#btnPosterRe').onclick = () => { renderPoster(); toast('รีเฟรชโปสเตอร์แล้ว'); };
   $('#btnWhSave').onclick = () => {
     const wh = $('#whUrl').value.trim();
     try { localStorage.setItem(WH_KEY, wh); } catch(e){}
-    toast(wh ? '💾 จำ Webhook ไว้แล้ว' : '🧹 ล้าง Webhook แล้ว');
+    toast(wh ? 'จำ Webhook ไว้แล้ว' : 'ล้าง Webhook แล้ว');
   };
   $('#btnWhSend').onclick = sendPosterToDiscord;
   $('#btnCopyLast').onclick = () => {
     const l = $('#linkResult').value.trim() || (function(){ try { return localStorage.getItem(LINK_KEY) || ''; } catch(e){ return ''; } })();
-    if (!l) return toast('⚠️ ยังไม่มีลิงก์ — กด "ส่งโปสเตอร์ขึ้น Discord" ก่อน', true);
-    copyText(l, '📋 คัดลอกลิงก์รูปแล้ว');
+    if (!l) return toast('ยังไม่มีลิงก์ — กด "ส่งโปสเตอร์ขึ้น Discord" ก่อน', true);
+    copyText(l, 'คัดลอกลิงก์รูปแล้ว');
   };
   $('#btnDcCopy').onclick = () => {
     const v = $('#dcLinkIn').value.trim();
-    if (!/^https:\/\/(cdn\.discordapp\.com|media\.discordapp\.net)\//.test(v)) return toast('⚠️ ลิงก์รูป Discord ต้องขึ้นต้น cdn.discordapp.com หรือ media.discordapp.net — คลิกขวาที่รูปใน Discord → Copy Link', true);
-    copyText(v, '📋 ลิงก์ถูกต้อง คัดลอกแล้ว — เอาไปวางในช่อง "วางลิงก์รูป" ของเอ็ดิเตอร์รถได้เลย');
+    if (!/^https:\/\/(cdn\.discordapp\.com|media\.discordapp\.net)\//.test(v)) return toast('ลิงก์รูป Discord ต้องขึ้นต้น cdn.discordapp.com หรือ media.discordapp.net — คลิกขวาที่รูปใน Discord → Copy Link', true);
+    copyText(v, 'ลิงก์ถูกต้อง คัดลอกแล้ว — เอาไปวางในช่อง "วางลิงก์รูป" ของเอ็ดิเตอร์รถได้เลย');
   };
   $('#btnDcUse').onclick = () => {
     const v = $('#dcLinkIn').value.trim();
-    if (!/^https?:\/\//.test(v)) return toast('⚠️ วางลิงก์รูปก่อน', true);
+    if (!/^https?:\/\//.test(v)) return toast('วางลิงก์รูปก่อน', true);
     state.design.bgUrl = v;
     const inp = $('[data-dk="bgUrl"]'); if (inp) inp.value = v;
     applyDesign(); save(); renderPosterDebounced();
-    toast('🌌 ใช้ลิงก์นี้เป็นพื้นหลังหน้าร้าน + โปสเตอร์แล้ว');
+    toast('ใช้ลิงก์นี้เป็นพื้นหลังหน้าร้าน + โปสเตอร์แล้ว');
   };
   $('#linkResult').onclick = function(){ this.select(); };
   // หน้าข้อมูลร้าน
@@ -2051,6 +2389,10 @@ function bindEvents(){
   $('#btnImport').onclick = () => $('#fileInputImport').click();
   $('#fileInputImport').onchange = importFile;
   $('#btnResetAll').onclick = resetAll;
+  // ระบบห้องร่วม (เดียวกับ sell.html): เข้าห้อง / คัดลอกลิงก์ห้อง / เซฟทันที
+  $('#btnJoinRoom').onclick = () => changeFirebaseRoom();
+  $('#btnCopyRoom').onclick = () => copyRoomLink();
+  $('#btnForcePush').onclick = () => pushToCloudNow(true);
   $('#cfOk').onclick = () => { const cb = cfCallback; closeConfirm(); if (cb) cb(); };
   $('#cfCancel').onclick = closeConfirm;
   $('#confirmModal').addEventListener('click', e => { if (e.target === $('#confirmModal')) closeConfirm(); });
@@ -2062,13 +2404,26 @@ function bindEvents(){
   document.addEventListener('visibilitychange', () => { if (!document.hidden) restartProgress(); });
 }
 
+/* ---------- ซิงก์ฟอร์มกับ state ---------- */
+function syncPosterForm(){
+  const P = state.poster;
+  $('#pTitle').value = P.title; $('#pSub').value = P.sub;
+  $('#pSize').value = P.size; $('#pCols').value = P.cols; $('#pGap').value = P.gap;
+  $('#pGapVal').textContent = P.gap + 'px';
+  $('#pShowHeader').checked = P.showHeader; $('#pShowPlate').checked = P.showPlate;
+  $('#pShowStatus').checked = P.showStatus; $('#pShowPrice').checked = P.showPrice;
+}
+function syncShopInputs(){
+  $$('[data-sk]').forEach(el => { el.value = state.shop[el.dataset.sk] || ''; });
+}
+
 /* ---------- เริ่มระบบ ---------- */
 function init(){
   load();
   const fs = $('#fontSelect');
   fs.innerHTML = FONTS.map(f => '<option value="' + f + '" style="font-family:\'' + f + '\'">' + f + '</option>').join('');
   const ts = $('#tplSelect');
-  ts.innerHTML = '<option value="">🎨 เลือกธีมการ์ด…</option>' + Object.keys(PRESETS).map(k => '<option value="' + k + '">' + PRESETS[k].emoji + ' ' + PRESETS[k].label + '</option>').join('');
+  ts.innerHTML = '<option value="">เลือกธีมการ์ด…</option>' + Object.keys(PRESETS).map(k => '<option value="' + k + '">' + PRESETS[k].label + '</option>').join('');
   try { $('#whUrl').value = localStorage.getItem(WH_KEY) || ''; } catch(e){}
   try { const l = localStorage.getItem(LINK_KEY); if (l) $('#linkResult').value = l; } catch(e){}
   // ซิงก์ค่าโปสเตอร์จาก state ลงฟอร์ม
@@ -2083,6 +2438,13 @@ function init(){
   bindEvents();
   renderAll();
   setInterval(updateCountdowns, 1000);
+  // เริ่มระบบซิงค์ห้องเรียลไทม์ (โหลด localStorage ไปก่อน แล้วฟัง cloud — แบบเดียวกับ sell.html)
+  try { $('#roomInputUI').value = currentRoom; } catch(e){}
+  appInited = true;
+  if (fbAuthReady) maybeStartCloud();
+  else setCloudStatus('กำลังเชื่อมต่อ…', 'saving');
+  setTimeout(function(){ if (!fbAuthReady && db) setCloudStatus('ออฟไลน์ — ใช้ข้อมูลในเครื่องได้ต่อ', 'err'); }, 10000);
+  window.addEventListener('beforeunload', function(){ try { saveLocalOnly(); } catch(e){} });
 }
 init();
 </script>
