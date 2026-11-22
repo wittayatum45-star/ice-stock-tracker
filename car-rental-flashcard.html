@@ -1,0 +1,2090 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ระบบเช่ารถแฟลชการ์ด • Car Rental FlashCard Studio</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800;900&family=Prompt:wght@400;600;700;800&family=Sarabun:wght@400;600;700&family=Mitr:wght@400;600;700&family=Itim&family=Mali:wght@400;700&family=Sriracha&family=Chakra+Petch:wght@400;600;700&family=Bai+Jamjuree:wght@400;600;700&family=K2D:wght@400;700;800&family=Orbitron:wght@500;700;900&family=Audiowide&family=Bungee&family=Russo+One&family=Zen+Dots&family=Racing+Sans+One&display=swap" rel="stylesheet">
+<!-- 🔥 Firebase (Firestore + Auth) สำหรับซิงค์ข้อมูลร่วมกันหลายคนแบบเรียลไทม์ -->
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+<style>
+/* ============ พื้นฐาน + ตัวแปรธีม (ปรับทั้งหมดผ่าน JS) ============ */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg1:#0a0e1c; --bg2:#141b31;
+  --accent:#f5b942; --btn-text:#1b1305;
+  --text:#ffffff; --sub:#a9b4d6;
+  --card-bg1:#161d33; --card-bg2:#232c4d; --card-angle:135deg;
+  --card-border:rgba(245,185,66,.45); --card-border-w:1px;
+  --card-radius:20px; --glow:18px;
+  --font:'Kanit';
+  --title-size:22px; --price-size:26px; --detail-size:13px;
+  --img-ratio:16/9; --img-radius:12px;
+  --flip-speed:.6s;
+  --panel:rgba(16,22,42,.66); --panel-line:rgba(255,255,255,.09);
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font),'Kanit',sans-serif;background:linear-gradient(160deg,var(--bg1),var(--bg2)) fixed;color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+#pattern{position:fixed;inset:0;pointer-events:none;z-index:0}
+#pattern.grid{background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:34px 34px}
+#pattern.dots{background-image:radial-gradient(rgba(255,255,255,.06) 1.5px,transparent 1.5px);background-size:26px 26px}
+#pattern.checker{background:repeating-conic-gradient(rgba(255,255,255,.05) 0% 25%,transparent 0% 50%);background-size:52px 52px}
+#pattern.speed{background:repeating-linear-gradient(-55deg,rgba(255,255,255,.05) 0 2px,transparent 2px 30px)}
+main{position:relative;z-index:1}
+::selection{background:var(--accent);color:#000}
+input,select,textarea,button{font-family:inherit;color:inherit}
+input[type=range]{accent-color:var(--accent);cursor:pointer}
+input[type=color]{width:36px;height:30px;border:1px solid var(--panel-line);border-radius:8px;background:transparent;cursor:pointer;padding:1px 2px}
+input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px;cursor:pointer}
+
+/* ============ แถบบน ============ */
+.topbar{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:16px;padding:12px 22px;background:color-mix(in srgb,var(--bg2) 78%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--panel-line);flex-wrap:wrap}
+.logo{display:flex;align-items:baseline;gap:8px;font-weight:900;font-size:20px;letter-spacing:.5px}
+.logo .sub{font-size:11px;font-weight:600;color:var(--sub);letter-spacing:2px}
+.tabs{display:flex;gap:6px;flex:1;justify-content:center;flex-wrap:wrap}
+.tab{background:transparent;border:1.5px solid transparent;color:var(--sub);padding:9px 15px;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;transition:.2s;white-space:nowrap}
+.tab:hover{color:var(--text);background:rgba(255,255,255,.06)}
+.tab.active{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 55%,transparent);background:color-mix(in srgb,var(--accent) 12%,transparent);box-shadow:0 0 16px color-mix(in srgb,var(--accent) 18%,transparent)}
+
+/* ============ ปุ่ม / ฟอร์ม ============ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:none;border-radius:12px;padding:10px 18px;font-weight:700;font-size:14px;cursor:pointer;transition:.18s;background:rgba(255,255,255,.08);color:var(--text);border:1px solid var(--panel-line)}
+.btn:hover{filter:brightness(1.2);transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn.accent{background:var(--accent);color:var(--btn-text);border-color:transparent;box-shadow:0 6px 18px color-mix(in srgb,var(--accent) 30%,transparent)}
+.btn.ghost{background:transparent}
+.btn.sm{padding:7px 12px;font-size:13px;border-radius:10px}
+.btn.danger{background:#dc2626;color:#fff;border-color:transparent}
+.btn.ok{background:#059669;color:#fff;border-color:transparent}
+.btn.violet{background:#5865F2;color:#fff;border-color:transparent}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:12.5px;font-weight:600;color:var(--sub)}
+.inp{background:rgba(0,0,0,.28);border:1px solid var(--panel-line);border-radius:10px;padding:9px 12px;font-size:14px;outline:none;transition:.2s;color:var(--text);width:100%}
+.inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
+textarea.inp{resize:vertical;min-height:64px}
+
+/* ============ การ์ดหลัก (หน้าร้าน) ============ */
+.viewwrap{max-width:1280px;margin:0 auto;padding:0 18px}
+.hero{text-align:center;padding:38px 10px 8px}
+.hero h1{font-size:clamp(30px,5vw,52px);font-weight:900;letter-spacing:1px;background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 45%,#fff),var(--accent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1.2}
+.hero .tag{color:var(--sub);font-size:15px;margin-top:6px}
+.stats{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.statchip{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--panel-line);border-radius:999px;padding:8px 16px;font-size:13.5px;font-weight:700;backdrop-filter:blur(8px)}
+.statchip b{font-size:16px}
+.statchip .dot{width:9px;height:9px;border-radius:50%}
+.contact{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+
+.storebar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;background:var(--panel);border:1px solid var(--panel-line);border-radius:16px;padding:12px 16px;margin:22px auto 6px;backdrop-filter:blur(10px);max-width:1080px}
+.seg{display:flex;background:rgba(0,0,0,.3);border-radius:11px;padding:4px;gap:4px}
+.seg button{border:none;background:transparent;color:var(--sub);font-weight:700;font-size:13.5px;padding:7px 14px;border-radius:8px;cursor:pointer;transition:.18s;white-space:nowrap}
+.seg button.on{background:var(--accent);color:var(--btn-text)}
+.speedbox{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600;color:var(--sub)}
+.speedbox input[type=range]{width:120px}
+.speedbox b{color:var(--accent);min-width:52px;text-align:center;font-variant-numeric:tabular-nums}
+select.inp{width:auto;min-width:150px;cursor:pointer}
+
+#carouselWrap{position:relative}
+body.view-grid #carouselWrap{display:none}
+body.view-carousel #gridWrap{display:none}
+.carousel{--card-w:clamp(266px,34vw,372px);display:flex;gap:26px;overflow-x:auto;scroll-snap-type:x mandatory;padding:18px max(calc(50% - var(--card-w)/2),18px) 34px;scrollbar-width:none;-ms-overflow-style:none}
+.carousel::-webkit-scrollbar{display:none}
+.carousel .fcard{scroll-snap-align:center;flex:0 0 var(--card-w)}
+.carrow{position:absolute;top:calc(50% - 40px);transform:translateY(-50%);z-index:20;width:46px;height:46px;border-radius:50%;border:1px solid var(--panel-line);background:color-mix(in srgb,var(--bg2) 88%,transparent);color:var(--text);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;backdrop-filter:blur(6px)}
+.carrow:hover{background:var(--accent);color:var(--btn-text);box-shadow:0 0 20px color-mix(in srgb,var(--accent) 45%,transparent)}
+.carrow.prev{left:2px}.carrow.next{right:2px}
+.cdots{display:flex;gap:7px;justify-content:center;margin-top:-6px;flex-wrap:wrap}
+.cdot{width:9px;height:9px;border-radius:50%;border:none;background:rgba(255,255,255,.22);cursor:pointer;transition:.2s;padding:0}
+.cdot.on{background:var(--accent);width:26px;border-radius:999px;box-shadow:0 0 10px color-mix(in srgb,var(--accent) 60%,transparent)}
+.cprog{height:4px;border-radius:99px;background:rgba(255,255,255,.1);max-width:420px;margin:12px auto 0;overflow:hidden}
+.cprog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 50%,#fff));border-radius:99px}
+.cprog i.run{animation:cfill linear forwards}
+.cprog i.paused{animation-play-state:paused}
+@keyframes cfill{from{width:0}to{width:100%}}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(252px,1fr));gap:22px;padding:26px 4px 40px}
+.grid .fcard{width:100%;flex:none;height:472px}
+
+/* ============ โครงแฟลชการ์ด ============ */
+.fcard{perspective:1500px;position:relative;height:calc(clamp(266px,34vw,372px)*1.3);cursor:pointer;-webkit-user-select:none;user-select:none}
+body.hover-lift .fcard{transition:transform .25s}
+body.hover-lift .fcard:hover{transform:translateY(-9px)}
+.fcard-inner{position:absolute;inset:0;transform-style:preserve-3d;transition:transform var(--flip-speed) cubic-bezier(.36,.12,.18,1)}
+.fcard.flipped .fcard-inner{transform:rotateY(180deg)}
+body.flip-vertical .fcard.flipped .fcard-inner{transform:rotateX(180deg)}
+.fface{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:var(--card-radius);background:linear-gradient(var(--card-angle),var(--card-bg1),var(--card-bg2));border:var(--card-border-w) solid var(--card-border);display:flex;flex-direction:column;overflow:hidden}
+body.shadow-on .fface{box-shadow:0 20px 44px rgba(0,0,0,.5),0 0 var(--glow) color-mix(in srgb,var(--accent) 32%,transparent)}
+.fback{transform:rotateY(180deg);padding:16px 16px 12px;gap:5px}
+body.flip-vertical .fback{transform:rotateX(180deg)}
+.fimg{position:relative;width:100%;aspect-ratio:var(--img-ratio);overflow:hidden;background:#0b1020;flex-shrink:0}
+.fimg img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.badge{position:absolute;top:10px;left:10px;z-index:5;font-size:12px;font-weight:800;padding:4px 11px;border-radius:999px;letter-spacing:.4px;box-shadow:0 4px 12px rgba(0,0,0,.4);white-space:nowrap}
+.badge.ok{background:#16a34a;color:#fff}
+.badge.rented{background:linear-gradient(90deg,#f59e0b,#fde047);color:#231400}
+.badge.maint{background:#64748b;color:#fff}
+.cdown{position:absolute;top:10px;right:10px;z-index:5;font-size:12px;font-weight:800;color:#1c1005;background:rgba(255,255,255,.92);border:1px solid rgba(0,0,0,.15);border-radius:999px;padding:4px 11px;letter-spacing:.5px;white-space:nowrap;font-variant-numeric:tabular-nums;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.cdown.expired{color:#fff;background:#dc2626;border-color:#fca5a5;animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.5}}
+.fbody{padding:12px 16px 30px;display:flex;flex-direction:column;gap:6px;flex:1;min-height:0}
+.fname{font-size:var(--title-size);font-weight:800;line-height:1.22}
+.fmeta{display:flex;gap:5px;flex-wrap:wrap}
+.chip{font-size:11.5px;padding:3px 10px;border-radius:999px;background:color-mix(in srgb,var(--accent) 13%,transparent);border:1px solid color-mix(in srgb,var(--accent) 32%,transparent);font-weight:600}
+.fprice{margin-top:auto;font-size:var(--price-size);font-weight:900;color:var(--accent);line-height:1}
+.fprice small{font-size:.48em;color:var(--sub);font-weight:700}
+.fhint{position:absolute;bottom:9px;left:0;right:0;text-align:center;font-size:10.5px;color:var(--sub);opacity:.7;letter-spacing:.3px}
+.brow{display:flex;justify-content:space-between;gap:12px;font-size:13px;padding:4.5px 0;border-bottom:1px dashed rgba(255,255,255,.1)}
+.brow span{color:var(--sub);font-weight:600;flex-shrink:0}
+.brow b{font-weight:700;text-align:right}
+.bnote{font-size:12.5px;color:var(--sub);margin-top:6px;line-height:1.55;overflow:auto;flex:1;min-height:0;white-space:pre-line}
+.bcontact{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.bcontact a,.bcontact button{font-size:12px;font-weight:800;padding:7px 12px;border-radius:9px;border:none;cursor:pointer;text-decoration:none}
+.bcontact .tel{background:#059669;color:#fff}
+.bcontact .back{background:rgba(255,255,255,.14);color:var(--text)}
+.btitle{font-size:14px;font-weight:800;color:var(--accent);letter-spacing:.5px}
+/* ป้ายทะเบียน: ตัวหนังสือล้วน ตัวเล็ก อยู่ล่างการ์ด (ไม่มีกล่องพื้นหลัง) */
+.plateline{font-size:12.5px;font-weight:700;color:var(--sub);letter-spacing:.6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fpl{font-size:11.5px;text-align:right;margin-top:-3px}
+.fprice-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-top:auto;width:100%}
+.plateDemo{margin-top:6px;text-align:center;font-size:14.5px;font-weight:800;letter-spacing:1px;color:var(--text)}
+/* แอนิเมชันตอนปรากฏ */
+.fcard.anim{animation:cardIn .55s cubic-bezier(.2,.7,.3,1) both}
+.fcard.anim-slide{animation-name:inSlide}
+.fcard.anim-fade{animation-name:inFade}
+.fcard.anim-zoom{animation-name:inZoom}
+@keyframes inSlide{from{opacity:0;transform:translateX(52px)}}
+@keyframes inFade{from{opacity:0}}
+@keyframes inZoom{from{opacity:0;transform:scale(.88)}}
+
+.empty{text-align:center;padding:70px 20px;color:var(--sub)}
+.empty .big{font-size:64px;margin-bottom:12px;filter:drop-shadow(0 6px 18px rgba(0,0,0,.5))}
+.empty h3{color:var(--text);font-size:22px;font-weight:800;margin-bottom:6px}
+.empty .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+
+/* ============ หน้าจัดการ ============ */
+.page{display:none}
+.page.active{display:block}
+.mbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;max-width:1280px;margin:22px auto 14px;padding:0 18px}
+.mbar .grow{flex:1;min-width:170px}
+.mlist{max-width:1280px;margin:0 auto;padding:0 18px 60px;display:flex;flex-direction:column;gap:12px}
+.mrow{display:flex;gap:14px;align-items:center;background:var(--panel);border:1px solid var(--panel-line);border-radius:16px;padding:12px 14px;backdrop-filter:blur(8px);flex-wrap:wrap}
+.mrow .thumb{width:118px;height:74px;border-radius:10px;overflow:hidden;background:#0b1020;flex-shrink:0;border:1px solid var(--panel-line)}
+.mrow .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.mrow .info{flex:1;min-width:210px}
+.mrow .info .n{font-weight:800;font-size:16.5px}
+.mrow .info .s{font-size:12.5px;color:var(--sub);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.mrow .price{font-weight:900;color:var(--accent);font-size:16px;white-space:nowrap}
+.mrow .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.st{font-size:11.5px;font-weight:800;padding:3px 10px;border-radius:999px}
+.st.ok{background:rgba(22,163,74,.18);color:#4ade80;border:1px solid rgba(22,163,74,.4)}
+.st.rented{background:rgba(245,158,11,.16);color:#fbbf24;border:1px solid rgba(245,158,11,.4)}
+.st.maint{background:rgba(100,116,139,.2);color:#cbd5e1;border:1px solid rgba(100,116,139,.45)}
+.poster-chk{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--sub);cursor:pointer;white-space:nowrap}
+
+/* ============ หน้าโปสเตอร์ ============ */
+.pwrap{max-width:1500px;margin:22px auto 60px;padding:0 18px;display:grid;grid-template-columns:minmax(300px,390px) 1fr;gap:22px;align-items:start}
+@media(max-width:1020px){.pwrap{grid-template-columns:1fr}}
+.panelbox{background:var(--panel);border:1px solid var(--panel-line);border-radius:18px;padding:6px 18px 14px;backdrop-filter:blur(8px)}
+.panelbox h3{font-size:15.5px;font-weight:800;margin:14px 0 10px;display:flex;align-items:center;gap:8px}
+details{border-bottom:1px solid var(--panel-line);padding:4px 0}
+details:last-child{border-bottom:none}
+details summary{cursor:pointer;font-weight:800;font-size:15px;padding:11px 0;list-style:none;display:flex;align-items:center;gap:9px;user-select:none}
+details summary::-webkit-details-marker{display:none}
+details summary::after{content:'▾';margin-left:auto;color:var(--sub);transition:.2s}
+details[open] summary::after{transform:rotate(180deg)}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px;padding:6px 0 12px}
+.ctl{display:flex;flex-direction:column;gap:5px}
+.ctl>span{font-size:12px;font-weight:600;color:var(--sub)}
+.ctl .rowc{display:flex;align-items:center;gap:8px}
+.ctl input[type=range]{flex:1}
+.ctl .val{font-size:12px;color:var(--accent);font-weight:800;min-width:46px;text-align:right;font-variant-numeric:tabular-nums}
+.chk{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;padding:7px 2px;cursor:pointer}
+.pickgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;padding:4px 0 12px;max-height:340px;overflow:auto}
+.pick{position:relative;border:2px solid var(--panel-line);border-radius:12px;overflow:hidden;cursor:pointer;transition:.15s;background:#0b1020}
+.pick img{width:100%;aspect-ratio:16/10;object-fit:cover;display:block}
+.pick .pn{font-size:10.5px;font-weight:700;padding:4px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
+.pick.on{border-color:var(--accent);box-shadow:0 0 14px color-mix(in srgb,var(--accent) 45%,transparent)}
+.pick .tick{position:absolute;top:5px;right:5px;width:20px;height:20px;border-radius:50%;background:var(--accent);color:var(--btn-text);font-size:12px;font-weight:900;display:none;align-items:center;justify-content:center}
+.pick.on .tick{display:flex}
+.pcanvasbox{background:var(--panel);border:1px solid var(--panel-line);border-radius:18px;padding:18px;backdrop-filter:blur(8px);position:sticky;top:86px}
+@media(max-width:1020px){.pcanvasbox{position:static}}
+.pcanvasbox canvas{width:100%;height:auto;display:block;border-radius:10px;box-shadow:0 18px 50px rgba(0,0,0,.55)}
+.linkbox{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.linkbox input{flex:1;min-width:200px;background:rgba(0,0,0,.3);border:1px solid var(--panel-line);border-radius:10px;padding:9px 12px;font-size:13px;color:#86efac;outline:none}
+.dcstep{font-size:12.5px;color:var(--sub);line-height:1.6;padding:3px 0}
+.dcstep b{color:var(--text)}
+.btnrow{display:flex;gap:9px;flex-wrap:wrap;padding:6px 0 12px}
+
+/* ============ หน้าตกแต่ง ============ */
+.dwrap{max-width:1280px;margin:22px auto 60px;padding:0 18px;display:grid;grid-template-columns:minmax(320px,460px) 1fr;gap:24px;align-items:start}
+@media(max-width:960px){.dwrap{grid-template-columns:1fr}}
+.dpreview{position:sticky;top:86px;display:flex;flex-direction:column;gap:14px}
+@media(max-width:960px){.dpreview{position:static}}
+.dpreview .stage{background:var(--panel);border:1px solid var(--panel-line);border-radius:20px;padding:26px;display:flex;justify-content:center;backdrop-filter:blur(8px)}
+.dpreview .stage .fcard{--card-w:340px;width:340px;height:442px;flex:none}
+.dpreview .cap{text-align:center;color:var(--sub);font-size:12.5px}
+.swatches{display:flex;gap:9px;flex-wrap:wrap;padding:8px 0 12px}
+.sw{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;background:transparent;border:none;color:var(--sub);font-size:11.5px;font-weight:700}
+.sw .box{width:64px;height:46px;border-radius:11px;border:2px solid transparent;transition:.18s;position:relative;overflow:hidden}
+.sw:hover .box{transform:translateY(-3px)}
+.sw.on .box{border-color:#fff;box-shadow:0 0 16px rgba(255,255,255,.35)}
+.fxbtns{display:flex;gap:7px;flex-wrap:wrap;padding:8px 0}
+
+/* ============ หน้าข้อมูลร้าน ============ */
+.dwrap2{max-width:900px;margin:22px auto 60px;padding:0 18px;display:flex;flex-direction:column;gap:18px}
+.cardbox{background:var(--panel);border:1px solid var(--panel-line);border-radius:18px;padding:20px 22px;backdrop-filter:blur(8px)}
+.cardbox h3{font-size:17px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.formgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.help p{font-size:13.5px;color:var(--sub);line-height:1.7;margin-bottom:8px}
+.help b{color:var(--text)}
+.cloudchip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:8px 13px;border-radius:999px;background:rgba(34,197,94,.13);border:1px solid rgba(34,197,94,.4);color:#4ade80;cursor:pointer;transition:.2s;white-space:nowrap}
+.cloudchip:hover{filter:brightness(1.25)}
+.cloudchip.saving{background:rgba(245,158,11,.13);border-color:rgba(245,158,11,.45);color:#fbbf24}
+.cloudchip.err{background:rgba(220,38,38,.13);border-color:rgba(220,38,38,.45);color:#f87171}
+.storagebar{height:9px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden;margin:8px 0 4px}
+.storagebar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#f97316);border-radius:99px}
+
+/* ============ โมดัล ============ */
+.modal{display:none;position:fixed;inset:0;z-index:100;background:rgba(4,7,16,.78);backdrop-filter:blur(6px);padding:18px;overflow:auto}
+.modal.open{display:flex;align-items:flex-start;justify-content:center}
+.mbox{background:linear-gradient(160deg,var(--card-bg2),var(--card-bg1));border:1px solid var(--card-border);border-radius:20px;width:min(960px,100%);margin:auto;box-shadow:0 30px 80px rgba(0,0,0,.6);overflow:hidden;animation:mIn .25s ease}
+@keyframes mIn{from{opacity:0;transform:translateY(18px) scale(.98)}}
+.mhead{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--panel-line)}
+.mhead h3{font-size:18px;font-weight:800}
+.mclose{background:rgba(255,255,255,.1);border:none;color:var(--text);width:34px;height:34px;border-radius:9px;font-size:16px;cursor:pointer}
+.mclose:hover{background:#dc2626}
+.mbody{padding:18px 20px;display:grid;grid-template-columns:minmax(300px,400px) 1fr;gap:20px}
+@media(max-width:860px){.mbody{grid-template-columns:1fr}}
+.mfoot{display:flex;gap:10px;justify-content:flex-end;padding:14px 20px;border-top:1px solid var(--panel-line);flex-wrap:wrap}
+.sect{font-size:13px;font-weight:800;color:var(--accent);letter-spacing:1px;margin:14px 0 8px}
+.sect:first-child{margin-top:0}
+.drop{border:2px dashed color-mix(in srgb,var(--accent) 45%,transparent);border-radius:14px;padding:10px;text-align:center;cursor:pointer;transition:.2s;background:rgba(0,0,0,.18)}
+.drop:hover,.drop.over{background:color-mix(in srgb,var(--accent) 10%,transparent);border-color:var(--accent)}
+.drop img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;display:block}
+.drop .lbl{font-size:12.5px;color:var(--sub);padding:10px 4px 4px}
+.urlrow{display:flex;gap:8px;margin-top:10px}
+.urlrow .inp{flex:1}
+.fxbox{margin-top:10px;background:rgba(0,0,0,.18);border-radius:14px;padding:12px 14px 6px;border:1px solid var(--panel-line)}
+.fxgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px 14px}
+@media(max-width:520px){.fxgrid{grid-template-columns:1fr}}
+.fxb{font-size:12px;font-weight:700;padding:6px 11px;border-radius:9px;border:1px solid var(--panel-line);background:rgba(255,255,255,.07);cursor:pointer;transition:.15s}
+.fxb:hover{background:var(--accent);color:var(--btn-text)}
+.edgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:520px){.edgrid{grid-template-columns:1fr}}
+.edgrid .full{grid-column:1/-1}
+.platePreview{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:6px}
+.plateHint{font-size:12px;font-weight:600;text-align:center}
+.plateHint.ok{color:#4ade80}
+.plateHint.warn{color:#fbbf24}
+
+/* Confirm + Toast */
+#confirmModal .mbox{width:min(420px,100%);text-align:center;padding:26px 22px}
+#confirmModal h3{font-size:19px;font-weight:800;margin-bottom:8px}
+#confirmModal p{color:var(--sub);font-size:14px;line-height:1.6;margin-bottom:18px}
+#confirmModal .rowbtn{display:flex;gap:10px;justify-content:center}
+#toast{position:fixed;bottom:22px;right:22px;z-index:200;background:#16a34a;color:#fff;padding:13px 20px;border-radius:13px;font-weight:700;font-size:14.5px;box-shadow:0 14px 34px rgba(0,0,0,.5);transform:translateY(90px);opacity:0;transition:.3s;pointer-events:none;max-width:min(420px,86vw)}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.err{background:#dc2626}
+
+body:fullscreen .topbar,body:fullscreen .storebar,body:fullscreen .cdots{display:none}
+body:fullscreen .hero{padding-top:26px}
+@media print{.topbar,.storebar,.mbar{display:none}}
+</style>
+</head>
+<body class="view-carousel shadow-on hover-lift">
+<div id="pattern" class="grid"></div>
+
+<!-- ═══════════ แถบบน ═══════════ -->
+<header class="topbar">
+  <div class="logo">🏁 <span id="brandName">CAR RENTAL</span> <span class="sub">FLASHCARD STUDIO</span></div>
+  <nav class="tabs">
+    <button class="tab active" data-page="store">🏠 หน้าร้าน</button>
+    <button class="tab" data-page="manage">🚗 จัดการรถ</button>
+    <button class="tab" data-page="poster">🖼️ ทำโปสเตอร์</button>
+    <button class="tab" data-page="design">🎨 ตกแต่งการ์ด</button>
+    <button class="tab" data-page="data">⚙️ ข้อมูลร้าน</button>
+  </nav>
+  <div class="flex" style="display:flex;gap:6px;align-items:center">
+    <div class="cloudchip" id="cloudStatus" title="สถานะซิงค์คลาวด์ — คลิกเพื่อจัดการห้องทำงานร่วม">☁️ …</div>
+    <button class="btn sm ghost" id="btnQuickExport" title="ส่งออกข้อมูลทั้งหมดเป็นไฟล์ .json (รถ+ธีม+ร้าน)">📤 เซฟไฟล์</button>
+    <button class="btn sm ghost" id="btnQuickImport" title="นำเข้าไฟล์สำรอง .json">📂 โหลดไฟล์</button>
+    <button class="btn accent" id="btnQuickAdd">＋ เพิ่มรถ</button>
+  </div>
+</header>
+
+<main>
+<!-- ═══════════ หน้าร้าน ═══════════ -->
+<section class="page active" id="page-store">
+  <div class="viewwrap">
+    <div class="hero">
+      <h1 id="heroName">CAR RENTAL</h1>
+      <div class="tag" id="heroTag">ระบบแฟลชการ์ดแสดงรถให้เช่า • แตะการ์ดเพื่อพลิกดูรายละเอียด</div>
+      <div class="stats">
+        <div class="statchip"><span class="dot" style="background:var(--accent)"></span>ทั้งหมด <b id="statTotal">0</b> คัน</div>
+        <div class="statchip"><span class="dot" style="background:#22c55e"></span>ว่าง <b id="statFree">0</b></div>
+        <div class="statchip"><span class="dot" style="background:#f59e0b"></span>ติดเช่า <b id="statRent">0</b></div>
+        <div class="statchip"><span class="dot" style="background:#94a3b8"></span>ซ่อมบำรุง <b id="statFix">0</b></div>
+      </div>
+      <div class="contact" id="heroContact"></div>
+    </div>
+
+    <div class="storebar">
+      <div class="seg" id="viewSeg">
+        <button data-view="carousel" class="on">🎬 สไลด์</button>
+        <button data-view="grid">🔲 ตาราง</button>
+      </div>
+      <button class="btn sm" id="autoToggle">⏸ หยุดเล่น</button>
+      <div class="speedbox">⚡ ความเร็ว <input type="range" id="autoSpeed" min="2" max="15" step="0.5" value="4"><b id="autoSpeedLabel">4.0 วิ</b></div>
+      <select class="inp" id="tplSelect" title="เลือกธีมสำเร็จรูปใช้ได้ทันที">
+        <option value="">🎨 เลือกธีมการ์ด…</option>
+      </select>
+      <button class="btn sm ghost" id="btnImportDesign" title="โหลดไฟล์ตั้งค่า/ข้อมูล .json">📂 โหลดไฟล์</button>
+      <button class="btn sm ghost" id="btnFull" title="แสดงเต็มจอ">⤢ เต็มจอ</button>
+    </div>
+
+    <div id="carouselWrap">
+      <button class="carrow prev" id="cPrev" title="ก่อนหน้า">‹</button>
+      <div class="carousel" id="carousel" tabindex="0" aria-label="สไลด์รถให้เช่า ใช้ปุ่มลูกศรซ้าย-ขวาได้"></div>
+      <button class="carrow next" id="cNext" title="ถัดไป">›</button>
+    </div>
+    <div class="cdots" id="cDots"></div>
+    <div class="cprog" id="cProgWrap"><i id="cProg"></i></div>
+    <div id="gridWrap"><div class="grid" id="grid"></div></div>
+    <div class="empty" id="emptyStore" style="display:none">
+      <div class="big">🚗💨</div>
+      <h3>ยังไม่มีรถในระบบ</h3>
+      <p>เพิ่มรูปรถของคุณเพื่อสร้างแฟลชการ์ด หรือลองใส่รถตัวอย่างดูก่อนได้</p>
+      <div class="row">
+        <button class="btn accent" onclick="openEditor(null)">＋ เพิ่มรถคันแรก</button>
+        <button class="btn" onclick="addDemoCars()">✨ ใส่รถตัวอย่าง 5 คัน</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ หน้าจัดการรถ ═══════════ -->
+<section class="page" id="page-manage">
+  <div class="mbar">
+    <input class="inp grow" id="mSearch" placeholder="🔍 ค้นหา ชื่อรถ / ป้ายทะเบียน…">
+    <select class="inp" id="mStatus">
+      <option value="">สถานะทั้งหมด</option>
+      <option value="available">🟢 ว่าง</option>
+      <option value="rented">🟡 ติดเช่า</option>
+      <option value="maintenance">⚪ ซ่อมบำรุง</option>
+    </select>
+    <select class="inp" id="mSort">
+      <option value="new">ใหม่สุดก่อน</option>
+      <option value="name">ชื่อ ก-ฮ</option>
+      <option value="priceAsc">ราคา น้อย→มาก</option>
+      <option value="priceDesc">ราคา มาก→น้อย</option>
+    </select>
+    <button class="btn accent" id="btnAddCar">＋ เพิ่มรถ</button>
+  </div>
+  <div class="mlist" id="manageList"></div>
+  <div class="empty" id="emptyManage" style="display:none">
+    <div class="big">📋</div>
+    <h3 id="emptyManageText">ยังไม่มีรถ</h3>
+    <div class="row"><button class="btn accent" onclick="openEditor(null)">＋ เพิ่มรถ</button></div>
+  </div>
+</section>
+
+<!-- ═══════════ หน้าโปสเตอร์ ═══════════ -->
+<section class="page" id="page-poster">
+  <div class="pwrap">
+    <div class="panelbox">
+      <details open>
+        <summary>🚗 เลือกรถที่จะขึ้นโปสเตอร์ (<span id="posterCount">0</span>)</summary>
+        <div class="btnrow" style="padding-bottom:6px">
+          <button class="btn sm" id="btnSelAll">☑️ เลือกทั้งหมด</button>
+          <button class="btn sm" id="btnSelFree">🟢 เฉพาะคันว่าง</button>
+          <button class="btn sm ghost" id="btnSelNone">✕ ล้างเลือก</button>
+        </div>
+        <div class="pickgrid" id="pickGrid"></div>
+      </details>
+      <details open>
+        <summary>📐 รูปแบบโปสเตอร์</summary>
+        <div class="dgrid">
+          <div class="ctl"><span>ขนาดหน้าจอ</span>
+            <select class="inp" id="pSize">
+              <option value="16x9">🖥 แนวนอน 1920×1080</option>
+              <option value="3x2">🖼 แนวนอน 1800×1200</option>
+              <option value="4x5">📱 แนวตั้ง 1080×1350</option>
+              <option value="9x16">📲 แนวตั้ง 1080×1920</option>
+            </select>
+          </div>
+          <div class="ctl"><span>จำนวนคอลัมน์</span>
+            <select class="inp" id="pCols">
+              <option value="auto">✨ จัดอัตโนมัติ (แน่น)</option>
+              <option value="2">2 คอลัมน์</option><option value="3">3 คอลัมน์</option>
+              <option value="4">4 คอลัมน์</option><option value="5">5 คอลัมน์</option>
+              <option value="6">6 คอลัมน์</option><option value="7">7 คอลัมน์</option>
+              <option value="8">8 คอลัมน์</option><option value="9">9 คอลัมน์</option>
+              <option value="10">10 คอลัมน์</option>
+            </select>
+          </div>
+          <div class="ctl"><span>ช่องไฟ <i class="val" id="pGapVal">16px</i></span><div class="rowc"><input type="range" id="pGap" min="6" max="60" value="16"></div></div>
+          <div class="field"><span style="font-size:12px;font-weight:600;color:var(--sub)">หัวเรื่องโปสเตอร์</span><input class="inp" id="pTitle" placeholder="(ใช้ชื่อร้าน)"></div>
+          <div class="field"><span style="font-size:12px;font-weight:600;color:var(--sub)">คำโปยใต้หัวเรื่อง</span><input class="inp" id="pSub" placeholder="เช่ร ราคาพิเศษประจำเดือนนี้ ทักแชทเลย"></div>
+          <label class="chk"><input type="checkbox" id="pShowHeader" checked>📰 แสดงหัวเรื่อง</label>
+          <label class="chk"><input type="checkbox" id="pShowPlate" checked>🔖 แสดงป้ายทะเบียน</label>
+          <label class="chk"><input type="checkbox" id="pShowStatus" checked>🏷️ แสดงป้ายสถานะ/นับถอยหลัง</label>
+          <label class="chk"><input type="checkbox" id="pShowPrice" checked>💰 แสดงราคา</label>
+        </div>
+        <div class="btnrow">
+          <button class="btn accent" id="btnPosterDl">⬇️ ดาวน์โหลด PNG</button>
+          <button class="btn" id="btnPosterRe">🔄 รีเฟรชใหม่</button>
+        </div>
+      </details>
+      <details open>
+        <summary>💬 Discord: ส่งรูป → ได้ลิงก์กลับมาใช้เลย</summary>
+        <div class="dcstep"><b>ขั้น 1.</b> ใน Discord: Server Settings → Integrations → <b>Webhooks</b> → New Webhook → <b>Copy URL</b> แล้ววางในช่องด้านล่าง</div>
+        <div class="urlrow">
+          <input class="inp" id="whUrl" placeholder="https://discord.com/api/webhooks/...">
+          <button class="btn sm" id="btnWhSave" title="จำ webhook ไว้ใช้ครั้งหน้า">💾</button>
+        </div>
+        <div class="dcstep"><b>ขั้น 2.</b> กดปุ่มส่ง — ระบบอัปโหลดโปสเตอร์ขึ้น Discord แล้ว <b>ลิงก์รูป CDN เด้งกลับมาในกล่องเขียว + ก๊อปให้อัตโนมัติ</b> (ไม่ต้องคลิกขวาเอง)</div>
+        <div class="btnrow" style="padding-top:8px">
+          <button class="btn violet" id="btnWhSend">🚀 ส่งโปสเตอร์ขึ้น Discord</button>
+          <button class="btn sm" id="btnCopyLast" title="คัดลอกลิงก์ล่าสุด">📋 ก๊อปลิงก์ล่าสุด</button>
+        </div>
+        <div class="linkbox"><input id="linkResult" readonly placeholder="ลิงก์รูปจาก Discord จะขึ้นที่นี่… กดช่องนี้เพื่อเลือกทั้งหมดแล้วก๊อป"></div>
+        <div class="dcstep" style="margin-top:10px"><b>ขั้น 3.</b> มีลิงก์รูป Discord อยู่แล้ว? วางลิงก์ตรงนี้เพื่อ <b>ตรวจ+ก๊อป</b> หรือใช้เป็นพื้นหลังทันที</div>
+        <div class="urlrow">
+          <input class="inp" id="dcLinkIn" placeholder="วางลิงก์รูป เช่น https://cdn.discordapp.com/attachments/...">
+          <button class="btn sm" id="btnDcCopy" title="ตรวจลิงก์แล้วคัดลอก">📋 ตรวจ+ก๊อป</button>
+          <button class="btn sm" id="btnDcUse" title="ใช้ลิงก์นี้เป็นพื้นหลังหน้าร้านและโปสเตอร์">🌌 ใช้เป็นพื้นหลัง</button>
+        </div>
+      </details>
+    </div>
+    <div class="pcanvasbox">
+      <h3 style="font-size:16px;font-weight:800;margin-bottom:12px">👁️ ตัวอย่างโปสเตอร์ (ภาพจริงตามขนาดที่เลือก)</h3>
+      <canvas id="posterCanvas" width="1920" height="1080"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ หน้าตกแต่งการ์ด ═══════════ -->
+<section class="page" id="page-design">
+  <div class="dwrap">
+    <div class="dpreview">
+      <div class="stage" id="previewBox"></div>
+      <div class="cap">👁️ พรีวิวสด — <b>ลากข้อความ (ชื่อ/ราคา/ทะเบียน/รายละเอียด) เพื่อจัดตำแหน่งเอง</b> ใช้ได้กับการ์ดทุกใบ + โปสเตอร์</div>
+      <div class="btnrow" style="justify-content:center">
+        <button class="btn sm" id="btnResetLayout">↺ จัดตำแหน่งข้อความเดิม</button>
+        <button class="btn sm" id="btnExportDesign">📤 บันทึกธีมเป็นไฟล์</button>
+        <button class="btn sm ghost" id="btnResetDesign">↺ รีเซ็ตธีม</button>
+      </div>
+    </div>
+    <div class="panelbox">
+      <details open>
+        <summary>✨ เทมเพลตสำเร็จรูป (อนิเมะ / แข่งรถ)</summary>
+        <div class="swatches" id="presetRow"></div>
+      </details>
+      <details open>
+        <summary>🎨 สีและกรอบการ์ด</summary>
+        <div class="dgrid">
+          <div class="ctl"><span>พื้นการ์ดสีที่ 1</span><div class="rowc"><input type="color" data-dk="cardBg1"></div></div>
+          <div class="ctl"><span>พื้นการ์ดสีที่ 2</span><div class="rowc"><input type="color" data-dk="cardBg2"></div></div>
+          <div class="ctl"><span>มุมเอียงไล่สี <i class="val" data-val="cardAngle"></i></span><div class="rowc"><input type="range" min="0" max="360" step="5" data-dk="cardAngle"></div></div>
+          <div class="ctl"><span>สีเน้น (Accent)</span><div class="rowc"><input type="color" data-dk="accent"></div></div>
+          <div class="ctl"><span>สีตัวอักษรหลัก</span><div class="rowc"><input type="color" data-dk="textColor"></div></div>
+          <div class="ctl"><span>สีตัวอักษรรอง</span><div class="rowc"><input type="color" data-dk="subColor"></div></div>
+          <div class="ctl"><span>สีขอบการ์ด</span><div class="rowc"><input type="color" data-dk="borderColor"></div></div>
+          <div class="ctl"><span>ความหนาขอบ <i class="val" data-val="borderWidth"></i></span><div class="rowc"><input type="range" min="0" max="6" step="0.5" data-dk="borderWidth"></div></div>
+          <div class="ctl"><span>มุมโค้งการ์ด <i class="val" data-val="radius"></i></span><div class="rowc"><input type="range" min="0" max="40" data-dk="radius"></div></div>
+          <div class="ctl"><span>แสงเรืองแสง (Glow) <i class="val" data-val="glow"></i></span><div class="rowc"><input type="range" min="0" max="70" data-dk="glow"></div></div>
+          <label class="chk"><input type="checkbox" data-dk="shadow">🌑 เงาใต้การ์ด</label>
+        </div>
+      </details>
+      <details>
+        <summary>✍️ ตัวอักษร</summary>
+        <div class="dgrid">
+          <div class="ctl"><span>ฟอนต์</span><select class="inp" data-dk="fontFamily" id="fontSelect"></select></div>
+          <div class="ctl"><span>ขนาดชื่อรถ <i class="val" data-val="titleSize"></i></span><div class="rowc"><input type="range" min="14" max="40" data-dk="titleSize"></div></div>
+          <div class="ctl"><span>ขนาดราคา <i class="val" data-val="priceSize"></i></span><div class="rowc"><input type="range" min="16" max="48" data-dk="priceSize"></div></div>
+          <div class="ctl"><span>ขนาดรายละเอียด <i class="val" data-val="detailSize"></i></span><div class="rowc"><input type="range" min="10" max="18" data-dk="detailSize"></div></div>
+        </div>
+      </details>
+      <details>
+        <summary>🖼️ รูปภาพบนการ์ด</summary>
+        <div class="dgrid">
+          <div class="ctl"><span>สัดส่วนรูป</span>
+            <select class="inp" data-dk="imageRatio">
+              <option value="16/9">16:9 โ widescreen</option>
+              <option value="4/3">4:3 มาตรฐาน</option>
+              <option value="3/2">3:2 ภาพถ่าย</option>
+              <option value="1/1">1:1 สี่เหลี่ยมจัตุรัส</option>
+            </select>
+          </div>
+          <div class="ctl"><span>มุมโค้งรูป <i class="val" data-val="imageRadius"></i></span><div class="rowc"><input type="range" min="0" max="40" data-dk="imageRadius"></div></div>
+          <label class="chk"><input type="checkbox" data-dk="showPrice">💰 แสดงราคาบนการ์ด</label>
+          <label class="chk"><input type="checkbox" data-dk="showStatus">🏷️ แสดงป้ายสถานะ</label>
+        </div>
+        <div class="sect">🖌️ ใช้สไตล์รูปกับรถทั้งหมด</div>
+        <div class="fxbtns">
+          <button class="fxb" data-fxall="reset">ปกติ</button>
+          <button class="fxb" data-fxall="lux">หรูหรา</button>
+          <button class="fxb" data-fxall="bw">ขาวดำ</button>
+          <button class="fxb" data-fxall="cyber">ไซเบอร์</button>
+          <button class="fxb" data-fxall="warm">อบอุ่น</button>
+          <button class="fxb" data-fxall="cool">เย็นตา</button>
+        </div>
+      </details>
+      <details>
+        <summary>⚡ แอนิเมชันและความเร็ว</summary>
+        <div class="dgrid">
+          <div class="ctl"><span>ความเร็วพลิกการ์ด <i class="val" data-val="flipSpeed"></i></span><div class="rowc"><input type="range" min="200" max="1500" step="50" data-dk="flipSpeed"></div></div>
+          <div class="ctl"><span>ทิศทางพลิก</span>
+            <select class="inp" data-dk="flipDir">
+              <option value="horizontal">↔ แนวนอน (ซ้าย-ขวา)</option>
+              <option value="vertical">↕ แนวตั้ง (บน-ล่าง)</option>
+            </select>
+          </div>
+          <div class="ctl"><span>เวลาต่อการ์ดในสไลด์ <i class="val" data-val="slideInterval"></i></span><div class="rowc"><input type="range" min="2" max="15" step="0.5" data-dk="slideInterval"></div></div>
+          <div class="ctl"><span>เอฟเฟกต์ตอนปรากฏ</span>
+            <select class="inp" data-dk="transition">
+              <option value="slide">➡ สไลด์</option>
+              <option value="fade">🌫 จาง</option>
+              <option value="zoom">🔍 ซูม</option>
+            </select>
+          </div>
+          <label class="chk"><input type="checkbox" data-dk="autoPlay">▶️ เล่นสไลด์อัตโนมัติ</label>
+          <label class="chk"><input type="checkbox" data-dk="hoverLift">🎈 การ์ดลอยเมื่อชี้เมาส์</label>
+        </div>
+      </details>
+      <details>
+        <summary>🌌 พื้นหลังหน้าร้าน</summary>
+        <div class="dgrid">
+          <div class="ctl"><span>สีพื้นหลัง 1</span><div class="rowc"><input type="color" data-dk="bg1"></div></div>
+          <div class="ctl"><span>สีพื้นหลัง 2</span><div class="rowc"><input type="color" data-dk="bg2"></div></div>
+          <div class="ctl"><span>ลายพื้นหลัง</span>
+            <select class="inp" data-dk="bgPattern">
+              <option value="grid">▦ เส้นกริด</option>
+              <option value="checker">🏁 ธงตลาด (ลายสี่เหลี่ยมสลับ)</option>
+              <option value="speed">💨 เส้นความเร็ว</option>
+              <option value="dots">⋯ จุด</option>
+              <option value="none">— เรียบ</option>
+            </select>
+          </div>
+          <div class="field full" style="grid-column:1/-1"><label>ลิงก์รูปพื้นหลัง (วอลเปเปอร์อนิเมะ/แข่งรถ จาก Discord ก็ได้)</label>
+            <div class="urlrow" style="margin-top:0"><input class="inp" data-dk="bgUrl" placeholder="https://... (ว่างไว้ = ใช้สีไล่ระดับ)"><button class="btn sm" id="btnBgUrlApply">ใช้</button></div>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ หน้าข้อมูลร้าน ═══════════ -->
+<section class="page" id="page-data">
+  <div class="dwrap2">
+    <div class="cardbox" id="cloudCard" style="border-color:color-mix(in srgb,var(--accent) 40%,transparent)">
+      <h3>☁️ ห้องทำงานร่วมกัน (ซิงค์เรียลไทม์ 2-3 คน)</h3>
+      <p style="color:var(--sub);font-size:13.5px;line-height:1.6;margin-bottom:12px">ทุกคนใส่<b style="color:var(--text)">ชื่อห้องเดียวกัน</b> (หรือเปิดลิงก์ห้องเดียวกัน) — ใครแก้ไขข้อมูล ไม่ว่าเพิ่มรถ แก้ราคา เปลี่ยนธีม ติดเช่า ทุกคนจะเห็น<b style="color:var(--text)">อัตโนมัติภายใน 1-2 วินาที</b> • ระบบเซฟขึ้นคลาวด์ให้เองตลอด ไม่ต้องกดอะไร</p>
+      <div class="btnrow" style="align-items:center" id="roomRow">
+        <span style="font-size:13px;font-weight:700;color:var(--sub)">👥 ห้อง:</span>
+        <input class="inp" id="roomInputUI" style="width:130px" value="1" placeholder="ชื่อห้อง">
+        <button class="btn accent sm" id="btnJoinRoom">เข้าร่วมห้อง</button>
+        <button class="btn sm" id="btnCopyRoom" title="คัดลอกลิงก์ห้องนี้ส่งให้เพื่อน — เปิดแล้วใช้ข้อมูลชุดเดียวกันทันที">🔗 ลิงก์ห้อง</button>
+        <button class="btn sm violet" id="btnForcePush">☁️ เซฟขึ้นคลาวด์เดี๋ยวนี้</button>
+      </div>
+      <div id="cloudDetail" style="font-size:12.5px;color:var(--sub);margin-top:10px">กำลังเชื่อมต่อ…</div>
+    </div>
+    <div class="cardbox">
+      <h3>🏪 ข้อมูลร้าน</h3>
+      <div class="formgrid">
+        <div class="field"><label>ชื่อร้าน / ชื่อเว็บ</label><input class="inp" data-sk="name" placeholder="เช่ร สมชาย คาร์เรนทัล"></div>
+        <div class="field"><label>คำโปรย (Subtitle)</label><input class="inp" data-sk="tagline" placeholder="เช่น รถแข่งลายสวย ราคาถูก ทักแชทเลย"></div>
+        <div class="field"><label>เบอร์โทร</label><input class="inp" data-sk="phone" placeholder="08x-xxx-xxxx"></div>
+        <div class="field"><label>LINE ID</label><input class="inp" data-sk="line" placeholder="carrental"></div>
+        <div class="field" style="grid-column:1/-1"><label>ที่อยู่ / ข้อความท้ายหน้าร้าน</label><input class="inp" data-sk="address" placeholder="เช่น ส่งรถถึงบ้าน ทักแชทได้ 24 ชม."></div>
+      </div>
+    </div>
+    <div class="cardbox">
+      <h3>💾 สำรองและกู้คืนข้อมูล</h3>
+      <p style="color:var(--sub);font-size:13.5px;margin-bottom:12px">ข้อมูลทั้งหมดถูกบันทึกอัตโนมัติลงเบราว์เซอร์นี้ • ย้ายเครื่อง/ส่งให้เพื่อน ให้ส่งออกไฟล์ .json แล้วโหลดกลับได้ทันที (รวมรูปรถทุกคัน)</p>
+      <div class="btnrow">
+        <button class="btn accent" id="btnExport">📤 ส่งออกข้อมูลทั้งหมด</button>
+        <button class="btn" id="btnImport">📂 นำเข้าไฟล์สำรอง</button>
+        <button class="btn danger" id="btnResetAll">🗑️ ล้างข้อมูลทั้งหมด</button>
+      </div>
+      <div class="storagebar"><i id="storageBar" style="width:0%"></i></div>
+      <div style="font-size:12px;color:var(--sub)" id="storageInfo">—</div>
+    </div>
+    <div class="cardbox help">
+      <h3>📖 คู่มือใช้งานอย่างรวดเร็ว</h3>
+      <p><b>1. เพิ่มรถ</b> — แท็บ "จัดการรถ" → "เพิ่มรถ" → ใส่ <b>รูป + ชื่อรถ + ความเร็ว + ที่นั่ง + ราคา + รายละเอียด (เช่น รถกาชาได้จากไหน) + ป้ายทะเบียน</b> ก็ครบแล้ว ระบบเดินเครื่องเองหมด</p>
+      <p><b>2. ป้ายทะเบียนใส่ยังไง</b> — รูปแบบไทย: <b>ตัวอักษร 1-2 ตัว + เว้นวรรค + เลขไม่เกิน 4 หลัก</b> เช่น "กท 1234" หรือแบบเก่า "1กก 5678" และ<b>ใส่ชื่อจังหวัดต่อท้ายได้</b> เช่น "กท 1234 กรุงเทพมหานคร" — ช่องกรอกมีพรีวิวป้ายจริงและเช็ครูปแบบให้ทันที (เป็นรถเกมจะใส่อะไรก็ได้ แค่เตือนให้รู้)</p>
+      <p><b>3. ทำโปสเตอร์ + ได้ลิงก์รูปจาก Discord</b> — แท็บ "ทำโปสเตอร์": ติ๊กเลือกรถที่จะขึ้น (จัดตารางอัตโนมัติ 20 คันก็จัดได้) → เลือกขนาดหน้าจอ → กด <b>"ส่งขึ้น Discord"</b> (ตั้ง Webhook ครั้งเดียว) ระบบจะอัปโหลดแล้ว<b>ก๊อปลิงก์รูปมาวางให้เอง</b> หรือจะดาวน์โหลด PNG ไปวางใน Discord เองแล้วคลิกขวา Copy Link ก็ได้เหมือนกัน</p>
+      <p><b>4. ใช้ลิงก์รูปจาก Discord เป็นรูปรถ</b> — ตอนเพิ่ม/แก้ไขรถ มีช่อง "วางลิงก์รูป" สำหรับวางลิงก์ CDN จาก Discord ได้เลย ไม่ต้องอัปโหลดไฟล์</p>
+      <p><b>5. ตกแต่ง</b> — แท็บ "ตกแต่งการ์ด" มีธีมอนิเมะ/แข่งรถสำเร็จรูป ฟอนต์การ์ตูน ลายธงตลาด เส้นความเร็ว และใส่วอลเปเปอร์พื้นหลังจากลิงก์รูปได้ • ปรับความเร็วพลิกการ์ด/สไลด์ได้ในหน้าเดียวกัน</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ═══════════ โมดัลเพิ่ม/แก้ไขรถ ═══════════ -->
+<div class="modal" id="editorModal">
+  <div class="mbox">
+    <div class="mhead"><h3 id="edTitle">＋ เพิ่มรถใหม่</h3><button class="mclose" onclick="closeEditor()">✕</button></div>
+    <div class="mbody">
+      <div>
+        <div class="sect">🖼️ รูปรถ + เครื่องมือตกแต่งรูป</div>
+        <div class="drop" id="dropZone">
+          <img id="edPreview" alt="พรีวิวรูปรถ" style="display:none">
+          <div class="lbl" id="dropLabel">📥 คลิกเลือกรูป หรือลากรูปมาวางที่นี่<br><span style="font-size:11px;opacity:.7">(ระบบบีบอัดรูปให้เบาอัตโนมัติ)</span></div>
+        </div>
+        <input type="file" id="imgInput" accept="image/*" hidden>
+        <div class="urlrow">
+          <input class="inp" id="imgUrl" placeholder="หรือวางลิงก์รูป เช่น ลิงก์จาก Discord (https://...)">
+          <button class="btn sm" id="btnUrl" title="ใช้ลิงก์นี้เป็นรูปรถ">🔗 ใช้ลิงก์</button>
+        </div>
+        <div style="font-size:12px;color:var(--sub);margin-top:6px">💡 <b>ลากภาพด้านบนด้วยเมาส์</b>เพื่อขยับจุดโฟกัสในกรอบ แล้วปรับขนาดด้วยแถบ "🔍 ซูมรูป" ด้านล่าง</div>
+        <div class="fxbox" id="fxPanel">
+          <div class="fxbtns">
+            <button class="fxb" data-fx="reset">ปกติ</button>
+            <button class="fxb" data-fx="lux">หรูหรา</button>
+            <button class="fxb" data-fx="bw">ขาวดำ</button>
+            <button class="fxb" data-fx="cyber">ไซเบอร์</button>
+            <button class="fxb" data-fx="warm">อบอุ่น</button>
+            <button class="fxb" data-fx="cool">เย็นตา</button>
+          </div>
+          <div class="fxgrid">
+            <div class="ctl"><span>☀️ สว่าง <i class="val" data-val="brightness"></i></span><input type="range" min="40" max="170" data-fxk="brightness"></div>
+            <div class="ctl"><span>◐ คอนทราสต์ <i class="val" data-val="contrast"></i></span><input type="range" min="40" max="180" data-fxk="contrast"></div>
+            <div class="ctl"><span>🎨 อิ่มสี <i class="val" data-val="saturate"></i></span><input type="range" min="0" max="220" data-fxk="saturate"></div>
+            <div class="ctl"><span>⚫ ขาวดำ <i class="val" data-val="grayscale"></i></span><input type="range" min="0" max="100" data-fxk="grayscale"></div>
+            <div class="ctl"><span>💧 เบลอ <i class="val" data-val="blur"></i></span><input type="range" min="0" max="8" step="0.2" data-fxk="blur"></div>
+            <div class="ctl"><span>🌈 สีเพี้ยน <i class="val" data-val="hue"></i></span><input type="range" min="0" max="360" data-fxk="hue"></div>
+            <div class="ctl"><span>🖥 ซีเปีย <i class="val" data-val="sepia"></i></span><input type="range" min="0" max="100" data-fxk="sepia"></div>
+            <div class="ctl"><span>🔍 ซูมรูป <i class="val" data-val="zoom"></i></span><input type="range" min="100" max="260" data-fxk="zoom"></div>
+            <div class="ctl"><span>↔ เลื่อนโฟกัสซ้าย-ขวา <i class="val" data-val="panx"></i></span><input type="range" min="-100" max="100" data-fxk="panx"></div>
+            <div class="ctl"><span>↕ เลื่อนโฟกัสบน-ล่าง <i class="val" data-val="pany"></i></span><input type="range" min="-100" max="100" data-fxk="pany"></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="sect">🚘 ข้อมูลรถ</div>
+        <div class="edgrid">
+          <div class="field full"><label>ชื่อรถ / รุ่น *</label><input class="inp" id="f-name" placeholder="เช่น Nissan GT-R Nismo"></div>
+          <div class="field"><label>ความเร็วสูงสุด *</label><input class="inp" id="f-speed" placeholder="เช่น 315 กม./ชม. หรือ Class S"></div>
+          <div class="field"><label>ที่นั่ง (ตำแหน่ง) *</label><input class="inp" id="f-seats" type="number" min="1" max="15" placeholder="2"></div>
+          <div class="field"><label>ราคาเช่า/วัน (บาท) *</label><input class="inp" id="f-price" type="number" min="0" placeholder="2600"></div>
+          <div class="field"><label>ป้ายทะเบียน</label><input class="inp" id="f-plate" placeholder="เช่น กท 1234 กรุงเทพมหานคร"></div>
+        </div>
+        <div class="platePreview" id="platePreview"></div>
+        <div class="plateHint" id="plateHint"></div>
+        <div class="sect">📝 รายละเอียด (เช่น รถกาชา ได้จากไหน จุดเด่น ฯลฯ)</div>
+        <textarea class="inp" id="f-details" style="min-height:110px" placeholder="ตัวอย่าง: รถกาชา Event อำมาตย์&#10;• ดริฟท์แกรบมือ&#10;• สปีดโค้งสูงสุดในเกม&#10;• ติดโบนัสเต็มระบบ"></textarea>
+        <div class="sect">🏷️ สถานะ</div>
+        <div class="edgrid">
+          <div class="field"><label>สถานะปัจจุบัน</label><select class="inp" id="f-status"><option value="available">🟢 พร้อมให้เช่า</option><option value="rented">🟡 ติดเช่า</option><option value="maintenance">⚪ ซ่อมบำรุง</option></select></div>
+          <div class="field" id="daysField"><label>เช่าอีกกี่วัน (ป้ายนับถอยหลัง)</label><input class="inp" id="f-days" type="number" min="1" max="365" value="1"></div>
+        </div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn danger sm" id="edDelete" style="display:none;margin-right:auto">🗑️ ลบรถคันนี้</button>
+      <button class="btn ghost" onclick="closeEditor()">ยกเลิก</button>
+      <button class="btn accent" id="edSave">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ Confirm + Toast ═══════════ -->
+<div class="modal" id="confirmModal">
+  <div class="mbox">
+    <h3 id="cfTitle">ยืนยัน</h3>
+    <p id="cfText">?</p>
+    <div class="rowbtn">
+      <button class="btn ghost" id="cfCancel">ยกเลิก</button>
+      <button class="btn danger" id="cfOk">ยืนยัน</button>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<input type="file" id="fileInputImport" accept=".json,application/json" hidden>
+
+<script>
+/* ════════════════════════════════════════════════════════════
+   ระบบเช่ารถแฟลชการ์ด • Car Rental FlashCard Studio v2.0
+   ไฟล์เดียวจบ ทำงานออฟไลน์ • localStorage + ส่งออก/นำเข้า JSON
+   + หน้าโปสเตอร์จัดตารางอัตโนมัติ + Discord Webhook รับลิงก์รูป
+   ════════════════════════════════════════════════════════════ */
+'use strict';
+
+/* ---------- ตัวช่วยทั่วไป ---------- */
+const $  = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function uid(){ return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function fmtBaht(n){ n = Number(n); return isNaN(n) ? '-' : n.toLocaleString('th-TH'); }
+function debounce(fn, ms){ let t; return function(){ clearTimeout(t); const a = arguments, self = this; t = setTimeout(() => fn.apply(self, a), ms); }; }
+let toastTimer = null;
+function toast(msg, isErr){
+  const t = $('#toast');
+  t.textContent = msg;
+  t.className = isErr ? 'err show' : 'show';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3400);
+}
+function hhmmss(ms){
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const d = Math.floor(s / 86400);
+  const h = String(Math.floor(s % 86400 / 3600)).padStart(2, '0');
+  const m = String(Math.floor(s % 3600 / 60)).padStart(2, '0');
+  const ss = String(s % 60).padStart(2, '0');
+  return (d > 0 ? d + 'วัน ' : '') + h + ':' + m + ':' + ss;
+}
+function copyText(txt, okMsg){
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(() => toast(okMsg || 'คัดลอกแล้ว')).catch(() => prompt('คัดลอกเอง:', txt));
+  } else prompt('คัดลอกเอง:', txt);
+}
+
+/* ---------- ค่าคงที่ ---------- */
+const FONTS = ['Kanit','Prompt','Mitr','Itim','Mali','Sriracha','Sarabun','Chakra Petch','Bai Jamjuree','K2D','Orbitron','Audiowide','Bungee','Russo One','Zen Dots','Racing Sans One'];
+const STORE_KEY = 'carFlashcards_v1';
+const WH_KEY = 'carFlashcards_webhook';
+const LINK_KEY = 'carFlashcards_lastLink';
+
+const DEFAULT_FX = { brightness:100, contrast:100, saturate:100, grayscale:0, blur:0, hue:0, sepia:0, zoom:100, panx:0, pany:0 };
+const FX_PRESETS = {
+  reset:  {},
+  lux:    { brightness:106, contrast:108, saturate:118, grayscale:0, blur:0, hue:0, sepia:12 },
+  bw:     { brightness:104, contrast:112, saturate:0,   grayscale:100, blur:0, hue:0, sepia:0 },
+  cyber:  { brightness:104, contrast:122, saturate:150, grayscale:0, blur:0, hue:190, sepia:0 },
+  warm:   { brightness:106, contrast:102, saturate:122, grayscale:0, blur:0, hue:340, sepia:18 },
+  cool:   { brightness:102, contrast:106, saturate:110, grayscale:0, blur:0, hue:200, sepia:0 },
+};
+
+const DEFAULT_DESIGN = {
+  preset:'gold', cardBg1:'#161d33', cardBg2:'#232c4d', cardAngle:135,
+  accent:'#f5b942', btnText:'#1b1305', textColor:'#ffffff', subColor:'#a9b4d6',
+  borderColor:'#f5b942', borderWidth:1, radius:20, glow:18, shadow:true,
+  fontFamily:'Kanit', titleSize:22, priceSize:26, detailSize:13,
+  imageRatio:'16/9', imageRadius:12, showPrice:true, showStatus:true,
+  flipSpeed:600, flipDir:'horizontal', slideInterval:4, transition:'slide',
+  autoPlay:true, hoverLift:true, bg1:'#0a0e1c', bg2:'#141b31', bgPattern:'grid', bgUrl:'',
+  layout:{ nameX:0, nameY:0, priceX:0, priceY:0, plateX:0, plateY:0, detailX:0, detailY:0 },
+};
+
+const PRESETS = {
+  gold:   { label:'Midnight Gold', emoji:'👑', cardBg1:'#161d33', cardBg2:'#232c4d', cardAngle:135, accent:'#f5b942', btnText:'#1b1305', textColor:'#ffffff', subColor:'#a9b4d6', borderColor:'#f5b942', borderWidth:1, radius:20, glow:18, bg1:'#0a0e1c', bg2:'#141b31', bgPattern:'grid',   fontFamily:'Kanit' },
+  neon:   { label:'Neon Cyber',    emoji:'🌌', cardBg1:'#0d1226', cardBg2:'#1c1140', cardAngle:160, accent:'#22d3ee', btnText:'#03202a', textColor:'#ffffff', subColor:'#93a5d8', borderColor:'#22d3ee', borderWidth:1.5, radius:16, glow:26, bg1:'#070b18', bg2:'#120a2b', bgPattern:'dots',   fontFamily:'Chakra Petch' },
+  light:  { label:'Clean Light',   emoji:'☁️', cardBg1:'#ffffff', cardBg2:'#eef2fa', cardAngle:180, accent:'#0a6cff', btnText:'#ffffff', textColor:'#17213d', subColor:'#5b6b8c', borderColor:'#0a6cff', borderWidth:1, radius:22, glow:6,  bg1:'#eef2f9', bg2:'#dfe7f5', bgPattern:'none',   fontFamily:'Prompt' },
+  ocean:  { label:'Ocean Deep',    emoji:'🌊', cardBg1:'#0b2233', cardBg2:'#0f3a4d', cardAngle:135, accent:'#2dd4bf', btnText:'#02251f', textColor:'#ffffff', subColor:'#9fc6c9', borderColor:'#2dd4bf', borderWidth:1, radius:18, glow:14, bg1:'#071823', bg2:'#0d2c3a', bgPattern:'grid',   fontFamily:'Bai Jamjuree' },
+  purple: { label:'Royal Purple',  emoji:'🔮', cardBg1:'#1b1233', cardBg2:'#331b57', cardAngle:145, accent:'#c084fc', btnText:'#241040', textColor:'#ffffff', subColor:'#b9a9e0', borderColor:'#c084fc', borderWidth:1.5, radius:20, glow:22, bg1:'#100a1f', bg2:'#1d1136', bgPattern:'dots',   fontFamily:'K2D' },
+  sunset: { label:'Sunset Drive',  emoji:'🌇', cardBg1:'#2a1420', cardBg2:'#4a2030', cardAngle:150, accent:'#fb923c', btnText:'#331104', textColor:'#ffffff', subColor:'#e0b9a9', borderColor:'#fb923c', borderWidth:1, radius:22, glow:18, bg1:'#180d14', bg2:'#2b1521', bgPattern:'none',   fontFamily:'Mitr' },
+  carbon: { label:'Carbon Sport',  emoji:'🏎️', cardBg1:'#111214', cardBg2:'#232327', cardAngle:135, accent:'#ef4444', btnText:'#ffffff', textColor:'#f3f4f6', subColor:'#9aa0ab', borderColor:'#ef4444', borderWidth:2, radius:12, glow:16, bg1:'#0a0b0c', bg2:'#16171a', bgPattern:'grid',  fontFamily:'Russo One' },
+  race:   { label:'Racing Flag',   emoji:'🏁', cardBg1:'#15161a', cardBg2:'#33363e', cardAngle:135, accent:'#ffd400', btnText:'#201c00', textColor:'#ffffff', subColor:'#c8cdd6', borderColor:'#ffd400', borderWidth:2, radius:14, glow:16, bg1:'#0e0f12', bg2:'#22252b', bgPattern:'checker', fontFamily:'Racing Sans One' },
+  sakura: { label:'Anime Sakura',  emoji:'🌸', cardBg1:'#fff0f6', cardBg2:'#ffd9e8', cardAngle:150, accent:'#e4467c', btnText:'#ffffff', textColor:'#3d2030', subColor:'#8a5c72', borderColor:'#e4467c', borderWidth:1.5, radius:26, glow:10, bg1:'#fdf2f8', bg2:'#fce7f3', bgPattern:'none',   fontFamily:'Itim' },
+  blaze:  { label:'Blaze Racing',  emoji:'🔥', cardBg1:'#1f0600', cardBg2:'#4a1200', cardAngle:150, accent:'#fb5607', btnText:'#ffffff', textColor:'#ffffff', subColor:'#e8b39a', borderColor:'#fb5607', borderWidth:1.5, radius:16, glow:26, bg1:'#170401', bg2:'#2b0900', bgPattern:'speed',  fontFamily:'Bungee' },
+};
+
+const DEFAULT_POSTER = { title:'', sub:'', size:'16x9', cols:'auto', gap:16, showHeader:true, showPlate:true, showStatus:true, showPrice:true };
+const POSTER_SIZES = { '16x9':[1920,1080], '3x2':[1800,1200], '4x5':[1080,1350], '9x16':[1080,1920] };
+
+function defaultState(){
+  return {
+    shop: { name:'CAR RENTAL', tagline:'ระบบแฟลชการ์ดแสดงรถให้เช่า • แตะการ์ดเพื่อพลิกดูรายละเอียด', phone:'', line:'', address:'' },
+    cars: [],
+    design: Object.assign({}, DEFAULT_DESIGN),
+    poster: Object.assign({}, DEFAULT_POSTER),
+  };
+}
+
+/* ---------- โหลด/บันทึก (มี migration จากข้อมูลเวอร์ชันเก่า) ---------- */
+let state = defaultState();
+function save(){
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+  catch(e){ console.warn('บันทึกลงเครื่องไม่สำเร็จ (พื้นที่เต็ม):', e); toast('⚠️ พื้นที่เบราว์เซอร์เต็ม ลองลบรูปเก่าหรือส่งออกไฟล์ก่อน', true); }
+  updateStorageInfo();
+}
+const saveDebounced = debounce(save, 500);
+function migrateCar(c){
+  const car = Object.assign({ id:uid(), imgFx:Object.assign({}, DEFAULT_FX), status:'available', onPoster:true, createdAt:Date.now() }, c);
+  // ข้อมูลเก่า (เครื่องยนต์/ปี/เชื้อเพลิง ฯลฯ) ย้ายมารวมไว้ในช่องรายละเอียด ไม่ทิ้งข้อมูลเดิม
+  if (car.details == null){
+    const bits = [];
+    if (c.notes) bits.push(c.notes);
+    if (Array.isArray(c.features) && c.features.length) bits.push('อุปกรณ์: ' + c.features.join(', '));
+    const old = [];
+    if (c.brand) old.push(c.brand);
+    if (c.year) old.push('ปี ' + c.year);
+    if (c.trans) old.push(c.trans);
+    if (c.fuel) old.push(c.fuel);
+    if (c.seats) old.push(c.seats + ' ที่นั่ง');
+    if (old.length) bits.unshift(old.join(' • '));
+    car.details = bits.join('\n');
+  }
+  if (typeof c.onPoster !== 'boolean') car.onPoster = true;
+  if (car.speed == null && c.cc) car.speed = '';
+  return car;
+}
+function load(){
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return;
+    const obj = JSON.parse(raw);
+    if (obj && typeof obj === 'object'){
+      state = defaultState();
+      if (obj.shop && typeof obj.shop === 'object') state.shop = Object.assign(state.shop, obj.shop);
+      if (Array.isArray(obj.cars)) state.cars = obj.cars.filter(c => c && typeof c === 'object' && c.name).map(migrateCar);
+      if (obj.design && typeof obj.design === 'object'){
+        state.design = Object.assign(state.design, obj.design);
+        state.design.layout = Object.assign({}, DEFAULT_DESIGN.layout, state.design.layout || {});
+      }
+      if (obj.poster && typeof obj.poster === 'object') state.poster = Object.assign(state.poster, obj.poster);
+    }
+  } catch(e){ console.warn('โหลดข้อมูลเก่าไม่สำเร็จ:', e); }
+}
+
+/* ---------- รูปตัวอย่าง (SVG) ---------- */
+function svgCarPlaceholder(text, hue){
+  const svg = "<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450'>" +
+    "<defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>" +
+    "<stop offset='0' stop-color='hsl(" + hue + ",55%,26%)'/><stop offset='1' stop-color='hsl(" + ((hue + 60) % 360) + ",55%,13%)'/>" +
+    "</linearGradient></defs><rect width='800' height='450' fill='url(#g)'/>" +
+    "<text x='400' y='205' font-size='130' text-anchor='middle'>🏎️</text>" +
+    "<text x='400' y='305' font-size='34' fill='rgba(255,255,255,.9)' text-anchor='middle' font-family='sans-serif' font-weight='bold'>" + esc(text) + "</text>" +
+    "</svg>";
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+function addDemoCars(){
+  const demos = [
+    { name:'Lamborghini Huracán STO', speed:'324 กม./ชม.', seats:2, pricePerDay:4500, plate:'กท 8888 กรุงเทพมหานคร', details:'รถกาชา Event อำมาตย์ (Rare)\n• ออกแบบสายลม ตัวถังคาร์บอนเต็มคัน\n• เหมาะซิ่งทางตรง ดริฟท์สวย\n• ติดโบนัสเต็มระบบ', hue:10, status:'available' },
+    { name:'Nissan GT-R Nismo R35', speed:'315 กม./ชม.', seats:4, pricePerDay:2600, plate:'1กก 4521 เชียงใหม่', details:'รถกาชาป้ายกลาง (Epic)\n• 4 ล้อขับเคลื่อน ติดโค้งแน่น\n• ซ่อมบำรุงถูก คุ้มใช้ทุกวัน', hue:200, status:'rented', days:2 },
+    { name:'Porsche 911 GT3 RS', speed:'296 กม./ชม.', seats:2, pricePerDay:3800, plate:'3ษณ 777 ภูเก็ต', details:'รถกาชาแบนเนอร์พิเศษ\n• ดาวน์ฟอร์ซสูงสุดในคลาส\n• เข้าโค้งไม่ต้องเบรก', hue:150, status:'available' },
+    { name:'Toyota GR Supra A90', speed:'250 กม./ชม.', seats:2, pricePerDay:1900, plate:'7ฒธ 130 ขอนแก่น', details:'รถกาชาฟรีเริ่มต้นเกม (สะสมเหรียญ)\n• แต่งเต็มชุด Stage 3\n• สีทรายทองพิเศษ', hue:40, status:'maintenance' },
+    { name:'Mazda RX-7 FD Spirit', speed:'255 กม./ชม.', seats:2, pricePerDay:1700, plate:'กษ 9999 ชลบุรี', details:'รถกาชาล็อกเลี้ยงโต (Legend)\n• เครื่องโรตารี่เสียงเกรียว\n• สไตล์ดริฟท์สายโบราณ', hue:270, status:'available' },
+  ];
+  demos.forEach(d => {
+    state.cars.push({
+      id: uid(), name:d.name, speed:d.speed, seats:d.seats, pricePerDay:d.pricePerDay, plate:d.plate,
+      details:d.details, image: svgCarPlaceholder(d.name.split(' ')[0], d.hue),
+      imgFx: Object.assign({}, DEFAULT_FX), status:d.status,
+      rentEnd: d.status === 'rented' && d.days ? Date.now() + d.days * 864e5 : null,
+      onPoster: true, createdAt: Date.now(),
+    });
+  });
+  save(); renderAll();
+  toast('✨ เพิ่มรถตัวอย่าง 5 คันแล้ว ลองแตะการ์ดเพื่อพลิกดู!');
+}
+
+/* ---------- ใช้ธีม (CSS Variables) ---------- */
+function applyDesign(){
+  const d = state.design, r = document.documentElement.style;
+  r.setProperty('--accent', d.accent);
+  r.setProperty('--btn-text', d.btnText || '#1b1305');
+  r.setProperty('--text', d.textColor);
+  r.setProperty('--sub', d.subColor);
+  r.setProperty('--card-bg1', d.cardBg1);
+  r.setProperty('--card-bg2', d.cardBg2);
+  r.setProperty('--card-angle', d.cardAngle + 'deg');
+  r.setProperty('--card-border', d.borderColor);
+  r.setProperty('--card-border-w', d.borderWidth + 'px');
+  r.setProperty('--card-radius', d.radius + 'px');
+  r.setProperty('--glow', d.glow + 'px');
+  r.setProperty('--font', "'" + d.fontFamily + "'");
+  r.setProperty('--title-size', d.titleSize + 'px');
+  r.setProperty('--price-size', d.priceSize + 'px');
+  r.setProperty('--detail-size', d.detailSize + 'px');
+  r.setProperty('--img-ratio', d.imageRatio);
+  r.setProperty('--img-radius', d.imageRadius + 'px');
+  r.setProperty('--flip-speed', d.flipSpeed + 'ms');
+  r.setProperty('--bg1', d.bg1);
+  r.setProperty('--bg2', d.bg2);
+  document.body.classList.toggle('shadow-on', !!d.shadow);
+  document.body.classList.toggle('hover-lift', !!d.hoverLift);
+  document.body.classList.toggle('flip-vertical', d.flipDir === 'vertical');
+  const pat = $('#pattern');
+  pat.className = ['checker','speed','dots','grid'].includes(d.bgPattern) ? d.bgPattern : '';
+  // พื้นหลังจากลิงก์รูป (วอลเปเปอร์) วางทับด้วยสีไล่ระดับโปร่งใสเพื่อให้อ่านตัวอักษรชัด
+  if (d.bgUrl && /^https?:\/\//.test(d.bgUrl)){
+    document.body.style.background = 'linear-gradient(160deg, color-mix(in srgb, ' + d.bg1 + ' 62%, transparent), color-mix(in srgb, ' + d.bg2 + ' 74%, transparent)), url("' + d.bgUrl.replace(/"/g, '%22') + '") center/cover fixed no-repeat, linear-gradient(160deg,' + d.bg1 + ',' + d.bg2 + ')';
+  } else document.body.style.background = '';
+}
+
+/* ---------- ฟิลเตอร์รูป ---------- */
+function fxStr(fx){
+  fx = fx || DEFAULT_FX;
+  return 'brightness(' + fx.brightness + '%) contrast(' + fx.contrast + '%) saturate(' + fx.saturate + '%) grayscale(' + fx.grayscale + '%) blur(' + fx.blur + 'px) hue-rotate(' + fx.hue + 'deg) sepia(' + fx.sepia + '%)';
+}
+function fxTransform(fx){
+  fx = fx || DEFAULT_FX;
+  return 'scale(' + (fx.zoom / 100) + ') translate(' + fx.panx + '%,' + fx.pany + '%)';
+}
+
+/* ---------- ป้ายทะเบียน: ตรวจ + จัดรูปแบบ ---------- */
+function normalizePlate(s){
+  s = String(s || '').replace(/\s+/g, ' ').trim();
+  const m = s.match(/^(\d{0,1}[ก-๙a-zA-Z]{1,2}|\d{1,2})[- ]?(\d{1,4})(?:\s+(.+))?$/);
+  if (m) return (m[1] + ' ' + m[2] + (m[3] ? ' ' + m[3] : '')).trim();
+  return s;
+}
+function plateCheck(s){
+  const n = normalizePlate(s);
+  const ok = /^(\d{0,1}[ก-๙a-zA-Z]{1,2}|\d{1,2}) \d{1,4}(\s.+)?$/.test(n);
+  return { ok, normalized: n };
+}
+function parsePlate(s){
+  const n = normalizePlate(s);
+  if (!n) return null;
+  const parts = n.split(' ');
+  if (parts.length >= 2 && /\d/.test(parts[1]) && !/\d/.test(parts[0])) return { main: parts[0] + ' ' + parts[1], prov: parts.slice(2).join(' ') };
+  return { main: n, prov: '' };
+}
+function plateHTML(car){
+  if (!car.plate) return '';
+  return '<div class="plateline" data-lk="plate" style="transform:translate(' + (LX.plateX || 0) + 'px,' + (LX.plateY || 0) + 'px)">🔖 ' + esc(normalizePlate(car.plate)) + '</div>';
+}
+
+/* ---------- สร้างการ์ด ---------- */
+function statusInfo(car){
+  if (car.status === 'rented'){
+    const expired = car.rentEnd && car.rentEnd <= Date.now();
+    return { cls:'rented', label: expired ? 'ครบกำหนดคืน' : 'ติดเช่า' };
+  }
+  if (car.status === 'maintenance') return { cls:'maint', label:'ซ่อมบำรุง' };
+  return { cls:'ok', label:'ว่าง • ให้เช่าได้' };
+}
+function buildFCard(car, opts){
+  opts = opts || {};
+  const d = state.design, st = statusInfo(car);
+  const LX = Object.assign({ nameX:0, nameY:0, priceX:0, priceY:0, plateX:0, plateY:0, detailX:0, detailY:0 }, state.design.layout || {});
+  const el = document.createElement('div');
+  el.className = 'fcard anim anim-' + (opts.noAnim ? 'fade' : d.transition);
+  el.dataset.carId = car.id;
+  if (typeof opts.delay === 'number') el.style.animationDelay = opts.delay + 'ms';
+
+  const chips = [];
+  if (car.speed) chips.push('⚡ ' + car.speed);
+  if (car.seats) chips.push('👥 ' + car.seats + ' ที่นั่ง');
+
+  const front =
+    '<div class="fimg" style="border-radius:var(--img-radius)">' +
+      '<img src="' + esc(car.image || svgCarPlaceholder(car.name || 'รถ', 215)) + '" alt="' + esc(car.name || '') + '" loading="lazy" style="filter:' + fxStr(car.imgFx) + ';transform:' + fxTransform(car.imgFx) + '" onerror="this.onerror=null;this.src=\'' + svgCarPlaceholder('ไม่มีรูป', 0).replace(/'/g, '%27') + '\'">' +
+      (d.showStatus ? '<span class="badge ' + st.cls + '">' + st.label + '</span>' : '') +
+      (car.status === 'rented' ? '<span class="cdown" data-cdown="' + esc(car.id) + '"></span>' : '') +
+    '</div>' +
+    '<div class="fbody">' +
+      '<div class="fname" data-lk="name" style="transform:translate(' + LX.nameX + 'px,' + LX.nameY + 'px)">' + esc(car.name || 'ไม่ระบุชื่อ') + '</div>' +
+      '<div class="fmeta">' + chips.slice(0, 3).map(c => '<span class="chip">' + esc(c) + '</span>').join('') + '</div>' +
+      '<div class="fprice-row" data-lk="price" style="transform:translate(' + LX.priceX + 'px,' + LX.priceY + 'px)">' +
+        (d.showPrice ? '<div class="fprice">' + fmtBaht(car.pricePerDay) + ' <small>บาท/วัน</small></div>' : '<div></div>') +
+      '</div>' +
+      (car.plate ? '<div class="plateline fpl" data-lk="plate" style="transform:translate(' + LX.plateX + 'px,' + LX.plateY + 'px)">🔖 ' + esc(normalizePlate(car.plate)) + '</div>' : '') +
+    '</div>' +
+    '<div class="fhint">แตะเพื่อพลิกดูรายละเอียด ↻</div>';
+
+  const rows = [];
+  if (car.speed) rows.push(['⚡ ความเร็ว', esc(car.speed)]);
+  if (car.seats) rows.push(['👥 ที่นั่ง', esc(car.seats) + ' ตำแหน่ง']);
+  rows.push(['💰 ราคาเช่า', fmtBaht(car.pricePerDay) + ' บาท/วัน']);
+
+  const shop = state.shop;
+  const back =
+    '<div class="btitle">📋 รายละเอียดรถ</div>' +
+    '<div class="fname" style="font-size:calc(var(--title-size) * .82)">' + esc(car.name || '') + '</div>' +
+    rows.map(r => '<div class="brow"><span>' + r[0] + '</span><b>' + r[1] + '</b></div>').join('') +
+    (car.plate ? '<div class="plateline" data-lk="plate" style="transform:translate(' + LX.plateX + 'px,' + LX.plateY + 'px)">🔖 ' + esc(normalizePlate(car.plate)) + '</div>' : '') +
+    (car.details ? '<div class="bnote" data-lk="detail" style="transform:translate(' + LX.detailX + 'px,' + LX.detailY + 'px)">' + esc(car.details) + '</div>' : '') +
+    '<div class="bcontact">' +
+      (shop.phone ? '<a class="tel" href="tel:' + esc(String(shop.phone).replace(/[^0-9+]/g, '')) + '">📞 โทรจอง</a>' : '') +
+      '<button type="button" class="back" data-back>↺ กลับด้านหน้า</button>' +
+    '</div>';
+
+  el.innerHTML =
+    '<div class="fcard-inner">' +
+      '<div class="fface ffront">' + front + '</div>' +
+      '<div class="fface fback">' + back + '</div>' +
+    '</div>';
+  return el;
+}
+
+/* ---------- เรนเดอร์หน้าร้าน ---------- */
+let autoTimer = null, autoPausedByUser = false;
+function isPaused(){
+  return autoPausedByUser || !state.design.autoPlay || document.hidden ||
+    !document.body.classList.contains('view-carousel') ||
+    !$('#page-store').classList.contains('active') ||
+    $('#carousel').querySelector('.fcard.flipped') !== null ||
+    $('#carousel').matches(':hover');
+}
+function renderStore(){
+  const cars = state.cars;
+  const car = $('#carousel'), grid = $('#grid');
+  car.innerHTML = ''; grid.innerHTML = '';
+  $('#emptyStore').style.display = cars.length ? 'none' : 'block';
+  $('#cDots').innerHTML = '';
+  cars.forEach((c, i) => {
+    car.appendChild(buildFCard(c, { delay: Math.min(i * 70, 700) }));
+    grid.appendChild(buildFCard(c, { delay: Math.min(i * 50, 600) }));
+    const dot = document.createElement('button');
+    dot.className = 'cdot' + (i === 0 ? ' on' : '');
+    dot.dataset.idx = i;
+    dot.title = 'ไปการ์ดที่ ' + (i + 1);
+    $('#cDots').appendChild(dot);
+  });
+  restartAutoplay();
+  updateCountdowns();
+}
+function carouselCards(){ return $$('.fcard', $('#carousel')); }
+function goToIndex(i){
+  const cards = carouselCards(); if (!cards.length) return;
+  const wrap = $('#carousel');
+  i = ((i % cards.length) + cards.length) % cards.length;
+  const el = cards[i];
+  wrap.scrollTo({ left: el.offsetLeft - (wrap.clientWidth - el.offsetWidth) / 2, behavior:'smooth' });
+}
+function activeIndex(){
+  const wrap = $('#carousel'), cards = carouselCards();
+  const mid = wrap.scrollLeft + wrap.clientWidth / 2;
+  let best = 0, bd = Infinity;
+  cards.forEach((el, i) => {
+    const c = el.offsetLeft + el.offsetWidth / 2;
+    const dd = Math.abs(c - mid);
+    if (dd < bd){ bd = dd; best = i; }
+  });
+  return best;
+}
+function paintDots(){
+  const i = activeIndex();
+  $$('.cdot').forEach(d => d.classList.toggle('on', Number(d.dataset.idx) === i));
+}
+function restartProgress(){
+  const p = $('#cProg');
+  p.classList.remove('run'); void p.offsetWidth;
+  if (state.design.autoPlay && !autoPausedByUser){
+    p.style.animationDuration = state.design.slideInterval + 's';
+    p.classList.add('run');
+  }
+}
+function restartAutoplay(){
+  clearInterval(autoTimer);
+  $('#autoToggle').innerHTML = autoPausedByUser ? '▶️ เล่นสไลด์' : '⏸ หยุดเล่น';
+  $('#autoSpeed').value = state.design.slideInterval;
+  $('#autoSpeedLabel').textContent = Number(state.design.slideInterval).toFixed(1) + ' วิ';
+  restartProgress();
+  if (!state.design.autoPlay){ $('#cProgWrap').style.opacity = .25; return; }
+  $('#cProgWrap').style.opacity = 1;
+  autoTimer = setInterval(() => {
+    if (isPaused()){ $('#cProg').classList.add('paused'); return; }
+    $('#cProg').classList.remove('paused');
+    goToIndex(activeIndex() + 1);
+    restartProgress();
+  }, state.design.slideInterval * 1000);
+}
+
+/* ---------- นับถอยหลังติดเช่า ---------- */
+function updateCountdowns(){
+  $$('[data-cdown]').forEach(el => {
+    const c = state.cars.find(x => x.id === el.dataset.cdown);
+    if (!c || c.status !== 'rented'){ el.textContent = ''; return; }
+    if (!c.rentEnd){ el.textContent = 'ติดเช่า'; return; }
+    const left = c.rentEnd - Date.now();
+    if (left <= 0){ el.textContent = '⏰ ครบกำหนดคืน!'; el.classList.add('expired'); }
+    else { el.textContent = '⏳ ' + hhmmss(left); el.classList.remove('expired'); }
+  });
+}
+
+/* ---------- Hero / สถิติ ---------- */
+function renderHero(){
+  const s = state.shop;
+  $('#heroName').textContent = s.name || 'CAR RENTAL';
+  $('#brandName').textContent = s.name || 'CAR RENTAL';
+  $('#heroTag').textContent = s.tagline || 'ระบบแฟลชการ์ดแสดงรถให้เช่า • แตะการ์ดเพื่อพลิกดูรายละเอียด';
+  let c = '';
+  if (s.phone) c += '<a class="btn sm ok" href="tel:' + esc(String(s.phone).replace(/[^0-9+]/g, '')) + '">📞 ' + esc(s.phone) + '</a>';
+  if (s.line) c += '<button class="btn sm" id="copyLine" title="คัดลอก LINE ID">💬 LINE: ' + esc(s.line) + '</button>';
+  if (s.address) c += '<span class="statchip">📍 ' + esc(s.address) + '</span>';
+  $('#heroContact').innerHTML = c;
+  const cp = $('#copyLine');
+  if (cp) cp.onclick = () => copyText(s.line, 'คัดลอก LINE ID แล้ว');
+}
+function renderStats(){
+  const t = state.cars.length;
+  const f = state.cars.filter(c => c.status === 'available').length;
+  const r = state.cars.filter(c => c.status === 'rented').length;
+  const m = state.cars.filter(c => c.status === 'maintenance').length;
+  $('#statTotal').textContent = t; $('#statFree').textContent = f;
+  $('#statRent').textContent = r; $('#statFix').textContent = m;
+}
+
+/* ---------- หน้าจัดการรถ ---------- */
+const mFilter = { q:'', status:'', sort:'new' };
+function renderManage(){
+  let list = state.cars.slice();
+  const q = mFilter.q.trim().toLowerCase();
+  if (q) list = list.filter(c => [c.name, c.plate].some(v => v && String(v).toLowerCase().includes(q)));
+  if (mFilter.status) list = list.filter(c => c.status === mFilter.status);
+  if (mFilter.sort === 'name') list.sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'th'));
+  else if (mFilter.sort === 'priceAsc') list.sort((a, b) => (Number(a.pricePerDay) || 0) - (Number(b.pricePerDay) || 0));
+  else if (mFilter.sort === 'priceDesc') list.sort((a, b) => (Number(b.pricePerDay) || 0) - (Number(a.pricePerDay) || 0));
+  else list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+  const box = $('#manageList');
+  box.innerHTML = '';
+  const hasAny = state.cars.length > 0;
+  $('#emptyManage').style.display = list.length ? 'none' : 'block';
+  $('#emptyManageText').textContent = hasAny ? 'ไม่พบรถที่ตรงกับการค้นหา/ตัวกรอง' : 'ยังไม่มีรถ กดเพิ่มรถคันแรกเลย';
+  list.forEach(c => {
+    const st = statusInfo(c);
+    const row = document.createElement('div');
+    row.className = 'mrow';
+    row.innerHTML =
+      '<div class="thumb"><img src="' + esc(c.image || '') + '" alt="" style="filter:' + fxStr(c.imgFx) + '" onerror="this.style.visibility=\'hidden\'"></div>' +
+      '<div class="info">' +
+        '<div class="n">' + esc(c.name || 'ไม่ระบุชื่อ') + ' <span class="st ' + st.cls + '">' + st.label + '</span></div>' +
+        '<div class="s">' +
+          (c.plate ? '<span>🔖 ' + esc(normalizePlate(c.plate)) + '</span>' : '') +
+          (c.speed ? '<span>⚡ ' + esc(c.speed) + '</span>' : '') +
+          (c.seats ? '<span>👥 ' + esc(c.seats) + '</span>' : '') +
+          (c.status === 'rented' ? '<span data-cdown="' + esc(c.id) + '" style="color:var(--accent);font-weight:700"></span>' : '') +
+        '</div>' +
+      '</div>' +
+      '<div class="price">' + fmtBaht(c.pricePerDay) + ' ฿/วัน</div>' +
+      '<label class="poster-chk" title="เลือกให้ขึ้นโปสเตอร์"><input type="checkbox" data-poster data-id="' + esc(c.id) + '"' + (c.onPoster ? ' checked' : '') + '>🖼️ โปสเตอร์</label>' +
+      '<div class="acts">' +
+        '<button class="btn sm" data-act="rent1" data-id="' + esc(c.id) + '" title="ติดเช่า 1 วัน">⏳ 1 วัน</button>' +
+        '<button class="btn sm" data-act="rent3" data-id="' + esc(c.id) + '" title="ติดเช่า 3 วัน">⏳ 3 วัน</button>' +
+        '<button class="btn sm" data-act="rent7" data-id="' + esc(c.id) + '" title="ติดเช่า 7 วัน">⏳ 7 วัน</button>' +
+        '<button class="btn sm ok" data-act="return" data-id="' + esc(c.id) + '" title="รับคืนแล้ว สถานะกลับเป็นว่าง">✓ คืนแล้ว</button>' +
+        '<button class="btn sm" data-act="maint" data-id="' + esc(c.id) + '" title="ตั้งเป็นซ่อมบำรุง / กดอีกครั้งเพื่อกลับว่าง">🔧 ซ่อม</button>' +
+        '<button class="btn sm" data-act="edit" data-id="' + esc(c.id) + '">✏️ แก้ไข</button>' +
+        '<button class="btn sm ghost" data-act="dup" data-id="' + esc(c.id) + '" title="ทำซ้ำ">📋</button>' +
+        '<button class="btn sm danger" data-act="del" data-id="' + esc(c.id) + '" title="ลบ">🗑️</button>' +
+      '</div>';
+    box.appendChild(row);
+  });
+  updateCountdowns();
+}
+function findCar(id){ return state.cars.find(c => c.id === id); }
+function setStatus(id, status, days){
+  const c = findCar(id); if (!c) return;
+  c.status = status;
+  c.rentEnd = status === 'rented' ? Date.now() + (days || 1) * 864e5 : null;
+  save(); renderManage(); renderStore(); renderStats();
+  if (status === 'rented') toast('⏳ ' + (c.name || 'รถ') + ' ติดเช่า ' + (days || 1) + ' วัน — ป้ายนับถอยหลังติดบนการ์ดแล้ว');
+  else if (status === 'available') toast('✓ ' + (c.name || 'รถ') + ' พร้อมให้เช่าแล้ว');
+  else toast('🔧 ' + (c.name || 'รถ') + ' อยู่ระหว่างซ่อมบำรุง');
+}
+function duplicateCar(id){
+  const c = findCar(id); if (!c) return;
+  const copy = JSON.parse(JSON.stringify(c));
+  copy.id = uid(); copy.name = (c.name || '') + ' (สำเนา)'; copy.createdAt = Date.now();
+  copy.status = 'available'; copy.rentEnd = null;
+  state.cars.push(copy);
+  save(); renderAll(); toast('📋 ทำซ้ำ "' + (c.name || 'รถ') + '" แล้ว');
+}
+function deleteCar(id){
+  const c = findCar(id); if (!c) return;
+  confirmBox('🗑️ ลบรถคันนี้?', 'ลบ "' + (c.name || 'รถ') + '" ถาวร จะไม่สามารถกู้คืนได้ (แนะนำส่งออกไฟล์สำรองก่อน)', () => {
+    state.cars = state.cars.filter(x => x.id !== id);
+    save(); renderAll(); toast('🗑️ ลบแล้ว');
+  });
+}
+
+/* ---------- เอ็ดิเตอร์รถ + เครื่องมือตกแต่งรูป ---------- */
+let edCar = null;
+let edFx = Object.assign({}, DEFAULT_FX);
+let edImage = '';
+
+function paintPlatePreview(){
+  const v = $('#f-plate').value;
+  const box = $('#platePreview'), hint = $('#plateHint');
+  if (!v.trim()){ box.innerHTML = ''; hint.textContent = 'รูปแบบไทย: กท 1234 (เลขไม่เกิน 4 หลัก • ใส่จังหวัดท้ายได้ เช่น กท 1234 กรุงเทพมหานคร)'; hint.className = 'plateHint'; return; }
+  const ck = plateCheck(v);
+  const p = parsePlate(v);
+  box.innerHTML = '<div class="plateDemo">🔖 ' + esc(p.main) + (p.prov ? ' • ' + esc(p.prov) : '') + '</div>';
+  if (ck.ok){ hint.textContent = '✓ รูปแบบป้ายถูกต้อง — จะแสดงเป็นตัวเล็กๆ ใต้ราคาบนการ์ด'; hint.className = 'plateHint ok'; }
+  else { hint.textContent = '⚠️ รูปแบบไม่ตรงป้ายไทย (ใช้ต่อได้ถ้าเป็นป้ายเกม) แนะนำ เช่น "กท 1234" หรือ "1กก 5678"'; hint.className = 'plateHint warn'; }
+}
+function openEditor(id){
+  edCar = id ? findCar(id) : null;
+  $('#edTitle').textContent = edCar ? '✏️ แก้ไข: ' + (edCar.name || 'รถ') : '＋ เพิ่มรถใหม่';
+  $('#edDelete').style.display = edCar ? 'inline-flex' : 'none';
+  const c = edCar || {};
+  $('#f-name').value = c.name || '';
+  $('#f-speed').value = c.speed || '';
+  $('#f-seats').value = c.seats || '';
+  $('#f-price').value = c.pricePerDay || '';
+  $('#f-plate').value = c.plate || '';
+  $('#f-details').value = c.details || '';
+  $('#f-status').value = c.status || 'available';
+  $('#f-days').value = Math.max(1, c.rentEnd ? Math.ceil((c.rentEnd - Date.now()) / 864e5) : 1);
+  $('#daysField').style.display = (c.status || 'available') === 'rented' ? 'flex' : 'none';
+  edImage = c.image || '';
+  edFx = Object.assign({}, DEFAULT_FX, c.imgFx || {});
+  paintEditorImage();
+  syncFxInputs();
+  paintPlatePreview();
+  $('#imgUrl').value = '';
+  $('#editorModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeEditor(){
+  $('#editorModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function paintEditorImage(){
+  const img = $('#edPreview');
+  if (edImage){
+    img.src = edImage; img.style.display = 'block';
+    img.style.filter = fxStr(edFx); img.style.transform = fxTransform(edFx);
+    $('#dropLabel').style.display = 'none';
+  } else { img.style.display = 'none'; $('#dropLabel').style.display = 'block'; }
+}
+function syncFxInputs(){
+  $$('[data-fxk]').forEach(inp => {
+    const k = inp.dataset.fxk;
+    inp.value = edFx[k];
+    const lab = $('[data-val="' + k + '"]', inp.parentElement);
+    if (lab) lab.textContent = (k === 'hue' ? edFx[k] + '°' : k === 'zoom' ? edFx[k] + '%' : edFx[k] + (k === 'blur' ? 'px' : '%'));
+  });
+}
+function readImageFile(file){
+  return new Promise((resolve, reject) => {
+    if (!file || !/^image\//.test(file.type)) return reject(new Error('กรุณาเลือกไฟล์รูปภาพ'));
+    const fr = new FileReader();
+    fr.onload = () => resolve(String(fr.result));
+    fr.onerror = () => reject(new Error('อ่านไฟล์รูปไม่สำเร็จ'));
+    fr.readAsDataURL(file);
+  });
+}
+function compressImage(dataUrl, maxW, quality){
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        let w = img.width, h = img.height;
+        if (w > maxW){ h = Math.round(h * maxW / w); w = maxW; }
+        const cv = document.createElement('canvas');
+        cv.width = w; cv.height = h;
+        cv.getContext('2d').drawImage(img, 0, 0, w, h);
+        const out = cv.toDataURL('image/jpeg', quality);
+        resolve(out.length < dataUrl.length ? out : dataUrl);
+      } catch(e){ resolve(dataUrl); }
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
+async function handleImageFile(file){
+  try {
+    toast('⏳ กำลังประมวลผลรูป…');
+    let du = await readImageFile(file);
+    du = await compressImage(du, 1400, 0.84);
+    edImage = du;
+    paintEditorImage();
+    toast('✅ ใส่รูปเรียบร้อย ปรับแต่งต่อได้เลย');
+  } catch(e){ toast('⚠️ ' + (e.message || 'ใส่รูปไม่สำเร็จ'), true); }
+}
+function collectEditor(){
+  const name = $('#f-name').value.trim();
+  if (!name){ toast('⚠️ กรุณาใส่ชื่อรถ', true); $('#f-name').focus(); return null; }
+  const price = parseFloat($('#f-price').value);
+  if (isNaN(price) || price < 0){ toast('⚠️ กรุณาใส่ราคาเช่า/วันเป็นตัวเลข', true); $('#f-price').focus(); return null; }
+  const seatsV = $('#f-seats').value;
+  const status = $('#f-status').value;
+  const seats = seatsV === '' ? '' : (parseInt(seatsV, 10) || 0);
+  return {
+    name,
+    speed: $('#f-speed').value.trim(),
+    seats,
+    pricePerDay: price,
+    plate: normalizePlate($('#f-plate').value),
+    details: $('#f-details').value.trim(),
+    image: edImage, imgFx: Object.assign({}, edFx),
+    status,
+    rentEnd: status === 'rented' ? Date.now() + Math.max(1, parseInt($('#f-days').value, 10) || 1) * 864e5 : null,
+  };
+}
+function saveEditor(){
+  const data = collectEditor(); if (!data) return;
+  if (edCar){ Object.assign(edCar, data, { id:edCar.id, createdAt: edCar.createdAt || Date.now() }); toast('💾 บันทึกการแก้ไขแล้ว'); }
+  else { state.cars.push(Object.assign({ id:uid(), onPoster:true, createdAt:Date.now() }, data)); toast('✅ เพิ่มรถใหม่แล้ว ไปดูที่หน้าร้านได้เลย'); }
+  save(); renderAll(); closeEditor();
+}
+
+/* ---------- พรีวิวหน้าตกแต่ง ---------- */
+function sampleCarForPreview(){
+  if (state.cars.length) return state.cars[0];
+  return { id:'demo', name:'Supercar GT ตัวอย่าง', speed:'350 กม./ชม.', seats:2, pricePerDay:9999,
+    details:'รถกาชาตัวอย่างสำหรับดูธีม\n• แตะการ์ดเพื่อพลิกดูข้อมูล\n• ปรับธีมแล้วดูผลทันที',
+    plate:'กท 1234 กรุงเทพมหานคร', image:svgCarPlaceholder('DEMO CAR', 215), imgFx:Object.assign({}, DEFAULT_FX), status:'available' };
+}
+function renderPreview(){
+  const box = $('#previewBox');
+  box.innerHTML = '';
+  const card = buildFCard(sampleCarForPreview(), { noAnim:false });
+  box.appendChild(card);
+  card.classList.add('flipped');
+  bindLayoutDrag(card);
+}
+/* ลากข้อความบนพรีวิวเพื่อจัดตำแหน่ง (จำค่าใช้กับการ์ดทุกใบ + โปสเตอร์) */
+function bindLayoutDrag(card){
+  if (!card) return;
+  $$('[data-lk]', card).forEach(el => {
+    const key = el.dataset.lk;
+    el.style.cursor = 'grab';
+    let sx = 0, sy = 0, lx = 0, ly = 0, moved = false, active = false;
+    el.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      active = true; moved = false;
+      sx = e.clientX; sy = e.clientY;
+      lx = (state.design.layout[key + 'X'] || 0);
+      ly = (state.design.layout[key + 'Y'] || 0);
+      el.style.cursor = 'grabbing';
+      try { el.setPointerCapture(e.pointerId); } catch(_){}
+    });
+    el.addEventListener('pointermove', e => {
+      if (!active) return;
+      const dx = e.clientX - sx, dy = e.clientY - sy;
+      if (!moved && Math.abs(dx) + Math.abs(dy) > 7) moved = true;
+      if (!moved) return;
+      const nx = Math.max(-120, Math.min(120, Math.round(lx + dx)));
+      const ny = Math.max(-100, Math.min(100, Math.round(ly + dy)));
+      state.design.layout[key + 'X'] = nx;
+      state.design.layout[key + 'Y'] = ny;
+      el.style.transform = 'translate(' + nx + 'px,' + ny + 'px)';
+    });
+    const off = () => {
+      if (!active) return;
+      active = false;
+      el.style.cursor = 'grab';
+      if (moved){
+        save(); renderStore(); renderManage(); renderPosterDebounced();
+        toast('✅ จำตำแหน่ง "' + ({name:'ชื่อรถ',price:'ราคา',plate:'ทะเบียน',detail:'รายละเอียด'}[key] || key) + '" ใหม่แล้ว (ใช้กับการ์ดทุกใบ + โปสเตอร์)');
+        renderPreview();
+      }
+    };
+    el.addEventListener('pointerup', off);
+    el.addEventListener('pointercancel', off);
+    el.addEventListener('click', e => { if (moved){ e.stopPropagation(); moved = false; } });
+  });
+}
+
+/* ลากภาพในกรอบพรีวิวของเอ็ดิเตอร์เพื่อจัดตำแหน่งภาพ (pan) */
+function bindImagePan(){
+  const img = $('#edPreview');
+  if (!img || img.dataset.panBound) return;
+  img.dataset.panBound = '1';
+  img.style.cursor = 'grab';
+  let sx = 0, sy = 0, ox = 0, oy = 0, on = false;
+  img.addEventListener('pointerdown', e => {
+    e.preventDefault(); e.stopPropagation();
+    on = true; sx = e.clientX; sy = e.clientY;
+    ox = edFx.panx || 0; oy = edFx.pany || 0;
+    img.style.cursor = 'grabbing';
+    try { img.setPointerCapture(e.pointerId); } catch(_){}
+  });
+  img.addEventListener('pointermove', e => {
+    if (!on) return;
+    const r = img.getBoundingClientRect();
+    const dx = (e.clientX - sx) / Math.max(1, r.width) * 100;
+    const dy = (e.clientY - sy) / Math.max(1, r.height) * 100;
+    edFx.panx = Math.max(-100, Math.min(100, Math.round(ox + dx)));
+    edFx.pany = Math.max(-100, Math.min(100, Math.round(oy + dy)));
+    paintEditorImage(); syncFxInputs();
+  });
+  const off = () => { if (on){ on = false; img.style.cursor = 'grab'; } };
+  img.addEventListener('pointerup', off);
+  img.addEventListener('pointercancel', off);
+  img.addEventListener('click', e => e.stopPropagation()); // กันเปิดหน้าต่างเลือกไฟล์ตอนลาก
+  img.addEventListener('dragstart', e => e.preventDefault());
+}
+
+/* ---------- เทมเพลต / หน้าตกแต่ง ---------- */
+function applyPreset(key, silent){
+  const p = PRESETS[key]; if (!p) return;
+  state.design.preset = key;
+  const keepUrl = state.design.bgUrl;
+  Object.assign(state.design, p);
+  state.design.bgUrl = keepUrl;
+  applyDesign(); syncDesignInputs(); renderStore(); renderPreview(); renderPresetUI(); saveDebounced();
+  if (!silent) toast('🎨 ใช้ธีม "' + p.label + '" แล้ว');
+}
+function renderPresetUI(){
+  $$('.sw').forEach(b => b.classList.toggle('on', b.dataset.preset === state.design.preset));
+  $('#tplSelect').value = PRESETS[state.design.preset] ? state.design.preset : '';
+}
+function designValLabel(k, v){
+  if (k === 'cardAngle') return v + '°';
+  if (k === 'flipSpeed') return (v / 1000).toFixed(2) + ' วิ';
+  if (k === 'slideInterval') return Number(v).toFixed(1) + ' วิ';
+  if (['titleSize','priceSize','detailSize','imageRadius','radius','borderWidth'].includes(k)) return v + 'px';
+  return v;
+}
+function syncDesignInputs(){
+  const d = state.design;
+  $$('[data-dk]').forEach(el => {
+    const k = el.dataset.dk;
+    if (el.type === 'checkbox') el.checked = !!d[k];
+    else el.value = d[k];
+    const lab = $('[data-val="' + k + '"]', el.closest('.ctl') || document);
+    if (lab) lab.textContent = designValLabel(k, d[k]);
+  });
+}
+function renderSwatches(){
+  const row = $('#presetRow');
+  row.innerHTML = '';
+  Object.keys(PRESETS).forEach(key => {
+    const p = PRESETS[key];
+    const b = document.createElement('button');
+    b.className = 'sw'; b.dataset.preset = key; b.type = 'button';
+    b.innerHTML = '<span class="box" style="background:linear-gradient(135deg,' + p.cardBg1 + ',' + p.cardBg2 + ');border-color:' + p.accent + '"><i style="position:absolute;left:6px;top:6px;width:14px;height:14px;border-radius:50%;background:' + p.accent + ';box-shadow:0 0 10px ' + p.accent + '"></i></span><span>' + p.emoji + ' ' + p.label + '</span>';
+    b.onclick = () => applyPreset(key);
+    row.appendChild(b);
+  });
+}
+
+/* ═══════════════ หน้าโปสเตอร์: จัดตารางอัตโนมัติ + Canvas ═══════════════ */
+function renderPickGrid(){
+  const box = $('#pickGrid');
+  box.innerHTML = '';
+  state.cars.forEach(c => {
+    const d = document.createElement('div');
+    d.className = 'pick' + (c.onPoster ? ' on' : '');
+    d.dataset.id = c.id;
+    d.innerHTML = '<span class="tick">✓</span><img src="' + esc(c.image || svgCarPlaceholder('?', 220)) + '" alt="" onerror="this.src=\'' + svgCarPlaceholder('?', 0).replace(/'/g, '%27') + '\'"><div class="pn">' + esc(c.name || '') + '</div>';
+    d.onclick = () => { c.onPoster = !c.onPoster; save(); renderPickGrid(); updatePosterCount(); renderPosterDebounced(); };
+    box.appendChild(d);
+  });
+  updatePosterCount();
+}
+function updatePosterCount(){ $('#posterCount').textContent = state.cars.filter(c => c.onPoster).length + '/' + state.cars.length; }
+function setAllPoster(on, onlyFree){
+  state.cars.forEach(c => { c.onPoster = onlyFree ? (c.status === 'available') : on; });
+  save(); renderPickGrid(); renderManage(); renderPosterDebounced();
+}
+
+/* โหลดรูปสำหรับวาดลง canvas (ลิงก์ http ใช้ crossOrigin เพื่อกัน canvas เสีย) */
+const imgCache = {};
+function loadImg(src){
+  if (imgCache[src] !== undefined) return imgCache[src];
+  const p = new Promise(resolve => {
+    const im = new Image();
+    if (/^https?:\/\//i.test(src)) im.crossOrigin = 'anonymous';
+    im.onload = () => resolve(im);
+    im.onerror = () => resolve(null);
+    im.src = src;
+  });
+  imgCache[src] = p;
+  return p;
+}
+function roundRectPath(ctx, x, y, w, h, r){
+  r = Math.max(0, Math.min(r, w / 2, h / 2));
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+function hexA(hex, alpha){
+  const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || ''));
+  if (!m) return 'rgba(255,255,255,' + alpha + ')';
+  const n = parseInt(m[1], 16);
+  return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + alpha + ')';
+}
+function fitText(ctx, text, maxW){
+  if (ctx.measureText(text).width <= maxW) return text;
+  let t = text;
+  while (t.length > 1 && ctx.measureText(t + '…').width > maxW) t = t.slice(0, -1);
+  return t + '…';
+}
+function drawCover(ctx, img, x, y, w, h){
+  const ir = img.width / img.height, r = w / h;
+  let sw, sh, sx, sy;
+  if (ir > r){ sh = img.height; sw = sh * r; sx = (img.width - sw) / 2; sy = 0; }
+  else { sw = img.width; sh = sw / r; sx = 0; sy = (img.height - sh) / 2; }
+  ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+}
+function fontStr(w, weight, family){ return weight + ' ' + Math.max(8, Math.round(w)) + "px '" + (family || state.design.fontFamily) + "','Kanit',sans-serif"; }
+
+async function renderPoster(){
+  try {
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    const cv = $('#posterCanvas');
+    const ctx = cv.getContext('2d');
+    const P = state.poster, D = state.design;
+    const cars = state.cars.filter(c => c.onPoster);
+    const [W, H] = POSTER_SIZES[P.size] || POSTER_SIZES['16x9'];
+    cv.width = W; cv.height = H;
+
+    /* พื้นหลัง */
+    ctx.clearRect(0, 0, W, H);
+    let bgImg = null;
+    if (D.bgUrl && /^https?:\/\//.test(D.bgUrl)){ bgImg = await loadImg(D.bgUrl); }
+    if (bgImg){ ctx.save(); ctx.globalAlpha = .38; drawCover(ctx, bgImg, 0, 0, W, H); ctx.restore(); }
+    const grad = ctx.createLinearGradient(0, 0, W, H);
+    grad.addColorStop(0, hexA(D.bg1, bgImg ? .82 : 1));
+    grad.addColorStop(1, hexA(D.bg2, bgImg ? .88 : 1));
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+    // ลายพื้นหลัง
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,.05)'; ctx.fillStyle = 'rgba(255,255,255,.05)';
+    if (D.bgPattern === 'grid'){
+      ctx.lineWidth = 1;
+      for (let x = 0; x < W; x += 40){ ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+      for (let y = 0; y < H; y += 40){ ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+    } else if (D.bgPattern === 'dots'){
+      for (let x = 20; x < W; x += 28) for (let y = 20; y < H; y += 28){ ctx.beginPath(); ctx.arc(x, y, 1.6, 0, 7); ctx.fill(); }
+    } else if (D.bgPattern === 'checker'){
+      const s = 64;
+      for (let x = 0; x < W; x += s) for (let y = 0; y < H; y += s) if (((x / s) + (y / s)) % 2 === 0) ctx.fillRect(x, y, s, s);
+    } else if (D.bgPattern === 'speed'){
+      ctx.lineWidth = 2;
+      for (let i = -H; i < W + H; i += 34){ ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + H * .7, H); ctx.stroke(); }
+    }
+    ctx.restore();
+
+    if (!cars.length){
+      ctx.fillStyle = D.subColor;
+      ctx.font = fontStr(46, '700');
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('ยังไม่ได้เลือกรถ — ติ๊กรถที่ต้องการขึ้นโปสเตอร์ด้านซ้าย', W / 2, H / 2);
+      return;
+    }
+
+    /* หัวเรื่อง */
+    let top = 0;
+    if (P.showHeader){
+      const title = (P.title || state.shop.name || 'CAR RENTAL').trim();
+      const tSize = Math.min(W * .052, 84);
+      ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+      ctx.font = fontStr(tSize, '900');
+      ctx.lineWidth = tSize * .14; ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.lineJoin = 'round';
+      ctx.strokeText(title, W / 2, tSize + H * .028);
+      ctx.fillStyle = D.accent;
+      ctx.fillText(title, W / 2, tSize + H * .028);
+      let y = tSize + H * .052;
+      const sub = (P.sub || '').trim();
+      if (sub){
+        ctx.font = fontStr(tSize * .34, '600');
+        ctx.fillStyle = D.subColor;
+        ctx.fillText(sub, W / 2, y + tSize * .3);
+        y += tSize * .42;
+      }
+      // เส้นคั่นสไตล์ธงตลาด
+      ctx.fillStyle = D.accent;
+      ctx.fillRect(W / 2 - W * .16, y, W * .32, Math.max(3, H * .005));
+      top = y + H * .03;
+    }
+
+    /* จัดตารางอัตโนมัติ (แน่นแบบตารางรถเยอะๆ) */
+    const n = cars.length;
+    let cols = P.cols === 'auto' ? Math.max(2, Math.min(10, Math.round(Math.sqrt(n * 1.6)) || 2)) : (parseInt(P.cols, 10) || 4);
+    const rows = Math.ceil(n / cols);
+    const gap = P.gap;
+    const padX = W * .035, padTop = top + H * .012, padBottom = H * .03;
+    const availW = W - padX * 2, availH = H - padTop - padBottom;
+    const arSum = 1.06; // สัดส่วนการ์ดโปสเตอร์ (ชื่อ+สเปคบน • รูป • ราคา/ทะเบียนล่าง)
+    let cardW = Math.min((availW - (cols - 1) * gap) / cols, (availH - (rows - 1) * gap) / (rows * arSum));
+    cardW = Math.max(110, cardW);
+    const cardH = cardW * arSum;
+    const gridW = cols * cardW + (cols - 1) * gap;
+    const gridH = rows * cardH + (rows - 1) * gap;
+    const startX = (W - gridW) / 2;
+    const startY = padTop + Math.max(0, (availH - gridH) / 2);
+
+    /* โหลดรูปทั้งหมดก่อน */
+    const imgs = await Promise.all(cars.map(c => loadImg(c.image || svgCarPlaceholder(c.name || 'รถ', 215))));
+
+    cars.forEach((c, i) => {
+      const col = i % cols, row = Math.floor(i / cols);
+      const x = startX + col * (cardW + gap);
+      const y = startY + row * (cardH + gap);
+      drawPosterCard(ctx, c, imgs[i], x, y, cardW, cardH, P, D);
+    });
+
+    /* ท้ายโปสเตอร์ */
+    ctx.font = fontStr(Math.max(15, W * .011), '600');
+    ctx.fillStyle = hexA(D.subColor, .85);
+    ctx.textAlign = 'center';
+    const when = new Date().toLocaleDateString('th-TH', { day:'numeric', month:'short', year:'numeric' });
+    ctx.fillText('อัปเดต ' + when + ' • ' + n + ' คัน • ' + (state.shop.phone ? 'โทร ' + state.shop.phone : state.shop.name || ''), W / 2, H - H * .012);
+  } catch(e){
+    console.warn('วาดโปสเตอร์ไม่สำเร็จ:', e);
+    toast('⚠️ วาดโปสเตอร์ไม่สำเร็จ: ' + (e.message || ''), true);
+  }
+}
+const renderPosterDebounced = debounce(renderPoster, 350);
+
+function drawPosterCard(ctx, car, img, x, y, w, h, P, D){
+  const r = Math.max(6, w * .05);
+  /* พื้นการ์ด + เงา */
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,.5)'; ctx.shadowBlur = w * .1; ctx.shadowOffsetY = w * .045;
+  const g = ctx.createLinearGradient(x, y, x, y + h);
+  g.addColorStop(0, D.cardBg1); g.addColorStop(1, D.cardBg2);
+  ctx.fillStyle = g;
+  roundRectPath(ctx, x, y, w, h, r);
+  ctx.fill();
+  ctx.restore();
+  ctx.lineWidth = Math.max(1, D.borderWidth * (w / 340));
+  ctx.strokeStyle = D.borderColor;
+  roundRectPath(ctx, x, y, w, h, r);
+  ctx.stroke();
+
+  /* ชื่อรถบนสุด (กึ่งกลาง แบบตารางแน่น) */
+  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  ctx.font = fontStr(w * .072, '800');
+  ctx.fillStyle = D.textColor;
+  ctx.fillText(fitText(ctx, car.name || '', w * .93), x + w / 2, y + w * .085);
+
+  /* แถวสเปค: ความเร็ว • ที่นั่ง */
+  const chips = [];
+  if (car.speed) chips.push('⚡ ' + car.speed);
+  if (car.seats) chips.push('👥 ' + car.seats + ' ที่นั่ง');
+  if (chips.length){
+    ctx.font = fontStr(w * .048, '600');
+    ctx.fillStyle = D.subColor;
+    ctx.fillText(fitText(ctx, chips.join('   •   '), w * .93), x + w / 2, y + w * .148);
+  }
+
+  /* รูปรถ */
+  const iw = w * .91, ix = x + (w - iw) / 2, ih = iw * 9 / 16, iy = y + w * .178;
+  ctx.save();
+  roundRectPath(ctx, ix, iy, iw, ih, Math.max(4, D.imageRadius * (w / 340)));
+  ctx.clip();
+  if (img){
+    try { ctx.filter = fxStr(car.imgFx); } catch(e){}
+    drawCover(ctx, img, ix, iy, iw, ih);
+    ctx.filter = 'none';
+  } else {
+    ctx.fillStyle = '#0b1020'; ctx.fillRect(ix, iy, iw, ih);
+    ctx.fillStyle = D.subColor; ctx.font = fontStr(w * .07, '700');
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('ไม่มีรูป', x + w / 2, iy + ih / 2);
+    ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'center';
+  }
+  ctx.restore();
+
+  /* ป้ายสถานะ + นับถอยหลัง มุมซ้ายบนของรูป */
+  if (P.showStatus){
+    const st = statusInfo(car);
+    ctx.font = fontStr(w * .05, '800');
+    ctx.textBaseline = 'middle';
+    const label = st.label;
+    const tw = ctx.measureText(label).width;
+    const bx = ix + w * .02, by = iy + w * .02, bh = w * .095;
+    ctx.fillStyle = st.cls === 'ok' ? '#16a34a' : st.cls === 'rented' ? '#f59e0b' : '#64748b';
+    roundRectPath(ctx, bx, by, tw + w * .07, bh, bh / 2);
+    ctx.fill();
+    ctx.fillStyle = st.cls === 'rented' ? '#231400' : '#fff';
+    ctx.textAlign = 'left';
+    ctx.fillText(label, bx + w * .035, by + bh / 2 + 1);
+    if (car.status === 'rented' && car.rentEnd){
+      const txt = car.rentEnd <= Date.now() ? '⏰ ครบกำหนด!' : '⏳ ' + hhmmss(car.rentEnd - Date.now());
+      ctx.font = fontStr(w * .046, '800');
+      const tw2 = ctx.measureText(txt).width;
+      const bx2 = ix + iw - tw2 - w * .09, by2 = by;
+      ctx.fillStyle = car.rentEnd <= Date.now() ? '#dc2626' : 'rgba(255,255,255,.94)';
+      roundRectPath(ctx, bx2, by2, tw2 + w * .07, bh, bh / 2);
+      ctx.fill();
+      ctx.fillStyle = car.rentEnd <= Date.now() ? '#fff' : '#1c1005';
+      ctx.fillText(txt, bx2 + w * .035, by2 + bh / 2 + 1);
+    }
+    ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'center';
+  }
+
+  /* ราคาใหญ่กลางล่าง (สไตล์ป้ายราคาตัวอย่าง) */
+  ctx.font = fontStr(w * .1, '900');
+  ctx.fillStyle = D.accent;
+  ctx.fillText(P.showPrice ? fmtBaht(car.pricePerDay) + ' ฿/วัน' : '', x + w / 2, y + w * .82);
+
+  /* ป้ายทะเบียน: ตัวหนังสือเล็กใต้ราคา (ไม่มีกล่องพื้นหลัง) */
+  if (P.showPlate && car.plate){
+    ctx.font = fontStr(w * .045, '700');
+    ctx.fillStyle = D.subColor;
+    ctx.fillText(fitText(ctx, '🔖 ' + normalizePlate(car.plate), w * .93), x + w / 2, y + w * .92);
+  }
+}
+
+/* ---------- ส่งออกโปสเตอร์ + Discord ---------- */
+function posterBlob(){
+  return new Promise((resolve, reject) => {
+    try {
+      $('#posterCanvas').toBlob(b => b ? resolve(b) : reject(new Error('สร้างไฟล์ภาพไม่สำเร็จ')), 'image/png');
+    } catch(e){
+      reject(new Error('รูปจากลิงก์บางแหล่งไม่อนุญาตให้ส่งออก (CORS) — ลองอัปโหลดรูปเป็นไฟล์แทนการใช้ลิงก์'));
+    }
+  });
+}
+function stamp(){
+  const d = new Date();
+  return d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0') + '-' + String(d.getHours()).padStart(2, '0') + String(d.getMinutes()).padStart(2, '0');
+}
+async function downloadPoster(){
+  try {
+    toast('⏳ กำลังรวมไฟล์ภาพ…');
+    const blob = await posterBlob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'car-poster-' + stamp() + '.png';
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 4000);
+    toast('⬇️ ดาวน์โหลดโปสเตอร์แล้ว เอาไปวางใน Discord แล้วคลิกขวา Copy Link ได้เลย');
+  } catch(e){ toast('⚠️ ' + e.message, true); }
+}
+async function sendPosterToDiscord(){
+  const wh = $('#whUrl').value.trim();
+  if (!/^https:\/\/(discord\.com|discordapp\.com)\/api\/webhooks\//.test(wh)){
+    toast('⚠️ วางลิงก์ Discord Webhook ก่อน (Server Settings → Integrations → Webhooks → Copy URL)', true);
+    return;
+  }
+  try { localStorage.setItem(WH_KEY, wh); } catch(e){}
+  const btn = $('#btnWhSend');
+  btn.disabled = true; btn.textContent = '⏳ กำลังส่ง…';
+  try {
+    const blob = await posterBlob();
+    const fd = new FormData();
+    const name = 'car-poster-' + stamp() + '.png';
+    fd.append('files[0]', blob, name);
+    fd.append('payload_json', JSON.stringify({ content: '🏁 โปสเตอร์รถให้เช่า ' + name }));
+    const res = await fetch(wh + '?wait=true', { method:'POST', body: fd });
+    if (!res.ok){
+      let msg = 'HTTP ' + res.status;
+      try { const j = await res.json(); if (j && j.message) msg = j.message; } catch(e){}
+      throw new Error('Discord ปฏิเสธ: ' + msg);
+    }
+    const msg = await res.json();
+    const link = msg && msg.attachments && msg.attachments[0] && msg.attachments[0].url;
+    if (!link) throw new Error('ไม่พบลิงก์รูปในการตอบกลับของ Discord');
+    $('#linkResult').value = link;
+    try { localStorage.setItem(LINK_KEY, link); } catch(e){}
+    copyText(link, '🔗 ได้ลิงก์รูปจาก Discord แล้ว ก๊อปใส่คลิปบอร์ดให้เรียบร้อย!');
+  } catch(e){
+    toast('⚠️ ส่งขึ้น Discord ไม่สำเร็จ: ' + (e.message || e), true);
+  } finally {
+    btn.disabled = false; btn.textContent = '🚀 ส่งโปสเตอร์ขึ้น Discord';
+  }
+}
+
+/* ---------- ส่งออก / นำเข้า / รีเซ็ต ---------- */
+function downloadJSON(obj, name){
+  const blob = new Blob([JSON.stringify(obj, null, 1)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { a.remove(); URL.revokeObjectURL(a.href); }, 4000);
+}
+function exportAll(){
+  downloadJSON({ app:'carFlashcards', version:2, exportedAt:new Date().toISOString(), shop:state.shop, cars:state.cars, design:state.design, poster:state.poster }, 'car-rental-backup-' + stamp() + '.json');
+  toast('📤 ส่งออกข้อมูลทั้งหมดแล้ว (รวมรูปรถ)');
+}
+function exportDesign(){
+  downloadJSON({ app:'carFlashcards', version:2, type:'design-only', design:state.design }, 'car-theme-' + stamp() + '.json');
+  toast('📤 บันทึกไฟล์ธีมแล้ว');
+}
+function handleImportedObject(obj){
+  if (!obj || typeof obj !== 'object' || (!obj.design && !obj.cars)){ toast('⚠️ ไฟล์ไม่ใช่รูปแบบของระบบนี้', true); return; }
+  const designOnly = obj.type === 'design-only' || (!obj.cars && obj.design);
+  const apply = () => {
+    if (obj.design && typeof obj.design === 'object'){
+      state.design = Object.assign({}, DEFAULT_DESIGN, obj.design);
+      state.design.layout = Object.assign({}, DEFAULT_DESIGN.layout, state.design.layout || {});
+      applyDesign(); syncDesignInputs(); renderStore(); renderPreview(); renderPresetUI();
+    }
+    if (obj.poster && typeof obj.poster === 'object') state.poster = Object.assign({}, DEFAULT_POSTER, obj.poster);
+    if (!designOnly && Array.isArray(obj.cars)){
+      state.cars = obj.cars.filter(c => c && typeof c === 'object' && c.name).map(c => migrateCar(Object.assign({}, c)));
+      if (obj.shop && typeof obj.shop === 'object') state.shop = Object.assign(defaultState().shop, obj.shop);
+      renderHero(); renderManage(); renderStats(); renderPickGrid();
+    }
+    save(); renderAll();
+    toast(designOnly ? '🎨 โหลดธีมจากไฟล์แล้ว' : '📂 กู้คืนข้อมูลจากไฟล์แล้ว (' + state.cars.length + ' คัน)');
+  };
+  if (!designOnly && state.cars.length){
+    confirmBox('📂 นำเข้าไฟล์สำรอง?', 'ข้อมูลปัจจุบัน (' + state.cars.length + ' คัน) จะถูกแทนที่ด้วยข้อมูลจากไฟล์', apply);
+  } else apply();
+}
+function importFile(ev){
+  const f = ev.target.files && ev.target.files[0];
+  ev.target.value = '';
+  if (!f) return;
+  const fr = new FileReader();
+  fr.onload = () => {
+    try { handleImportedObject(JSON.parse(String(fr.result))); }
+    catch(e){ toast('⚠️ ไฟล์ .json ไม่ถูกต้อง: ' + (e.message || ''), true); }
+  };
+  fr.onerror = () => toast('⚠️ อ่านไฟล์ไม่สำเร็จ', true);
+  fr.readAsText(f);
+}
+function resetAll(){
+  confirmBox('🗑️ ล้างข้อมูลทั้งหมด?', 'ลบรถทุกคัน ธีม และข้อมูลร้าน ถาวร! แนะนำส่งออกไฟล์สำรองก่อน', () => {
+    state = defaultState();
+    try { localStorage.removeItem(STORE_KEY); } catch(e){}
+    save(); renderAll();
+    toast('🧹 ล้างข้อมูลทั้งหมดแล้ว เริ่มใหม่ได้เลย');
+  });
+}
+function updateStorageInfo(){
+  try {
+    const size = new Blob([localStorage.getItem(STORE_KEY) || '']).size;
+    const kb = size / 1024;
+    $('#storageInfo').textContent = 'ใช้พื้นที่ ' + (kb > 1024 ? (kb / 1024).toFixed(2) + ' MB' : Math.round(kb) + ' KB') + ' • ' + state.cars.length + ' คัน';
+    $('#storageBar').style.width = Math.min(100, kb / 50 * 100) + '%';
+  } catch(e){}
+}
+
+/* ---------- Confirm ---------- */
+let cfCallback = null;
+function confirmBox(title, text, cb){
+  $('#cfTitle').textContent = title; $('#cfText').textContent = text;
+  cfCallback = cb;
+  $('#confirmModal').classList.add('open');
+}
+function closeConfirm(){ $('#confirmModal').classList.remove('open'); cfCallback = null; }
+
+/* ---------- หน้า/แท็บ ---------- */
+function switchPage(name){
+  $$('.tab').forEach(t => t.classList.toggle('active', t.dataset.page === name));
+  $$('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + name));
+  if (name === 'design') renderPreview();
+  if (name === 'poster'){ renderPickGrid(); renderPoster(); }
+  if (name === 'store'){ paintDots(); restartProgress(); }
+}
+function setView(v){
+  document.body.classList.toggle('view-carousel', v === 'carousel');
+  document.body.classList.toggle('view-grid', v === 'grid');
+  $$('#viewSeg button').forEach(b => b.classList.toggle('on', b.dataset.view === v));
+  if (v === 'carousel'){ paintDots(); restartProgress(); }
+}
+
+/* ---------- เรนเดอร์รวม ---------- */
+function renderAll(){
+  renderHero(); renderStats(); renderStore(); renderManage();
+  syncDesignInputs(); renderPresetUI(); renderPickGrid(); updateStorageInfo();
+}
+
+/* ---------- ผูกเหตุการณ์ ---------- */
+function bindEvents(){
+  $$('.tab').forEach(t => t.onclick = () => switchPage(t.dataset.page));
+  $$('#viewSeg button').forEach(b => b.onclick = () => setView(b.dataset.view));
+  $('#autoToggle').onclick = () => { autoPausedByUser = !autoPausedByUser; restartAutoplay(); toast(autoPausedByUser ? '⏸ หยุดสไลด์อัตโนมัติแล้ว' : '▶️ เล่นสไลด์อัตโนมัติต่อแล้ว'); };
+  $('#autoSpeed').oninput = e => {
+    state.design.slideInterval = parseFloat(e.target.value) || 4;
+    $('#autoSpeedLabel').textContent = state.design.slideInterval.toFixed(1) + ' วิ';
+    restartAutoplay(); saveDebounced();
+  };
+  $('#tplSelect').onchange = e => { if (e.target.value) applyPreset(e.target.value); };
+  $('#btnImportDesign').onclick = () => $('#fileInputImport').click();
+  $('#btnFull').onclick = () => {
+    const el = document.documentElement;
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    else el.requestFullscreen().catch(() => toast('⚠️ เบราว์เซอร์ไม่อนุญาตเต็มจอ', true));
+  };
+  $('#cPrev').onclick = () => { goToIndex(activeIndex() - 1); restartProgress(); };
+  $('#cNext').onclick = () => { goToIndex(activeIndex() + 1); restartProgress(); };
+  $('#cDots').onclick = e => { const d = e.target.closest('.cdot'); if (d){ goToIndex(Number(d.dataset.idx)); restartProgress(); } };
+  const carouselEl = $('#carousel');
+  carouselEl.addEventListener('scroll', debounce(() => { paintDots(); restartProgress(); }, 140), { passive:true });
+  carouselEl.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight'){ e.preventDefault(); goToIndex(activeIndex() + 1); restartProgress(); }
+    if (e.key === 'ArrowLeft'){ e.preventDefault(); goToIndex(activeIndex() - 1); restartProgress(); }
+  });
+  document.addEventListener('click', e => {
+    if (e.target.closest('[data-back]')){ e.target.closest('.fcard').classList.remove('flipped'); return; }
+    if (e.target.closest('.bcontact')) return;
+    const card = e.target.closest('.fcard');
+    if (card) card.classList.toggle('flipped');
+  });
+  $('#btnQuickAdd').onclick = () => openEditor(null);
+  $('#btnAddCar').onclick = () => openEditor(null);
+  $('#btnQuickExport').onclick = exportAll;
+  $('#btnQuickImport').onclick = () => $('#fileInputImport').click();
+  $('#mSearch').oninput = e => { mFilter.q = e.target.value; renderManage(); };
+  $('#mStatus').onchange = e => { mFilter.status = e.target.value; renderManage(); };
+  $('#mSort').onchange = e => { mFilter.sort = e.target.value; renderManage(); };
+  $('#manageList').addEventListener('click', e => {
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    const id = b.dataset.id, act = b.dataset.act;
+    if (act === 'edit') openEditor(id);
+    else if (act === 'dup') duplicateCar(id);
+    else if (act === 'del') deleteCar(id);
+    else if (act === 'return') setStatus(id, 'available');
+    else if (act === 'maint'){ const c = findCar(id); setStatus(id, c && c.status === 'maintenance' ? 'available' : 'maintenance'); }
+    else if (act === 'rent1') setStatus(id, 'rented', 1);
+    else if (act === 'rent3') setStatus(id, 'rented', 3);
+    else if (act === 'rent7') setStatus(id, 'rented', 7);
+  });
+  $('#manageList').addEventListener('change', e => {
+    const cb = e.target.closest('[data-poster]'); if (!cb) return;
+    const c = findCar(cb.dataset.id);
+    if (c){ c.onPoster = cb.checked; save(); renderPickGrid(); renderPosterDebounced(); }
+  });
+  // เอ็ดิเตอร์
+  $('#edSave').onclick = saveEditor;
+  $('#edDelete').onclick = () => { if (edCar){ const id = edCar.id; closeEditor(); deleteCar(id); } };
+  $('#f-status').onchange = () => { $('#daysField').style.display = $('#f-status').value === 'rented' ? 'flex' : 'none'; };
+  $('#f-plate').addEventListener('input', paintPlatePreview);
+  $('#f-plate').addEventListener('blur', () => { $('#f-plate').value = normalizePlate($('#f-plate').value); paintPlatePreview(); });
+  const dz = $('#dropZone');
+  dz.onclick = () => $('#imgInput').click();
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+  dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('over'); const f = e.dataTransfer.files && e.dataTransfer.files[0]; if (f) handleImageFile(f); });
+  $('#imgInput').onchange = e => { const f = e.target.files && e.target.files[0]; if (f) handleImageFile(f); e.target.value = ''; };
+  bindImagePan();
+  $('#btnUrl').onclick = () => {
+    const v = $('#imgUrl').value.trim();
+    if (!/^https?:\/\//i.test(v)){ toast('⚠️ วางลิงก์รูปที่ขึ้นต้นด้วย https:// เช่น ลิงก์รูปจาก Discord', true); return; }
+    edImage = v; paintEditorImage();
+    toast('🔗 ใช้ลิงก์รูปนี้แล้ว (ระบบจะโหลดตอนแสดงผล)');
+  };
+  $('#fxPanel').addEventListener('input', e => {
+    const inp = e.target.closest('[data-fxk]'); if (!inp) return;
+    edFx[inp.dataset.fxk] = parseFloat(inp.value) || 0;
+    syncFxInputs(); paintEditorImage();
+  });
+  $$('#fxPanel .fxb, [data-fxall]').forEach(b => b.onclick = () => {
+    const key = b.dataset.fx || b.dataset.fxall;
+    const p = Object.assign({}, FX_PRESETS[key] || {});
+    Object.keys(DEFAULT_FX).forEach(k => { if (!(k in p) && ['brightness','contrast','saturate','grayscale','blur','hue','sepia'].includes(k)) p[k] = DEFAULT_FX[k]; });
+    if (b.dataset.fxall !== undefined){
+      const fx = Object.assign({}, DEFAULT_FX, p);
+      state.cars.forEach(c => c.imgFx = Object.assign({}, fx));
+      save(); renderStore(); renderManage(); renderPreview(); renderPosterDebounced();
+      toast('🖌️ ใช้สไตล์รูปกับรถทั้งหมด ' + state.cars.length + ' คันแล้ว');
+    } else {
+      Object.assign(edFx, p);
+      syncFxInputs(); paintEditorImage();
+    }
+  });
+  // หน้าตกแต่ง
+  $('#page-design').addEventListener('input', e => {
+    const el = e.target.closest('[data-dk]'); if (!el) return;
+    const k = el.dataset.dk;
+    let v;
+    if (el.type === 'checkbox') v = el.checked;
+    else if (el.type === 'range' || el.type === 'number') v = parseFloat(el.value) || 0;
+    else v = el.value;
+    state.design[k] = v;
+    if (['cardBg1','cardBg2','accent','borderColor'].includes(k)) state.design.preset = '';
+    applyDesign();
+    const lab = $('[data-val="' + k + '"]', el.closest('.ctl') || document);
+    if (lab) lab.textContent = designValLabel(k, v);
+    renderPresetUI();
+    if (['showPrice','showStatus','transition'].includes(k)){ renderStore(); renderPreview(); }
+    if (['autoPlay','slideInterval'].includes(k)) restartAutoplay();
+    if (k === 'bgUrl') return; // รอปุ่ม "ใช้" เท่านั้น
+    saveDebounced();
+  });
+  $('#btnBgUrlApply').onclick = () => {
+    state.design.bgUrl = $('[data-dk="bgUrl"]').value.trim();
+    applyDesign(); save(); renderPosterDebounced();
+    toast(state.design.bgUrl ? '🌌 ใช้ลิงก์รูปเป็นพื้นหลังแล้ว' : '🌌 ล้างพื้นหลังลิงก์รูปแล้ว');
+  };
+  $('#btnExportDesign').onclick = exportDesign;
+  $('#btnResetLayout').onclick = () => {
+    state.design.layout = Object.assign({}, DEFAULT_DESIGN.layout);
+    save(); renderStore(); renderManage(); renderPreview(); renderPosterDebounced();
+    toast('↺ จัดตำแหน่งข้อความกลับค่าเริ่มต้นแล้ว');
+  };
+  $('#btnResetDesign').onclick = () => confirmBox('↺ รีเซ็ตธีม?', 'คืนค่าธีมเริ่มต้น (ไม่กระทบข้อมูลรถ)', () => {
+    state.design = Object.assign({}, DEFAULT_DESIGN);
+    applyDesign(); syncDesignInputs(); renderStore(); renderPreview(); renderPresetUI(); save(); renderPosterDebounced();
+    toast('↺ รีเซ็ตธีมแล้ว');
+  });
+  // หน้าโปสเตอร์
+  const posterInputs = ['pTitle','pSub','pSize','pCols','pGap','pShowHeader','pShowPlate','pShowStatus','pShowPrice'];
+  posterInputs.forEach(id => {
+    const el = $('#' + id);
+    el.addEventListener('input', () => {
+      const P = state.poster;
+      P.title = $('#pTitle').value;
+      P.sub = $('#pSub').value;
+      P.size = $('#pSize').value;
+      P.cols = $('#pCols').value;
+      P.gap = parseInt($('#pGap').value, 10) || 24;
+      $('#pGapVal').textContent = P.gap + 'px';
+      P.showHeader = $('#pShowHeader').checked;
+      P.showPlate = $('#pShowPlate').checked;
+      P.showStatus = $('#pShowStatus').checked;
+      P.showPrice = $('#pShowPrice').checked;
+      saveDebounced(); renderPosterDebounced();
+    });
+    el.addEventListener('change', () => el.dispatchEvent(new Event('input')));
+  });
+  $('#btnSelAll').onclick = () => setAllPoster(true, false);
+  $('#btnSelFree').onclick = () => setAllPoster(false, true);
+  $('#btnSelNone').onclick = () => setAllPoster(false, false);
+  $('#btnPosterDl').onclick = downloadPoster;
+  $('#btnPosterRe').onclick = () => { renderPoster(); toast('🔄 รีเฟรชโปสเตอร์แล้ว'); };
+  $('#btnWhSave').onclick = () => {
+    const wh = $('#whUrl').value.trim();
+    try { localStorage.setItem(WH_KEY, wh); } catch(e){}
+    toast(wh ? '💾 จำ Webhook ไว้แล้ว' : '🧹 ล้าง Webhook แล้ว');
+  };
+  $('#btnWhSend').onclick = sendPosterToDiscord;
+  $('#btnCopyLast').onclick = () => {
+    const l = $('#linkResult').value.trim() || (function(){ try { return localStorage.getItem(LINK_KEY) || ''; } catch(e){ return ''; } })();
+    if (!l) return toast('⚠️ ยังไม่มีลิงก์ — กด "ส่งโปสเตอร์ขึ้น Discord" ก่อน', true);
+    copyText(l, '📋 คัดลอกลิงก์รูปแล้ว');
+  };
+  $('#btnDcCopy').onclick = () => {
+    const v = $('#dcLinkIn').value.trim();
+    if (!/^https:\/\/(cdn\.discordapp\.com|media\.discordapp\.net)\//.test(v)) return toast('⚠️ ลิงก์รูป Discord ต้องขึ้นต้น cdn.discordapp.com หรือ media.discordapp.net — คลิกขวาที่รูปใน Discord → Copy Link', true);
+    copyText(v, '📋 ลิงก์ถูกต้อง คัดลอกแล้ว — เอาไปวางในช่อง "วางลิงก์รูป" ของเอ็ดิเตอร์รถได้เลย');
+  };
+  $('#btnDcUse').onclick = () => {
+    const v = $('#dcLinkIn').value.trim();
+    if (!/^https?:\/\//.test(v)) return toast('⚠️ วางลิงก์รูปก่อน', true);
+    state.design.bgUrl = v;
+    const inp = $('[data-dk="bgUrl"]'); if (inp) inp.value = v;
+    applyDesign(); save(); renderPosterDebounced();
+    toast('🌌 ใช้ลิงก์นี้เป็นพื้นหลังหน้าร้าน + โปสเตอร์แล้ว');
+  };
+  $('#linkResult').onclick = function(){ this.select(); };
+  // หน้าข้อมูลร้าน
+  $$('[data-sk]').forEach(el => el.addEventListener('input', () => {
+    state.shop[el.dataset.sk] = el.value;
+    renderHero(); saveDebounced();
+  }));
+  $('#btnExport').onclick = exportAll;
+  $('#btnImport').onclick = () => $('#fileInputImport').click();
+  $('#fileInputImport').onchange = importFile;
+  $('#btnResetAll').onclick = resetAll;
+  $('#cfOk').onclick = () => { const cb = cfCallback; closeConfirm(); if (cb) cb(); };
+  $('#cfCancel').onclick = closeConfirm;
+  $('#confirmModal').addEventListener('click', e => { if (e.target === $('#confirmModal')) closeConfirm(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape'){ closeConfirm(); if ($('#editorModal').classList.contains('open')) closeEditor(); }
+  });
+  $('#editorModal').addEventListener('click', e => { if (e.target === $('#editorModal')) closeEditor(); });
+  $$('[data-sk]').forEach(el => { el.value = state.shop[el.dataset.sk] || ''; });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) restartProgress(); });
+}
+
+/* ---------- เริ่มระบบ ---------- */
+function init(){
+  load();
+  const fs = $('#fontSelect');
+  fs.innerHTML = FONTS.map(f => '<option value="' + f + '" style="font-family:\'' + f + '\'">' + f + '</option>').join('');
+  const ts = $('#tplSelect');
+  ts.innerHTML = '<option value="">🎨 เลือกธีมการ์ด…</option>' + Object.keys(PRESETS).map(k => '<option value="' + k + '">' + PRESETS[k].emoji + ' ' + PRESETS[k].label + '</option>').join('');
+  try { $('#whUrl').value = localStorage.getItem(WH_KEY) || ''; } catch(e){}
+  try { const l = localStorage.getItem(LINK_KEY); if (l) $('#linkResult').value = l; } catch(e){}
+  // ซิงก์ค่าโปสเตอร์จาก state ลงฟอร์ม
+  const P = state.poster;
+  $('#pTitle').value = P.title; $('#pSub').value = P.sub;
+  $('#pSize').value = P.size; $('#pCols').value = P.cols; $('#pGap').value = P.gap;
+  $('#pGapVal').textContent = P.gap + 'px';
+  $('#pShowHeader').checked = P.showHeader; $('#pShowPlate').checked = P.showPlate;
+  $('#pShowStatus').checked = P.showStatus; $('#pShowPrice').checked = P.showPrice;
+  renderSwatches();
+  applyDesign();
+  bindEvents();
+  renderAll();
+  setInterval(updateCountdowns, 1000);
+}
+init();
+</script>
+</body>
+</html>
