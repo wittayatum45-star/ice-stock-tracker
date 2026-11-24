@@ -122,7 +122,6 @@ body.flip-vertical .fback{transform:rotateX(180deg)}
 .badge{position:absolute;top:10px;left:10px;z-index:5;font-size:12px;font-weight:800;padding:4px 11px;border-radius:999px;letter-spacing:.4px;box-shadow:0 4px 12px rgba(0,0,0,.4);white-space:nowrap}
 .badge.ok{background:#16a34a;color:#fff}
 .badge.rented{background:#dc2626;color:#fff}
-.badge.maint{background:#64748b;color:#fff}
 .ribbon{position:absolute;top:0;left:0;width:54%;aspect-ratio:1;z-index:6;overflow:hidden;pointer-events:none}
 .ribbon>b{position:absolute;top:31%;left:-32%;width:164%;transform:rotate(-45deg);background:#dc2626;color:#fff;text-align:center;font-size:clamp(12px,1.15vw,17px);font-weight:900;letter-spacing:.5px;padding:6px 0;box-shadow:0 4px 14px rgba(0,0,0,.45);border-top:1px solid rgba(255,255,255,.3);border-bottom:1px solid rgba(0,0,0,.3);text-shadow:0 1px 2px rgba(0,0,0,.4)}
 .cdown{position:absolute;top:10px;right:10px;z-index:5;font-size:12px;font-weight:800;color:#1c1005;background:rgba(255,255,255,.92);border:1px solid rgba(0,0,0,.15);border-radius:999px;padding:4px 11px;letter-spacing:.5px;white-space:nowrap;font-variant-numeric:tabular-nums;box-shadow:0 4px 12px rgba(0,0,0,.4)}
@@ -180,7 +179,6 @@ body.flip-vertical .fback{transform:rotateX(180deg)}
 .st{font-size:11.5px;font-weight:800;padding:3px 10px;border-radius:999px}
 .st.ok{background:rgba(22,163,74,.18);color:#4ade80;border:1px solid rgba(22,163,74,.4)}
 .st.rented{background:rgba(245,158,11,.16);color:#fbbf24;border:1px solid rgba(245,158,11,.4)}
-.st.maint{background:rgba(100,116,139,.2);color:#cbd5e1;border:1px solid rgba(100,116,139,.45)}
 .poster-chk{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--sub);cursor:pointer;white-space:nowrap}
 
 /* ============ หน้าโปสเตอร์ ============ */
@@ -208,6 +206,13 @@ details[open] summary::after{transform:rotate(180deg)}
 .pick.on{border-color:var(--accent);box-shadow:0 0 14px color-mix(in srgb,var(--accent) 45%,transparent)}
 .pick .tick{position:absolute;top:5px;right:5px;width:20px;height:20px;border-radius:50%;background:var(--accent);color:var(--btn-text);font-size:12px;font-weight:900;display:none;align-items:center;justify-content:center}
 .pick.on .tick{display:flex}
+.pick .pnum{position:absolute;top:5px;left:5px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:rgba(0,0,0,.72);color:var(--accent);font-size:11.5px;font-weight:900;display:flex;align-items:center;justify-content:center;border:1px solid color-mix(in srgb,var(--accent) 55%,transparent)}
+.orderlist{display:flex;flex-direction:column;gap:6px;padding:2px 0 12px;max-height:260px;overflow:auto}
+.orow{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid var(--panel-line);border-radius:10px;padding:5px 8px}
+.orow .onum{flex:none;width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--btn-text);font-size:12px;display:flex;align-items:center;justify-content:center}
+.orow .oname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:700}
+.orow .btn.sm{padding:4px 8px;font-size:11px}
+.orow .btn.sm[disabled]{opacity:.3;cursor:default}
 .pcanvasbox{background:var(--panel);border:1px solid var(--panel-line);border-radius:18px;padding:18px;backdrop-filter:blur(8px);position:sticky;top:86px}
 @media(max-width:1020px){.pcanvasbox{position:static}}
 .pcanvasbox canvas{width:100%;height:auto;display:block;border-radius:10px;box-shadow:0 18px 50px rgba(0,0,0,.55)}
@@ -218,12 +223,21 @@ details[open] summary::after{transform:rotate(180deg)}
 .btnrow{display:flex;gap:9px;flex-wrap:wrap;padding:6px 0 12px}
 
 /* ============ หน้าตกแต่ง ============ */
-.dwrap{max-width:1280px;margin:22px auto 60px;padding:0 18px;display:grid;grid-template-columns:minmax(320px,460px) 1fr;gap:24px;align-items:start}
+.dwrap{max-width:1320px;margin:22px auto 60px;padding:0 18px;display:grid;grid-template-columns:minmax(340px,560px) 1fr;gap:24px;align-items:start}
 @media(max-width:960px){.dwrap{grid-template-columns:1fr}}
 .dpreview{position:sticky;top:86px;display:flex;flex-direction:column;gap:14px}
 @media(max-width:960px){.dpreview{position:static}}
 .dpreview .stage{background:var(--panel);border:1px solid var(--panel-line);border-radius:20px;padding:26px;display:flex;justify-content:center;backdrop-filter:blur(8px)}
 .dpreview .stage .fcard{--card-w:340px;width:340px;height:442px;flex:none}
+.dsubnav{display:flex;gap:8px;justify-content:center}
+.dsub{background:rgba(255,255,255,.07);border:1px solid var(--panel-line);color:var(--sub);font-family:inherit;font-weight:800;font-size:13px;padding:8px 18px;border-radius:10px;cursor:pointer;transition:.15s}
+.dsub:hover{color:var(--text);border-color:color-mix(in srgb,var(--accent) 50%,transparent)}
+.dsub.on{background:var(--accent);color:var(--btn-text);border-color:var(--accent)}
+.dpreview .stage.duo{gap:14px;flex-wrap:wrap;padding:16px}
+.dpreview .stage.duo .fcard{--card-w:250px;width:250px;height:325px;cursor:default}
+.dpreview .fhint{display:none}
+.poster-stage{display:flex;justify-content:center}
+.poster-stage canvas{touch-action:none;display:block;cursor:default}
 .dpreview .cap{text-align:center;color:var(--sub);font-size:12.5px}
 .swatches{display:flex;gap:9px;flex-wrap:wrap;padding:8px 0 12px}
 .sw{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;background:transparent;border:none;color:var(--sub);font-size:11.5px;font-weight:700}
@@ -325,7 +339,6 @@ body:fullscreen .hero{padding-top:26px}
         <div class="statchip"><span class="dot" style="background:var(--accent)"></span>ทั้งหมด <b id="statTotal">0</b> คัน</div>
         <div class="statchip"><span class="dot" style="background:#22c55e"></span>ว่าง <b id="statFree">0</b></div>
         <div class="statchip"><span class="dot" style="background:#f59e0b"></span>ติดเช่า <b id="statRent">0</b></div>
-        <div class="statchip"><span class="dot" style="background:#94a3b8"></span>ซ่อมบำรุง <b id="statFix">0</b></div>
       </div>
       <div class="contact" id="heroContact"></div>
     </div>
@@ -372,7 +385,6 @@ body:fullscreen .hero{padding-top:26px}
       <option value="">สถานะทั้งหมด</option>
       <option value="available">ว่าง</option>
       <option value="rented">ติดเช่า</option>
-      <option value="maintenance">ซ่อมบำรุง</option>
     </select>
     <select class="inp" id="mSort">
       <option value="new">ใหม่สุดก่อน</option>
@@ -402,6 +414,8 @@ body:fullscreen .hero{padding-top:26px}
           <button class="btn sm ghost" id="btnSelNone">ล้างเลือก</button>
         </div>
         <div class="pickgrid" id="pickGrid"></div>
+        <div class="sect" style="margin-top:2px">ลำดับรถบนโปสเตอร์ (กด ▲▼ เพื่อสลับตำแหน่ง)</div>
+        <div class="orderlist" id="posterOrderList"></div>
       </details>
       <details open>
         <summary>รูปแบบโปสเตอร์</summary>
@@ -427,9 +441,10 @@ body:fullscreen .hero{padding-top:26px}
           <div class="ctl"><span>ช่องไฟ <i class="val" id="pGapVal">16px</i></span><div class="rowc"><input type="range" id="pGap" min="6" max="60" value="16"></div></div>
           <div class="field"><span style="font-size:12px;font-weight:600;color:var(--sub)">หัวเรื่องโปสเตอร์</span><input class="inp" id="pTitle" placeholder="(ใช้ชื่อร้าน)"></div>
           <div class="field"><span style="font-size:12px;font-weight:600;color:var(--sub)">คำโปยใต้หัวเรื่อง</span><input class="inp" id="pSub" placeholder="เช่ร ราคาพิเศษประจำเดือนนี้ ทักแชทเลย"></div>
+          <div class="ctl"><span>ขนาดชื่อร้าน/หัวเรื่อง <i class="val" id="pTitleScaleVal">100%</i></span><div class="rowc"><input type="range" id="pTitleScale" min="50" max="220" step="5" value="100"></div></div>
           <label class="chk"><input type="checkbox" id="pShowHeader" checked>แสดงหัวเรื่อง</label>
           <label class="chk"><input type="checkbox" id="pShowPlate" checked>แสดงป้ายทะเบียน</label>
-          <label class="chk"><input type="checkbox" id="pShowStatus" checked>แสดงป้ายสถานะ/นับถอยหลัง</label>
+          <label class="chk"><input type="checkbox" id="pShowStatus" checked>แสดงริบบิ้น "ติดเช่า"</label>
           <label class="chk"><input type="checkbox" id="pShowPrice" checked>แสดงราคา</label>
         </div>
         <div class="btnrow">
@@ -469,10 +484,20 @@ body:fullscreen .hero{padding-top:26px}
 <section class="page" id="page-design">
   <div class="dwrap">
     <div class="dpreview">
-      <div class="stage" id="previewBox"></div>
-      <div class="cap">พรีวิวสด — <b>ลากข้อความ (ชื่อ/ราคา/ทะเบียน/รายละเอียด) เพื่อจัดตำแหน่งเอง</b> ใช้ได้กับการ์ดทุกใบ + โปสเตอร์</div>
+      <div class="dsubnav">
+        <button class="dsub on" data-dsub="card" type="button">การ์ด</button>
+        <button class="dsub" data-dsub="poster" type="button">การ์ดโปสเตอร์</button>
+      </div>
+      <div id="dsubCard">
+        <div class="stage duo" id="previewBox"></div>
+        <div class="cap">ลากข้อความเพื่อจัดตำแหน่ง • หมุนล้อเมาส์บนข้อความเพื่อย่อ/ขยาย • เห็นทั้งด้านหน้าและด้านหลังพร้อมกัน</div>
+      </div>
+      <div id="dsubPoster" hidden>
+        <div class="stage poster-stage"><canvas id="posterPreviewCanvas"></canvas></div>
+        <div class="cap">ลากข้อความบนการ์ดโปสเตอร์เพื่อจัดตำแหน่ง • หมุนล้อเมาส์เพื่อย่อ/ขยาย • มีผลกับการ์ดทุกใบในโปสเตอร์</div>
+      </div>
       <div class="btnrow" style="justify-content:center">
-        <button class="btn sm" id="btnResetLayout">↺ จัดตำแหน่งข้อความเดิม</button>
+        <button class="btn sm" id="btnResetLayout">↺ ตำแหน่งเริ่มต้น</button>
         <button class="btn sm" id="btnExportDesign">บันทึกธีมเป็นไฟล์</button>
         <button class="btn sm ghost" id="btnResetDesign">↺ รีเซ็ตธีม</button>
       </div>
@@ -520,7 +545,7 @@ body:fullscreen .hero{padding-top:26px}
           </div>
           <div class="ctl"><span>มุมโค้งรูป <i class="val" data-val="imageRadius"></i></span><div class="rowc"><input type="range" min="0" max="40" data-dk="imageRadius"></div></div>
           <label class="chk"><input type="checkbox" data-dk="showPrice">แสดงราคาบนการ์ด</label>
-          <label class="chk"><input type="checkbox" data-dk="showStatus">แสดงป้ายสถานะ</label>
+          <label class="chk"><input type="checkbox" data-dk="showStatus">แสดงริบบิ้น "ติดเช่า"</label>
         </div>
         <div class="sect">ใช้สไตล์รูปกับรถทั้งหมด</div>
         <div class="fxbtns">
@@ -680,7 +705,7 @@ body:fullscreen .hero{padding-top:26px}
         <textarea class="inp" id="f-details" style="min-height:110px" placeholder="ตัวอย่าง: รถกาชา Event อำมาตย์&#10;• ดริฟท์แกรบมือ&#10;• สปีดโค้งสูงสุดในเกม&#10;• ติดโบนัสเต็มระบบ"></textarea>
         <div class="sect">สถานะ</div>
         <div class="edgrid">
-          <div class="field"><label>สถานะปัจจุบัน</label><select class="inp" id="f-status"><option value="available">พร้อมให้เช่า</option><option value="rented">ติดเช่า</option><option value="maintenance">ซ่อมบำรุง</option></select></div>
+          <div class="field"><label>สถานะปัจจุบัน</label><select class="inp" id="f-status"><option value="available">พร้อมให้เช่า</option><option value="rented">ติดเช่า</option></select></div>
           <div class="field" id="daysField"><label>เช่าอีกกี่วัน (ป้ายนับถอยหลัง)</label><input class="inp" id="f-days" type="number" min="1" max="365" value="1"></div>
         </div>
       </div>
@@ -782,7 +807,8 @@ const DEFAULT_DESIGN = {
   imageRatio:'16/9', imageRadius:12, showPrice:true, showStatus:true,
   flipSpeed:600, flipDir:'horizontal', slideInterval:4, transition:'slide',
   autoPlay:true, hoverLift:true, bg1:'#0a0e1c', bg2:'#141b31', bgPattern:'grid', bgUrl:'',
-  layout:{ nameX:0, nameY:0, priceX:0, priceY:0, plateX:0, plateY:0, detailX:0, detailY:0 },
+  layout:{ nameX:0, nameY:0, priceX:0, priceY:0, plateX:0, plateY:0, detailX:0, detailY:0, nameS:100, priceS:100, plateS:100, detailS:100 },
+  playout:{ nameX:0, nameY:0, priceX:0, priceY:0, plateX:0, plateY:0, detailX:0, detailY:0, nameS:100, priceS:100, plateS:100, detailS:100 },
 };
 
 const PRESETS = {
@@ -798,14 +824,14 @@ const PRESETS = {
   blaze:  { label:'Blaze Racing',  emoji:'', cardBg1:'#1f0600', cardBg2:'#4a1200', cardAngle:150, accent:'#fb5607', btnText:'#ffffff', textColor:'#ffffff', subColor:'#e8b39a', borderColor:'#fb5607', borderWidth:1.5, radius:16, glow:26, bg1:'#170401', bg2:'#2b0900', bgPattern:'speed',  fontFamily:'Bungee' },
 };
 
-const DEFAULT_POSTER = { title:'', sub:'', size:'16x9', cols:'auto', gap:16, showHeader:true, showPlate:true, showStatus:true, showPrice:true };
+const DEFAULT_POSTER = { title:'', sub:'', size:'16x9', cols:'auto', gap:16, showHeader:true, showPlate:true, showStatus:true, showPrice:true, titleScale:100 };
 const POSTER_SIZES = { '16x9':[1920,1080], '3x2':[1800,1200], '4x5':[1080,1350], '9x16':[1080,1920] };
 
 function defaultState(){
   return {
     shop: { name:'CAR RENTAL', tagline:'ระบบแฟลชการ์ดแสดงรถให้เช่า • แตะการ์ดเพื่อพลิกดูรายละเอียด', phone:'', line:'', address:'' },
     cars: [],
-    design: Object.assign({}, DEFAULT_DESIGN),
+    design: Object.assign({}, DEFAULT_DESIGN, { layout: Object.assign({}, DEFAULT_DESIGN.layout), playout: Object.assign({}, DEFAULT_DESIGN.playout) }),
     poster: Object.assign({}, DEFAULT_POSTER),
   };
 }
@@ -856,6 +882,7 @@ function load(){
       if (obj.design && typeof obj.design === 'object'){
         state.design = Object.assign(state.design, obj.design);
         state.design.layout = Object.assign({}, DEFAULT_DESIGN.layout, state.design.layout || {});
+        state.design.playout = Object.assign({}, DEFAULT_DESIGN.playout, state.design.playout || {});
       }
       if (obj.poster && typeof obj.poster === 'object') state.poster = Object.assign(state.poster, obj.poster);
     }
@@ -1032,7 +1059,7 @@ async function pushToCloudNow(manual){
       toast('ข้อมูลตัวอักษรใหญ่เกินลิมิต Firestore ลดจำนวนการ์ด/ความยาวรายละเอียดก่อน', true);
       return;
     }
-    await roomDocRef().set(payload);
+    await roomDocRef().set(stripUndefined(payload));
     await deleteOrphanImages(usedIds);
     lastPushedAt = Date.now();
     lastCloudUpdate = payload.lastUpdate;
@@ -1048,8 +1075,16 @@ async function pushToCloudNow(manual){
     toast('เซฟขึ้นคลาวด์ไม่สำเร็จ: ' + msg + ' (ข้อมูลในเครื่องยังปลอดภัย)', true);
   }
 }
-function isInteracting(){
-  const ae = document.activeElement;
+function stripUndefined(v){
+  if (Array.isArray(v)) return v.map(stripUndefined);
+  if (v && typeof v === 'object'){
+    const o = {};
+    Object.keys(v).forEach(k => { if (v[k] !== undefined) o[k] = stripUndefined(v[k]); });
+    return o;
+  }
+  return v;
+}
+function isInteracting(){  const ae = document.activeElement;
   if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA') && !['checkbox', 'range', 'color', 'radio', 'button', 'file'].includes(ae.type)) return true;
   if (window.__dragging) return true;
   return false;
@@ -1075,6 +1110,7 @@ async function applyRemoteDoc(data){
     state.shop = Object.assign(defaultState().shop, data.shop || {});
     state.design = Object.assign({}, DEFAULT_DESIGN, data.design || {});
     state.design.layout = Object.assign({}, DEFAULT_DESIGN.layout, state.design.layout || {});
+    state.design.playout = Object.assign({}, DEFAULT_DESIGN.playout, state.design.playout || {});
     state.poster = Object.assign({}, DEFAULT_POSTER, data.poster || {});
     state.cars = (Array.isArray(data.cars) ? data.cars : []).filter(c => c && c.name).map(c => {
       const m = migrateCar(Object.assign({}, c));
@@ -1176,9 +1212,9 @@ function svgCarPlaceholder(text, hue){
 function addDemoCars(){
   const demos = [
     { name:'Lamborghini Huracán STO', speed:'324 กม./ชม.', seats:2, pricePerDay:4500, plate:'กท 8888 กรุงเทพมหานคร', details:'รถกาชา Event อำมาตย์ (Rare)\n• ออกแบบสายลม ตัวถังคาร์บอนเต็มคัน\n• เหมาะซิ่งทางตรง ดริฟท์สวย\n• ติดโบนัสเต็มระบบ', hue:10, status:'available' },
-    { name:'Nissan GT-R Nismo R35', speed:'315 กม./ชม.', seats:4, pricePerDay:2600, plate:'1กก 4521 เชียงใหม่', details:'รถกาชาป้ายกลาง (Epic)\n• 4 ล้อขับเคลื่อน ติดโค้งแน่น\n• ซ่อมบำรุงถูก คุ้มใช้ทุกวัน', hue:200, status:'rented', days:2 },
+    { name:'Nissan GT-R Nismo R35', speed:'315 กม./ชม.', seats:4, pricePerDay:2600, plate:'1กก 4521 เชียงใหม่', details:'รถกาชาป้ายกลาง (Epic)\n• 4 ล้อขับเคลื่อน ติดโค้งแน่น\n• ขับมันส์ทุกเส้นทาง', hue:200, status:'rented', days:2 },
     { name:'Porsche 911 GT3 RS', speed:'296 กม./ชม.', seats:2, pricePerDay:3800, plate:'3ษณ 777 ภูเก็ต', details:'รถกาชาแบนเนอร์พิเศษ\n• ดาวน์ฟอร์ซสูงสุดในคลาส\n• เข้าโค้งไม่ต้องเบรก', hue:150, status:'available' },
-    { name:'Toyota GR Supra A90', speed:'250 กม./ชม.', seats:2, pricePerDay:1900, plate:'7ฒธ 130 ขอนแก่น', details:'รถกาชาฟรีเริ่มต้นเกม (สะสมเหรียญ)\n• แต่งเต็มชุด Stage 3\n• สีทรายทองพิเศษ', hue:40, status:'maintenance' },
+    { name:'Toyota GR Supra A90', speed:'250 กม./ชม.', seats:2, pricePerDay:1900, plate:'7ฒธ 130 ขอนแก่น', details:'รถกาชาฟรีเริ่มต้นเกม (สะสมเหรียญ)\n• แต่งเต็มชุด Stage 3\n• สีทรายทองพิเศษ', hue:40, status:'available' },
     { name:'Mazda RX-7 FD Spirit', speed:'255 กม./ชม.', seats:2, pricePerDay:1700, plate:'กษ 9999 ชลบุรี', details:'รถกาชาล็อกเลี้ยงโต (Legend)\n• เครื่องโรตารี่เสียงเกรียว\n• สไตล์ดริฟท์สายโบราณ', hue:270, status:'available' },
   ];
   demos.forEach(d => {
@@ -1187,7 +1223,7 @@ function addDemoCars(){
       details:d.details, image: svgCarPlaceholder(d.name.split(' ')[0], d.hue),
       imgFx: Object.assign({}, DEFAULT_FX), status:d.status,
       rentEnd: d.status === 'rented' && d.days ? Date.now() + d.days * 864e5 : null,
-      onPoster: true, createdAt: Date.now(),
+      onPoster: true, createdAt: Date.now(), posterOrder: state.cars.filter(c => c.onPoster).length + 1,
     });
   });
   save(); renderAll();
@@ -1226,6 +1262,7 @@ function applyDesign(){
   if (d.bgUrl && /^https?:\/\//.test(d.bgUrl)){
     document.body.style.background = 'linear-gradient(160deg, color-mix(in srgb, ' + d.bg1 + ' 62%, transparent), color-mix(in srgb, ' + d.bg2 + ' 74%, transparent)), url("' + d.bgUrl.replace(/"/g, '%22') + '") center/cover fixed no-repeat, linear-gradient(160deg,' + d.bg1 + ',' + d.bg2 + ')';
   } else document.body.style.background = '';
+  if (posterPreviewGeom && $('#dsubPoster') && !$('#dsubPoster').hidden) paintPosterPreview();
 }
 
 /* ---------- ฟิลเตอร์รูป ---------- */
@@ -1257,46 +1294,41 @@ function parsePlate(s){
   if (parts.length >= 2 && /\d/.test(parts[1]) && !/\d/.test(parts[0])) return { main: parts[0] + ' ' + parts[1], prov: parts.slice(2).join(' ') };
   return { main: n, prov: '' };
 }
-function plateHTML(car){
-  if (!car.plate) return '';
-  return '<div class="plateline" data-lk="plate" style="transform:translate(' + (LX.plateX || 0) + 'px,' + (LX.plateY || 0) + 'px)">' + esc(normalizePlate(car.plate)) + '</div>';
-}
-
 /* ---------- สร้างการ์ด ---------- */
 function statusInfo(car){
   if (car.status === 'rented'){
     const expired = car.rentEnd && car.rentEnd <= Date.now();
     return { cls:'rented', label: expired ? 'ครบกำหนดคืน' : 'ติดเช่า' };
   }
-  if (car.status === 'maintenance') return { cls:'maint', label:'ซ่อมบำรุง' };
-  return { cls:'ok', label:'ว่าง • ให้เช่าได้' };
+  return { cls:'ok', label:'ว่าง' };
 }
 function buildFCard(car, opts){
   opts = opts || {};
   const d = state.design, st = statusInfo(car);
-  const LX = Object.assign({ nameX:0, nameY:0, priceX:0, priceY:0, plateX:0, plateY:0, detailX:0, detailY:0 }, state.design.layout || {});
+  const LX = Object.assign({ nameX:0, nameY:0, priceX:0, priceY:0, plateX:0, plateY:0, detailX:0, detailY:0, nameS:100, priceS:100, plateS:100, detailS:100 }, state.design.layout || {});
+  const tf = (k, px, py) => 'transform:translate(' + px + 'px,' + py + 'px) scale(' + ((LX[k] || 100) / 100) + ');transform-origin:left center';
   const el = document.createElement('div');
   el.className = 'fcard anim anim-' + (opts.noAnim ? 'fade' : d.transition);
   el.dataset.carId = car.id;
   if (typeof opts.delay === 'number') el.style.animationDelay = opts.delay + 'ms';
 
   const chips = [];
-  if (car.speed) chips.push(car.speed);
+  if (car.speed) chips.push('ความเร็ว ' + car.speed);
   if (car.seats) chips.push(car.seats + ' ที่นั่ง');
 
   const front =
     '<div class="fimg" style="border-radius:var(--img-radius)">' +
       '<img src="' + esc(car.image || svgCarPlaceholder(car.name || 'รถ', 215)) + '" alt="' + esc(car.name || '') + '" loading="lazy" style="filter:' + fxStr(car.imgFx) + ';transform:' + fxTransform(car.imgFx) + '" onerror="this.onerror=null;this.src=\'' + svgCarPlaceholder('ไม่มีรูป', 0).replace(/'/g, '%27') + '\'">' +
-      (d.showStatus ? (st.cls === 'rented' ? '<div class="ribbon"><b>' + esc(st.label) + '</b></div>' : '<span class="badge ' + st.cls + '">' + st.label + '</span>') : '') +
+      (d.showStatus && st.cls === 'rented' ? '<div class="ribbon"><b>' + esc(st.label) + '</b></div>' : '') +
       (car.status === 'rented' ? '<span class="cdown" data-cdown="' + esc(car.id) + '"></span>' : '') +
     '</div>' +
     '<div class="fbody">' +
-      '<div class="fname" data-lk="name" style="transform:translate(' + LX.nameX + 'px,' + LX.nameY + 'px)">' + esc(car.name || 'ไม่ระบุชื่อ') + '</div>' +
+      '<div class="fname" data-lk="name" style="' + tf('nameS', LX.nameX, LX.nameY) + '">' + esc(car.name || 'ไม่ระบุชื่อ') + '</div>' +
       '<div class="fmeta">' + chips.slice(0, 3).map(c => '<span class="chip">' + esc(c) + '</span>').join('') + '</div>' +
-      '<div class="fprice-row" data-lk="price" style="transform:translate(' + LX.priceX + 'px,' + LX.priceY + 'px)">' +
+      '<div class="fprice-row" data-lk="price" style="' + tf('priceS', LX.priceX, LX.priceY) + '">' +
         (d.showPrice ? '<div class="fprice">' + fmtBaht(car.pricePerDay) + ' <small>บาท/วัน</small></div>' : '<div></div>') +
       '</div>' +
-      (car.plate ? '<div class="plateline fpl" data-lk="plate" style="transform:translate(' + LX.plateX + 'px,' + LX.plateY + 'px)">' + esc(normalizePlate(car.plate)) + '</div>' : '') +
+      (car.plate ? '<div class="plateline fpl" data-lk="plate" style="' + tf('plateS', LX.plateX, LX.plateY) + '">' + esc(normalizePlate(car.plate)) + '</div>' : '') +
     '</div>' +
     '<div class="fhint">แตะเพื่อพลิกดูรายละเอียด ↻</div>';
 
@@ -1310,8 +1342,8 @@ function buildFCard(car, opts){
     '<div class="btitle">รายละเอียดรถ</div>' +
     '<div class="fname" style="font-size:calc(var(--title-size) * .82)">' + esc(car.name || '') + '</div>' +
     rows.map(r => '<div class="brow"><span>' + r[0] + '</span><b>' + r[1] + '</b></div>').join('') +
-    (car.plate ? '<div class="plateline" data-lk="plate" style="transform:translate(' + LX.plateX + 'px,' + LX.plateY + 'px)">' + esc(normalizePlate(car.plate)) + '</div>' : '') +
-    (car.details ? '<div class="bnote" data-lk="detail" style="transform:translate(' + LX.detailX + 'px,' + LX.detailY + 'px)">' + esc(car.details) + '</div>' : '') +
+    (car.plate ? '<div class="plateline" data-lk="plate" style="' + tf('plateS', LX.plateX, LX.plateY) + '">' + esc(normalizePlate(car.plate)) + '</div>' : '') +
+    (car.details ? '<div class="bnote" data-lk="detail" style="' + tf('detailS', LX.detailX, LX.detailY) + '">' + esc(car.details) + '</div>' : '') +
     '<div class="bcontact">' +
       (shop.phone ? '<a class="tel" href="tel:' + esc(String(shop.phone).replace(/[^0-9+]/g, '')) + '">โทรจอง</a>' : '') +
       '<button type="button" class="back" data-back>↺ กลับด้านหน้า</button>' +
@@ -1429,9 +1461,9 @@ function renderStats(){
   const t = state.cars.length;
   const f = state.cars.filter(c => c.status === 'available').length;
   const r = state.cars.filter(c => c.status === 'rented').length;
-  const m = state.cars.filter(c => c.status === 'maintenance').length;
   $('#statTotal').textContent = t; $('#statFree').textContent = f;
-  $('#statRent').textContent = r; $('#statFix').textContent = m;
+  $('#statRent').textContent = r;
+  const fx = $('#statFix'); if (fx) fx.textContent = '0';
 }
 
 /* ---------- หน้าจัดการรถ ---------- */
@@ -1461,8 +1493,8 @@ function renderManage(){
         '<div class="n">' + esc(c.name || 'ไม่ระบุชื่อ') + ' <span class="st ' + st.cls + '">' + st.label + '</span></div>' +
         '<div class="s">' +
           (c.plate ? '<span>' + esc(normalizePlate(c.plate)) + '</span>' : '') +
-          (c.speed ? '<span>' + esc(c.speed) + '</span>' : '') +
-          (c.seats ? '<span>' + esc(c.seats) + '</span>' : '') +
+          (c.speed ? '<span>ความเร็ว ' + esc(c.speed) + '</span>' : '') +
+          (c.seats ? '<span>' + esc(c.seats) + ' ที่นั่ง</span>' : '') +
           (c.status === 'rented' ? '<span data-cdown="' + esc(c.id) + '" style="color:var(--accent);font-weight:700"></span>' : '') +
         '</div>' +
       '</div>' +
@@ -1473,10 +1505,9 @@ function renderManage(){
         '<button class="btn sm" data-act="rent3" data-id="' + esc(c.id) + '" title="ติดเช่า 3 วัน">3 วัน</button>' +
         '<button class="btn sm" data-act="rent7" data-id="' + esc(c.id) + '" title="ติดเช่า 7 วัน">7 วัน</button>' +
         '<button class="btn sm ok" data-act="return" data-id="' + esc(c.id) + '" title="รับคืนแล้ว สถานะกลับเป็นว่าง">คืนแล้ว</button>' +
-        '<button class="btn sm" data-act="maint" data-id="' + esc(c.id) + '" title="ตั้งเป็นซ่อมบำรุง / กดอีกครั้งเพื่อกลับว่าง">ซ่อม</button>' +
         '<button class="btn sm" data-act="edit" data-id="' + esc(c.id) + '">แก้ไข</button>' +
-        '<button class="btn sm ghost" data-act="dup" data-id="' + esc(c.id) + '" title="ทำซ้ำ"></button>' +
-        '<button class="btn sm danger" data-act="del" data-id="' + esc(c.id) + '" title="ลบ"></button>' +
+        '<button class="btn sm ghost" data-act="dup" data-id="' + esc(c.id) + '" title="ทำซ้ำ">ทำซ้ำ</button>' +
+        '<button class="btn sm danger" data-act="del" data-id="' + esc(c.id) + '" title="ลบ">ลบ</button>' +
       '</div>';
     box.appendChild(row);
   });
@@ -1489,14 +1520,14 @@ function setStatus(id, status, days){
   c.rentEnd = status === 'rented' ? Date.now() + (days || 1) * 864e5 : null;
   save(); renderManage(); renderStore(); renderStats();
   if (status === 'rented') toast((c.name || 'รถ') + ' ติดเช่า ' + (days || 1) + ' วัน — ป้ายนับถอยหลังติดบนการ์ดแล้ว');
-  else if (status === 'available') toast((c.name || 'รถ') + ' พร้อมให้เช่าแล้ว');
-  else toast((c.name || 'รถ') + ' อยู่ระหว่างซ่อมบำรุง');
+  else toast((c.name || 'รถ') + ' พร้อมให้เช่าแล้ว');
 }
 function duplicateCar(id){
   const c = findCar(id); if (!c) return;
   const copy = JSON.parse(JSON.stringify(c));
   copy.id = uid(); copy.name = (c.name || '') + ' (สำเนา)'; copy.createdAt = Date.now();
   copy.status = 'available'; copy.rentEnd = null;
+  copy.posterOrder = nextPosterOrder();
   state.cars.push(copy);
   save(); renderAll(); toast('ทำซ้ำ "' + (c.name || 'รถ') + '" แล้ว');
 }
@@ -1626,60 +1657,90 @@ function collectEditor(){
 function saveEditor(){
   const data = collectEditor(); if (!data) return;
   if (edCar){ Object.assign(edCar, data, { id:edCar.id, createdAt: edCar.createdAt || Date.now() }); toast('บันทึกการแก้ไขแล้ว'); }
-  else { state.cars.push(Object.assign({ id:uid(), onPoster:true, createdAt:Date.now() }, data)); toast('เพิ่มรถใหม่แล้ว ไปดูที่หน้าร้านได้เลย'); }
+  else { state.cars.push(Object.assign({ id:uid(), onPoster:true, createdAt:Date.now(), posterOrder:nextPosterOrder() }, data)); toast('เพิ่มรถใหม่แล้ว ไปดูที่หน้าร้านได้เลย'); }
   save(); renderAll(); closeEditor();
 }
 
 /* ---------- พรีวิวหน้าตกแต่ง ---------- */
 function sampleCarForPreview(){
-  if (state.cars.length) return state.cars[0];
-  return { id:'demo', name:'Supercar GT ตัวอย่าง', speed:'350 กม./ชม.', seats:2, pricePerDay:9999,
+  const demo = { id:'demo', name:'Supercar GT ตัวอย่าง', speed:'350 กม./ชม.', seats:2, pricePerDay:9999,
     details:'รถกาชาตัวอย่างสำหรับดูธีม\n• แตะการ์ดเพื่อพลิกดูข้อมูล\n• ปรับธีมแล้วดูผลทันที',
     plate:'กท 1234 กรุงเทพมหานคร', image:svgCarPlaceholder('DEMO CAR', 215), imgFx:Object.assign({}, DEFAULT_FX), status:'available' };
+  if (state.cars.length){
+    const c = Object.assign({}, state.cars[0]);
+    if (!c.plate) c.plate = 'กท 1234 กรุงเทพมหานคร';
+    if (!c.details) c.details = 'รายละเอียดตัวอย่าง\n• ลากข้อความเพื่อจัดตำแหน่ง\n• หมุนล้อเมาส์เพื่อย่อ/ขยาย';
+    if (!c.image) c.image = svgCarPlaceholder(c.name || 'CAR', 215);
+    return c;
+  }
+  return demo;
 }
 function renderPreview(){
   const box = $('#previewBox');
   box.innerHTML = '';
-  const card = buildFCard(sampleCarForPreview(), { noAnim:false });
-  box.appendChild(card);
-  card.classList.add('flipped');
-  bindLayoutDrag(card);
+  const car = sampleCarForPreview();
+  const front = buildFCard(car, { noAnim:true });
+  const back = buildFCard(car, { noAnim:true });
+  back.classList.add('flipped');
+  box.appendChild(front); box.appendChild(back);
+  bindLayoutDrag(front, { face:'.ffront', layoutKey:'layout' });
+  bindLayoutDrag(back, { face:'.fback', layoutKey:'layout' });
 }
-/* ลากข้อความบนพรีวิวเพื่อจัดตำแหน่ง (จำค่าใช้กับการ์ดทุกใบ + โปสเตอร์) */
-function bindLayoutDrag(card){
+/* ลากข้อความบนพรีวิวเพื่อจัดตำแหน่ง + หมุนล้อเพื่อย่อ/ขยาย */
+function bindLayoutDrag(card, opts){
   if (!card) return;
-  $$('[data-lk]', card).forEach(el => {
+  opts = opts || {};
+  const face = opts.face || '';
+  const LK = opts.layoutKey || 'layout';
+  const root = face ? (card.querySelector(face) || card) : card;
+  $$('[data-lk]', root).forEach(el => {
     const key = el.dataset.lk;
+    if (!key) return;
     el.style.cursor = 'grab';
+    el.style.touchAction = 'none';
     let sx = 0, sy = 0, lx = 0, ly = 0, moved = false, active = false;
+    const L = () => (state.design[LK] = state.design[LK] || {});
     el.addEventListener('pointerdown', e => {
       e.preventDefault();
+      e.stopPropagation();
       active = true; moved = false;
       sx = e.clientX; sy = e.clientY;
-      lx = (state.design.layout[key + 'X'] || 0);
-      ly = (state.design.layout[key + 'Y'] || 0);
+      lx = (L()[key + 'X'] || 0);
+      ly = (L()[key + 'Y'] || 0);
       el.style.cursor = 'grabbing';
       try { el.setPointerCapture(e.pointerId); } catch(_){}
     });
     el.addEventListener('pointermove', e => {
       if (!active) return;
       const dx = e.clientX - sx, dy = e.clientY - sy;
-      if (!moved && Math.abs(dx) + Math.abs(dy) > 7) moved = true;
+      if (!moved && Math.abs(dx) + Math.abs(dy) > 4) moved = true;
       if (!moved) return;
-      const nx = Math.max(-120, Math.min(120, Math.round(lx + dx)));
-      const ny = Math.max(-100, Math.min(100, Math.round(ly + dy)));
-      state.design.layout[key + 'X'] = nx;
-      state.design.layout[key + 'Y'] = ny;
-      el.style.transform = 'translate(' + nx + 'px,' + ny + 'px)';
+      const nx = Math.max(-160, Math.min(160, Math.round(lx + dx)));
+      const ny = Math.max(-160, Math.min(160, Math.round(ly + dy)));
+      const o = L();
+      o[key + 'X'] = nx; o[key + 'Y'] = ny;
+      const ns = (o[key + 'S'] || 100) / 100;
+      el.style.transformOrigin = 'left center';
+      el.style.transform = 'translate(' + nx + 'px,' + ny + 'px) scale(' + ns + ')';
     });
+    el.addEventListener('wheel', e => {
+      e.preventDefault();
+      const o = L();
+      const cur = o[key + 'S'] || 100;
+      const next = Math.max(50, Math.min(220, cur + (e.deltaY < 0 ? 5 : -5)));
+      o[key + 'S'] = next;
+      const ns = next / 100;
+      el.style.transformOrigin = 'left center';
+      el.style.transform = 'translate(' + (o[key + 'X'] || 0) + 'px,' + (o[key + 'Y'] || 0) + 'px) scale(' + ns + ')';
+      saveDebounced(); renderStore(); renderPosterDebounced();
+    }, { passive:false });
     const off = () => {
       if (!active) return;
       active = false;
       el.style.cursor = 'grab';
       if (moved){
         save(); renderStore(); renderManage(); renderPosterDebounced();
-        toast('จำตำแหน่ง "' + ({name:'ชื่อรถ',price:'ราคา',plate:'ทะเบียน',detail:'รายละเอียด'}[key] || key) + '" ใหม่แล้ว (ใช้กับการ์ดทุกใบ + โปสเตอร์)');
-        renderPreview();
+        toast('จำตำแหน่ง "' + ({name:'ชื่อรถ',price:'ราคา',plate:'ทะเบียน',detail:'รายละเอียด'}[key] || key) + '" แล้ว');
       }
     };
     el.addEventListener('pointerup', off);
@@ -1763,23 +1824,70 @@ function renderSwatches(){
 }
 
 /* ═══════════════ หน้าโปสเตอร์: จัดตารางอัตโนมัติ + Canvas ═══════════════ */
+function posterCarsSorted(){
+  return state.cars
+    .map((c, i) => ({ c, i }))
+    .filter(o => o.c.onPoster)
+    .sort((a, b) => ((typeof a.c.posterOrder === 'number' ? a.c.posterOrder : 1e9) - (typeof b.c.posterOrder === 'number' ? b.c.posterOrder : 1e9)) || (a.i - b.i))
+    .map(o => o.c);
+}
+function nextPosterOrder(){
+  const sel = state.cars.filter(c => c.onPoster);
+  let max = 0;
+  sel.forEach(c => { if (typeof c.posterOrder === 'number' && c.posterOrder > max) max = c.posterOrder; });
+  return max + 1;
+}
+function renderPosterOrder(){
+  const box = $('#posterOrderList'); if (!box) return;
+  const list = posterCarsSorted();
+  box.innerHTML = '';
+  if (!list.length){ box.innerHTML = '<div class="cap" style="text-align:left;padding:2px 0 8px">ยังไม่ได้เลือกรถขึ้นโปสเตอร์</div>'; return; }
+  list.forEach((c, idx) => {
+    const row = document.createElement('div');
+    row.className = 'orow';
+    row.innerHTML = '<b class="onum">' + (idx + 1) + '</b>' +
+      '<span class="oname">' + esc(c.name || '') + '</span>' +
+      '<button class="btn sm" data-omove="-1" data-id="' + esc(c.id) + '"' + (idx === 0 ? ' disabled' : '') + ' title="เลื่อนขึ้น">▲</button>' +
+      '<button class="btn sm" data-omove="1" data-id="' + esc(c.id) + '"' + (idx === list.length - 1 ? ' disabled' : '') + ' title="เลื่อนลง">▼</button>';
+    box.appendChild(row);
+  });
+}
+function movePosterCar(id, dir){
+  const list = posterCarsSorted();
+  const i = list.findIndex(c => c.id === id);
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= list.length) return;
+  list.forEach((c, k) => { if (typeof c.posterOrder !== 'number') c.posterOrder = k + 1; });
+  const a = list[i], b = list[j];
+  const t = a.posterOrder; a.posterOrder = b.posterOrder; b.posterOrder = t;
+  save(); renderPosterOrder(); renderPickGrid(); renderPosterDebounced();
+}
 function renderPickGrid(){
   const box = $('#pickGrid');
   box.innerHTML = '';
+  const order = {};
+  posterCarsSorted().forEach((c, i) => { order[c.id] = i + 1; });
   state.cars.forEach(c => {
     const d = document.createElement('div');
     d.className = 'pick' + (c.onPoster ? ' on' : '');
     d.dataset.id = c.id;
-    d.innerHTML = '<span class="tick"></span><img src="' + esc(c.image || svgCarPlaceholder('?', 220)) + '" alt="" onerror="this.src=\'' + svgCarPlaceholder('?', 0).replace(/'/g, '%27') + '\'"><div class="pn">' + esc(c.name || '') + '</div>';
-    d.onclick = () => { c.onPoster = !c.onPoster; save(); renderPickGrid(); updatePosterCount(); renderPosterDebounced(); };
+    d.innerHTML = '<span class="tick"></span>' + (c.onPoster ? '<span class="pnum">' + (order[c.id] || '') + '</span>' : '') + '<img src="' + esc(c.image || svgCarPlaceholder('?', 220)) + '" alt="" onerror="this.src=\'' + svgCarPlaceholder('?', 0).replace(/'/g, '%27') + '\'"><div class="pn">' + esc(c.name || '') + '</div>';
+    d.onclick = () => {
+      c.onPoster = !c.onPoster;
+      if (c.onPoster && typeof c.posterOrder !== 'number') c.posterOrder = nextPosterOrder();
+      save(); renderPickGrid(); renderPosterOrder(); updatePosterCount(); renderPosterDebounced();
+    };
     box.appendChild(d);
   });
   updatePosterCount();
+  renderPosterOrder();
 }
 function updatePosterCount(){ $('#posterCount').textContent = state.cars.filter(c => c.onPoster).length + '/' + state.cars.length; }
 function setAllPoster(on, onlyFree){
   state.cars.forEach(c => { c.onPoster = onlyFree ? (c.status === 'available') : on; });
-  save(); renderPickGrid(); renderManage(); renderPosterDebounced();
+  let k = 1;
+  state.cars.forEach(c => { if (c.onPoster) c.posterOrder = k++; });
+  save(); renderPickGrid(); renderPosterOrder(); renderManage(); renderPosterDebounced();
 }
 
 /* โหลดรูปสำหรับวาดลง canvas (ลิงก์ http ใช้ crossOrigin เพื่อกัน canvas เสีย) */
@@ -1833,7 +1941,7 @@ async function renderPoster(){
     const cv = $('#posterCanvas');
     const ctx = cv.getContext('2d');
     const P = state.poster, D = state.design;
-    const cars = state.cars.filter(c => c.onPoster);
+    const cars = posterCarsSorted();
     const [W, H] = POSTER_SIZES[P.size] || POSTER_SIZES['16x9'];
     cv.width = W; cv.height = H;
 
@@ -1877,7 +1985,8 @@ async function renderPoster(){
     let top = 0;
     if (P.showHeader){
       const title = (P.title || state.shop.name || 'CAR RENTAL').trim();
-      const tSize = Math.min(W * .052, 84);
+      const tScale = Math.max(.3, (P.titleScale || 100) / 100);
+      const tSize = Math.min(W * .034, 56) * tScale;
       ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
       ctx.font = fontStr(tSize, '900');
       ctx.lineWidth = tSize * .14; ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.lineJoin = 'round';
@@ -1921,15 +2030,9 @@ async function renderPoster(){
       const col = i % cols, row = Math.floor(i / cols);
       const x = startX + col * (cardW + gap);
       const y = startY + row * (cardH + gap);
-      drawPosterCard(ctx, c, imgs[i], x, y, cardW, cardH, P, D);
+      drawPosterCard(ctx, c, imgs[i], x, y, cardW, cardH, P, D, state.design.playout);
     });
 
-    /* ท้ายโปสเตอร์ */
-    ctx.font = fontStr(Math.max(15, W * .011), '600');
-    ctx.fillStyle = hexA(D.subColor, .85);
-    ctx.textAlign = 'center';
-    const when = new Date().toLocaleDateString('th-TH', { day:'numeric', month:'short', year:'numeric' });
-    ctx.fillText('อัปเดต ' + when + ' • ' + n + ' คัน • ' + (state.shop.phone ? 'โทร ' + state.shop.phone : state.shop.name || ''), W / 2, H - H * .012);
   } catch(e){
     console.warn('วาดโปสเตอร์ไม่สำเร็จ:', e);
     toast('วาดโปสเตอร์ไม่สำเร็จ: ' + (e.message || ''), true);
@@ -1937,8 +2040,12 @@ async function renderPoster(){
 }
 const renderPosterDebounced = debounce(renderPoster, 350);
 
-function drawPosterCard(ctx, car, img, x, y, w, h, P, D){
+function drawPosterCard(ctx, car, img, x, y, w, h, P, D, LAYOUT){
   const r = Math.max(6, w * .05);
+  const LX = Object.assign({ nameX:0, nameY:0, priceX:0, priceY:0, plateX:0, plateY:0, detailX:0, detailY:0, nameS:100, priceS:100, plateS:100, detailS:100 }, LAYOUT || state.design.playout || {});
+  const lk = w / 340;
+  const OX = key => (LX[key] || 0) * lk;
+  const SC = key => Math.max(.2, (LX[key] || 100) / 100);
   /* พื้นการ์ด + เงา */
   ctx.save();
   ctx.shadowColor = 'rgba(0,0,0,.5)'; ctx.shadowBlur = w * .1; ctx.shadowOffsetY = w * .045;
@@ -1955,18 +2062,18 @@ function drawPosterCard(ctx, car, img, x, y, w, h, P, D){
 
   /* ชื่อรถบนสุด (กึ่งกลาง แบบตารางแน่น) */
   ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-  ctx.font = fontStr(w * .072, '800');
+  ctx.font = fontStr(w * .072 * SC('nameS'), '800');
   ctx.fillStyle = D.textColor;
-  ctx.fillText(fitText(ctx, car.name || '', w * .93), x + w / 2, y + w * .085);
+  ctx.fillText(fitText(ctx, car.name || '', w * .93), x + w / 2 + OX('nameX'), y + w * .085 + OX('nameY'));
 
   /* แถวสเปค: ความเร็ว • ที่นั่ง */
   const chips = [];
-  if (car.speed) chips.push(car.speed);
+  if (car.speed) chips.push('ความเร็ว ' + car.speed);
   if (car.seats) chips.push(car.seats + ' ที่นั่ง');
   if (chips.length){
-    ctx.font = fontStr(w * .048, '600');
+    ctx.font = fontStr(w * .048 * SC('detailS'), '600');
     ctx.fillStyle = D.subColor;
-    ctx.fillText(fitText(ctx, chips.join('   •   '), w * .93), x + w / 2, y + w * .148);
+    ctx.fillText(fitText(ctx, chips.join('   •   '), w * .93), x + w / 2 + OX('detailX'), y + w * .148 + OX('detailY'));
   }
 
   /* รูปรถ */
@@ -2015,33 +2122,135 @@ function drawPosterCard(ctx, car, img, x, y, w, h, P, D){
       ctx.fillText('ติดเช่า', 0, u2 - (u2 - u1) * .42);
       ctx.restore();
       ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'center';
-    } else {
-      ctx.font = fontStr(w * .05, '800');
-      ctx.textBaseline = 'middle';
-      const label = st.label;
-      const tw = ctx.measureText(label).width;
-      const bx = ix + w * .02, by = iy + w * .02, bh = w * .095;
-      ctx.fillStyle = st.cls === 'ok' ? '#16a34a' : '#64748b';
-      roundRectPath(ctx, bx, by, tw + w * .07, bh, bh / 2);
-      ctx.fill();
-      ctx.fillStyle = '#fff';
-      ctx.textAlign = 'left';
-      ctx.fillText(label, bx + w * .035, by + bh / 2 + 1);
-      ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'center';
     }
   }
 
   /* ราคาใหญ่กลางล่าง (สไตล์ป้ายราคาตัวอย่าง) */
-  ctx.font = fontStr(w * .1, '900');
+  ctx.font = fontStr(w * .1 * SC('priceS'), '900');
   ctx.fillStyle = D.accent;
-  ctx.fillText(P.showPrice ? fmtBaht(car.pricePerDay) + ' ฿/วัน' : '', x + w / 2, y + w * .82);
+  ctx.fillText(P.showPrice ? fmtBaht(car.pricePerDay) + ' ฿/วัน' : '', x + w / 2 + OX('priceX'), y + w * .82 + OX('priceY'));
 
   /* ป้ายทะเบียน: ตัวหนังสือเล็กใต้ราคา (ไม่มีกล่องพื้นหลัง) */
   if (P.showPlate && car.plate){
-    ctx.font = fontStr(w * .045, '700');
+    ctx.font = fontStr(w * .045 * SC('plateS'), '700');
     ctx.fillStyle = D.subColor;
-    ctx.fillText(fitText(ctx, normalizePlate(car.plate), w * .93), x + w / 2, y + w * .92);
+    ctx.fillText(fitText(ctx, normalizePlate(car.plate), w * .93), x + w / 2 + OX('plateX'), y + w * .92 + OX('plateY'));
   }
+}
+
+/* ---------- พรีวิวการ์ดโปสเตอร์ + ลากจัดตำแหน่ง ---------- */
+let posterPreviewGeom = null, posterPreviewImg = null, posterPreviewCar = null;
+async function renderPosterPreview(){
+  const cv = $('#posterPreviewCanvas');
+  if (!cv) return;
+  const stage = cv.parentElement;
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const avail = (stage && stage.clientWidth) ? stage.clientWidth - 56 : 340;
+  const cardW = Math.max(200, Math.min(300, avail));
+  const cardH = cardW * 1.06;
+  const m = Math.round(cardW * .09);
+  const cw = Math.round(cardW + m * 2), ch = Math.round(cardH + m * 2);
+  cv.width = Math.round(cw * dpr); cv.height = Math.round(ch * dpr);
+  cv.style.width = cw + 'px'; cv.style.height = ch + 'px';
+  const car = posterPreviewCar || (posterPreviewCar = sampleCarForPreview());
+  if (!posterPreviewImg) posterPreviewImg = await loadImg(car.image || svgCarPlaceholder(car.name || 'รถ', 215));
+  posterPreviewGeom = { m, cardW, cardH, car, cw, ch, dpr };
+  paintPosterPreview();
+}
+function paintPosterPreview(){
+  const cv = $('#posterPreviewCanvas'), g = posterPreviewGeom;
+  if (!cv || !g) return;
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(g.dpr, 0, 0, g.dpr, 0, 0);
+  ctx.clearRect(0, 0, g.cw, g.ch);
+  drawPosterCard(ctx, g.car, posterPreviewImg, g.m, g.m, g.cardW, g.cardH, state.poster, state.design, state.design.playout);
+}
+function posterBoxes(g, ctx){
+  const w = g.cardW, x = g.m, y = g.m, car = g.car, L = state.design.playout || {};
+  const k = w / 340;
+  const OX = key => (L[key] || 0) * k;
+  const SC = key => Math.max(.2, (L[key] || 100) / 100);
+  const boxes = [];
+  const push = (key, fs, weight, text, cx, cy) => {
+    if (!text) return;
+    ctx.font = fontStr(fs, weight);
+    const tw = Math.min(ctx.measureText(text).width, w * .93);
+    boxes.push({ key, x: cx - tw / 2, y: cy - fs * .85, w: tw, h: fs * 1.7 });
+  };
+  push('name', w * .072 * SC('nameS'), '800', car.name || '', x + w / 2 + OX('nameX'), y + w * .085 + OX('nameY'));
+  const chips = [];
+  if (car.speed) chips.push('ความเร็ว ' + car.speed);
+  if (car.seats) chips.push(car.seats + ' ที่นั่ง');
+  push('detail', w * .048 * SC('detailS'), '600', chips.join('   •   '), x + w / 2 + OX('detailX'), y + w * .148 + OX('detailY'));
+  push('price', w * .1 * SC('priceS'), '900', state.poster.showPrice ? fmtBaht(car.pricePerDay) + ' ฿/วัน' : '', x + w / 2 + OX('priceX'), y + w * .82 + OX('priceY'));
+  if (state.poster.showPlate && car.plate) push('plate', w * .045 * SC('plateS'), '700', normalizePlate(car.plate), x + w / 2 + OX('plateX'), y + w * .92 + OX('plateY'));
+  return boxes;
+}
+function bindPosterPreviewDrag(){
+  const cv = $('#posterPreviewCanvas');
+  if (!cv || cv.dataset.bound) return;
+  cv.dataset.bound = '1';
+  let drag = null;
+  const toCss = e => {
+    const r = cv.getBoundingClientRect();
+    const sx = cv.clientWidth ? cv.clientWidth / r.width : 1;
+    const sy = cv.clientHeight ? cv.clientHeight / r.height : 1;
+    return { x: (e.clientX - r.left) * sx, y: (e.clientY - r.top) * sy };
+  };
+  const hitAt = e => {
+    if (!posterPreviewGeom) return null;
+    const p = toCss(e);
+    const boxes = posterBoxes(posterPreviewGeom, cv.getContext('2d'));
+    for (let i = boxes.length - 1; i >= 0; i--){
+      const b = boxes[i];
+      if (p.x >= b.x - 8 && p.x <= b.x + b.w + 8 && p.y >= b.y - 8 && p.y <= b.y + b.h + 8) return { b, p };
+    }
+    return null;
+  };
+  cv.addEventListener('pointerdown', e => {
+    const h = hitAt(e); if (!h) return;
+    const L = state.design.playout;
+    drag = { key: h.b.key, sx: h.p.x, sy: h.p.y, ox: L[h.b.key + 'X'] || 0, oy: L[h.b.key + 'Y'] || 0, moved: false };
+    cv.style.cursor = 'grabbing';
+    try { cv.setPointerCapture(e.pointerId); } catch(_){}
+    e.preventDefault();
+  });
+  cv.addEventListener('pointermove', e => {
+    if (!drag){
+      cv.style.cursor = hitAt(e) ? 'grab' : 'default';
+      return;
+    }
+    const p = toCss(e);
+    const dx = p.x - drag.sx, dy = p.y - drag.sy;
+    if (!drag.moved && Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true;
+    if (!drag.moved) return;
+    const k = posterPreviewGeom.cardW / 340;
+    const L = state.design.playout;
+    L[drag.key + 'X'] = Math.round(drag.ox + dx / k);
+    L[drag.key + 'Y'] = Math.round(drag.oy + dy / k);
+    paintPosterPreview();
+  });
+  cv.addEventListener('wheel', e => {
+    const h = hitAt(e); if (!h) return;
+    e.preventDefault();
+    const L = state.design.playout, key = h.b.key;
+    const cur = L[key + 'S'] || 100;
+    L[key + 'S'] = Math.max(50, Math.min(220, cur + (e.deltaY < 0 ? 5 : -5)));
+    paintPosterPreview(); saveDebounced(); renderPosterDebounced();
+  }, { passive:false });
+  const end = () => {
+    if (!drag) return;
+    const moved = drag.moved;
+    drag = null;
+    cv.style.cursor = 'default';
+    if (moved){
+      save(); renderPosterDebounced();
+      toast('จำตำแหน่งบนการ์ดโปสเตอร์แล้ว');
+    }
+  };
+  cv.addEventListener('pointerup', end);
+  cv.addEventListener('pointercancel', end);
+  cv.addEventListener('pointerleave', () => { if (!drag) cv.style.cursor = 'default'; });
 }
 
 /* ---------- ส่งออกโปสเตอร์ + Discord ---------- */
@@ -2127,6 +2336,7 @@ function handleImportedObject(obj){
     if (obj.design && typeof obj.design === 'object'){
       state.design = Object.assign({}, DEFAULT_DESIGN, obj.design);
       state.design.layout = Object.assign({}, DEFAULT_DESIGN.layout, state.design.layout || {});
+      state.design.playout = Object.assign({}, DEFAULT_DESIGN.playout, state.design.playout || {});
       applyDesign(); syncDesignInputs(); renderStore(); renderPreview(); renderPresetUI();
     }
     if (obj.poster && typeof obj.poster === 'object') state.poster = Object.assign({}, DEFAULT_POSTER, obj.poster);
@@ -2184,7 +2394,7 @@ function closeConfirm(){ $('#confirmModal').classList.remove('open'); cfCallback
 function switchPage(name){
   $$('.tab').forEach(t => t.classList.toggle('active', t.dataset.page === name));
   $$('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + name));
-  if (name === 'design') renderPreview();
+  if (name === 'design'){ renderPreview(); if (!$('#dsubPoster').hidden) renderPosterPreview(); }
   if (name === 'poster'){ renderPickGrid(); renderPoster(); }
   if (name === 'store'){ paintDots(); restartProgress(); }
 }
@@ -2231,7 +2441,7 @@ function bindEvents(){
     if (e.target.closest('[data-back]')){ e.target.closest('.fcard').classList.remove('flipped'); return; }
     if (e.target.closest('.bcontact')) return;
     const card = e.target.closest('.fcard');
-    if (card) card.classList.toggle('flipped');
+    if (card && !card.closest('#previewBox')) card.classList.toggle('flipped');
   });
   $('#btnQuickAdd').onclick = () => openEditor(null);
   $('#btnAddCar').onclick = () => openEditor(null);
@@ -2247,7 +2457,6 @@ function bindEvents(){
     else if (act === 'dup') duplicateCar(id);
     else if (act === 'del') deleteCar(id);
     else if (act === 'return') setStatus(id, 'available');
-    else if (act === 'maint'){ const c = findCar(id); setStatus(id, c && c.status === 'maintenance' ? 'available' : 'maintenance'); }
     else if (act === 'rent1') setStatus(id, 'rented', 1);
     else if (act === 'rent3') setStatus(id, 'rented', 3);
     else if (act === 'rent7') setStatus(id, 'rented', 7);
@@ -2255,7 +2464,7 @@ function bindEvents(){
   $('#manageList').addEventListener('change', e => {
     const cb = e.target.closest('[data-poster]'); if (!cb) return;
     const c = findCar(cb.dataset.id);
-    if (c){ c.onPoster = cb.checked; save(); renderPickGrid(); renderPosterDebounced(); }
+    if (c){ c.onPoster = cb.checked; if (c.onPoster && typeof c.posterOrder !== 'number') c.posterOrder = nextPosterOrder(); save(); renderPickGrid(); renderPosterOrder(); renderPosterDebounced(); }
   });
   // เอ็ดิเตอร์
   $('#edSave').onclick = saveEditor;
@@ -2320,24 +2529,36 @@ function bindEvents(){
     toast(state.design.bgUrl ? 'ใช้ลิงก์รูปเป็นพื้นหลังแล้ว' : 'ล้างพื้นหลังลิงก์รูปแล้ว');
   };
   $('#btnExportDesign').onclick = exportDesign;
+  $$('.dsub').forEach(b => {
+    b.onclick = () => {
+      $$('.dsub').forEach(x => x.classList.toggle('on', x === b));
+      const isPoster = b.dataset.dsub === 'poster';
+      $('#dsubCard').hidden = isPoster;
+      $('#dsubPoster').hidden = !isPoster;
+      if (isPoster){ renderPosterPreview(); bindPosterPreviewDrag(); }
+    };
+  });
   $('#btnResetLayout').onclick = () => {
     state.design.layout = Object.assign({}, DEFAULT_DESIGN.layout);
-    save(); renderStore(); renderManage(); renderPreview(); renderPosterDebounced();
-    toast('↺ จัดตำแหน่งข้อความกลับค่าเริ่มต้นแล้ว');
+    state.design.playout = Object.assign({}, DEFAULT_DESIGN.playout);
+    save(); renderStore(); renderManage(); renderPreview(); renderPosterDebounced(); paintPosterPreview();
+    toast('↺ ตำแหน่งข้อความกลับค่าเริ่มต้นแล้ว');
   };
   $('#btnResetDesign').onclick = () => confirmBox('↺ รีเซ็ตธีม?', 'คืนค่าธีมเริ่มต้น (ไม่กระทบข้อมูลรถ)', () => {
-    state.design = Object.assign({}, DEFAULT_DESIGN);
-    applyDesign(); syncDesignInputs(); renderStore(); renderPreview(); renderPresetUI(); save(); renderPosterDebounced();
+    state.design = Object.assign({}, DEFAULT_DESIGN, { layout: Object.assign({}, DEFAULT_DESIGN.layout), playout: Object.assign({}, DEFAULT_DESIGN.playout) });
+    applyDesign(); syncDesignInputs(); renderStore(); renderPreview(); renderPresetUI(); save(); renderPosterDebounced(); paintPosterPreview();
     toast('↺ รีเซ็ตธีมแล้ว');
   });
   // หน้าโปสเตอร์
-  const posterInputs = ['pTitle','pSub','pSize','pCols','pGap','pShowHeader','pShowPlate','pShowStatus','pShowPrice'];
+  const posterInputs = ['pTitle','pSub','pTitleScale','pSize','pCols','pGap','pShowHeader','pShowPlate','pShowStatus','pShowPrice'];
   posterInputs.forEach(id => {
     const el = $('#' + id);
     el.addEventListener('input', () => {
       const P = state.poster;
       P.title = $('#pTitle').value;
       P.sub = $('#pSub').value;
+      P.titleScale = parseInt($('#pTitleScale').value, 10) || 100;
+      $('#pTitleScaleVal').textContent = P.titleScale + '%';
       P.size = $('#pSize').value;
       P.cols = $('#pCols').value;
       P.gap = parseInt($('#pGap').value, 10) || 24;
@@ -2346,12 +2567,17 @@ function bindEvents(){
       P.showPlate = $('#pShowPlate').checked;
       P.showStatus = $('#pShowStatus').checked;
       P.showPrice = $('#pShowPrice').checked;
+      if (!$('#dsubPoster').hidden) paintPosterPreview();
       saveDebounced(); renderPosterDebounced();
     });
     el.addEventListener('change', () => el.dispatchEvent(new Event('input')));
   });
   $('#btnSelAll').onclick = () => setAllPoster(true, false);
   $('#btnSelFree').onclick = () => setAllPoster(false, true);
+  $('#posterOrderList').addEventListener('click', e => {
+    const b = e.target.closest('[data-omove]'); if (!b) return;
+    movePosterCar(b.dataset.id, parseInt(b.dataset.omove, 10) || 0);
+  });
   $('#btnSelNone').onclick = () => setAllPoster(false, false);
   $('#btnPosterDl').onclick = downloadPoster;
   $('#btnPosterRe').onclick = () => { renderPoster(); toast('รีเฟรชโปสเตอร์แล้ว'); };
@@ -2408,6 +2634,7 @@ function bindEvents(){
 function syncPosterForm(){
   const P = state.poster;
   $('#pTitle').value = P.title; $('#pSub').value = P.sub;
+  const pts = $('#pTitleScale'); if (pts) { pts.value = P.titleScale || 100; $('#pTitleScaleVal').textContent = (P.titleScale || 100) + '%'; }
   $('#pSize').value = P.size; $('#pCols').value = P.cols; $('#pGap').value = P.gap;
   $('#pGapVal').textContent = P.gap + 'px';
   $('#pShowHeader').checked = P.showHeader; $('#pShowPlate').checked = P.showPlate;
@@ -2429,6 +2656,7 @@ function init(){
   // ซิงก์ค่าโปสเตอร์จาก state ลงฟอร์ม
   const P = state.poster;
   $('#pTitle').value = P.title; $('#pSub').value = P.sub;
+  $('#pTitleScale').value = P.titleScale || 100; $('#pTitleScaleVal').textContent = (P.titleScale || 100) + '%';
   $('#pSize').value = P.size; $('#pCols').value = P.cols; $('#pGap').value = P.gap;
   $('#pGapVal').textContent = P.gap + 'px';
   $('#pShowHeader').checked = P.showHeader; $('#pShowPlate').checked = P.showPlate;
@@ -2437,6 +2665,8 @@ function init(){
   applyDesign();
   bindEvents();
   renderAll();
+  bindPosterPreviewDrag();
+  renderPosterPreview();
   setInterval(updateCountdowns, 1000);
   // เริ่มระบบซิงค์ห้องเรียลไทม์ (โหลด localStorage ไปก่อน แล้วฟัง cloud — แบบเดียวกับ sell.html)
   try { $('#roomInputUI').value = currentRoom; } catch(e){}
