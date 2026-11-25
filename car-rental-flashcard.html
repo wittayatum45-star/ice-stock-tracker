@@ -175,6 +175,7 @@ body.flip-vertical .fback{transform:rotateX(180deg)}
 .mrow .info{flex:1;min-width:210px}
 .mrow .info .n{font-weight:800;font-size:16.5px}
 .mrow .info .s{font-size:12.5px;color:var(--sub);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.mrow .info .rtime{font-size:12px;color:var(--sub);margin-top:4px;line-height:1.5;opacity:.9}
 .mrow .price{font-weight:900;color:var(--accent);font-size:16px;white-space:nowrap}
 .mrow .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .st{font-size:11.5px;font-weight:800;padding:3px 10px;border-radius:999px}
@@ -214,6 +215,18 @@ details[open] summary::after{transform:rotate(180deg)}
 .orow .oname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:700}
 .orow .btn.sm{padding:4px 8px;font-size:11px}
 .orow .btn.sm[disabled]{opacity:.3;cursor:default}
+.ptadd{display:flex;gap:8px;padding:2px 0 8px}
+.ptopts{display:flex;align-items:center;gap:10px;padding:0 0 10px;font-size:12px;color:var(--sub);font-weight:600;flex-wrap:wrap}
+.ptopts input[type=range]{flex:1;min-width:110px}
+.ptopts b{color:var(--accent)}
+.ptopts input[type=color]{width:38px;height:30px;padding:0;border:1px solid var(--panel-line);border-radius:8px;background:transparent;cursor:pointer}
+.ptlist{display:flex;flex-direction:column;gap:6px;padding:0 0 8px;max-height:240px;overflow:auto}
+.ptitem{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid var(--panel-line);border-radius:10px;padding:5px 6px;cursor:pointer}
+.ptitem.on{border-color:var(--accent);box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 55%,transparent) inset}
+.ptitem .inp{flex:1;min-width:0;padding:6px 8px;font-size:12.5px}
+.ptitem .inp.sz{flex:none;width:58px;text-align:center;padding:6px 4px}
+.ptitem input[type=color]{flex:none;width:30px;height:30px;padding:0;border:1px solid var(--panel-line);border-radius:7px;background:transparent;cursor:pointer}
+.ptitem .btn.sm{padding:4px 7px;font-size:11px}
 .pcanvasbox{background:var(--panel);border:1px solid var(--panel-line);border-radius:18px;padding:18px;backdrop-filter:blur(8px);position:sticky;top:86px}
 @media(max-width:1020px){.pcanvasbox{position:static}}
 .pcanvasbox canvas{width:100%;height:auto;display:block;border-radius:10px;box-shadow:0 18px 50px rgba(0,0,0,.55)}
@@ -453,6 +466,21 @@ body:fullscreen .hero{padding-top:26px}
           <button class="btn accent" id="btnPosterDl">ดาวน์โหลด PNG</button>
           <button class="btn" id="btnPosterRe">รีเฟรชใหม่</button>
         </div>
+      </details>
+      <details open>
+        <summary>ข้อความอิสระบนโปสเตอร์ (ลาก/ขยายได้)</summary>
+        <div class="ptadd">
+          <input class="inp grow" id="ptText" placeholder="พิมพ์ข้อความที่ต้องการ เช่น โปรโมชั่นพิเศษ ทักแชทเลย">
+          <button class="btn accent sm" id="btnPtAdd">เพิ่มข้อความ</button>
+        </div>
+        <div class="ptopts">
+          <span>ขนาด <b id="ptSizeVal">48</b></span>
+          <input type="range" id="ptSize" min="16" max="160" step="2" value="48">
+          <input type="color" id="ptColor" value="#ffd400" title="สีข้อความ">
+          <label class="chk"><input type="checkbox" id="ptBold" checked>ตัวหนา</label>
+        </div>
+        <div class="ptlist" id="ptList"></div>
+        <div class="dcstep" style="margin-top:6px">ลากข้อความบนตัวอย่างโปสเตอร์เพื่อย้ายตำแหน่ง • หมุนล้อเมาส์เหนือข้อความเพื่อย่อ/ขยาย • คลิกแถวด้านบนเพื่อเลือก</div>
       </details>
       <details open>
         <summary>Discord: ส่งรูป → ได้ลิงก์กลับมาใช้เลย</summary>
@@ -710,6 +738,7 @@ body:fullscreen .hero{padding-top:26px}
           <div class="field"><label>สถานะปัจจุบัน</label><select class="inp" id="f-status"><option value="available">พร้อมให้เช่า</option><option value="rented">ติดเช่า</option></select></div>
           <div class="field" id="daysField"><label>เช่าอีกกี่วัน (ป้ายนับถอยหลัง)</label><input class="inp" id="f-days" type="number" min="1" max="365" value="1"></div>
         </div>
+        <div class="plateHint" id="rentDueHint" style="margin-top:8px"></div>
       </div>
     </div>
     <div class="mfoot">
@@ -764,6 +793,31 @@ function hhmmss(ms){
   const m = String(Math.floor(s % 3600 / 60)).padStart(2, '0');
   const ss = String(s % 60).padStart(2, '0');
   return (d > 0 ? d + 'วัน ' : '') + h + ':' + m + ':' + ss;
+}
+function pad2(n){ return String(n).padStart(2, '0'); }
+function fmtDT(ts){
+  if (!ts) return '—';
+  const d = new Date(ts);
+  return pad2(d.getDate()) + '/' + pad2(d.getMonth() + 1) + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+}
+function humanSpan(ms){
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
+  if (d > 0) return d + ' วัน ' + h + ' ชม.';
+  if (h > 0) return h + ' ชม. ' + m + ' น.';
+  if (m > 0) return m + ' น.';
+  return 'ไม่ถึง 1 นาที';
+}
+/* ข้อความสรุปช่วงเวลาเช่า: ปล่อยเมื่อไร • ผ่านไปเท่าไร • ครบกำหนดเมื่อไร */
+function rentTimeText(car){
+  if (!car || car.status !== 'rented') return '';
+  const bits = [];
+  if (car.rentStart){
+    bits.push('ปล่อยเช่า ' + fmtDT(car.rentStart));
+    bits.push('ผ่านไป ' + humanSpan(Date.now() - car.rentStart));
+  }
+  bits.push(car.rentEnd ? 'ครบกำหนด ' + fmtDT(car.rentEnd) : 'ไม่กำหนดคืน');
+  return bits.join(' • ');
 }
 function copyText(txt, okMsg){
   const done = () => toast(okMsg || 'คัดลอกแล้ว');
@@ -826,15 +880,29 @@ const PRESETS = {
   blaze:  { label:'Blaze Racing',  emoji:'', cardBg1:'#1f0600', cardBg2:'#4a1200', cardAngle:150, accent:'#fb5607', btnText:'#ffffff', textColor:'#ffffff', subColor:'#e8b39a', borderColor:'#fb5607', borderWidth:1.5, radius:16, glow:26, bg1:'#170401', bg2:'#2b0900', bgPattern:'speed',  fontFamily:'Bungee' },
 };
 
-const DEFAULT_POSTER = { title:'', sub:'', size:'16x9', cols:'auto', gap:16, showHeader:true, showPlate:true, showStatus:true, showPrice:true, titleScale:100 };
+const DEFAULT_POSTER = { title:'', sub:'', size:'16x9', cols:'auto', gap:16, showHeader:true, showPlate:true, showStatus:true, showPrice:true, titleScale:100, texts:[] };
 const POSTER_SIZES = { '16x9':[1920,1080], '3x2':[1800,1200], '4x5':[1080,1350], '9x16':[1080,1920] };
+
+function normalizePoster(p){
+  const out = Object.assign({}, DEFAULT_POSTER, p || {});
+  out.texts = Array.isArray(out.texts) ? out.texts.filter(t => t && typeof t === 'object').map(t => ({
+    id: t.id || uid(),
+    text: String(t.text == null ? '' : t.text),
+    x: (typeof t.x === 'number' && isFinite(t.x)) ? t.x : .5,
+    y: (typeof t.y === 'number' && isFinite(t.y)) ? t.y : .9,
+    size: Number(t.size) || 48,
+    color: t.color || '#ffffff',
+    bold: t.bold !== false
+  })) : [];
+  return out;
+}
 
 function defaultState(){
   return {
     shop: { name:'CAR RENTAL', tagline:'ระบบแฟลชการ์ดแสดงรถให้เช่า • แตะการ์ดเพื่อพลิกดูรายละเอียด', phone:'', line:'', address:'' },
     cars: [],
     design: Object.assign({}, DEFAULT_DESIGN, { layout: Object.assign({}, DEFAULT_DESIGN.layout), playout: Object.assign({}, DEFAULT_DESIGN.playout) }),
-    poster: Object.assign({}, DEFAULT_POSTER),
+    poster: normalizePoster(null),
   };
 }
 
@@ -846,6 +914,7 @@ function saveLocalOnly(){
   catch(e){ console.warn('บันทึกลงเครื่องไม่สำเร็จ (พื้นที่เต็ม):', e); toast('พื้นที่เบราว์เซอร์เต็ม ลองลบรูปเก่าหรือส่งออกไฟล์ก่อน', true); }
 }
 function save(){
+  setDirty(true);
   saveLocalOnly();
   scheduleCloudPush();
   updateStorageInfo();
@@ -886,7 +955,7 @@ function load(){
         state.design.layout = Object.assign({}, DEFAULT_DESIGN.layout, state.design.layout || {});
         state.design.playout = Object.assign({}, DEFAULT_DESIGN.playout, state.design.playout || {});
       }
-      if (obj.poster && typeof obj.poster === 'object') state.poster = Object.assign(state.poster, obj.poster);
+      if (obj.poster && typeof obj.poster === 'object') state.poster = normalizePoster(obj.poster);
     }
   } catch(e){ console.warn('โหลดข้อมูลเก่าไม่สำเร็จ:', e); }
 }
@@ -936,6 +1005,13 @@ function getRoomFromURL(){
 let currentRoom = getRoomFromURL() || '1';
 let unsubscribeFB = null, isIncomingSync = false, cloudSaveTimer = null;
 let lastPushedAt = 0, lastCloudUpdate = 0, lastImgRev = null, imgRev = 0;
+let stateDirty = false;
+function dirtyKey(){ return 'carFlashcards_dirty_r' + currentRoom; }
+function loadDirty(){ try { return localStorage.getItem(dirtyKey()) === '1'; } catch(e){ return false; } }
+function setDirty(v){
+  stateDirty = !!v;
+  try { if (v) localStorage.setItem(dirtyKey(), '1'); else localStorage.removeItem(dirtyKey()); } catch(e){}
+}
 let imageCache = {}, uploadedSig = {}, pendingSnap = null, pendingTimer = null;
 const seededRooms = {};
 
@@ -1063,6 +1139,7 @@ async function pushToCloudNow(manual){
     }
     await roomDocRef().set(stripUndefined(payload));
     await deleteOrphanImages(usedIds);
+    setDirty(false);
     lastPushedAt = Date.now();
     lastCloudUpdate = payload.lastUpdate;
     lastImgRev = imgRev;
@@ -1113,7 +1190,7 @@ async function applyRemoteDoc(data){
     state.design = Object.assign({}, DEFAULT_DESIGN, data.design || {});
     state.design.layout = Object.assign({}, DEFAULT_DESIGN.layout, state.design.layout || {});
     state.design.playout = Object.assign({}, DEFAULT_DESIGN.playout, state.design.playout || {});
-    state.poster = Object.assign({}, DEFAULT_POSTER, data.poster || {});
+    state.poster = normalizePoster(data.poster);
     state.cars = (Array.isArray(data.cars) ? data.cars : []).filter(c => c && c.name).map(c => {
       const m = migrateCar(Object.assign({}, c));
       const usable = m.image && (m.image.indexOf('http') === 0 || m.image.indexOf('data:') === 0);
@@ -1128,6 +1205,7 @@ async function applyRemoteDoc(data){
     syncPosterForm();
     syncShopInputs();
     saveLocalOnly();
+    setDirty(false);
     if (data.lastUpdate) lastCloudUpdate = data.lastUpdate;
     setCloudStatus('ออนไลน์ • ห้อง ' + currentRoom, '');
   } catch(err){
@@ -1158,6 +1236,12 @@ function startListeningToRoom(){
         return;
       }
       if (data.lastUpdate && data.lastUpdate <= lastCloudUpdate && (Date.now() - lastPushedAt) < 5000) return;
+      /* มีการแก้ไขในเครื่องนี้ที่ยังดันขึ้นคลาวด์ไม่สำเร็จ — เก็บของในเครื่องไว้ก่อนแล้วดันซ้ำ
+         (กันข้อมูลเก่าบนคลาวด์ย้อนมาเขียนทับ เวลาเช่า/สถานะที่เพิ่งตั้งจะหาย) */
+      if (stateDirty){
+        scheduleCloudPush();
+        return;
+      }
       if (isInteracting()){ pendingSnap = data; schedulePendingRetry(); return; }
       await applyRemoteDoc(data);
     } else {
@@ -1180,6 +1264,7 @@ function changeFirebaseRoom(){
   try { const u = new URL(location.href); u.searchParams.set('room', currentRoom); history.replaceState(null, '', u.toString()); } catch(e){}
   state = defaultState();
   load();
+  stateDirty = loadDirty();
   applyDesign(); renderAll(); syncPosterForm(); syncShopInputs();
   toast('ย้ายไปห้อง "' + currentRoom + '" แล้ว กำลังดึงข้อมูลจากคลาวด์…');
   maybeStartCloud();
@@ -1310,7 +1395,7 @@ function autoReleaseExpired(opts){
   opts = opts || {};
   let changed = 0;
   state.cars.forEach(c => {
-    if (isRentExpired(c)){ c.status = 'available'; c.rentEnd = null; changed++; }
+    if (isRentExpired(c)){ c.status = 'available'; c.rentEnd = null; c.rentStart = null; changed++; }
   });
   if (changed){
     save();
@@ -1463,6 +1548,11 @@ function updateCountdowns(){
     if (left <= 0){ el.textContent = ''; el.classList.remove('expired'); }
     else { el.textContent = hhmmss(left); el.classList.remove('expired'); }
   });
+  $$('[data-rentinfo]').forEach(el => {
+    const c = state.cars.find(x => x.id === el.dataset.rentinfo);
+    if (!c || c.status !== 'rented'){ el.textContent = ''; return; }
+    el.textContent = rentTimeText(c);
+  });
 }
 
 /* ---------- Hero / สถิติ ---------- */
@@ -1519,6 +1609,7 @@ function renderManage(){
           (c.seats ? '<span>' + esc(c.seats) + ' ที่นั่ง</span>' : '') +
           (c.status === 'rented' ? '<span data-cdown="' + esc(c.id) + '" style="color:var(--accent);font-weight:700"></span>' : '') +
         '</div>' +
+        (c.status === 'rented' ? '<div class="rtime" data-rentinfo="' + esc(c.id) + '">' + esc(rentTimeText(c)) + '</div>' : '') +
       '</div>' +
       '<div class="price">' + fmtBaht(c.pricePerDay) + ' ฿/วัน</div>' +
       '<label class="poster-chk" title="เลือกให้ขึ้นโปสเตอร์"><input type="checkbox" data-poster data-id="' + esc(c.id) + '"' + (c.onPoster ? ' checked' : '') + '>โปสเตอร์</label>' +
@@ -1538,10 +1629,18 @@ function renderManage(){
 function findCar(id){ return state.cars.find(c => c.id === id); }
 function setStatus(id, status, days){
   const c = findCar(id); if (!c) return;
+  const wasRented = c.status === 'rented';
+  const now = Date.now();
   c.status = status;
-  c.rentEnd = status === 'rented' ? Date.now() + (days || 1) * 864e5 : null;
+  if (status === 'rented'){
+    /* เก็บเวลาที่เริ่มปล่อยเช่าไว้ (กดซ้ำ = ต่อเวลา แต่ยังรู้ว่าเริ่มเมื่อไร) */
+    if (!wasRented || !c.rentStart) c.rentStart = now;
+    c.rentEnd = now + (days || 1) * 864e5;
+  } else {
+    c.rentStart = null; c.rentEnd = null;
+  }
   save(); renderManage(); renderStore(); renderStats();
-  if (status === 'rented') toast((c.name || 'รถ') + ' ติดเช่า ' + (days || 1) + ' วัน — ป้ายนับถอยหลังติดบนการ์ดแล้ว');
+  if (status === 'rented') toast((c.name || 'รถ') + ' ติดเช่า ' + (days || 1) + ' วัน — ครบกำหนด ' + fmtDT(c.rentEnd));
   else toast((c.name || 'รถ') + ' พร้อมให้เช่าแล้ว');
 }
 function duplicateCar(id){
@@ -1576,6 +1675,16 @@ function paintPlatePreview(){
   if (ck.ok){ hint.textContent = 'รูปแบบป้ายถูกต้อง — จะแสดงเป็นตัวเล็กๆ ใต้ราคาบนการ์ด'; hint.className = 'plateHint ok'; }
   else { hint.textContent = 'รูปแบบไม่ตรงป้ายไทย (ใช้ต่อได้ถ้าเป็นป้ายเกม) แนะนำ เช่น "กท 1234" หรือ "1กก 5678"'; hint.className = 'plateHint warn'; }
 }
+function paintRentDueHint(){
+  const el = $('#rentDueHint'); if (!el) return;
+  const st = $('#f-status').value;
+  if (st !== 'rented'){ el.textContent = 'สถานะว่าง — ไม่มีกำหนดคืน'; el.className = 'plateHint'; return; }
+  const days = Math.max(1, parseInt($('#f-days').value, 10) || 1);
+  const start = (edCar && edCar.status === 'rented' && edCar.rentStart) ? edCar.rentStart : Date.now();
+  const end = Date.now() + days * 864e5;
+  el.textContent = 'ปล่อยเช่า ' + fmtDT(start) + ' • ครบกำหนด ' + fmtDT(end) + ' (อีก ' + days + ' วัน)';
+  el.className = 'plateHint ok';
+}
 function openEditor(id){
   edCar = id ? findCar(id) : null;
   $('#edTitle').textContent = edCar ? 'แก้ไข: ' + (edCar.name || 'รถ') : '＋ เพิ่มรถใหม่';
@@ -1595,6 +1704,7 @@ function openEditor(id){
   paintEditorImage();
   syncFxInputs();
   paintPlatePreview();
+  paintRentDueHint();
   $('#imgUrl').value = '';
   $('#editorModal').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -1673,6 +1783,7 @@ function collectEditor(){
     details: $('#f-details').value.trim(),
     image: edImage, imgFx: Object.assign({}, edFx),
     status,
+    rentStart: status === 'rented' ? ((edCar && edCar.status === 'rented' && edCar.rentStart) ? edCar.rentStart : Date.now()) : null,
     rentEnd: status === 'rented' ? Date.now() + Math.max(1, parseInt($('#f-days').value, 10) || 1) * 864e5 : null,
   };
 }
@@ -1726,6 +1837,7 @@ function bindLayoutDrag(card, opts){
       e.preventDefault();
       e.stopPropagation();
       active = true; moved = false;
+      window.__dragging = true;
       sx = e.clientX; sy = e.clientY;
       lx = (L()[key + 'X'] || 0);
       ly = (L()[key + 'Y'] || 0);
@@ -1759,6 +1871,7 @@ function bindLayoutDrag(card, opts){
     const off = () => {
       if (!active) return;
       active = false;
+      window.__dragging = false;
       el.style.cursor = 'grab';
       if (moved){
         save(); renderStore(); renderManage(); renderPosterDebounced();
@@ -2000,6 +2113,7 @@ async function renderPoster(){
       ctx.font = fontStr(46, '700');
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText('ยังไม่ได้เลือกรถ — ติ๊กรถที่ต้องการขึ้นโปสเตอร์ด้านซ้าย', W / 2, H / 2);
+      drawPosterTexts(ctx, W, H);
       return;
     }
 
@@ -2055,12 +2169,212 @@ async function renderPoster(){
       drawPosterCard(ctx, c, imgs[i], x, y, cardW, cardH, P, D, state.design.playout);
     });
 
+    /* ข้อความอิสระที่ผู้ใช้เพิ่มเอง (วาดทับด้านบนสุด) */
+    drawPosterTexts(ctx, W, H);
+
   } catch(e){
     console.warn('วาดโปสเตอร์ไม่สำเร็จ:', e);
     toast('วาดโปสเตอร์ไม่สำเร็จ: ' + (e.message || ''), true);
   }
 }
 const renderPosterDebounced = debounce(renderPoster, 350);
+
+/* ---------- ข้อความอิสระบนโปสเตอร์ ---------- */
+let selectedPosterTextId = null;
+let posterTextDrag = null, posterPaintRaf = 0;
+function posterTextList(){ return (state.poster && Array.isArray(state.poster.texts)) ? state.poster.texts : []; }
+function posterTextFont(t, W){
+  const fs = Math.max(10, (Number(t.size) || 48) * (W / 1920));
+  return (t.bold ? '900 ' : '600 ') + Math.round(fs) + "px '" + state.design.fontFamily + "','Kanit',sans-serif";
+}
+function drawPosterTexts(ctx, W, H){
+  posterTextList().forEach(t => {
+    const txt = String(t.text || '').trim();
+    if (!txt) return;
+    const fs = Math.max(10, (Number(t.size) || 48) * (W / 1920));
+    const px = (typeof t.x === 'number' ? t.x : .5) * W;
+    const py = (typeof t.y === 'number' ? t.y : .9) * H;
+    ctx.save();
+    ctx.font = posterTextFont(t, W);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = Math.max(2, fs * .13);
+    ctx.strokeStyle = 'rgba(0,0,0,.6)';
+    ctx.strokeText(txt, px, py);
+    ctx.fillStyle = t.color || '#fff';
+    ctx.fillText(txt, px, py);
+    if (t.id === selectedPosterTextId){
+      const m = ctx.measureText(txt);
+      const padX = fs * .28, padY = fs * .22;
+      ctx.setLineDash([Math.max(6, W * .008), Math.max(4, W * .005)]);
+      ctx.lineWidth = Math.max(1.5, W * .0018);
+      ctx.strokeStyle = 'rgba(255,255,255,.85)';
+      ctx.strokeRect(px - m.width / 2 - padX, py - fs / 2 - padY, m.width + padX * 2, fs + padY * 2);
+      ctx.setLineDash([]);
+    }
+    ctx.restore();
+  });
+}
+function renderPosterTextList(){
+  const box = $('#ptList'); if (!box) return;
+  const list = posterTextList();
+  box.innerHTML = '';
+  if (!list.length){
+    box.innerHTML = '<div class="dcstep" style="padding:2px 0">ยังไม่มีข้อความอิสระ — พิมพ์ด้านบนแล้วกด "เพิ่มข้อความ"</div>';
+    return;
+  }
+  list.forEach(t => {
+    const row = document.createElement('div');
+    row.className = 'ptitem' + (t.id === selectedPosterTextId ? ' on' : '');
+    row.dataset.ptid = t.id;
+    row.innerHTML =
+      '<input class="inp" data-ptext="' + esc(t.id) + '" value="' + esc(t.text || '') + '" placeholder="ข้อความ">' +
+      '<input class="inp sz" type="number" min="10" max="400" step="2" data-ptsize="' + esc(t.id) + '" value="' + (Number(t.size) || 48) + '" title="ขนาดตัวอักษร (px)">' +
+      '<input type="color" data-ptcolor="' + esc(t.id) + '" value="' + (t.color || '#ffffff') + '" title="สีข้อความ">' +
+      '<button class="btn sm" data-ptbold="' + esc(t.id) + '" title="สลับตัวหนา/บาง">' + (t.bold ? 'B' : 'b') + '</button>' +
+      '<button class="btn sm danger" data-ptdel="' + esc(t.id) + '" title="ลบข้อความ">ลบ</button>';
+    box.appendChild(row);
+  });
+}
+function addPosterText(){
+  const inp = $('#ptText');
+  const text = (inp.value || '').trim();
+  if (!text){ toast('พิมพ์ข้อความก่อนกดเพิ่ม', true); inp.focus(); return; }
+  if (!Array.isArray(state.poster.texts)) state.poster.texts = [];
+  const t = {
+    id: uid(),
+    text,
+    x: .5, y: .9,
+    size: parseInt($('#ptSize').value, 10) || 48,
+    color: $('#ptColor').value || '#ffffff',
+    bold: $('#ptBold').checked
+  };
+  state.poster.texts.push(t);
+  selectedPosterTextId = t.id;
+  inp.value = '';
+  save(); renderPosterTextList(); renderPoster();
+  toast('เพิ่มข้อความบนโปสเตอร์แล้ว — ลากบนภาพเพื่อจัดตำแหน่งได้เลย');
+}
+function removePosterText(id){
+  state.poster.texts = posterTextList().filter(t => t.id !== id);
+  if (selectedPosterTextId === id) selectedPosterTextId = null;
+  save(); renderPosterTextList(); renderPoster();
+}
+function bindPosterTextUI(){
+  const add = $('#btnPtAdd'); if (add) add.onclick = addPosterText;
+  const tx = $('#ptText');
+  if (tx) tx.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); addPosterText(); } });
+  const sz = $('#ptSize'), szv = $('#ptSizeVal');
+  if (sz) sz.addEventListener('input', () => { if (szv) szv.textContent = sz.value; });
+  const list = $('#ptList');
+  if (list){
+    list.addEventListener('input', e => {
+      const el = e.target;
+      const key = el.dataset.ptext || el.dataset.ptsize || el.dataset.ptcolor;
+      const t = posterTextList().find(x => x.id === key);
+      if (!t) return;
+      if (el.dataset.ptext !== undefined) t.text = el.value;
+      else if (el.dataset.ptsize !== undefined) t.size = Math.max(10, Math.min(400, parseInt(el.value, 10) || 48));
+      else if (el.dataset.ptcolor !== undefined) t.color = el.value;
+      saveDebounced(); renderPosterDebounced();
+    });
+    list.addEventListener('click', e => {
+      const del = e.target.closest('[data-ptdel]');
+      if (del){ e.stopPropagation(); removePosterText(del.dataset.ptdel); return; }
+      const bold = e.target.closest('[data-ptbold]');
+      if (bold){
+        e.stopPropagation();
+        const t = posterTextList().find(x => x.id === bold.dataset.ptbold);
+        if (t){ t.bold = !t.bold; save(); renderPosterTextList(); renderPoster(); }
+        return;
+      }
+      const row = e.target.closest('.ptitem');
+      if (row){
+        selectedPosterTextId = row.dataset.ptid;
+        [...list.children].forEach(ch => ch.classList.toggle('on', ch.dataset.ptid === selectedPosterTextId));
+        renderPoster();
+      }
+    });
+  }
+}
+function schedulePosterPaint(){
+  if (posterPaintRaf) return;
+  posterPaintRaf = requestAnimationFrame(() => { posterPaintRaf = 0; renderPoster(); });
+}
+function posterCanvasPt(cv, e){
+  const r = cv.getBoundingClientRect();
+  return { x: (e.clientX - r.left) * (cv.width / r.width), y: (e.clientY - r.top) * (cv.height / r.height) };
+}
+function hitPosterText(cv, pt){
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  const list = posterTextList();
+  for (let i = list.length - 1; i >= 0; i--){
+    const t = list[i];
+    const txt = String(t.text || '').trim();
+    if (!txt) continue;
+    const fs = Math.max(10, (Number(t.size) || 48) * (W / 1920));
+    ctx.font = posterTextFont(t, W);
+    const m = ctx.measureText(txt);
+    const cx = (typeof t.x === 'number' ? t.x : .5) * W;
+    const cy = (typeof t.y === 'number' ? t.y : .9) * H;
+    if (Math.abs(pt.x - cx) <= m.width / 2 + fs * .3 && Math.abs(pt.y - cy) <= fs * .8) return t;
+  }
+  return null;
+}
+function bindPosterCanvasTextDrag(){
+  const cv = $('#posterCanvas'); if (!cv || cv.dataset.ptbound) return;
+  cv.dataset.ptbound = '1';
+  cv.style.touchAction = 'none';
+  cv.addEventListener('pointerdown', e => {
+    const pt = posterCanvasPt(cv, e);
+    const t = hitPosterText(cv, pt);
+    if (!t){
+      if (selectedPosterTextId){ selectedPosterTextId = null; renderPosterTextList(); renderPoster(); }
+      return;
+    }
+    selectedPosterTextId = t.id;
+    posterTextDrag = { id: t.id, dx: pt.x / cv.width - (t.x || 0), dy: pt.y / cv.height - (t.y || 0) };
+    window.__dragging = true;
+    try { cv.setPointerCapture(e.pointerId); } catch(err){}
+    cv.style.cursor = 'grabbing';
+    renderPosterTextList(); renderPoster();
+    e.preventDefault();
+  });
+  cv.addEventListener('pointermove', e => {
+    if (!posterTextDrag){
+      cv.style.cursor = hitPosterText(cv, posterCanvasPt(cv, e)) ? 'grab' : 'default';
+      return;
+    }
+    const t = posterTextList().find(x => x.id === posterTextDrag.id);
+    if (!t) return;
+    const pt = posterCanvasPt(cv, e);
+    t.x = Math.min(1, Math.max(0, pt.x / cv.width - posterTextDrag.dx));
+    t.y = Math.min(1, Math.max(0, pt.y / cv.height - posterTextDrag.dy));
+    schedulePosterPaint();
+    e.preventDefault();
+  });
+  const end = () => {
+    if (!posterTextDrag) return;
+    posterTextDrag = null;
+    window.__dragging = false;
+    cv.style.cursor = 'grab';
+    save(); renderPosterTextList(); renderPoster();
+  };
+  cv.addEventListener('pointerup', end);
+  cv.addEventListener('pointercancel', end);
+  cv.addEventListener('wheel', e => {
+    const t = hitPosterText(cv, posterCanvasPt(cv, e));
+    if (!t) return;
+    e.preventDefault();
+    selectedPosterTextId = t.id;
+    const dir = e.deltaY < 0 ? 1 : -1;
+    t.size = Math.max(10, Math.min(400, Math.round((Number(t.size) || 48) + dir * 4)));
+    renderPosterTextList();
+    schedulePosterPaint();
+    saveDebounced();
+  }, { passive: false });
+}
 
 function drawPosterCard(ctx, car, img, x, y, w, h, P, D, LAYOUT){
   const r = Math.max(6, w * .05);
@@ -2233,6 +2547,7 @@ function bindPosterPreviewDrag(){
     const h = hitAt(e); if (!h) return;
     const L = state.design.playout;
     drag = { key: h.b.key, sx: h.p.x, sy: h.p.y, ox: L[h.b.key + 'X'] || 0, oy: L[h.b.key + 'Y'] || 0, moved: false };
+    window.__dragging = true;
     cv.style.cursor = 'grabbing';
     try { cv.setPointerCapture(e.pointerId); } catch(_){}
     e.preventDefault();
@@ -2264,6 +2579,7 @@ function bindPosterPreviewDrag(){
     if (!drag) return;
     const moved = drag.moved;
     drag = null;
+    window.__dragging = false;
     cv.style.cursor = 'default';
     if (moved){
       save(); renderPosterDebounced();
@@ -2361,7 +2677,7 @@ function handleImportedObject(obj){
       state.design.playout = Object.assign({}, DEFAULT_DESIGN.playout, state.design.playout || {});
       applyDesign(); syncDesignInputs(); renderStore(); renderPreview(); renderPresetUI();
     }
-    if (obj.poster && typeof obj.poster === 'object') state.poster = Object.assign({}, DEFAULT_POSTER, obj.poster);
+    if (obj.poster && typeof obj.poster === 'object') state.poster = normalizePoster(obj.poster);
     if (!designOnly && Array.isArray(obj.cars)){
       state.cars = obj.cars.filter(c => c && typeof c === 'object' && c.name).map(c => migrateCar(Object.assign({}, c)));
       if (obj.shop && typeof obj.shop === 'object') state.shop = Object.assign(defaultState().shop, obj.shop);
@@ -2417,7 +2733,7 @@ function switchPage(name){
   $$('.tab').forEach(t => t.classList.toggle('active', t.dataset.page === name));
   $$('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + name));
   if (name === 'design'){ renderPreview(); if (!$('#dsubPoster').hidden) renderPosterPreview(); }
-  if (name === 'poster'){ renderPickGrid(); renderPoster(); }
+  if (name === 'poster'){ renderPickGrid(); renderPosterTextList(); renderPoster(); }
   if (name === 'store'){ paintDots(); restartProgress(); }
 }
 function setView(v){
@@ -2431,6 +2747,7 @@ function setView(v){
 function renderAll(){
   renderHero(); renderStats(); renderStore(); renderManage();
   syncDesignInputs(); renderPresetUI(); renderPickGrid(); updateStorageInfo();
+  renderPosterTextList();
 }
 
 /* ---------- ผูกเหตุการณ์ ---------- */
@@ -2491,7 +2808,9 @@ function bindEvents(){
   // เอ็ดิเตอร์
   $('#edSave').onclick = saveEditor;
   $('#edDelete').onclick = () => { if (edCar){ const id = edCar.id; closeEditor(); deleteCar(id); } };
-  $('#f-status').onchange = () => { $('#daysField').style.display = $('#f-status').value === 'rented' ? 'flex' : 'none'; };
+  $('#f-status').onchange = () => { $('#daysField').style.display = $('#f-status').value === 'rented' ? 'flex' : 'none'; paintRentDueHint(); };
+  $('#f-days').addEventListener('input', paintRentDueHint);
+  $('#f-days').addEventListener('change', paintRentDueHint);
   $('#f-plate').addEventListener('input', paintPlatePreview);
   $('#f-plate').addEventListener('blur', () => { $('#f-plate').value = normalizePlate($('#f-plate').value); paintPlatePreview(); });
   const dz = $('#dropZone');
@@ -2669,6 +2988,7 @@ function syncShopInputs(){
 /* ---------- เริ่มระบบ ---------- */
 function init(){
   load();
+  stateDirty = loadDirty();
   autoReleaseExpired({ noRender: true, silent: true });
   const fs = $('#fontSelect');
   fs.innerHTML = FONTS.map(f => '<option value="' + f + '" style="font-family:\'' + f + '\'">' + f + '</option>').join('');
@@ -2687,6 +3007,8 @@ function init(){
   renderSwatches();
   applyDesign();
   bindEvents();
+  bindPosterTextUI();
+  bindPosterCanvasTextDrag();
   renderAll();
   bindPosterPreviewDrag();
   renderPosterPreview();
