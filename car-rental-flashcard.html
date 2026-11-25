@@ -168,6 +168,7 @@ body.flip-vertical .fback{transform:rotateX(180deg)}
 .mbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;max-width:1280px;margin:22px auto 14px;padding:0 18px}
 .mbar .grow{flex:1;min-width:170px}
 .mlist{max-width:1280px;margin:0 auto;padding:0 18px 60px;display:flex;flex-direction:column;gap:12px}
+.mhint{max-width:1280px;margin:0 auto 14px;padding:0 18px;color:var(--sub);font-size:12.5px;line-height:1.5}
 .mrow{display:flex;gap:14px;align-items:center;background:var(--panel);border:1px solid var(--panel-line);border-radius:16px;padding:12px 14px;backdrop-filter:blur(8px);flex-wrap:wrap}
 .mrow .thumb{width:118px;height:74px;border-radius:10px;overflow:hidden;background:#0b1020;flex-shrink:0;border:1px solid var(--panel-line)}
 .mrow .thumb img{width:100%;height:100%;object-fit:cover;display:block}
@@ -394,6 +395,7 @@ body:fullscreen .hero{padding-top:26px}
     </select>
     <button class="btn accent" id="btnAddCar">＋ เพิ่มรถ</button>
   </div>
+  <div class="mhint">กด 1 / 3 / 7 วัน เพื่อติดเช่า — เมื่อครบกำหนดคืน ระบบจะคืนสถานะ "ว่าง" ให้อัตโนมัติ</div>
   <div class="mlist" id="manageList"></div>
   <div class="empty" id="emptyManage" style="display:none">
     <div class="big"></div>
@@ -1120,6 +1122,7 @@ async function applyRemoteDoc(data){
     });
     uploadedSig = {};
     state.cars.forEach(c => { if (c.imgId && imageCache[c.imgId]) uploadedSig[c.imgId] = imageCache[c.imgId].length; });
+    autoReleaseExpired({ noRender: true, silent: true });
     applyDesign();
     renderAll();
     syncPosterForm();
@@ -1295,12 +1298,31 @@ function parsePlate(s){
   return { main: n, prov: '' };
 }
 /* ---------- สร้างการ์ด ---------- */
+function isRentExpired(car){
+  return !!(car && car.status === 'rented' && car.rentEnd && car.rentEnd <= Date.now());
+}
 function statusInfo(car){
-  if (car.status === 'rented'){
-    const expired = car.rentEnd && car.rentEnd <= Date.now();
-    return { cls:'rented', label: expired ? 'ครบกำหนดคืน' : 'ติดเช่า' };
-  }
+  if (car.status === 'rented' && !isRentExpired(car)) return { cls:'rented', label:'ติดเช่า' };
   return { cls:'ok', label:'ว่าง' };
+}
+/* ครบกำหนดคืน → คืนสถานะ "ว่าง" อัตโนมัติ */
+function autoReleaseExpired(opts){
+  opts = opts || {};
+  let changed = 0;
+  state.cars.forEach(c => {
+    if (isRentExpired(c)){ c.status = 'available'; c.rentEnd = null; changed++; }
+  });
+  if (changed){
+    save();
+    if (!opts.noRender){
+      renderAll();
+      const pp = $('#page-poster'), pd = $('#page-design');
+      if (pp && pp.classList.contains('active')) renderPoster();
+      if (pd && pd.classList.contains('active')) renderPreview();
+    }
+    if (!opts.silent) toast('ครบกำหนดคืนแล้ว คืนสถานะ "ว่าง" อัตโนมัติ ' + changed + ' คัน');
+  }
+  return changed;
 }
 function buildFCard(car, opts){
   opts = opts || {};
@@ -1438,7 +1460,7 @@ function updateCountdowns(){
     if (!c || c.status !== 'rented'){ el.textContent = ''; return; }
     if (!c.rentEnd){ el.textContent = 'ติดเช่า'; return; }
     const left = c.rentEnd - Date.now();
-    if (left <= 0){ el.textContent = 'ครบกำหนดคืน!'; el.classList.add('expired'); }
+    if (left <= 0){ el.textContent = ''; el.classList.remove('expired'); }
     else { el.textContent = hhmmss(left); el.classList.remove('expired'); }
   });
 }
@@ -2647,6 +2669,7 @@ function syncShopInputs(){
 /* ---------- เริ่มระบบ ---------- */
 function init(){
   load();
+  autoReleaseExpired({ noRender: true, silent: true });
   const fs = $('#fontSelect');
   fs.innerHTML = FONTS.map(f => '<option value="' + f + '" style="font-family:\'' + f + '\'">' + f + '</option>').join('');
   const ts = $('#tplSelect');
@@ -2667,7 +2690,7 @@ function init(){
   renderAll();
   bindPosterPreviewDrag();
   renderPosterPreview();
-  setInterval(updateCountdowns, 1000);
+  setInterval(() => { autoReleaseExpired(); updateCountdowns(); }, 1000);
   // เริ่มระบบซิงค์ห้องเรียลไทม์ (โหลด localStorage ไปก่อน แล้วฟัง cloud — แบบเดียวกับ sell.html)
   try { $('#roomInputUI').value = currentRoom; } catch(e){}
   appInited = true;
