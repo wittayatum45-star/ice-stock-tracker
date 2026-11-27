@@ -1888,7 +1888,7 @@ function buildPCard(p, opts){
     '</div>' +
     '<div class="fbody">' +
       (p.category ? '<div class="fmeta"><span class="chip">' + esc(p.category) + '</span></div>' : '') +
-      '<div class="fname" style="font-size:var(--title-size)">' + esc(p.name || 'ไม่ระบุชื่อ') + '</div>' +
+      (p.name ? '<div class="fname" style="font-size:var(--title-size)">' + esc(p.name) + '</div>' : '') +
       '<div class="fprice-row" style="margin-top:auto">' +
         '<div class="fprice">' + fmtBaht(p.price) + ' <small>บาท</small></div>' +
       '</div>' +
@@ -2380,7 +2380,7 @@ function renderPosterOrder(){
     const row = document.createElement('div');
     row.className = 'orow';
     row.innerHTML = '<b class="onum">' + (idx + 1) + '</b>' +
-      '<span class="oname">' + esc(c.name || (isProd ? 'ไม่ระบุชื่อ' : '')) + '</span>' +
+      '<span class="oname">' + esc(c.name || '') + '</span>' +
       '<button class="btn sm" data-omove="-1" data-id="' + esc(c.id) + '"' + (idx === 0 ? ' disabled' : '') + ' title="เลื่อนขึ้น">▲</button>' +
       '<button class="btn sm" data-omove="1" data-id="' + esc(c.id) + '"' + (idx === list.length - 1 ? ' disabled' : '') + ' title="เลื่อนลง">▼</button>';
     box.appendChild(row);
@@ -2908,7 +2908,7 @@ function drawPosterProductCard(ctx, p, img, x, y, w, h, P, D, LAYOUT){
   ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
   ctx.font = fontStr(w * .072 * SC('nameS'), '800');
   ctx.fillStyle = D.textColor;
-  ctx.fillText(fitText(ctx, p.name || 'ไม่ระบุชื่อ', w * .93), x + w / 2 + OX('nameX'), y + w * .085 + OX('nameY'));
+  ctx.fillText(fitText(ctx, p.name || '', w * .93), x + w / 2 + OX('nameX'), y + w * .085 + OX('nameY'));
 
   /* หมวดหมู่ */
   if (P.showCat !== false && p.category){
@@ -3280,7 +3280,7 @@ function bindEvents(){
     const backBtn = e.target.closest('[data-back]');
     if (backBtn){ const card = e.target.closest('.fcard'); if (card) card.classList.remove('flipped'); return; }
     const pEdit = e.target.closest('[data-pedit]');
-    if (pEdit){ openProdEditor(pEdit.dataset.pid); return; }
+    if (pEdit){ openProdEditor(pEdit.dataset.pedit); return; }
     if (e.target.closest('.bcontact')) return;
     const card = e.target.closest('.fcard');
     if (card && !card.closest('#previewBox')) card.classList.toggle('flipped');
